@@ -40,7 +40,7 @@ namespace Komponent.Extensions
     {
         private DirectoryEntry _parent;
 
-        public string Name { get; }
+        public string Name { get; set; }
 
         public UPath AbsolutePath => CreateAbsolutePath();
 

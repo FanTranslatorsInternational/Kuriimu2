@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using ImGui.Forms.Controls;
+﻿using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Models;
-using Kontract.Models.Archive;
+using Komponent.Extensions;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 
@@ -17,7 +16,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private TextBox _searchBox;
         private ImageButton _clearButton;
 
-        private TreeView<IList<IArchiveFileInfo>> _treeView;
+        private TreeView<DirectoryEntry> _treeView;
         private DataTable<ArchiveFile> _fileView;
 
         private Label _fileCount;
@@ -84,7 +83,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _searchBox = new TextBox { Placeholder = LocalizationResources.SearchCaptionResource() };
             _clearButton = new ImageButton { Image = ImageResources.Close };
 
-            _treeView = new TreeView<IList<IArchiveFileInfo>> { ContextMenu = _directoryContext };
+            _treeView = new TreeView<DirectoryEntry> { ContextMenu = _directoryContext };
             _fileView = new DataTable<ArchiveFile>
             {
                 Columns =
