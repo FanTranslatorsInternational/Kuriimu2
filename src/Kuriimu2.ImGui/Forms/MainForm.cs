@@ -586,6 +586,7 @@ namespace Kuriimu2.ImGui.Forms
 
             // Update this tab pages information
             var stateEntry = _stateDictionary[fileState];
+            stateEntry.TabPage.HasChanges = fileState.StateChanged;
 
             // If the call was not made by the requesting state, propagate an update action to it
             if (invokeUpdateForm)

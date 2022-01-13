@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using ImGui.Forms.Extensions;
 using ImGui.Forms.Models;
-using ImGuiNET;
 
 namespace Kuriimu2.ImGui.Resources
 {
@@ -28,8 +26,6 @@ namespace Kuriimu2.ImGui.Resources
                 [ImGuiColMax_ + 4] = Color.FromArgb(0xFF, 0xA5, 0x00)
             }
         };
-
-        public static Color TextDefault => ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text).ToColor();
 
         public static Color TextSuccessful => Store[GetTheme()][ImGuiColMax_ + 1];
 

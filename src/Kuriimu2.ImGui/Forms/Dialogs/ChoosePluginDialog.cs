@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ImGui.Forms.Controls;
-using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Modals;
 using Kontract;
 using Kontract.Interfaces.Managers;
@@ -59,9 +59,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             foreach (var groupedPlugins in plugins.GroupBy(x => x.GetType().Assembly))
             {
-                var pluginElements = new List<ChoosePluginElement>();
+                var pluginElements = new List<DataTableRow<ChoosePluginElement>>();
                 foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? string.Empty))
-                    pluginElements.Add(new ChoosePluginElement(plugin));
+                    pluginElements.Add(new DataTableRow<ChoosePluginElement>(new ChoosePluginElement(plugin)));
 
                 _pluginList.Items.Add(new Expander
                 {
@@ -71,7 +71,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             }
         }
 
-        private DataTable<ChoosePluginElement> CreateDataTable(IList<ChoosePluginElement> plugins)
+        private DataTable<ChoosePluginElement> CreateDataTable(IList<DataTableRow<ChoosePluginElement>> plugins)
         {
             var dataTable = new DataTable<ChoosePluginElement>
             {
@@ -126,7 +126,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var dataTable = (DataTable<ChoosePluginElement>)sender;
             if (!dataTable.SelectedRows.Any()) return;
 
-            SelectedPlugin = dataTable.SelectedRows.First().Plugin;
+            SelectedPlugin = dataTable.SelectedRows.First().Data.Plugin;
             _continueButton.Enabled = true;
         }
 
@@ -135,7 +135,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var dataTable = (DataTable<ChoosePluginElement>)sender;
             if (!dataTable.SelectedRows.Any()) return;
 
-            SelectedPlugin = dataTable.SelectedRows.First().Plugin;
+            SelectedPlugin = dataTable.SelectedRows.First().Data.Plugin;
             Result = DialogResult.Ok;
 
             Close();

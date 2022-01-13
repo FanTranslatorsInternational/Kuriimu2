@@ -1,5 +1,6 @@
 ﻿using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Models;
@@ -20,6 +21,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private DataTable<ArchiveFile> _fileView;
 
         private Label _fileCount;
+
+        private Button _cancelBtn;
 
         private ContextMenu _directoryContext;
         private ContextMenu _fileContext;
@@ -95,6 +98,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             };
 
             _fileCount = new Label();
+            _cancelBtn = new Button { Caption = LocalizationResources.CancelOperationResource(), Width = 75, Enabled = false };
 
             #endregion
 
@@ -129,12 +133,31 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     },
                     new StackLayout
                     {
+                        Alignment = Alignment.Vertical,
                         ItemSpacing = 4,
                         Size = new Size(.7f, 1f),
                         Items =
                         {
                             _fileView,
-                            _fileCount
+                            new StackLayout
+                            {
+                                Alignment = Alignment.Horizontal,
+                                Size = new Size(1f,-1),
+                                Items =
+                                {
+                                    _fileCount,
+                                    new StackLayout
+                                    {
+                                        Alignment = Alignment.Horizontal,
+                                        HorizontalAlignment = HorizontalAlignment.Right,
+                                        Size = new Size(1f,-1),
+                                        Items =
+                                        {
+                                            _cancelBtn
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -169,6 +169,8 @@ namespace Kuriimu2.ImGui.Resources
         public static string DeleteFileCancelledStatusResource() => Instance.Localize("DeleteFileCancelledStatus");
         public static string DeleteFileSuccessfulStatusResource() => Instance.Localize("DeleteFileSuccessfulStatus");
 
+        public static string CancelOperationResource() => Instance.Localize("CancelOperation");
+
         #endregion
 
         #region ILocalizer implementation

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Base;
+using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
@@ -30,6 +32,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly FileManager _fileManager;
 
         private readonly IList<IArchiveFileInfo> _openingFiles;
+
+        private readonly HashSet<IArchiveFileInfo> _changedFiles;
+        private readonly HashSet<UPath> _changedDirectories;
+        private readonly HashSet<UPath> _openedDirectories;
+
         private readonly AsyncOperation _asyncOperation;
         private readonly SearchTerm _searchTerm;
 
@@ -43,12 +50,21 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _fileManager = fileManager;
 
             _openingFiles = new List<IArchiveFileInfo>();
+
+            _changedFiles = new HashSet<IArchiveFileInfo>();
+            _changedDirectories = new HashSet<UPath>();
+            _openedDirectories = new HashSet<UPath>();
+
             _asyncOperation = new AsyncOperation();
             _searchTerm = new SearchTerm(_searchBox);
 
             #region Events
 
+            _searchTerm.TextChanged += _searchTerm_TextChanged;
+            _clearButton.Clicked += _clearButton_Clicked;
             _treeView.SelectedNodeChanged += _treeView_SelectedNodeChanged;
+            _treeView.NodeExpanded += _treeView_NodeExpanded;
+            _treeView.NodeCollapsed += _treeView_NodeCollapsed;
 
             _directoryContext.Show += _directoryContext_Show;
             _fileContext.Show += _fileContext_Show;
@@ -66,12 +82,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _addDirectoryButton.Clicked += _addDirectoryButton_Clicked;
             _deleteDirectoryButton.Clicked += _deleteDirectoryButton_Clicked;
 
+            _cancelBtn.Clicked += _cancelBtn_Clicked;
+
+            _asyncOperation.Started += _asyncOperation_Started;
+            _asyncOperation.Finished += _asyncOperation_Finished;
+
             #endregion
 
             #region Updates
 
-            UpdateFileTree(formInfo.PluginState.Files.ToTree());
-            UpdateFileCount(0);
+            UpdateFileTree();
+            UpdateFileView();
 
             #endregion
         }
@@ -80,9 +101,29 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region TreeView
 
+        private void _searchTerm_TextChanged(object sender, EventArgs e)
+        {
+            UpdateFileTree();
+        }
+
+        private void _clearButton_Clicked(object sender, EventArgs e)
+        {
+            _searchTerm.Clear();
+        }
+
         private void _treeView_SelectedNodeChanged(object sender, EventArgs e)
         {
             UpdateFileView(_treeView.SelectedNode?.Data);
+        }
+
+        private void _treeView_NodeCollapsed(object sender, NodeEventArgs<DirectoryEntry> e)
+        {
+            _openedDirectories.Remove(e.Node.Data.AbsolutePath);
+        }
+
+        private void _treeView_NodeExpanded(object sender, NodeEventArgs<DirectoryEntry> e)
+        {
+            _openedDirectories.Add(e.Node.Data.AbsolutePath);
         }
 
         #endregion
@@ -96,8 +137,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return;
 
             // Get current state arguments
-            var isLoadLocked = IsFileLocked(selectedItem.ArchiveFileInfo, true);
-            var isStateLocked = IsFileLocked(selectedItem.ArchiveFileInfo, false);
+            var isLoadLocked = IsFileLocked(selectedItem.Data.ArchiveFileInfo, true);
+            var isStateLocked = IsFileLocked(selectedItem.Data.ArchiveFileInfo, false);
 
             var canExtractFiles = !isStateLocked && !_asyncOperation.IsRunning;
             var canReplaceFiles = _formInfo.CanReplaceFiles && !isLoadLocked && !_asyncOperation.IsRunning;
@@ -107,7 +148,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Update Open With menu node
             _openWithFileMenu.Items.Clear();
 
-            foreach (var pluginId in selectedItem.ArchiveFileInfo.PluginIds ?? Array.Empty<Guid>())
+            foreach (var pluginId in selectedItem.Data.ArchiveFileInfo.PluginIds ?? Array.Empty<Guid>())
             {
                 var filePluginLoader = _fileManager.GetFilePluginLoaders().FirstOrDefault(x => x.Exists(pluginId));
                 var filePlugin = filePluginLoader?.GetPlugin(pluginId);
@@ -118,7 +159,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 var pluginButton = new MenuBarButton { Caption = filePlugin.Metadata.Name };
                 pluginButton.Clicked += async (s, ev) =>
                 {
-                    if (!await OpenFile(selectedItem.ArchiveFileInfo, pluginId))
+                    if (!await OpenFile(selectedItem.Data.ArchiveFileInfo, pluginId))
                         _formInfo.FormCommunicator.ReportStatus(false, LocalizationResources.FileNotSuccessfullyLoadedWithPluginCaptionResource(pluginId));
                 };
 
@@ -156,7 +197,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _openFileButton_Clicked(object sender, EventArgs e)
         {
-            await OpenFiles(_fileView.SelectedRows.ToArray());
+            await OpenFiles(_fileView.SelectedRows.Select(x => x.Data).ToArray());
         }
 
         private async void _extractFileButton_Clicked(object sender, EventArgs e)
@@ -202,6 +243,25 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private async void _deleteDirectoryButton_Clicked(object sender, EventArgs e)
         {
             await DeleteSelectedDirectory();
+        }
+
+        #endregion
+
+        #region AsyncOperation
+
+        private void _cancelBtn_Clicked(object sender, EventArgs e)
+        {
+            _asyncOperation.Cancel();
+        }
+
+        private void _asyncOperation_Started(object sender, EventArgs e)
+        {
+            _cancelBtn.Enabled = true;
+        }
+
+        private void _asyncOperation_Finished(object sender, EventArgs e)
+        {
+            _cancelBtn.Enabled = false;
         }
 
         #endregion
@@ -275,7 +335,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Task ExtractSelectedFiles()
         {
-            return ExtractFiles(_fileView.SelectedRows.Select(x => x.ArchiveFileInfo).ToArray());
+            return ExtractFiles(_fileView.SelectedRows.Select(x => x.Data.ArchiveFileInfo).ToArray());
         }
 
         private Task ExtractSelectedDirectory()
@@ -371,9 +431,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            // TODO: Get root properly
-            var subFolder = _treeView.Nodes.Contains(node) ? node.Caption : nodePath.ToRelative();
-            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem((extractPath / subFolder).FullName, _formInfo.FileState.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem((extractPath / node.Caption).FullName, _formInfo.FileState.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(async cts =>
@@ -422,7 +480,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Task ReplaceSelectedFiles()
         {
-            return ReplaceFiles(_fileView.SelectedRows.Select(x => x.ArchiveFileInfo).ToArray());
+            return ReplaceFiles(_fileView.SelectedRows.Select(x => x.Data.ArchiveFileInfo).ToArray());
         }
 
         private Task ReplaceSelectedDirectory()
@@ -494,6 +552,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(file, currentFileStream);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
+                    _changedFiles.Add(file);
                 }
             });
             _formInfo.Progress.ReportProgress(LocalizationResources.ReplaceFileProgressResource(), 1, 1);
@@ -503,6 +562,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(false, LocalizationResources.ReplaceFileCancelledStatusResource());
             else
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.ReplaceFileSuccessfulStatusResource());
+
+            UpdateFileView(_treeView.SelectedNode?.Data);
 
             _formInfo.FormCommunicator.Update(true, false);
         }
@@ -555,6 +616,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(afi, currentFileStream);
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
+                    _changedFiles.Add(afi);
                 }
             });
             _formInfo.Progress.ReportProgress(LocalizationResources.ReplaceFileProgressResource(), 1, 1);
@@ -565,6 +627,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             else
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.ReplaceFileSuccessfulStatusResource());
 
+            UpdateFileView(node.Data);
+
             _formInfo.FormCommunicator.Update(true, false);
         }
 
@@ -574,7 +638,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Task RenameSelectedFiles()
         {
-            return RenameFiles(_fileView.SelectedRows.Select(x => x.ArchiveFileInfo).ToArray());
+            return RenameFiles(_fileView.SelectedRows.Select(x => x.Data.ArchiveFileInfo).ToArray());
         }
 
         private Task RenameSelectedDirectory()
@@ -621,6 +685,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     afiFileSystem.MoveFile(file.FilePath, file.FilePath.GetDirectory() / newName);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
+                    _changedFiles.Add(file);
                 }
             });
 
@@ -632,6 +697,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(false, LocalizationResources.RenameFileCancelledStatusResource());
             else
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.RenameFileSuccessfulStatusResource());
+
+            UpdateFileView(_treeView.SelectedNode?.Data);
         }
 
         private async Task RenameDirectory(TreeNode<DirectoryEntry> node)
@@ -686,7 +753,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             node.Caption = newName;
             node.Data.Name = newName;
 
-            AddChangedDirectory(node.Data.AbsolutePath.ToAbsolute());
+            AddRenamedDirectory(nodePath.ToRelative(), node.Data.AbsolutePath);
+            AddChangedDirectory(node.Data.AbsolutePath);
 
             // Update progress
             _formInfo.Progress.ReportProgress(LocalizationResources.RenameFileProgressResource(), 1, 1);
@@ -696,6 +764,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(false, LocalizationResources.RenameFileCancelledStatusResource());
             else
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.RenameFileSuccessfulStatusResource());
+
+            UpdateFileView(_treeView.SelectedNode?.Data);
         }
 
         #endregion
@@ -772,6 +842,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     // Add file to directory entries and tree
                     var afi = ((AfiFileEntry)afiFileSystem.GetFileEntry(subFolder / filePath.ToRelative())).ArchiveFileInfo;
                     AddTreeFile(node, filePath.ToRelative(), afi);
+
+                    _changedFiles.Add(afi);
                 }
             });
 
@@ -786,6 +858,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.UnableToAddFilesStatusResource());
             else
                 _formInfo.FormCommunicator.ReportStatus(true, LocalizationResources.AddFileSuccessfulStatusResource());
+
+            UpdateFileView(_treeView.SelectedNode?.Data);
 
             _formInfo.FormCommunicator.Update(true, false);
         }
@@ -805,9 +879,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
 
                 localNode = localNodeTmp;
+                AddChangedDirectory(localNode.Data.AbsolutePath);
             }
 
             localNode.Data.Files.Add(afi);
+            _changedFiles.Add(afi);
         }
 
         #endregion
@@ -816,7 +892,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Task DeleteSelectedFiles()
         {
-            return DeleteFiles(_treeView.SelectedNode.Data, _fileView.SelectedRows.Select(x => x.ArchiveFileInfo).ToArray());
+            return DeleteFiles(_treeView.SelectedNode.Data, _fileView.SelectedRows.Select(x => x.Data.ArchiveFileInfo).ToArray());
         }
 
         private Task DeleteSelectedDirectory()
@@ -925,12 +1001,23 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Update methods
 
+        private void UpdateFileTree()
+        {
+            var afiFileSystem = FileSystemFactory.CreateAfiFileSystem(_formInfo.FileState);
+            var files = afiFileSystem.EnumerateAllFiles(UPath.Root, _searchTerm.Get());
+            var afis = files.Select(x => ((AfiFileEntry)afiFileSystem.GetFileEntry(x)).ArchiveFileInfo).ToArray();
+
+            UpdateFileTree(afis.ToTree());
+        }
+
         private void UpdateFileTree(DirectoryEntry entry, TreeNode<DirectoryEntry> currentNode = null)
         {
             // Create node for entry
             var node = new TreeNode<DirectoryEntry>
             {
-                Caption = string.IsNullOrEmpty(entry.Name) ? _formInfo.FileState.FilePath.GetName() : entry.Name
+                Caption = string.IsNullOrEmpty(entry.Name) ? _formInfo.FileState.FilePath.GetName() : entry.Name,
+                TextColor = _changedDirectories.Contains(entry.AbsolutePath) ? ColorResources.ArchiveChanged : Color.Empty,
+                IsExpanded = currentNode == null || _openedDirectories.Contains(entry.AbsolutePath)
             };
 
             // Add node to tree
@@ -954,13 +1041,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             if (entry == null)
             {
-                _fileView.Rows = new List<ArchiveFile>();
+                _fileView.Rows = new List<DataTableRow<ArchiveFile>>();
                 UpdateFileCount(0);
 
                 return;
             }
 
-            _fileView.Rows = entry.Files.Select(afi => new ArchiveFile(afi)).ToArray();
+            _fileView.Rows = entry.Files.Select(afi => new DataTableRow<ArchiveFile>(new ArchiveFile(afi))
+            {
+                TextColor = _changedFiles.Contains(afi) ? ColorResources.ArchiveChanged : Color.Empty
+            }).ToArray();
+
             UpdateFileCount(entry.Files.Count);
         }
 
@@ -1042,6 +1133,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void AddChangedDirectory(UPath path)
         {
+            // Add paths to global store for changed directories, for complete updates of the tree
+            var full = UPath.Empty;
+            foreach (var part in path.ToRelative().Split())
+            {
+                full /= part;
+                _changedDirectories.Add(full);
+            }
+
+            // Color nodes directly for quicker updates
             var node = _treeView.Nodes[0];
             node.TextColor = ColorResources.ArchiveChanged;
 
@@ -1052,6 +1152,29 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     break;
 
                 node.TextColor = ColorResources.ArchiveChanged;
+            }
+        }
+
+        private void AddRenamedDirectory(UPath oldDirectory, UPath newDirectory)
+        {
+            // Rename elements in opened directories
+            foreach (var opened in _openedDirectories.ToArray())
+            {
+                if (!opened.FullName.StartsWith(oldDirectory.FullName))
+                    continue;
+
+                _openedDirectories.Remove(opened);
+                _openedDirectories.Add(newDirectory / opened.GetSubDirectory(oldDirectory).ToRelative());
+            }
+
+            // Rename elements in changed directories
+            foreach (var changed in _changedDirectories.ToArray())
+            {
+                if (!changed.FullName.StartsWith(oldDirectory.FullName))
+                    continue;
+
+                _changedDirectories.Remove(changed);
+                _changedDirectories.Add(newDirectory / changed.GetSubDirectory(oldDirectory).ToRelative());
             }
         }
 
@@ -1075,18 +1198,32 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         public void UpdateForm()
         {
-            // TODO
+            if (_formInfo.FileState.StateChanged)
+                return;
+
+            // If state has no changes
+
+            // Reset coloring of directories
+            // HINT: If root node has default color, no reset is necessary, since a changed directory propagates to the root node
+            if (_treeView.Nodes[0].TextColor != Color.Empty)
+            {
+                _changedDirectories.Clear();
+                UpdateFileTree();
+            }
+
+            // Reset changed/added files
+            _changedFiles.Clear();
+            UpdateFileView(_treeView.SelectedNode?.Data);
         }
 
         public bool HasRunningOperations()
         {
-            // TODO
-            return false;
+            return _asyncOperation.IsRunning;
         }
 
         public void CancelOperations()
         {
-            // TODO
+            _asyncOperation.Cancel();
         }
 
         #endregion
