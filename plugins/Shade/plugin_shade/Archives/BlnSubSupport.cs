@@ -15,6 +15,7 @@ namespace plugin_shade.Archives
 	// 0x00 => grp.bin
 	// 0x01 => dat.bin
 	// 0x02 => scr.bin
+    // 0x03 => evt.bin
 	
     class BlnSubEntry
     {
