@@ -26,11 +26,12 @@ namespace plugin_shade.Archives
             _unkIndexData = indexBr.ReadBytes((int)(indexBr.BaseStream.Length - indexBr.BaseStream.Position));
 
             // Parse files from mcb1
+            int index = 0;
             var result = new List<IArchiveFileInfo>();
             foreach (var indexEntry in indexEntries)
             {
                 var stream = new SubStream(dataStream, indexEntry.offset, indexEntry.size);
-                result.Add(new BlnArchiveFileInfo(stream, $"{indexEntry.id:X4}.bin", indexEntry)
+                result.Add(new BlnArchiveFileInfo(stream, $"{indexEntry.id:X4}_{index++:D8}.bin", indexEntry)
                 {
                     PluginIds = new[] { Guid.Parse("6d71d07c-b517-496b-b659-3498cd3542fd") }
                 });
