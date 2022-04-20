@@ -276,8 +276,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("I4", true,
                     new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
                 new ExtensionType("I8", true),
-                new ExtensionType("IA35", true),
-                new ExtensionType("IA53", true),
+                new ExtensionType("IA35", true,
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "IA")),
+                new ExtensionType("IA53", true,
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "IA")),
 
                 new ExtensionType("ETC1", true,
                     new ExtensionTypeParameter(Localize(ZOrderKey_), typeof(bool), false)),
@@ -525,10 +527,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return ImageFormats.I8();
 
                 case "IA53":
-                    return ImageFormats.Ia53();
+                    var componentOrder = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    return new Kanvas.Encoding.Index(5, 3, componentOrder);
 
                 case "IA35":
-                    return ImageFormats.Ia35();
+                    var componentOrder1 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    return new Kanvas.Encoding.Index(3, 5, componentOrder1);
 
                 default:
                     return null;
