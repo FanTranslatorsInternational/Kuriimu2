@@ -31,7 +31,7 @@ namespace Kuriimu2.EtoForms.Logging
             var selectedColor = SelectColor(logEvent.Level);
             var createdLogMessage = logEvent.RenderMessage();
 
-            Application.Instance.Invoke(() => LogInternal(selectedColor, createdLogMessage));
+            Application.Instance.Invoke(() => TryLogInternal(selectedColor, createdLogMessage));
         }
 
         private Color SelectColor(LogEventLevel logLevel)
@@ -52,6 +52,18 @@ namespace Kuriimu2.EtoForms.Logging
 
                 default:
                     return Themer.Instance.GetTheme().LogDefaultColor;
+            }
+        }
+
+        private void TryLogInternal(Color logColor, string message)
+        {
+            try
+            {
+                LogInternal(logColor, message);
+            }
+            catch
+            {
+                // Ignore when writing logging message threw exception
             }
         }
 

@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.Wpf", "src\Kuriimu2.Wpf\Kuriimu2.Wpf.csproj", "{3E8B7E03-9EB8-4D86-AB0D-BD63A7CD5070}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "..\src\Kanvas\Kanvas.csproj", "{184693E0-A846-428C-9332-73526EAFEE29}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "..\src\Komponent\Komponent.csproj", "{0FC63E8A-7096-49AC-BF7D-B73E97A1F0F9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "..\src\Kompression\Kompression.csproj", "{4AFFD005-2B92-474A-AC00-02ADABEDAC79}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "..\src\Kontract\Kontract.csproj", "{787A1348-87CC-460D-AE64-2A9EB4717208}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "..\src\Kore\Kore.csproj", "{9F7848A5-F4D1-48E4-BC0B-74D898B2CC6D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "..\src\Kryptography\Kryptography.csproj", "{973BADF2-20B9-4BB0-B1AE-ABDB3A97853B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E8B7E03-9EB8-4D86-AB0D-BD63A7CD5070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E8B7E03-9EB8-4D86-AB0D-BD63A7CD5070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E8B7E03-9EB8-4D86-AB0D-BD63A7CD5070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E8B7E03-9EB8-4D86-AB0D-BD63A7CD5070}.Release|Any CPU.Build.0 = Release|Any CPU
+		{184693E0-A846-428C-9332-73526EAFEE29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{184693E0-A846-428C-9332-73526EAFEE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{184693E0-A846-428C-9332-73526EAFEE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{184693E0-A846-428C-9332-73526EAFEE29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FC63E8A-7096-49AC-BF7D-B73E97A1F0F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FC63E8A-7096-49AC-BF7D-B73E97A1F0F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FC63E8A-7096-49AC-BF7D-B73E97A1F0F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FC63E8A-7096-49AC-BF7D-B73E97A1F0F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AFFD005-2B92-474A-AC00-02ADABEDAC79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AFFD005-2B92-474A-AC00-02ADABEDAC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AFFD005-2B92-474A-AC00-02ADABEDAC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AFFD005-2B92-474A-AC00-02ADABEDAC79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{787A1348-87CC-460D-AE64-2A9EB4717208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{787A1348-87CC-460D-AE64-2A9EB4717208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{787A1348-87CC-460D-AE64-2A9EB4717208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{787A1348-87CC-460D-AE64-2A9EB4717208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F7848A5-F4D1-48E4-BC0B-74D898B2CC6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F7848A5-F4D1-48E4-BC0B-74D898B2CC6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F7848A5-F4D1-48E4-BC0B-74D898B2CC6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F7848A5-F4D1-48E4-BC0B-74D898B2CC6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{973BADF2-20B9-4BB0-B1AE-ABDB3A97853B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{973BADF2-20B9-4BB0-B1AE-ABDB3A97853B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{973BADF2-20B9-4BB0-B1AE-ABDB3A97853B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{973BADF2-20B9-4BB0-B1AE-ABDB3A97853B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B09940B-927B-4C2C-9C18-B9DA2170D8C9}
+	EndGlobalSection
+EndGlobal

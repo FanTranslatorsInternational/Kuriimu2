@@ -159,37 +159,37 @@ jobs:
 
     # Prepare release archives
     - name: Zip EtoForms Windows release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Eto/Wpf
         dest: ./update/Eto/Wpf/latest.zip
 
     - name: Zip EtoForms Linux release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Eto/Gtk
         dest: ./update/Eto/Gtk/latest.zip
 
     - name: Zip EtoForms Mac release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Eto/Mac
         dest: ./update/Eto/Mac/latest.zip
 
     - name: Zip Cmd Windows release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Cmd/Windows
         dest: ./update/Cmd/Windows/latest.zip
 
     - name: Zip Cmd Linux release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Cmd/Linux
         dest: ./update/Cmd/Linux/latest.zip
 
     - name: Zip Cmd Mac release
-      uses: papeloto/action-zip@v1
+      uses: vimtor/action-zip@v1
       with:
         files: ./dist/final/Cmd/Mac
         dest: ./update/Cmd/Mac/latest.zip

@@ -5,12 +5,16 @@ using Kontract.Kompression.Configuration;
 namespace plugin_shade.Archives
 {
 	// Archive index maps to the following bins for Inazuma Eleven Strikers 2013
-	// 0x00 => strap.bin
-	// 0x01 => scn.bin
-	// 0x02 => scn_sh.bin
-	// 0x03 => ui.bin
-	// 0x04 => dat.bin
-	// 0x05 => grp.bin?
+	// 0x00 => grp.bin
+        // 0x01 => scn.bin
+        // 0x02 => scn_sh.bin
+        // 0x03 => ui.bin
+        // 0x04 => dat.bin
+	
+	// For Suzumiya Haruhi no Heiretsu (https://github.com/jonko0493/HaruhiHeiretsuEditor/blob/main/KuriimuBlnPort/BlnSupport/Archives/BlnSubSupport.cs)
+	// 0x00 => grp.bin
+	// 0x01 => dat.bin
+	// 0x02 => scr.bin
 	
     class BlnSubEntry
     {

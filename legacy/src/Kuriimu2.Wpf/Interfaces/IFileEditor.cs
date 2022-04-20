@@ -10,6 +10,6 @@ namespace Kuriimu2.Wpf.Interfaces
         /// <summary>
         /// Provides access to the KoreFile instance associated with the editor.
         /// </summary>
-        IStateInfo KoreFile { get; set;  }
+        IFileState KoreFile { get; set;  }
     }
 }

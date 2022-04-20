@@ -428,7 +428,7 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             // Only if called by a ScopedFileManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            var loadedFile = await LoadFile(fileSystem, path, streamManager, parentFileState, loadFileContext);
+            var loadedFile = await LoadFile(fileSystem, path.ToAbsolute(), streamManager, parentFileState, loadFileContext);
 
             lock (_loadingLock)
                 _loadingFiles.Remove(absoluteFilePath);
@@ -615,6 +615,11 @@ namespace Kore.Managers.Plugins
 
             return new SaveStreamResult(streamFiles, saveResult.Message);
         }
+
+        #endregion
+
+        #region Create file
+
 
         #endregion
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Kanvas;
@@ -8,9 +9,12 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Font;
+using Kontract.Models;
+using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.Font;
 using Kontract.Models.IO;
+using plugin_level5._3DS.Archives;
 
 namespace plugin_level5._3DS.Fonts
 {
@@ -18,9 +22,10 @@ namespace plugin_level5._3DS.Fonts
     {
         private readonly IBaseFileManager _pluginManager;
         private readonly Xf _xf;
+        private readonly Xpck _xpck;
 
         private bool _isChanged;
-        private IFileState _archiveStateInfo;
+        private IList<IArchiveFileInfo> _xpckFiles;
         private IFileState _imageStateInfo;
 
         private List<CharacterInfo> _characters;
@@ -36,21 +41,17 @@ namespace plugin_level5._3DS.Fonts
         {
             _pluginManager = pluginManager;
             _xf = new Xf();
+            _xpck = new Xpck();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            // Load Xpck archive
-            var loadResult = await _pluginManager.LoadFile(fileSystem, filePath, Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f"));
-            if (!loadResult.IsSuccessful)
-                return;
-
-            _archiveStateInfo = loadResult.LoadedFileState;
-            var archiveState = _archiveStateInfo.PluginState as IArchiveState;
+            // Load archive
+            _xpckFiles = _xpck.Load(await fileSystem.OpenFileAsync(filePath));
 
             // Load font image from archive
-            var imageFile = archiveState.Files[0];
-            loadResult = await _pluginManager.LoadFile(_archiveStateInfo, imageFile, Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c"));
+            var fileData = await _xpckFiles[0].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
+            var loadResult = await _pluginManager.LoadFile(new StreamFile(fileData, _xpckFiles[0].FilePath), Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c"));
             if (!loadResult.IsSuccessful)
                 return;
 
@@ -61,8 +62,9 @@ namespace plugin_level5._3DS.Fonts
             var image = imageState.Images[0].GetImage(loadContext.ProgressContext);
 
             // Load characters
-            var fntFile = await archiveState.Files[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
+            var fntFile = await _xpckFiles[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
             _characters = _xf.Load(fntFile, image);
+
             _isChanged = false;
         }
 
@@ -75,18 +77,17 @@ namespace plugin_level5._3DS.Fonts
             // Save image
             imageState.Images[0].SetImage((Bitmap)fontImage);
 
-            var saveResult = await _pluginManager.SaveFile(_imageStateInfo);
+            var saveResult = await _pluginManager.SaveStream(_imageStateInfo);
             if (!saveResult.IsSuccessful)
                 throw saveResult.Exception;
 
-            // Set font file
-            var archiveState = _archiveStateInfo.PluginState as IArchiveState;
-            archiveState.Files[1].SetFileData(fontStream);
+            // Set file data
+            _xpckFiles[0].SetFileData(saveResult.SavedStream[0].Stream);
+            _xpckFiles[1].SetFileData(fontStream);
 
             // Save archive
-            saveResult = await _pluginManager.SaveFile(_archiveStateInfo, fileSystem, savePath);
-            if (!saveResult.IsSuccessful)
-                throw saveResult.Exception;
+            var output = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            _xpck.Save(output, _xpckFiles);
 
             _isChanged = false;
         }

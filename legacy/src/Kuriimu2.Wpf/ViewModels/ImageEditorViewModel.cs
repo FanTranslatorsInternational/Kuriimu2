@@ -11,6 +11,7 @@ using Caliburn.Micro;
 using Kanvas;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Kanvas;
 using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Interfaces;
 using Kuriimu2.Wpf.Tools;
@@ -22,7 +23,7 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _pluginManager;
         private readonly IImageState _state;
 
         // Image View
@@ -30,7 +31,7 @@ namespace Kuriimu2.Wpf.ViewModels
         private double _selectedZoomLevel;
 
         // Bitmap List
-        private KanvasImage _selectedKanvasImage;
+        private IKanvasImage _selectedKanvasImage;
         private ImageSource _selectedImage;
         private ImageSource _selectedPaletteImage;
 
@@ -41,11 +42,11 @@ namespace Kuriimu2.Wpf.ViewModels
         private int _progressValue;
 
         // Data
-        public IStateInfo KoreFile { get; set; }
-        public ObservableCollection<KanvasImage> KanvasImages { get; }
+        public IFileState KoreFile { get; set; }
+        public ObservableCollection<IKanvasImage> KanvasImages { get; }
 
         // Constructor
-        public ImageEditorViewModel(PluginManager pluginManager, IStateInfo koreFile)
+        public ImageEditorViewModel(FileManager pluginManager, IFileState koreFile)
         {
             _pluginManager = pluginManager;
             KoreFile = koreFile;
@@ -53,7 +54,7 @@ namespace Kuriimu2.Wpf.ViewModels
             _state = KoreFile.PluginState as IImageState;
 
             if (_state?.Images != null)
-                KanvasImages = new ObservableCollection<KanvasImage>(_state.Images.Select(x => new KanvasImage(_state, x)));
+                KanvasImages = new ObservableCollection<IKanvasImage>(_state.Images.Select(x => x));
 
             SelectedKanvasImage = KanvasImages?.FirstOrDefault();
             SelectedZoomLevel = 1;
@@ -105,7 +106,7 @@ namespace Kuriimu2.Wpf.ViewModels
         #region Bitmap List
 
         // Image
-        public KanvasImage SelectedKanvasImage
+        public IKanvasImage SelectedKanvasImage
         {
             get => _selectedKanvasImage;
             set

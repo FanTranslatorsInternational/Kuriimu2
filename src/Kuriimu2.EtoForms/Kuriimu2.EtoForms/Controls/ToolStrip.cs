@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Eto.Drawing;
@@ -167,15 +168,22 @@ namespace Kuriimu2.EtoForms.Controls
             var bitmap = (Bitmap)image;
             var clonedImage = bitmap.Clone();
 
-            var data = clonedImage.Lock();
-            data.SetPixels(data.GetPixels().Select(c =>
+            try
             {
-                var grey = c.R * 0.2126f + c.G * 0.7152f + c.B * 0.0722f;
-                return new Color(grey, grey, grey, c.A * 0.5f);
-            }));
-            data.Dispose();
+                var data = clonedImage.Lock();
+                data.SetPixels(data.GetPixels().Select(c =>
+                {
+                    var grey = c.R * 0.2126f + c.G * 0.7152f + c.B * 0.0722f;
+                    return new Color(grey, grey, grey, c.A * 0.5f);
+                }));
+                data.Dispose();
 
-            return clonedImage;
+                return clonedImage;
+            }
+            catch (Exception)
+            {
+                return clonedImage;
+            }
         }
     }
 

@@ -12,7 +12,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class OpenTypeViewModel : Screen
     {
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _pluginManager;
 
         private string _selectedPluginType;
         private ILoadFiles _selectedFormatType;
@@ -26,7 +26,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public OpenTypeViewModel(PluginManager pluginManager)
+        public OpenTypeViewModel(FileManager pluginManager)
         {
             _pluginManager = pluginManager;
 

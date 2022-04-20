@@ -12,13 +12,13 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private ITextState _state;
 
-        public IStateInfo KoreFile { get; set; }
+        public IFileState KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; }
 
         private TextEntry _selectedEntry;
 
         // Constructor
-        public TextEditor1ViewModel(IStateInfo koreFile)
+        public TextEditor1ViewModel(IFileState koreFile)
         {
             KoreFile = koreFile;
 
@@ -38,18 +38,18 @@ namespace Kuriimu2.Wpf.ViewModels
             set
             {
                 _selectedEntry = value;
-                EditedText = _selectedEntry.EditedText;
+                EditedText = _selectedEntry.GetText();
                 NotifyOfPropertyChange(() => SelectedEntry);
             }
         }
 
         public string EditedText
         {
-            get => _selectedEntry?.EditedText;
+            get => _selectedEntry?.GetText();
             set
             {
                 if (_selectedEntry == null) return;
-                _selectedEntry.EditedText = value;
+                _selectedEntry.SetText(value);
                 NotifyOfPropertyChange(() => EditedText);
             }
         }

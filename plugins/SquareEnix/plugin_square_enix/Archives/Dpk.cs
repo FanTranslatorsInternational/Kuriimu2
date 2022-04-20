@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
@@ -25,8 +24,6 @@ namespace plugin_square_enix.Archives
             // Read entries
             input.Position = BlockSize;
             var entries = br.ReadMultiple<DpkEntry>(header.fileCount);
-
-            var ordered = entries.OrderBy(x => x.name.Trim('\0')).ToArray();
 
             // Add files
             var result = new List<IArchiveFileInfo>();
@@ -71,6 +68,9 @@ namespace plugin_square_enix.Archives
 
                 filePosition += (int)((writtenSize + (BlockSize - 1)) & ~(BlockSize - 1));
             }
+
+            if (output.Position % BlockSize != 0)
+                bw.WriteAlignment(BlockSize);
 
             // Write entries
             // HINT: Entries are ordered by nameSum

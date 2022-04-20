@@ -21,7 +21,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private PluginManager _pluginManager;
+        private FileManager _pluginManager;
 
         #endregion
 
@@ -30,7 +30,7 @@ namespace Kuriimu2.Wpf.ViewModels
             DisplayName = "Kuriimu2.Wpf";
 
             // Assign plugin loading event handler.
-            _pluginManager = new PluginManager(new ProgressContext(new NullProgressOutput()), "plugins");
+            _pluginManager = new FileManager("plugins") { Progress = new ProgressContext(new NullProgressOutput()) };
 
             // TODO: Add event for failed identification
             //_pluginManager.IdentificationFailed += FileIdentificationFailed;
@@ -204,9 +204,9 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private async Task<bool> LoadFile(string filename)
         {
-            IStateInfo kfi = null;
+            IFileState kfi = null;
 
-            var loadResult = await _pluginManager.LoadFile(filename,Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a"));
+            var loadResult = await _pluginManager.LoadFile(filename, Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a"));
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
@@ -217,14 +217,14 @@ namespace Kuriimu2.Wpf.ViewModels
                 return false;
             }
 
-            kfi = loadResult.LoadedState;
+            kfi = loadResult.LoadedFileState;
 
             ActivateTab(kfi);
 
             return true;
         }
 
-        private void ActivateTab(IStateInfo kfi)
+        private void ActivateTab(IFileState kfi)
         {
             if (kfi == null) return;
 

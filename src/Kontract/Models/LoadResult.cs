@@ -9,12 +9,12 @@ namespace Kontract.Models
         /// Determines the status of the load.
         /// </summary>
         private LoadStatus Status { get; }
-        
+
         /// <summary>
         /// Declares if the load process was successful.
         /// </summary>
         public bool IsSuccessful => Status == LoadStatus.Successful;
-        
+
         /// <summary>
         /// Declares if the load process was cancelled.
         /// </summary>
@@ -40,8 +40,8 @@ namespace Kontract.Models
         {
             Status = status;
         }
-        
-        public static LoadResult CancelledResult => new LoadResult(LoadStatus.Cancelled);
+
+        public static LoadResult Cancelled => new LoadResult(LoadStatus.Cancelled);
 
         public LoadResult(IFileState fileState) :
             this(LoadStatus.Successful)
@@ -70,7 +70,7 @@ namespace Kontract.Models
             Message = exception.Message;
             Exception = exception;
         }
-        
+
     }
 
     public enum LoadStatus

@@ -1129,6 +1129,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), count++, files.Count);
 
                     _archiveFileSystem.DeleteFile(file.FilePath);
+
+                    AddChangedDirectory(file.FilePath.GetDirectory());
                 }
             });
             _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), 1, 1);
@@ -1140,7 +1142,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(true, Localize(DeleteFileSuccessfulStatusKy_));
 
             UpdateDirectories();
-            UpdateFiles(UPath.Root);
+            UpdateFiles(_selectedPath);
 
             _formInfo.FormCommunicator.Update(true, false);
         }
@@ -1180,6 +1182,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), count++, filePaths.Length);
 
                     _archiveFileSystem.DeleteFile(itemPath / filePath);
+
+                    AddChangedDirectory(itemPath);
                 }
             });
 
