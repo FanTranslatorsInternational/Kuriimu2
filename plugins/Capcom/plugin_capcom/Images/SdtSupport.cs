@@ -33,12 +33,14 @@ namespace plugin_dotemu.Images
         public static readonly IDictionary<int, IIndexEncoding> IndexFormats = new Dictionary<int, IIndexEncoding>
         {
             [0x01] = new Index(5,3, "AI"),
+            [0x03] = ImageFormats.I4(Kontract.Models.IO.BitOrder.LeastSignificantBitFirst),
             [0x04] = ImageFormats.I8(),
         };
         public static EncodingDefinition GetEncodingDefinition()
         {
             var definition = new EncodingDefinition();
             definition.AddPaletteEncoding(0, new Rgba(5, 5, 5, "BGR"));
+
             definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition(x.Value, new[] { 0 }))).ToArray());
             return definition;
         }
