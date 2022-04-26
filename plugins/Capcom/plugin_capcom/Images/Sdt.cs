@@ -1,8 +1,7 @@
-using System;
-using System.Drawing;
-using System.IO;
 using Komponent.IO;
 using Kontract.Models.Image;
+using System.Drawing;
+using System.IO;
 
 namespace plugin_dotemu.Images
 {
@@ -12,15 +11,15 @@ namespace plugin_dotemu.Images
 
         public ImageInfo Load(Stream input)
         {
-            using var br = new BinaryReaderX(input);
+            using BinaryReaderX br = new BinaryReaderX(input);
 
             // Read header
             _header = br.ReadType<SdtHeader>();
 
             // Read image info
-            var imgData = br.ReadBytes(_header.imageSize);
-            var imageInfo = new ImageInfo(imgData, _header.unk1, new Size(_header.width, _header.height));
-            var paletteData = br.ReadBytes(_header.paletteSize);
+            byte[] imgData = br.ReadBytes(_header.imageSize);
+            ImageInfo imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height));
+            byte[] paletteData = br.ReadBytes(_header.paletteSize);
             imageInfo.PadSize.Width.ToPowerOfTwo();
 
             imageInfo.PaletteData = paletteData;

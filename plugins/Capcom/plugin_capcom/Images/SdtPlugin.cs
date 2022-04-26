@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
@@ -8,6 +6,8 @@ using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using System;
+using System.Threading.Tasks;
 
 namespace plugin_capcom.Images
 {
@@ -20,15 +20,15 @@ namespace plugin_capcom.Images
 
         public SdtPlugin()
         {
-            Metadata = new PluginMetadata("SDT", "Caleb Mabry", "Main image resource.");
+            Metadata = new PluginMetadata("SDT", "Caleb Mabry", "Images for Ghost Trick iOS.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            System.IO.Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadString(3);
+            using BinaryReaderX br = new BinaryReaderX(fileStream);
+            string magic = br.ReadString(3);
 
             return magic == "sdt";
         }

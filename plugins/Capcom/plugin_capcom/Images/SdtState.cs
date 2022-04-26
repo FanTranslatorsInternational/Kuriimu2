@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Kanvas;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -10,6 +6,10 @@ using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 using plugin_dotemu.Images;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace plugin_capcom.Images
 {
@@ -31,7 +31,7 @@ namespace plugin_capcom.Images
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _img.Load(fileStream)) };
         }
 
