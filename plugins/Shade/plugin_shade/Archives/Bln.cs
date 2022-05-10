@@ -31,7 +31,7 @@ namespace plugin_shade.Archives
             foreach (var indexEntry in indexEntries)
             {
                 var stream = new SubStream(dataStream, indexEntry.offset, indexEntry.size);
-                result.Add(new BlnArchiveFileInfo(stream, $"{indexEntry.id:X4}_{index++:D8}.bin", indexEntry)
+                result.Add(new BlnArchiveFileInfo(stream, $"{index++:D8}_{indexEntry.id:X4}.bin", indexEntry)
                 {
                     PluginIds = new[] { Guid.Parse("6d71d07c-b517-496b-b659-3498cd3542fd") }
                 });
