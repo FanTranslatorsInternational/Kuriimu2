@@ -7,12 +7,10 @@ namespace plugin_capcom.Archives
 {
     public class GtPacHeader
     {
-        [FixedLength(8)]
         public int fileCount;
-        public uint fileOffsetTableSize;
     }
     class GtPacSupport
     {
-
+        public int offset;
     }
 }

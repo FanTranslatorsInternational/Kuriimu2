@@ -30,6 +30,7 @@ namespace plugin_dotemu.Images
             [0x01] = new Index(5, 3, "AI"),
             [0x03] = ImageFormats.I4(Kontract.Models.IO.BitOrder.LeastSignificantBitFirst),
             [0x04] = ImageFormats.I8(),
+            [0X06] = new Index(3, 5, "AI")
         };
         public static EncodingDefinition GetEncodingDefinition()
         {

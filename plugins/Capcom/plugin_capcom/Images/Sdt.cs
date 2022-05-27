@@ -12,13 +12,12 @@ namespace plugin_dotemu.Images
         public ImageInfo Load(Stream input)
         {
             using BinaryReaderX br = new BinaryReaderX(input);
-
             // Read header
             _header = br.ReadType<SdtHeader>();
 
             // Read image info
             byte[] imgData = br.ReadBytes(_header.imageSize);
-            ImageInfo imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height));
+            var imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height));
             byte[] paletteData = br.ReadBytes(_header.paletteSize);
             imageInfo.PadSize.Width.ToPowerOfTwo();
 
