@@ -7,7 +7,7 @@ namespace plugin_shade.Archives
 {
     class Mcb0Entry
     {
-        public short unk1;
+        public short id;
         public short unk2;
         public uint offset;
         public uint size;
