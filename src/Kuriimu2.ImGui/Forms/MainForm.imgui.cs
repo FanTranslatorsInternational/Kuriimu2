@@ -31,6 +31,8 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarRadio _changeLanguageMenu;
         private MenuBarRadio _changeThemeMenu;
 
+        private MenuBarButton _aboutButton;
+
         private TabControl _tabControl;
         private ProgressBar _progressBar;
         private StatusLabel _statusText;
@@ -71,6 +73,8 @@ namespace Kuriimu2.ImGui.Forms
             _changeLanguageMenu = new MenuBarRadio { Caption = LocalizationResources.ChangeLanguageResource() };
             _changeThemeMenu = new MenuBarRadio { Caption = LocalizationResources.ChangeThemeResource() };
 
+            _aboutButton = new MenuBarButton { Caption = LocalizationResources.AboutKuriimuResource() };
+
             AddLanguages(_changeLanguageMenu);
             AddThemes(_changeThemeMenu);
 
@@ -110,6 +114,10 @@ namespace Kuriimu2.ImGui.Forms
                         _includeDevBuildsButton,
                         _changeLanguageMenu,
                         _changeThemeMenu
+                    }},
+                    new MenuBarMenu{Caption = LocalizationResources.HelpResource(), Items =
+                    {
+                        _aboutButton
                     }}
                 }
             };

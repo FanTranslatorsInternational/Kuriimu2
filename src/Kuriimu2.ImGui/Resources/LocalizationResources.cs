@@ -42,6 +42,7 @@ namespace Kuriimu2.ImGui.Resources
         public static string CiphersResource() => Instance.Localize("Ciphers");
         public static string CompressionsResource() => Instance.Localize("Compressions");
         public static string SettingsResource() => Instance.Localize("Settings");
+        public static string CloseResource() => Instance.Localize("Close");
 
         public static string OpenResource() => Instance.Localize("Open");
         public static string OpenWithResource() => Instance.Localize("OpenWith");
@@ -170,6 +171,14 @@ namespace Kuriimu2.ImGui.Resources
         public static string DeleteFileSuccessfulStatusResource() => Instance.Localize("DeleteFileSuccessfulStatus");
 
         public static string CancelOperationResource() => Instance.Localize("CancelOperation");
+
+        // About Dialog
+        public static string HelpResource() => Instance.Localize("Help");
+        public static string AboutKuriimuResource() => Instance.Localize("AboutKuriimu");
+        public static string AboutTitleResource() => Instance.Localize("AboutTitle");
+        public static string AboutVersionResource() => Instance.Localize("AboutVersion");
+        public static string AboutDescriptionResource() => Instance.Localize("AboutDescription");
+
 
         #endregion
 

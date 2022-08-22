@@ -43,7 +43,7 @@
   "ThemeUnsupportedPlatformCaption": "Unsupported Platform Error",
 
   "Help": "Help",
-  "AboutKuriimu2": "About Kuriimu2",
+  "AboutKuriimu": "About Kuriimu",
 
   "LoadErrorCaption": "Load Error",
   "SaveErrorCaption": "Save Error",
@@ -259,5 +259,11 @@
   "ProcessFinishedCaption": "The results are written to {0}.",
   "ProcessFinishedTitle": "Done!",
   "CipherNotSupported": "Unsupported cipher {0}.",
-  "CompressionNotSupported": "Unsupported cipher {0}."
+  "CompressionNotSupported": "Unsupported cipher {0}.",
+
+  // About Dialog
+  "AboutTitle": "Kuriimu",
+  "AboutVersion": "Version",
+  "AboutDescription": "Kuriimu2 is a general purpose game translation project\nmanager and toolkit for authors of fan translations and\ngame mods."
+
 }

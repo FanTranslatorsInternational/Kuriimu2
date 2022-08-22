@@ -95,6 +95,8 @@ namespace Kuriimu2.ImGui.Forms
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
 
+            _aboutButton.Clicked += _aboutButton_Clicked;
+
             #endregion
 
             UpdateFormTitle();
@@ -262,6 +264,11 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async void _aboutButton_Clicked(object sender, EventArgs e)
+        {
+            await ShowAboutDialog();
+        }
 
         #endregion
 
@@ -557,6 +564,12 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async Task<DialogResult> ShowAboutDialog()
+        {
+            var AboutDialog = new AboutDialog();
+            return await AboutDialog.ShowAsync();
+        }
 
         #endregion
 
