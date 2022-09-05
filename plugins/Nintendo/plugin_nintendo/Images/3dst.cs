@@ -20,6 +20,7 @@ namespace plugin_nintendo.Images
             _header = br.ReadType<_3dstHeader>();
 
             // Read image data
+            br.BaseStream.Position = 0x80;
             var imgData = br.ReadBytes((int)(input.Length - 0x80));
 
             // Create image info
