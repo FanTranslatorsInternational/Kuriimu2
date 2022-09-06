@@ -22,11 +22,11 @@ namespace plugin_nintendo.Images
     {
         private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
-            // [0] = ImageFormats.Rgba8888(),
-            // [1] = ImageFormats.Rgb888(),
+            [0] = ImageFormats.Rgba8888(),
+            [1] = ImageFormats.Rgb888(),
             // [2] = ImageFormats.Rgba5551(),
             // [3] = ImageFormats.Rgb565(),
-            // [4] = ImageFormats.Rgba4444(),
+            [4] = ImageFormats.Etc1(true),
             // [5] = ImageFormats.La88(),
             // [6] = ImageFormats.Rg88(),
             // [7] = ImageFormats.L8(),
@@ -34,10 +34,8 @@ namespace plugin_nintendo.Images
             // [9] = ImageFormats.La44(),
             // [10] = ImageFormats.L4(),
             // [11] = ImageFormats.A4(),
-            // [12] = ImageFormats.Etc1(true),
+            // [12] = ImageFormats.Rgba4444(),
             // [13] = ImageFormats.Etc1A4(true),
-            [0] = ImageFormats.Rgba8888(),
-            [4] = ImageFormats.Etc1(true),
         };
 
         public static EncodingDefinition GetEncodingDefinition()
