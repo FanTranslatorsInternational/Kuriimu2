@@ -24,18 +24,11 @@ namespace plugin_nintendo.Images
         {
             [0] = ImageFormats.Rgba8888(),
             [1] = ImageFormats.Rgb888(),
-            // [2] = ImageFormats.La88(),
-            // [3] = ImageFormats.Rg88(),
+            [2] = ImageFormats.A8(),
             [4] = ImageFormats.Etc1(true),
             [5] = ImageFormats.Rgba5551(),
             [6] = ImageFormats.Rgb565(),
-            [7] = ImageFormats.Rgba4444(),
-            // [8] = ImageFormats.A8(),
-            // [9] = ImageFormats.La44(),
-            // [10] = ImageFormats.L4(),
-            // [11] = ImageFormats.A4(),
-            // [12] = ImageFormats.L8(),
-            // [13] = ImageFormats.Etc1A4(true),
+            [7] = ImageFormats.Rgba4444()
         };
 
         public static EncodingDefinition GetEncodingDefinition()
