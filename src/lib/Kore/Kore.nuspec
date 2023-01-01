@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Kore</id>
+    <version>2.0.8</version>
+    <description>A library containing all instances, helpers, and models supporting the UI's for Kuriimu2.</description>
+
+    <authors>onepiecefreak;IcySon55</authors>
+    <owners>onepiecefreak;IcySon55</owners>
+    <copyright>Copyright (c) 2019 Fan Translators International</copyright>
+
+    <projectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</projectUrl>
+    <icon>kuriimu2icon.png</icon>
+    <tags>Kuriimu2;Core;Entry</tags>
+
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">GPL-3.0-only</license>
+
+    <dependencies>
+      <group targetFramework="net5.0">
+        <dependency id="morelinq" version="3.3.2" />
+        <dependency id="Newtonsoft.Json" version="12.0.3" />
+        <dependency id="Serilog" version="2.10.0" />
+      </group>
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="bin\Release\net5.0\*.dll" target="lib\net5.0\"/>
+    <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>
+  </files>
+</package>

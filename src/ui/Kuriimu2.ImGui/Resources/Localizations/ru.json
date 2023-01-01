@@ -1,0 +1,298 @@
+{
+  "Name": "русский",
+
+  // Kuriimu2
+
+  // Menu bar texts
+  "Menu.File": "Файл",
+  "Menu.Tools": "Инструменты",
+  "Menu.Ciphers": "Шифры",
+  "Menu.Compressions": "Сжатия",
+  "Menu.Settings": "Настройки",
+  //"Help": "Помощь",
+  //"AboutKuriimu2": "О Kuriimu2",
+
+  // File sub menu
+  "Menu.File.Open": "Открыть",
+  "Menu.File.OpenWith": "Открыть через...",
+  "Menu.File.Save": "Сохранить",
+  "Menu.File.SaveAs": "Сохранить как...",
+  "Menu.File.SaveAll": "Сохранить всё",
+  "Menu.File.Close": "Закрыть",
+
+  // Tools sub menu
+  "Menu.Tools.TextSequenceSearcher": "Поиск текста",
+  "Menu.Tools.BatchExtractor": "Извлечь всё",
+  "Menu.Tools.BatchInjector": "Заменить всё",
+  "Menu.Tools.Hashes": "Хэш-суммы",
+  "Menu.Tools.RawImageViewer": "Просмотр RAW изображений",
+
+  // Ciphers sub menu
+  "Menu.Ciphers.Encrypt": "Зашифровать",
+  "Menu.Ciphers.Decrypt": "Расшифровать",
+
+  // Compressions sub menu
+  "Menu.Compressions.Decompress": "Разжать",
+  "Menu.Compressions.Compress": "Сжать",
+
+  // Settings sub menu
+  "Menu.Settings.IncludeDevBuilds": "Включить сборки разработчиков",
+  "Menu.Settings.ChangeLanguage": "Изменить язык",
+  "Menu.Settings.ChangeTheme": "Изменить тему",
+
+  // Change theme sub menu
+  "Menu.Settings.ChangeTheme.Dark": "Тёмная тема",
+  "Menu.Settings.ChangeTheme.Light": "Светлая тема",
+
+  // Change language dialog
+  "Dialog.ChangeLanguage.Caption": "Изменённые настройки",
+  "Dialog.ChangeLanguage.Text": "Изменения будут применены только после перезапуска.",
+
+  // Change theme dialog
+  "Dialog.ChangeTheme.Restart.Caption": "Перезапуск",
+  "Dialog.ChangeTheme.Restart.Text": "Чтобы применить тему, необходим перезапуск.",
+
+  // Update available dialog
+  "Dialog.UpdateAvailable.Caption": "Доступно обновление",
+  "Dialog.UpdateAvailable.Text": "Хотите ли вы обновиться с {0}-{1} на {2}-{3}?",
+
+  // Exception catched dialog
+  "Dialog.ExceptionCatched.Caption": "Отчёт об ошибке записан",
+
+  // Unhandled exception dialog
+  "Dialog.UnhandledException.Caption": "Непредвиденная ошибка",
+  "Dialog.UnhandledException.Text.Close": "Произошла непредвиденная ошибка. Для получения большей информации обратитесь к отчёту. Приложение будет закрыто.",
+  "Dialog.UnhandledException.Text.NotClose": "Произошла непредвиденная ошибка. Для получения большей информации обратитесь к отчёту.",
+
+  // Plugins not available dialog
+  "Dialog.PluginsNotAvailable.Caption": "Плагины недоступны",
+  "Dialog.PluginsNotAvailable.Text": "Следующие плагины не могут быть загружены:",
+
+  // Load error dialog
+  "Dialog.LoadError.Caption": "Ошибка при загрузке",
+
+  // Unsaved changes dialog
+  "Dialog.UnsavedChanges.Caption": "Несохранённые изменения",
+  "Dialog.UnsavedChanges.Text.Specific": "{0} или открытые подфайлы были изменены. Хотите ли вы сохранить эти изменения?",
+  "Dialog.UnsavedChanges.Text.Generic": "Один или несколько файлов были изменены. Хотите ли вы сохранить эти изменения?",
+
+  // Dependant files dialog
+  "Dialog.DependantFiles.Caption": "Зависимые файлы",
+  "Dialog.DependantFiles.Text": "Каждый нижеследующий файл, включая текущий, будет закрыт. Продолжить?",
+
+  // Save error dialog
+  "Dialog.SaveError.Caption": "Ошибка при сохранении",
+
+  // Status labels
+  "Status.Plugin.Select.None": "Не выбран плагин.",
+  //"Status.Plugin.Select.Unknown": "Unknown plugin state type {0}.",
+  "Status.File.Select.None": "Не выбран файл.",
+  "Status.File.Select.Invalid": "Выбран недействительный файл.",
+  "Status.File.Load.Cancel": "Загрузка отменена.",
+  "Status.File.Load.Opening": "{0} уже открывается.",
+  "Status.File.Load.Saving": "{0} уже сохраняется.",
+  "Status.File.Load.Success": "Файл загружен успешно.",
+  "Status.File.Load.Failure": "Произошла ошибка при загрузке файла.",
+  "Status.File.Load.FailureWithPlugin": "Плагин {0} не смог загрузить файл.",
+  "Status.File.Save.Success": "Файл сохранён успешно.",
+  "Status.File.Save.Failure": "Произошла ошибка при сохранении файла.",
+  "Status.Operation.Running": "Действия ещё применяются и файл не может быть закрыт.",
+
+  // Error messages
+  "Error.Unsupported.OperatingSystem": "Неподдерживаемая операционная система: {0}.",
+
+  // File Filters
+  "Filter.All": "Все файлы",
+  "Filter.Png": "Portable Network Graphics (*.png)",
+
+
+  // Archive Form
+
+  // File operations
+  "Archive.File.Extract": "Извлечь",
+  "Archive.File.Replace": "Заменить",
+  "Archive.File.Rename": "Переименовать",
+  "Archive.File.Delete": "Удалить",
+
+  // Folder operations
+  "Archive.Directory.Extract": "Извлечь",
+  "Archive.Directory.Replace": "Заменить",
+  "Archive.Directory.Rename": "Переименовать",
+  "Archive.Directory.Delete": "Удалить",
+  "Archive.Directory.Add": "Добавить",
+
+  // Status labels
+  "Archive.Status.Extract.Cancel": "Извлечение отменено.",
+  "Archive.Status.Replace.Cancel": "Замена отменена.",
+  "Archive.Status.Rename.Cancel": "Переименование отменено.",
+  "Archive.Status.Delete.Cancel": "Удаление отменено",
+  "Archive.Status.Add.Cancel": "Добавление отменено.",
+
+  "Archive.Status.Extract.Success": "Файл(ы) извлечены успешно.",
+  "Archive.Status.Replace.Success": "Файл(ы) заменены успешно.",
+  "Archive.Status.Rename.Success": "Файл(ы) переименованы успешно.",
+  "Archive.Status.Delete.Success": "Файл(ы) удалены успешно.",
+  "Archive.Status.Add.Success": "Файл(ы) добавлены успешно.",
+
+  "Archive.Status.Rename.Error.NoName": "Не удалось задать новое имя.",
+  "Archive.Status.Add.Error": "Некоторые файлы не могут быть добавлены. Для получения большей информации обратитесь к логу.",
+
+  "Archive.Status.Select.None": "Цель не выбрана.",
+  "Archive.Status.Extract.None": "Нет файлов для извлечения.",
+  "Archive.Status.Replace.None": "Нет файлов для замены.",
+  "Archive.Status.Rename.None": "Нет файлов для переименования.",
+  "Archive.Status.Delete.None": "Нет файлов для удаления.",
+  "Archive.Status.Add.None": "Нет файлов для добавления.",
+
+  // Progress labels
+  "Archive.Progress.Extract": "Извлечение файлов",
+  "Archive.Progress.Replace": "Замена файлов",
+  "Archive.Progress.Rename": "Переименование файлов",
+  "Archive.Progress.Delete": "Удаление файлов",
+  "Archive.Progress.Add": "Добавление файлов",
+
+  // Rename dialog
+  "Archive.Dialog.Rename.File.Caption": "Переименовать файл",
+  "Archive.Dialog.Rename.Directory.Caption": "Переименовать директорию",
+  "Archive.Dialog.Rename.Text": "Выберите новое имя для {0}:",
+
+  // File headers
+  "Archive.Table.Files.Name": "Имя",
+  "Archive.Table.Files.Size": "Размер",
+
+  // Search bar
+  //"Archive.Search.Placeholder": "Search...",
+  "Archive.Search.Clear": "Очистить",
+
+  // Misc
+  //"Archive.FileCount": "Files: {0}",
+  "Archive.CancelOperation": "Отменить",
+
+
+  // Dialogs
+
+  // Choose plugin dialog
+  "Dialog.ChoosePlugin.Caption": "Выберите плагин",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Выберите плагин для открытия файла:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Не удалось определить плагин автоматически. Пожалуйста, выберите вручную:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Несколько плагинов могут открыть этот файл. Выберите один из них:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "По умолчанию показаны только плагины, не умеющие определять поддержку файла.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Название",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Тип",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Описание",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Продолжить",
+  "Dialog.ChoosePlugin.ViewRaw": "Просмотреть raw байты",
+  "Dialog.ChoosePlugin.Cancel": "Отмена",
+  "Dialog.ChoosePlugin.ShowAll": "Показать все плагины"
+
+  //// Kuriimu2 Image form
+  //"ExportImage": "Экспортировать изображение",
+  //"ImportImage": "Импортировать изображение",
+
+  //"Width": "Ширина:",
+  //"Height": "Высота:",
+  //"Format": "Формат:",
+  //"Palette": "Палитра:",
+
+  //"ExportPngTitle": "Экспортировать PNG...",
+  //"ImportPngTitle": "Импортировать PNG...",
+
+  //"ImageSuccessfullyImportedStatus": "Изображение импортировано успешно.",
+
+  //"PngFileFilter": "Portable Network Graphics (*.png)",
+
+  //// Kuriimu2 Text Sequence Searcher
+  //"TextSequenceSearcherTitle": "Поиск последовательности текста",
+  //"SearchSubfolders": "Искать в подпапках",
+
+  //"Find": "Найти",
+  //"FindIn": "Найти в:",
+  //"FindWhat": "Найти что:",
+  //"Browse": "Обзор...",
+  //"Encoding": "Кодировка:",
+
+  //"SelectSearchDirectory": "Выберите директорию для поиска",
+
+  //"SelectEncodingCaption": "Выберите кодировку.",
+  //"SelectSearchDirectoryCaption": "Выберите директорию для поиска.",
+  //"SelectSearchTextCaption": "Выберите текст, который нужно найти",
+
+  //// Kuriimu2 DialogManager
+  //"CancelDialog": "Диалог был отменён.",
+  //"UnsupportedDialogFieldType": "Неподдерживаемый тип диалогового окна {0}.",
+  //"DialogOkButton": "Oк",
+
+  //// Kuriimu2 InputBox
+  //"InputBoxOkButton": "Oк",
+
+  //// Kuriimu2 RawImageViewer
+  //"NoSwizzle": "Нет",
+  //"CustomSwizzle": "Пользовательский свизл",
+
+  //"ComponentOrder": "Порядок компонентов",
+  //"ByteOrder": "Порядок байтов",
+  //"BitOrder": "Порядок битов",
+  //"ZOrder": "Z-порядок",
+  //"AlphaLuminance": "Альфа/Яркость",
+  //"AlphaMode": "Альфа-режим",
+  //"SwizzleMode": "Свизл-режим",
+  //"BitMapping": "Перевод в растровый формат",
+  //"InitPoint": "Точка инициализации",
+  //"YTransform": "Y-трансформация",
+
+  //"InvalidInputValuesStatus": "Введённые значения недопустимы.",
+  //"InvalidCustomSwizzleStatus": "Пользовательский свизл недействителен.",
+
+  //"SelectedFileNotExistStatus": "Выбранный файл не существует.",
+
+  //"RawImageViewerEncodingParameters": "Параметры кодировки",
+  //"RawImageViewerEncodingPaletteParameters": "Параметры кодировки палитраы",
+  //"RawImageViewerSwizzleParameters": "Параметры свизл",
+
+  //"Offset": "Компенсация:",
+  //"PaletteOffset": "Компенсация палитры:",
+  //"Swizzle": "Свизл:",
+
+  //"Process": "Процесс",
+
+  //// Kuriimu2 BatchDialog
+  //"AvgTimePerFile": "Среднее время на файл:",
+  //"AvgTimePerFileTimed": "Среднее время на файл: {0}ms",
+
+  //"BatchAvailablePlugins": "Плагины",
+  //"BatchSelectInput": "Выбрать ввод...",
+  //"BatchSelectOutput": "Выбрать вывод...",
+  //"Execute": "Выполнить",
+
+  //"BatchSelectPluginStatus": "Выберите плагин.",
+
+  //"BatchExtractSourceEmpty": "Выберите директорию с файлами для извлечения.",
+  //"BatchExtractDestinationEmpty": "Выберите директорию, в которую нужно извлечь файлы.",
+
+  //"BatchInjectSourceEmpty": "Выберите директорию с файлами для вставки.",
+  //"BatchInjectDestinationEmpty": "Выберите директорию с папками для вставки файлов.",
+
+  //// Kuriimu2 Extension Dialogs
+  //"ExtensionParameters": "Параметры",
+  //"AutoExecute": "Выполнить при перетаскивании",
+
+  //"SelectFolder": "Выберите папку...",
+  //"SelectFile": "Выберите файл...",
+
+  //"Compression": "Сжатие",
+  //"Decompression": "Расжатие",
+  //"Encryption": "Зашифровка",
+  //"Decryption": "Расшифровка",
+
+  //"SelectTypeExtension": "Выберите {0}.",
+  //"SelectFileOrFolder": "Выберите файл или директорию для продолжения.",
+  //"FileFailed": "{0} не смог выполнить: {1}",
+  //"ProcessFinishedCaption": "Результаты записаны в {0}.",
+  //"ProcessFinishedTitle": "Готово!",
+  //"CipherNotSupported": "Неподдерживаемый шифр {0}.",
+  //"CompressionNotSupported": "Неподдерживаемое сжатие {0}."
+}

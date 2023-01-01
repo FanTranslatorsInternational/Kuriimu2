@@ -3,19 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.Cmd", "src\Kuriimu2.Cmd\Kuriimu2.Cmd.csproj", "{8E7A4282-69C0-4B2C-A6BB-8FB911C4C7AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.Cmd", "src\ui\Kuriimu2.Cmd\Kuriimu2.Cmd.csproj", "{8E7A4282-69C0-4B2C-A6BB-8FB911C4C7AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "src\Kore\Kore.csproj", "{EBE06411-E1A8-4B6D-AF70-06CD303F4233}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "src\lib\Kore\Kore.csproj", "{EBE06411-E1A8-4B6D-AF70-06CD303F4233}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "src\Kontract\Kontract.csproj", "{153D2925-0369-4106-B638-A9620CE941AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "src\lib\Kontract\Kontract.csproj", "{153D2925-0369-4106-B638-A9620CE941AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "src\Kanvas\Kanvas.csproj", "{9A8973C9-88EF-425E-A57E-69142E0C1769}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "src\lib\Kanvas\Kanvas.csproj", "{9A8973C9-88EF-425E-A57E-69142E0C1769}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "src\Kryptography\Kryptography.csproj", "{CCD46517-6ECD-4383-8EDC-8B084C4AD7B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "src\lib\Kryptography\Kryptography.csproj", "{CCD46517-6ECD-4383-8EDC-8B084C4AD7B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "src\Kompression\Kompression.csproj", "{4CB24D2A-692D-4DDB-AB32-0D51D462EACD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "src\lib\Kompression\Kompression.csproj", "{4CB24D2A-692D-4DDB-AB32-0D51D462EACD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "src\Komponent\Komponent.csproj", "{3A49D9D4-B1E3-47E4-8A44-0F81727A6D73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "src\lib\Komponent\Komponent.csproj", "{3A49D9D4-B1E3-47E4-8A44-0F81727A6D73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

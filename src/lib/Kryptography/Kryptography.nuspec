@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Kompression</id>
+    <version>2.0.8</version>
+    <description>A library containing all basic and advanced cryptography and hash algorithms implemented for Kuriimu2.</description>
+
+    <authors>onepiecefreak;IcySon55</authors>
+    <owners>onepiecefreak;IcySon55</owners>
+    <copyright>Copyright (c) 2019 Fan Translators International</copyright>
+
+    <projectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</projectUrl>
+    <icon>kuriimu2icon.png</icon>
+    <tags>Kuriimu2;Cryptography;Security</tags>
+
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">GPL-3.0-only</license>
+
+    <dependencies>
+      <group targetFramework="net5.0">
+        <dependency id="System.Numerics.Vectors" version="4.5.0" />
+      </group>
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="bin\Release\net5.0\*.dll" target="lib\net5.0\"/>
+    <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>
+  </files>
+</package>

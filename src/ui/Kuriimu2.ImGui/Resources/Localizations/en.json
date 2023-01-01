@@ -1,0 +1,296 @@
+﻿{
+  "Name": "English",
+
+  // Kuriimu2
+
+  // Menu bar texts
+  "Menu.File": "File",
+  "Menu.Tools": "Tools",
+  "Menu.Ciphers": "Ciphers",
+  "Menu.Compressions": "Compressions",
+  "Menu.Settings": "Settings",
+  //"Help": "Help",
+  //"AboutKuriimu2": "About",
+
+  // File sub menu
+  "Menu.File.Open": "Open",
+  "Menu.File.OpenWith": "Open with...",
+  "Menu.File.Save": "Save",
+  "Menu.File.SaveAs": "Save as...",
+  "Menu.File.SaveAll": "Save All",
+  "Menu.File.Close": "Close",
+
+  // Tools sub menu
+  "Menu.Tools.TextSequenceSearcher": "Text Searcher",
+  "Menu.Tools.BatchExtractor": "Extract All",
+  "Menu.Tools.BatchInjector": "Replace All",
+  "Menu.Tools.Hashes": "Hashes",
+  "Menu.Tools.RawImageViewer": "Raw Image Viewer",
+
+  // Ciphers sub menu
+  "Menu.Ciphers.Encrypt": "Encrypt",
+  "Menu.Ciphers.Decrypt": "Decrypt",
+
+  // Compressions sub menu
+  "Menu.Compressions.Decompress": "Decompress",
+  "Menu.Compressions.Compress": "Compress",
+
+  // Settings sub menu
+  "Menu.Settings.IncludeDevBuilds": "Include Developer Builds",
+  "Menu.Settings.ChangeLanguage": "Change language",
+  "Menu.Settings.ChangeTheme": "Change Theme",
+
+  // Change theme sub menu
+  "Menu.Settings.ChangeTheme.Dark": "Dark",
+  "Menu.Settings.ChangeTheme.Light": "Light",
+
+  // Change language dialog
+  "Dialog.ChangeLanguage.Caption": "Changed settings",
+  "Dialog.ChangeLanguage.Text": "The changes will only take effect after a restart.",
+
+  // Change theme dialog
+  "Dialog.ChangeTheme.Restart.Caption": "Restart",
+  "Dialog.ChangeTheme.Restart.Text": "Please restart to apply the theme.",
+
+  // Update available dialog
+  "Dialog.UpdateAvailable.Caption": "Update available",
+  "Dialog.UpdateAvailable.Text": "Do you want to update from {0}-{1} to {2}-{3}?",
+
+  // Exception catched dialog
+  "Dialog.ExceptionCatched.Caption": "Exception catched",
+
+  // Unhandled exception dialog
+  "Dialog.UnhandledException.Caption": "Unhandled exception",
+  "Dialog.UnhandledException.Text.Close": "An unhandled exception occurred. Refer to the log for more information. The application will be closed.",
+  "Dialog.UnhandledException.Text.NotClose": "An unhandled exception occurred. Refer to the log for more information.",
+
+  // Plugins not available dialog
+  "Dialog.PluginsNotAvailable.Caption": "Plugins not available",
+  "Dialog.PluginsNotAvailable.Text": "Following plugins could not be loaded:",
+
+  // Load error dialog
+  "Dialog.LoadError.Caption": "Load Error",
+
+  // Unsaved changes dialog
+  "Dialog.UnsavedChanges.Caption": "Unsaved changes",
+  "Dialog.UnsavedChanges.Text.Specific": "Changes were made to {0} or its opened sub files. Do you want to save those changes?",
+  "Dialog.UnsavedChanges.Text.Generic": "Changes were made to one or more files. Do you want to save those changes?",
+
+  // Dependant files dialog
+  "Dialog.DependantFiles.Caption": "Dependant files",
+  "Dialog.DependantFiles.Text": "Every file opened from this one and below will be closed too. Continue?",
+
+  // Save error dialog
+  "Dialog.SaveError.Caption": "Save Error",
+
+  // Status labels
+  "Status.Plugin.Select.None": "No plugin selected.",
+  "Status.Plugin.Select.Unknown": "Unknown plugin state type {0}.",
+  "Status.File.Select.None": "No file selected.",
+  "Status.File.Select.Invalid": "The selected file is invalid.",
+  "Status.File.Load.Cancel": "Load cancelled.",
+  "Status.File.Load.Opening": "{0} is already opening.",
+  "Status.File.Load.Saving": "{0} is already saving.",
+  "Status.File.Load.Success": "File loaded successfully.",
+  "Status.File.Load.Failure": "File not loaded successfully.",
+  "Status.File.Load.FailureWithPlugin": "File not loaded successfully with plugin {0}.",
+  "Status.File.Save.Success": "File saved successfully.",
+  "Status.File.Save.Failure": "File not saved successfully.",
+  "Status.Operation.Running": "Operations are still running and the file cannot be closed.",
+
+  // Error messages
+  "Error.Unsupported.OperatingSystem": "Unsupported operating system: {0}.",
+
+  // File Filters
+  "Filter.All": "All Files",
+  "Filter.Png": "Portable Network Graphics (*.png)",
+
+
+  // Archive Form
+
+  // File operations
+  "Archive.File.Extract": "Extract",
+  "Archive.File.Replace": "Replace",
+  "Archive.File.Rename": "Rename",
+  "Archive.File.Delete": "Delete",
+
+  // Folder operations
+  "Archive.Directory.Extract": "Extract",
+  "Archive.Directory.Replace": "Replace",
+  "Archive.Directory.Rename": "Rename",
+  "Archive.Directory.Delete": "Delete",
+  "Archive.Directory.Add": "Add",
+
+  // Status labels
+  "Archive.Status.Extract.Cancel": "File extraction cancelled.",
+  "Archive.Status.Replace.Cancel": "File replacement cancelled.",
+  "Archive.Status.Rename.Cancel": "File renaming cancelled.",
+  "Archive.Status.Delete.Cancel": "File deletion cancelled.",
+  "Archive.Status.Add.Cancel": "File adding cancelled.",
+
+  "Archive.Status.Extract.Success": "File(s) extracted successfully.",
+  "Archive.Status.Replace.Success": "File(s) replaced successfully.",
+  "Archive.Status.Rename.Success": "File(s) renamed successfully.",
+  "Archive.Status.Delete.Success": "File(s) deleted successfully.",
+  "Archive.Status.Add.Success": "File(s) added successfully.",
+
+  "Archive.Status.Rename.Error.NoName": "No new name given.",
+  "Archive.Status.Add.Error": "Some files could not be added successfully. Refer to the log for more information.",
+
+  "Archive.Status.Select.None": "No target selected.",
+  "Archive.Status.Extract.None": "No files to extract.",
+  "Archive.Status.Replace.None": "No files to replace.",
+  "Archive.Status.Rename.None": "No files to rename.",
+  "Archive.Status.Delete.None": "No files to delete.",
+  "Archive.Status.Add.None": "No files to add.",
+
+  // Progress labels
+  "Archive.Progress.Extract": "Extract files",
+  "Archive.Progress.Replace": "Replace files",
+  "Archive.Progress.Rename": "Rename files",
+  "Archive.Progress.Delete": "Delete files",
+  "Archive.Progress.Add": "Add files",
+
+  // Rename dialog
+  "Archive.Dialog.Rename.File.Caption": "Rename file",
+  "Archive.Dialog.Rename.Directory.Caption": "Rename directory",
+  "Archive.Dialog.Rename.Text": "Select a new name for {0}:",
+
+  // File headers
+  "Archive.Table.Files.Name": "Name",
+  "Archive.Table.Files.Size": "Size",
+
+  // Search bar
+  "Archive.Search.Placeholder": "Search...",
+  "Archive.Search.Clear": "Clear",
+
+  // Misc
+  "Archive.FileCount": "Files: {0}",
+  "Archive.CancelOperation": "Cancel",
+
+
+  // Dialogs
+
+  // Choose plugin dialog
+  "Dialog.ChoosePlugin.Caption": "Choose plugin",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Choose plugin to open the file with:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Could not automatically determine plugin for opening this file, please choose manually:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Multiple plugins can identify this file. Please choose one:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "By default only plugins that couldn't automatically determine if they support the file are shown.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Name",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Type",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Description",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Continue",
+  "Dialog.ChoosePlugin.ViewRaw": "View raw bytes",
+  "Dialog.ChoosePlugin.Cancel": "Cancel",
+  "Dialog.ChoosePlugin.ShowAll": "Show all plugins"
+
+  //// Kuriimu2 Image form
+  //"ExportImage": "Export image",
+  //"ImportImage": "Import image",
+
+  //"Width": "Width:",
+  //"Height": "Height:",
+  //"Format": "Format:",
+  //"Palette": "Palette:",
+
+  //"ExportPngTitle": "Export PNG...",
+  //"ImportPngTitle": "Import PNG...",
+
+  //"ImageSuccessfullyImportedStatus": "Image successfully imported.",
+
+  //// Kuriimu2 Text Sequence Searcher
+  //"TextSequenceSearcherTitle": "Text Sequence Searcher",
+  //"SearchSubfolders": "Search subfolders",
+
+  //"Find": "Find",
+  //"FindIn": "Find in:",
+  //"FindWhat": "Find what:",
+  //"Browse": "Browse...",
+  //"Encoding": "Encoding:",
+
+  //"SelectSearchDirectory": "Select the directory to search through",
+
+  //"SelectEncodingCaption": "Select an encoding.",
+  //"SelectSearchDirectoryCaption": "Select a directory to search in.",
+  //"SelectSearchTextCaption": "Select a text to search for.",
+
+  //// Kuriimu2 DialogManager
+  //"CancelDialog": "Dialog was cancelled.",
+  //"UnsupportedDialogFieldType": "Unsupported dialog field type {0}.",
+  //"DialogOkButton": "Ok",
+
+  //// Kuriimu2 InputBox
+  //"InputBoxOkButton": "Ok",
+
+  //// Kuriimu2 RawImageViewer
+  //"NoSwizzle": "None",
+  //"CustomSwizzle": "Custom",
+
+  //"ComponentOrder": "ComponentOrder",
+  //"ByteOrder": "ByteOrder",
+  //"BitOrder": "BitOrder",
+  //"ZOrder": "Z-Order",
+  //"AlphaLuminance": "Alpha/Luminance",
+  //"AlphaMode": "AlphaMode",
+  //"SwizzleMode": "SwizzleMode",
+  //"BitMapping": "BitMapping",
+  //"InitPoint": "InitPoint",
+  //"YTransform": "YTransform",
+
+  //"InvalidInputValuesStatus": "Input values are invalid.",
+  //"InvalidCustomSwizzleStatus": "Custom swizzle is invalid.",
+
+  //"SelectedFileNotExistStatus": "Selected file does not exist.",
+
+  //"RawImageViewerEncodingParameters": "Encoding Parameters",
+  //"RawImageViewerEncodingPaletteParameters": "Encoding Palette Parameters",
+  //"RawImageViewerSwizzleParameters": "Swizzle Parameters",
+
+  //"Offset": "Offset:",
+  //"PaletteOffset": "Palette Offset:",
+  //"Swizzle": "Swizzle:",
+
+  //"Process": "Process",
+
+  //// Kuriimu2 BatchDialog
+  //"AvgTimePerFile": "Avg time per file:",
+  //"AvgTimePerFileTimed": "Avg time per file: {0}ms",
+
+  //"BatchAvailablePlugins": "Plugins",
+  //"BatchSelectInput": "Select input...",
+  //"BatchSelectOutput": "Select output...",
+  //"Execute": "Execute",
+
+  //"BatchSelectPluginStatus": "Select a plugin.",
+
+  //"BatchExtractSourceEmpty": "Select a directory with files to extract.",
+  //"BatchExtractDestinationEmpty": "Select a directory to extract the files to.",
+
+  //"BatchInjectSourceEmpty": "Select a directory with files to inject.",
+  //"BatchInjectDestinationEmpty": "Select a directory with directories to inject to the files.",
+
+  //// Kuriimu2 Extension Dialogs
+  //"ExtensionParameters": "Parameters",
+  //"AutoExecute": "Auto-Execute on Drop",
+
+  //"SelectFolder": "Select folder...",
+  //"SelectFile": "Select file...",
+
+  //"Compression": "Compression",
+  //"Decompression": "Decompression",
+  //"Encryption": "Encryption",
+  //"Decryption": "Decryption",
+
+  //"SelectTypeExtension": "Select a {0}.",
+  //"SelectFileOrFolder": "Select a file or directory to process.",
+  //"FileFailed": "{0} failed: {1}",
+  //"ProcessFinishedCaption": "The results are written to {0}.",
+  //"ProcessFinishedTitle": "Done!",
+  //"CipherNotSupported": "Unsupported cipher {0}.",
+  //"CompressionNotSupported": "Unsupported cipher {0}."
+}
