@@ -5,29 +5,26 @@ using System.Threading.Tasks;
 using Kanvas;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Kontract.Interfaces.Plugins.State.Features;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.State;
+using Kontract.Models.Plugins.State.Image;
 
 namespace plugin_level5.DS.Images
 {
     class LimgState : IImageState, ILoadFiles, ISaveFiles
     {
         private Limg _limg;
+        private List<IImageInfo> _images;
 
-        public EncodingDefinition EncodingDefinition { get; }
+        public IReadOnlyList<IImageInfo> Images { get; private set; }
 
-        public IList<IKanvasImage> Images { get; private set; }
-
-        public bool ContentChanged => IsChanged();
+        public bool ContentChanged => _images.Any(x => x.ContentChanged);
 
         public LimgState()
         {
             _limg = new Limg();
-
-            EncodingDefinition = LimgSupport.LimgPaletteFormats.ToPaletteDefinition();
-            EncodingDefinition.AddIndexEncodings(LimgSupport.LimgFormats);
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
@@ -35,20 +32,18 @@ namespace plugin_level5.DS.Images
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             var img = _limg.Load(fileStream);
 
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, img) };
+            var encDef = LimgSupport.LimgPaletteFormats.ToPaletteDefinition();
+            encDef.AddIndexEncodings(LimgSupport.LimgFormats);
+
+            Images =_images= new List<IImageInfo> { new KanvasImageInfo(encDef, img) };
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            _limg.Save(fileStream, Images[0].ImageInfo);
+            _limg.Save(fileStream, _images[0].ImageData);
 
             return Task.CompletedTask;
-        }
-
-        private bool IsChanged()
-        {
-            return Images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

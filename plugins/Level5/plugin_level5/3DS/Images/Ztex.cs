@@ -3,7 +3,7 @@ using System.Drawing;
 using System.IO;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Kontract.Models.Plugins.State.Image;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5._3DS.Images
@@ -17,7 +17,7 @@ namespace plugin_level5._3DS.Images
         private ZtexHeader _header;
         private IList<ZtexUnkEnrty> _unkEntries;
 
-        public IList<ImageInfo> Load(Stream input)
+        public IList<ImageData> Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -42,7 +42,7 @@ namespace plugin_level5._3DS.Images
                 _unkEntries = br.ReadMultiple<ZtexUnkEnrty>(unkCount);
 
             // Add images
-            var result = new List<ImageInfo>();
+            var result = new List<ImageData>();
             foreach (var entry in entries)
             {
                 // Read image data
@@ -55,7 +55,7 @@ namespace plugin_level5._3DS.Images
                     mipData.Add(br.ReadBytes(entry.dataSize >> (i * 2)));
 
                 // Create image info
-                var imgInfo = new ImageInfo(imgData, mipData, entry.format, new Size(entry.width, entry.height))
+                var imgInfo = new ImageData(imgData, mipData, entry.format, new Size(entry.width, entry.height))
                 {
                     Name = entry.name.Trim('\0')
                 };
@@ -68,7 +68,7 @@ namespace plugin_level5._3DS.Images
             return result;
         }
 
-        public void Save(Stream output, IList<ImageInfo> imageInfos)
+        public void Save(Stream output, IList<ImageData> imageInfos)
         {
             var crc32 = Crc32.Crc32B;
             using var bw = new BinaryWriterX(output);
@@ -86,7 +86,7 @@ namespace plugin_level5._3DS.Images
             {
                 // Write image data
                 output.Position = dataPosition;
-                bw.Write(imageInfo.ImageData);
+                bw.Write(imageInfo.Data);
 
                 foreach (var mipData in imageInfo.MipMapData)
                     bw.Write(mipData);
@@ -102,7 +102,7 @@ namespace plugin_level5._3DS.Images
                     width = (short)paddedSize.Width,
                     height = (short)paddedSize.Height,
                     mipCount = (byte)(imageInfo.MipMapCount + 1),
-                    format = (byte)imageInfo.ImageFormat
+                    format = (byte)imageInfo.Format
                 });
 
                 dataPosition = (int)((output.Position + 0x7F) & ~0x7F);

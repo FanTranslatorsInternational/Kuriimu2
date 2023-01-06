@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+using Kontract.Models.Plugins.State.Archive;
 
 namespace plugin_level5.Switch.Archives
 {

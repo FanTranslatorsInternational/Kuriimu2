@@ -4,7 +4,7 @@ using System.IO;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Image;
+using Kontract.Models.Plugins.State.Image;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5.DS.Images
@@ -24,7 +24,7 @@ namespace plugin_level5.DS.Images
         private byte[] _unkChunk1;
         private byte[] _unkChunk2;
 
-        public ImageInfo Load(Stream input)
+        public ImageData Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -50,7 +50,7 @@ namespace plugin_level5.DS.Images
             var imageStream = new SubStream(input, _header.imageDataOffset, input.Length - _header.imageDataOffset);
             var imageData = CombineTiles(imageStream, tileIndices, encoding.IndexEncoding.BitDepth);
 
-            var imageInfo= new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
+            var imageInfo= new ImageData(imageData, _header.imgFormat, new Size(_header.width, _header.height))
             {
                 PaletteData = palette,
                 PaletteFormat = 0
@@ -61,13 +61,13 @@ namespace plugin_level5.DS.Images
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageData imageInfo)
         {
             using var bw = new BinaryWriterX(output);
-            var encoding = LimgSupport.LimgFormats[imageInfo.ImageFormat];
+            var encoding = LimgSupport.LimgFormats[imageInfo.Format];
 
             // Split into tiles
-            var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.IndexEncoding.BitDepth);
+            var (tileIndices, imageStream) = SplitTiles(imageInfo.Data, encoding.IndexEncoding.BitDepth);
 
             // Write palette
             bw.BaseStream.Position = HeaderSize + _unkHeader.Length;
@@ -109,7 +109,7 @@ namespace plugin_level5.DS.Images
             _header.height = (short)imageInfo.ImageSize.Height;
             _header.paddedWidth = (short)((_header.width + 0xFF) & ~0xFF);
             _header.paddedHeight = (short)((_header.height + 0xFF) & ~0xFF);
-            _header.imgFormat = (short)imageInfo.ImageFormat;
+            _header.imgFormat = (short)imageInfo.Format;
 
             bw.WriteType(_header);
             bw.Write(_unkHeader);

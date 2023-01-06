@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
+﻿using Komponent.IO.Attributes;
 
 namespace plugin_level5.DS.Archives
 {

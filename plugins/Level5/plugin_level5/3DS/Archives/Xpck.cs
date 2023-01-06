@@ -5,7 +5,7 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
@@ -20,7 +20,7 @@ namespace plugin_level5._3DS.Archives
         private XpckHeader _header;
         private bool _allowZlib;    // ZLib is only supported for Switch and newer; older platforms may not implement ZLib
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -64,7 +64,7 @@ namespace plugin_level5._3DS.Archives
             return files;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<XpckArchiveFileInfo>().ToArray();
             using var bw = new BinaryWriterX(output);

@@ -14,12 +14,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\net5.0\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\net5.0\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -30,11 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.0.8" />
-    <PackageReference Include="Komponent" Version="2.0.8" />
-    <PackageReference Include="Kompression" Version="2.0.8" />
     <PackageReference Include="Kontract" Version="2.0.8" />
-    <PackageReference Include="Kryptography" Version="2.0.8" />
   </ItemGroup>
 
 </Project>

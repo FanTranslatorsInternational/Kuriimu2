@@ -4,11 +4,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using Komponent.Extensions;
 using Komponent.Font;
 using Komponent.IO;
-using Kontract.Models.Font;
+using Kontract.Models.Plugins.State.Font;
 using plugin_level5.Compression;
+using plugin_level5.Extensions;
 
 namespace plugin_level5._3DS.Fonts
 {

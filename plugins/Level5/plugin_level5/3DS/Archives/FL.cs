@@ -2,9 +2,9 @@
 using System.IO;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Archive;
 using plugin_level5.Compression;
 using System.Linq;
+using Kontract.Interfaces.Plugins.State.Archive;
 
 namespace plugin_level5._3DS.Archives
 {
@@ -12,7 +12,7 @@ namespace plugin_level5._3DS.Archives
     {
         private int _fileCount;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -56,7 +56,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

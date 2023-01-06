@@ -3,8 +3,8 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
 using plugin_level5.Compression;
 
 namespace plugin_level5._3DS.Archives
@@ -19,7 +19,7 @@ namespace plugin_level5._3DS.Archives
         private readonly int _directoryEntrySizev1 = Tools.MeasureType(typeof(Xfsa1DirectoryEntry));
         private readonly int _directoryEntrySizev2 = Tools.MeasureType(typeof(Xfsa2DirectoryEntry));
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             // Determine XFSA version and parser
             var buffer = new byte[4];
@@ -48,7 +48,7 @@ namespace plugin_level5._3DS.Archives
             return _xfsaParser.Load(input);
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, List<IArchiveFileInfo> files, IProgressContext progress)
         {
             if (_xfsaParser == null)
                 throw new InvalidOperationException("No XFSA is loaded.");

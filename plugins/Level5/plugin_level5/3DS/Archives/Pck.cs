@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
 
 namespace plugin_level5._3DS.Archives
 {
@@ -13,7 +13,7 @@ namespace plugin_level5._3DS.Archives
     {
         private readonly int _entrySize = Tools.MeasureType(typeof(PckFileInfo));
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -50,7 +50,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

@@ -5,8 +5,8 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
@@ -18,7 +18,7 @@ namespace plugin_level5._3DS.Archives
 
         private XfsaHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -71,7 +71,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, List<IArchiveFileInfo> files, IProgressContext progress)
         {
             // Group files by directory
             var castedFiles = files.Cast<XfsaArchiveFileInfo<Xfsa2FileEntry>>();

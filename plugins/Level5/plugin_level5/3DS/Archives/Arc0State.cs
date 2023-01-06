@@ -5,20 +5,21 @@ using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+using Kontract.Interfaces.Plugins.State.Features;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.State;
 
 namespace plugin_level5._3DS.Archives
 {
     class Arc0State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IRenameFiles, IRemoveFiles, IAddFiles
     {
         private readonly Arc0 _arc0;
+        private List<IArchiveFileInfo> _files;
         private bool _hasDeletedFiles;
         private bool _hasAddedFiles;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
-        public bool ContentChanged => IsChanged();
+        public IReadOnlyList<IArchiveFileInfo> Files { get; private set; }
+        public bool ContentChanged => _hasDeletedFiles || _hasAddedFiles || Files.Any(x => x.ContentChanged);
 
         public Arc0State()
         {
@@ -28,13 +29,13 @@ namespace plugin_level5._3DS.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc0.Load(fileStream);
+            Files =_files= _arc0.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _arc0.Save(output, Files, saveContext.ProgressContext);
+            _arc0.Save(output, _files, saveContext.ProgressContext);
 
             _hasDeletedFiles = false;
             _hasAddedFiles = false;
@@ -46,32 +47,27 @@ namespace plugin_level5._3DS.Archives
             afi.SetFileData(fileData);
         }
 
-        private bool IsChanged()
-        {
-            return _hasDeletedFiles || _hasAddedFiles || Files.Any(x => x.ContentChanged);
-        }
-
-        public void Rename(IArchiveFileInfo afi, UPath path)
+        public void RenameFile(IArchiveFileInfo afi, UPath path)
         {
             afi.FilePath = path;
         }
 
         public void RemoveFile(IArchiveFileInfo afi)
         {
-            Files.Remove(afi);
+            _files.Remove(afi);
             _hasDeletedFiles = true;
         }
 
         public void RemoveAll()
         {
-            Files.Clear();
+            _files.Clear();
             _hasDeletedFiles = true;
         }
 
         public IArchiveFileInfo AddFile(Stream fileData, UPath filePath)
         {
             var newAfi = new Arc0ArchiveFileInfo(fileData, filePath.FullName, new Arc0FileEntry());
-            Files.Add(newAfi);
+            _files.Add(newAfi);
 
             _hasAddedFiles = true;
 

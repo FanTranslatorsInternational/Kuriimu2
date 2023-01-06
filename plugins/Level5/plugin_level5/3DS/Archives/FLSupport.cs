@@ -2,8 +2,8 @@
 using System.IO;
 using System.Linq;
 using Komponent.IO;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+using Kontract.Kompression.Interfaces.Configuration;
+using Kontract.Models.Plugins.State.Archive;
 
 namespace plugin_level5._3DS.Archives
 {

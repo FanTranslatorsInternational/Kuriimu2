@@ -4,29 +4,29 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kanvas;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Kontract.Interfaces.Plugins.State.Features;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.State;
 
 namespace plugin_level5.General
 {
     public class ImgxState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IBaseFileManager _fileManager;
+        private readonly IFileManager _fileManager;
 
         private Imgx _img;
         private ImgxKtx _ktx;
         private int _format;
+        private List<IImageInfo> _images;
 
-        public EncodingDefinition EncodingDefinition { get; private set; }
-        public IList<IKanvasImage> Images { get; private set; }
+        public IReadOnlyList<IImageInfo> Images { get; private set; }
 
-        public bool ContentChanged => IsContentChanged();
+        public bool ContentChanged => _images.Any(x => x.ContentChanged);
 
-        public ImgxState(IBaseFileManager fileManager)
+        public ImgxState(IFileManager fileManager)
         {
             _img = new Imgx();
             _ktx = new ImgxKtx();
@@ -48,16 +48,15 @@ namespace plugin_level5.General
                 case 0x2B:
                     var imageInfo = _ktx.Load(fileStream, _fileManager);
 
-                    EncodingDefinition = _ktx.EncodingDefinition;
-                    Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, imageInfo) };
+                    Images = new List<IImageInfo> { imageInfo };
                     break;
 
                 // Otherwise load normal IMGx
                 default:
-                    var loadedImg = _img.Load(fileStream);
+                    var data = _img.Load(fileStream);
+                    var def = await ImgxSupport.GetEncodingDefinition(_img.Magic, _img.Format, _img.BitDepth, loadContext.DialogManager);
 
-                    EncodingDefinition = ImgxSupport.GetEncodingDefinition(_img.Magic, _img.Format, _img.BitDepth, loadContext.DialogManager);
-                    Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, loadedImg) };
+                    Images = _images = new List<IImageInfo> { new KanvasImageInfo(def, data) };
                     break;
             }
         }
@@ -75,16 +74,11 @@ namespace plugin_level5.General
 
                 // Otherwise save normal IMGx
                 default:
-                    _img.Save(fileStream, Images[0]);
+                    _img.Save(fileStream, _images[0]);
                     break;
             }
 
             return Task.CompletedTask;
-        }
-
-        private bool IsContentChanged()
-        {
-            return Images.Any(x => x.ContentChanged);
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Buffers.Binary;
 using System.IO;
 using Komponent.IO.Streams;
-using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Interfaces.Configuration;
 
 namespace plugin_level5.Compression
 {

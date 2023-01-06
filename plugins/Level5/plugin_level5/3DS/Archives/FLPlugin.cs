@@ -1,8 +1,8 @@
 ﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Managers.Files;
+using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+using Kontract.Models.Plugins.Entry;
 
 namespace plugin_level5._3DS.Archives
 {
@@ -18,7 +18,7 @@ namespace plugin_level5._3DS.Archives
             Metadata=new PluginMetadata("FLBin","onepiecefreak","The main archive resource in Fantasy Life");
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IPluginState CreatePluginState(IFileManager fileManager)
         {
             return new FLState();
         }

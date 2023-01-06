@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Managers.Files;
 using plugin_level5.Compression;
 
 namespace plugin_level5.General
@@ -23,9 +23,7 @@ namespace plugin_level5.General
         private IFileState _ktxState;
         private IImageState _imageState;
 
-        public EncodingDefinition EncodingDefinition => _imageState.EncodingDefinition;
-
-        public ImageInfo Load(Stream input, IBaseFileManager pluginManager)
+        public IImageInfo Load(Stream input, IFileManager pluginManager)
         {
             using var br = new BinaryReaderX(input);
 
@@ -35,10 +33,10 @@ namespace plugin_level5.General
             // Load KTX
             _imageState = LoadKtx(input, "file.ktx", pluginManager).Result;
 
-            return _imageState.Images[0].ImageInfo;
+            return _imageState.Images[0];
         }
 
-        public void Save(Stream output, IBaseFileManager pluginManager)
+        public void Save(Stream output, IFileManager pluginManager)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -56,7 +54,7 @@ namespace plugin_level5.General
             bw.WriteAlignment();
 
             // Update header
-            _header.imageCount = (byte)(_imageState.Images[0].ImageInfo.MipMapCount + 1);
+            _header.imageCount = (byte)(_imageState.Images[0].ImageData.MipMapCount + 1);
             _header.width = (short)_imageState.Images[0].ImageSize.Width;
             _header.height = (short)_imageState.Images[0].ImageSize.Height;
             _header.imgDataSize = (int)compressedLength;
@@ -69,7 +67,7 @@ namespace plugin_level5.General
             pluginManager.Close(_ktxState);
         }
 
-        private async Task<IImageState> LoadKtx(Stream fileStream, UPath filePath, IBaseFileManager pluginManager)
+        private async Task<IImageState> LoadKtx(Stream fileStream, UPath filePath, IFileManager pluginManager)
         {
             var imgData = new SubStream(fileStream, _header.tableDataOffset, _header.imgDataSize);
             _dataCompressionFormat = Level5Compressor.PeekCompressionMethod(imgData);

@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
+using Kontract.Models.Plugins.State.Archive;
 
 namespace plugin_level5.DS.Archives
 {
@@ -15,7 +16,7 @@ namespace plugin_level5.DS.Archives
         private readonly int _headerSize = Tools.MeasureType(typeof(Lpc2Header));
         private readonly int _fileEntrySize = Tools.MeasureType(typeof(Lpc2FileEntry));
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 

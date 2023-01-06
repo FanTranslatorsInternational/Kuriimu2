@@ -1,8 +1,8 @@
 ﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Managers.Files;
+using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+using Kontract.Models.Plugins.Entry;
 
 namespace plugin_level5._3DS.Archives
 {
@@ -18,7 +18,7 @@ namespace plugin_level5._3DS.Archives
             Metadata = new PluginMetadata("PCK", "onepiecefreak", "General game archive for 3DS Level-5 games");
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new PckState();
         }

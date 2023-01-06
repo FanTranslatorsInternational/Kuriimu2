@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using Kanvas;
 using Kanvas.Encoding;
 using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
-using Kontract.Interfaces.Managers;
-using Kontract.Kanvas;
-using Kontract.Kanvas.Model;
-using Kontract.Models.Dialog;
-using Kontract.Models.Image;
+using Kontract.Interfaces.Managers.Dialogs;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Kanvas.Models;
+using Kontract.Models.Managers.Dialogs;
+using Kontract.Models.Plugins.State.Image;
+
 #pragma warning disable 649
 
 namespace plugin_level5.General
@@ -62,8 +64,8 @@ namespace plugin_level5.General
                     break;
 
                 default:
-                    _swizzle = context.EncodingInfo.ColorsPerValue > 1 ? 
-                        new MasterSwizzle(Width, Point.Empty, new[] { (1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (8, 0) }) : 
+                    _swizzle = context.EncodingInfo.ColorsPerValue > 1 ?
+                        new MasterSwizzle(Width, Point.Empty, new[] { (1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (8, 0) }) :
                         new MasterSwizzle(Width, Point.Empty, new[] { (1, 0), (2, 0), (4, 0), (0, 1), (0, 2), (0, 4) });
                     break;
             }
@@ -74,12 +76,12 @@ namespace plugin_level5.General
 
     class ImgxSupport
     {
-        public static EncodingDefinition GetEncodingDefinition(string magic, int format, int bitDepth, IDialogManager dialogManager)
+        public static async Task<EncodingDefinition> GetEncodingDefinition(string magic, int format, int bitDepth, IDialogManager dialogManager)
         {
             switch (magic)
             {
                 case "IMGC":
-                    return GetCitraDefinition(format, bitDepth, dialogManager);
+                    return await GetCitraDefinition(format, bitDepth, dialogManager);
 
                 case "IMGV":
                     return VitaFormats.ToColorDefinition();
@@ -153,7 +155,7 @@ namespace plugin_level5.General
             [0x1D] = ImageFormats.Etc1A4(true)
         };
 
-        private static EncodingDefinition GetCitraDefinition(int format, int bitDepth, IDialogManager dialogManager)
+        private static async Task<EncodingDefinition> GetCitraDefinition(int format, int bitDepth, IDialogManager dialogManager)
         {
             var encodingDefinitions = new[]
             {
@@ -172,22 +174,22 @@ namespace plugin_level5.General
             // If format exists in more than one, compare bitDepth
             var viableMappings = encodingDefinitions.Where(x => x.ContainsColorEncoding(format)).ToArray();
 
-            // If all mappings are the same encoding
-            var encodingName = viableMappings[0].GetColorEncoding(format).FormatName;
-            if (viableMappings.All(x => x.GetColorEncoding(format).FormatName == encodingName))
-                return viableMappings[0];
-
             // If only one mapping matches the given bitDepth
             if (viableMappings.Count(x => x.GetColorEncoding(format).BitDepth == bitDepth) == 1)
                 return viableMappings.First(x => x.GetColorEncoding(format).BitDepth == bitDepth);
 
             // Otherwise the heuristic could not determine a definite mapping
             // Show a dialog to the user, selecting the game
+            return await RequestEncodingDefinition(dialogManager);
+        }
+
+        private static async Task<EncodingDefinition> RequestEncodingDefinition(IDialogManager dialogManager)
+        {
             var availableGames = GameMapping.Keys.ToArray();
             var dialogField = new DialogField(DialogFieldType.DropDown, "Select the game:", availableGames.First(), availableGames);
 
-            dialogManager.ShowDialog(new[] { dialogField });
-            return GameMapping[dialogField.Result].ToColorDefinition();
+            var result = await dialogManager.ShowDialog(new[] { dialogField });
+            return GameMapping[result ? dialogField.Result : dialogField.DefaultValue].ToColorDefinition();
         }
 
         private static readonly IDictionary<string, IDictionary<int, IColorEncoding>> GameMapping =

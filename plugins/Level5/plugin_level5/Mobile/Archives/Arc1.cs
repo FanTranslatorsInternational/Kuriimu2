@@ -5,7 +5,7 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
 
 namespace plugin_level5.Mobile.Archives
 {
@@ -16,7 +16,7 @@ namespace plugin_level5.Mobile.Archives
 
         private Arc1Header _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             // Read header
             using var headerBr = new BinaryReaderX(new Arc1CryptoStream(input, 0), true);
@@ -45,7 +45,7 @@ namespace plugin_level5.Mobile.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             // Calculate offsets
             var dataOffset = HeaderSize;

@@ -5,7 +5,7 @@ using System.IO;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Image;
+using Kontract.Models.Plugins.State.Image;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5.DS.Images
@@ -20,7 +20,7 @@ namespace plugin_level5.DS.Images
         private byte[] _unkRegion1;
         private byte[] _unkRegion2;
 
-        public ImageInfo Load(Stream ltInput, Stream lpInput)
+        public ImageData Load(Stream ltInput, Stream lpInput)
         {
             using var ltBr = new BinaryReaderX(ltInput);
             using var lpBr = new BinaryReaderX(lpInput);
@@ -46,7 +46,7 @@ namespace plugin_level5.DS.Images
             var imageData = CombineTiles(tileIndexStream, tileStream, tileBitDepth);
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _ltHeader.indexFormat, new Size(_ltHeader.width, _ltHeader.height))
+            var imageInfo = new ImageData(imageData, _ltHeader.indexFormat, new Size(_ltHeader.width, _ltHeader.height))
             {
                 PaletteData = paletteData,
                 PaletteFormat = _lpHeader.paletteFormat
@@ -56,13 +56,13 @@ namespace plugin_level5.DS.Images
             return imageInfo;
         }
 
-        public void Save(Stream ltOutput, Stream lpOutput, ImageInfo imageInfo)
+        public void Save(Stream ltOutput, Stream lpOutput, ImageData imageInfo)
         {
             WritePaletteFile(lpOutput, imageInfo);
             WriteImageFile(ltOutput, imageInfo);
         }
 
-        private void WritePaletteFile(Stream output, ImageInfo imageInfo)
+        private void WritePaletteFile(Stream output, ImageData imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -78,7 +78,7 @@ namespace plugin_level5.DS.Images
             bw.Write(imageInfo.PaletteData);
         }
 
-        private void WriteImageFile(Stream output, ImageInfo imageInfo)
+        private void WriteImageFile(Stream output, ImageData imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -89,7 +89,7 @@ namespace plugin_level5.DS.Images
 
             // Split tiles
             var tileBitDepth = GtxtSupport.IndexFormats[_ltHeader.indexFormat].BitDepth;
-            var (imageData, tileData) = SplitTiles(new MemoryStream(imageInfo.ImageData), tileBitDepth);
+            var (imageData, tileData) = SplitTiles(new MemoryStream(imageInfo.Data), tileBitDepth);
 
             var imageDataOffset = tileIndexOffset + tileData.Length;
 
@@ -107,7 +107,7 @@ namespace plugin_level5.DS.Images
             bw.Write(_unkRegion2);
 
             // Update header
-            _ltHeader.indexFormat = (byte)imageInfo.ImageFormat;
+            _ltHeader.indexFormat = (byte)imageInfo.Format;
 
             _ltHeader.width = (short)imageInfo.ImageSize.Width;
             _ltHeader.height = (short)imageInfo.ImageSize.Height;

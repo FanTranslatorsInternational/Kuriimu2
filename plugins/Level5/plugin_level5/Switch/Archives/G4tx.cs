@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +6,7 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.Image;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 using plugin_level5.Switch.Images;
 
@@ -26,7 +24,7 @@ namespace plugin_level5.Switch.Archives
         private IList<G4txSubEntry> _subEntries;
         private IList<byte> _ids;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -87,7 +85,7 @@ namespace plugin_level5.Switch.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             var crc = Crc32.Default;
             var g4txFiles = files.Cast<G4txArchiveFileInfo>().ToArray();

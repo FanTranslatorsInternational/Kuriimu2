@@ -4,8 +4,9 @@ using System.IO;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
+using Kontract.Models.Plugins.State.Archive;
 using plugin_level5.Compression;
 #pragma warning disable 649
 
@@ -13,9 +14,9 @@ namespace plugin_level5._3DS.Archives
 {
     interface IXfsa
     {
-        IList<IArchiveFileInfo> Load(Stream input);
+        List<IArchiveFileInfo> Load(Stream input);
 
-        void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress);
+        void Save(Stream output, List<IArchiveFileInfo> files, IProgressContext progress);
     }
 
     // TODO: Research unk1

@@ -3,8 +3,9 @@ using System.IO;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+using Kontract.Kompression.Interfaces.Configuration;
+using Kontract.Models.Plugins.State.Archive;
+
 #pragma warning disable 649
 
 namespace plugin_level5._3DS.Archives

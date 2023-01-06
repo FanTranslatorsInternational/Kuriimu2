@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Managers.Files;
+using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.Entry;
 
 namespace plugin_level5.Mobile.Archives
 {
@@ -33,7 +30,7 @@ namespace plugin_level5.Mobile.Archives
             return br.ReadString(4) == "HP10";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new Hp10State();
         }
