@@ -12,7 +12,7 @@ namespace Kontract.Interfaces.Plugins.State
         /// <summary>
         /// The loaded texts of the file format.
         /// </summary>
-        IList<TextInfo> Texts { get; }
+        IReadOnlyList<TextInfo> Texts { get; }
 
         #region Optional feature checks
 

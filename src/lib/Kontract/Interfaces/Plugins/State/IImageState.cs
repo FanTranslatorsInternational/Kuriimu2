@@ -11,6 +11,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <summary>
         /// The list of images in the format
         /// </summary>
-        IList<IImageInfo> Images { get; }
+        IReadOnlyList<IImageInfo> Images { get; }
     }
 }
