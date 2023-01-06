@@ -6,8 +6,6 @@
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
-
-    <NuspecFile>Kryptography.nuspec</NuspecFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,13 +14,15 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
+    <NuspecFile>Kryptography.Debug.nuspec</NuspecFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>-->
+    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
+    <NuspecFile>Kryptography.nuspec</NuspecFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />

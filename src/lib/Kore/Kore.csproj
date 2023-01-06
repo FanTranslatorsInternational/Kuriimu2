@@ -7,7 +7,15 @@
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
+    <NuspecFile>Kore.Debug.nuspec</NuspecFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
     <NuspecFile>Kore.nuspec</NuspecFile>
   </PropertyGroup>
 
@@ -22,13 +30,5 @@
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
-
-  <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>-->
 
 </Project>

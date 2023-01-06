@@ -7,8 +7,6 @@
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
-
-    <NuspecFile>Kompression.nuspec</NuspecFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,13 +15,15 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
+    <NuspecFile>Kompression.Debug.nuspec</NuspecFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>-->
+    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
+    <NuspecFile>Kompression.nuspec</NuspecFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="C5" Version="2.5.3" />

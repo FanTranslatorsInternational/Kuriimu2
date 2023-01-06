@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>Kompression</id>
+    <id>Kryptography</id>
     <version>2.0.8</version>
     <description>A library containing all basic and advanced cryptography and hash algorithms implemented for Kuriimu2.</description>
 

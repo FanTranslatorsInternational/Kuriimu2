@@ -7,8 +7,6 @@
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
-
-    <NuspecFile>Kanvas.nuspec</NuspecFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,13 +21,15 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
+    <NuspecFile>Kanvas.Debug.nuspec</NuspecFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>-->
+    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
+    <NuspecFile>Kanvas.nuspec</NuspecFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.0.1" />

@@ -19,12 +19,13 @@
     <dependencies>
       <group targetFramework="net5.0">
         <dependency id="System.Text.Encoding.CodePages" version="5.0.0" />
+        <dependency id="Kontract" version="2.0.8" />
       </group>
     </dependencies>
   </metadata>
 
   <files>
-    <file src="bin\Release\net5.0\*.dll" target="lib\net5.0\"/>
+    <file src="bin\Debug\net5.0\*.dll" target="lib\net5.0\"/>
     <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>
   </files>
 </package>
