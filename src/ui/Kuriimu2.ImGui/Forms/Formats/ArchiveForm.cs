@@ -10,7 +10,6 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
-using ImGui.Forms.Models;
 using Komponent.Extensions;
 using Komponent.Models;
 using Kontract.Extensions;
@@ -1255,7 +1254,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Update root name, if changed
             var rootName = _formInfo.FileState.FilePath.GetName();
             if (_treeView.Nodes[0].Text != rootName)
-                _treeView.Nodes[0].Text = _formInfo.FileState.FilePath.GetName();
+                _treeView.Nodes[0].Text = rootName;
 
             // Update save button enablement
             var canSave = _formInfo.FileState.PluginState.CanSave;

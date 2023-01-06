@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Lists;
@@ -88,8 +89,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
             };
 
-            _saveBtn = new ImageButton { Image = ImageResources.Save(Enum.Parse<Theme>(Settings.Default.Theme)), ImageSize = new Vector2(16, 16), Enabled = false };
-            _saveAsBtn = new ImageButton { Image = ImageResources.SaveAs(Enum.Parse<Theme>(Settings.Default.Theme)), ImageSize = new Vector2(16, 16), Enabled = false };
+            _saveBtn = new ImageButton { Image = ImageResources.Save(Style.Theme), ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
+            _saveAsBtn = new ImageButton { Image = ImageResources.SaveAs(Style.Theme), ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
 
             _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder() };
             _clearButton = new ImageButton { Image = ImageResources.Close };
