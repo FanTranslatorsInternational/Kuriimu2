@@ -294,8 +294,7 @@ namespace Kuriimu2.ImGui.Forms
                 AllowManualSelection = true,
 
                 Progress = progress,
-                // TODO: DialogManagerDialog
-                //DialogManager = new DialogManagerDialog(this),
+                DialogManager = new DialogManager(),
                 Logger = logger
             };
         }
@@ -771,9 +770,9 @@ namespace Kuriimu2.ImGui.Forms
                     //    kuriimuForm = new TextForm(new FormInfo<ITextState>(fileState, communicator, _progress, _logger));
                     //    break;
 
-                    //case IImageState _:
-                    //    kuriimuForm = new ImageForm(new FormInfo<IImageState>(fileState, communicator, _progress, _logger));
-                    //    break;
+                    case IImageState _:
+                        kuriimuForm = new ImageForm(new FormInfo<IImageState>(fileState, communicator, _progress, _logger));
+                        break;
 
                     case IArchiveState _:
                         kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _fileManager);
