@@ -7,6 +7,7 @@ using System.Text;
 using ImGui.Forms.Localization;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
+using Kontract.Models.Managers.Dialogs;
 using Newtonsoft.Json;
 
 namespace Kuriimu2.ImGui.Resources
@@ -79,11 +80,11 @@ namespace Kuriimu2.ImGui.Resources
         private const string MenuSettingsChangeThemeLightId_ = "Menu.Settings.ChangeTheme.Light";
 
         // Change language dialog
-        private const string DialogChangeLanguageCaptionId_ = "Dialog.ChangeLanguage.Text";
+        private const string DialogChangeLanguageCaptionId_ = "Dialog.ChangeLanguage.Caption";
         private const string DialogChangeLanguageTextId_ = "Dialog.ChangeLanguage.Text";
 
         // Change theme dialog
-        private const string DialogChangeThemeRestartCaptionId_ = "Dialog.ChangeTheme.Restart.Text";
+        private const string DialogChangeThemeRestartCaptionId_ = "Dialog.ChangeTheme.Restart.Caption";
         private const string DialogChangeThemeRestartTextId_ = "Dialog.ChangeTheme.Restart.Text";
 
         // Update available dialog
@@ -91,7 +92,7 @@ namespace Kuriimu2.ImGui.Resources
         private const string DialogUpdateAvailableTextId_ = "Dialog.UpdateAvailable.Text";
 
         // Exception catched dialog
-        private const string DialogExceptionCatchedCaptionId_ = "Dialog.ExceptionCatched.Text";
+        private const string DialogExceptionCatchedCaptionId_ = "Dialog.ExceptionCatched.Caption";
 
         // Unhandled exception dialog
         private const string DialogUnhandledExceptionCaptionId_ = "Dialog.UnhandledException.Caption";
@@ -99,23 +100,23 @@ namespace Kuriimu2.ImGui.Resources
         private const string DialogUnhandledExceptionTextNotCloseId_ = "Dialog.UnhandledException.Text.NotClose";
 
         // Plugins not available dialog
-        private const string DialogPluginsNotAvailableCaptionId_ = "Dialog.PluginsNotAvailable.Text";
+        private const string DialogPluginsNotAvailableCaptionId_ = "Dialog.PluginsNotAvailable.Caption";
         private const string DialogPluginsNotAvailableTextId_ = "Dialog.PluginsNotAvailable.Text";
 
         // Load error dialog
-        private const string DialogLoadErrorCaptionId_ = "Dialog.LoadError.Text";
+        private const string DialogLoadErrorCaptionId_ = "Dialog.LoadError.Caption";
 
         // Unsaved changes dialog
-        private const string DialogUnsavedChangesCaptionId_ = "Dialog.UnsavedChanges.Text";
+        private const string DialogUnsavedChangesCaptionId_ = "Dialog.UnsavedChanges.Caption";
         private const string DialogUnsavedChangesTextSpecificId_ = "Dialog.UnsavedChanges.Text.Specific";
         private const string DialogUnsavedChangesTextGenericId_ = "Dialog.UnsavedChanges.Text.Generic";
 
         // Dependant files dialog
-        private const string DialogDependantFilesCaptionId_ = "Dialog.DependantFiles.Text";
+        private const string DialogDependantFilesCaptionId_ = "Dialog.DependantFiles.Caption";
         private const string DialogDependantFilesTextId_ = "Dialog.DependantFiles.Text";
 
         // Save error dialog
-        private const string DialogSaveErrorCaptionId_ = "Dialog.SaveError.Text";
+        private const string DialogSaveErrorCaptionId_ = "Dialog.SaveError.Caption";
 
         // Status labels
         private const string StatusPluginSelectNoneId_ = "Status.Plugin.Select.None";
@@ -203,7 +204,31 @@ namespace Kuriimu2.ImGui.Resources
         private const string ArchiveCancelOperationId_ = "Archive.CancelOperation";
 
 
+        // Image Form
+
+        // Menu
+        private const string ImageMenuExportId_ = "Image.Menu.Export";
+        private const string ImageMenuImportId_ = "Image.Menu.Import";
+        private const string ImageMenuExportPngId_ = "Image.Menu.Export.Png";
+        private const string ImageMenuImportPngId_ = "Image.Menu.Import.Png";
+
+        // Labels
+        private const string ImageLabelWidthId_ = "Image.Label.Width";
+        private const string ImageLabelHeightId_ = "Image.Label.Height";
+        private const string ImageLabelFormatId_ = "Image.Label.Format";
+        private const string ImageLabelPaletteId_ = "Image.Label.Palette";
+
+        // Status
+        private const string ImageStatusImportSuccessId_ = "Image.Status.Import.Success";
+
+        // Progress
+        private const string ImageProgressDecodeId_ = "Image.Progress.Decode";
+
+
         // Dialogs
+
+        // Dialog manager
+        private const string DialogManagerButtonOkId_ = "Dialog.Manager.Button.Ok";
 
         // Choose plugin dialog
         private const string DialogChoosePluginCaptionId_ = "Dialog.ChoosePlugin.Caption";
@@ -378,7 +403,31 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ArchiveCancelOperation() => new LocalizedString(ArchiveCancelOperationId_);
 
 
+        // Image Form
+
+        // Menu
+        public static LocalizedString ImageMenuExport() => new LocalizedString(ImageMenuExportId_);
+        public static LocalizedString ImageMenuImport() => new LocalizedString(ImageMenuImportId_);
+        public static LocalizedString ImageMenuExportPng() => new LocalizedString(ImageMenuExportPngId_);
+        public static LocalizedString ImageMenuImportPng() => new LocalizedString(ImageMenuImportPngId_);
+
+        // Labels
+        public static LocalizedString ImageLabelWidth() => new LocalizedString(ImageLabelWidthId_);
+        public static LocalizedString ImageLabelHeight() => new LocalizedString(ImageLabelHeightId_);
+        public static LocalizedString ImageLabelFormat() => new LocalizedString(ImageLabelFormatId_);
+        public static LocalizedString ImageLabelPalette() => new LocalizedString(ImageLabelPaletteId_);
+
+        // Status
+        public static LocalizedString ImageStatusImportSuccess() => new LocalizedString(ImageStatusImportSuccessId_);
+
+        // Progress
+        public static LocalizedString ImageProgressDecode() => new LocalizedString(ImageProgressDecodeId_);
+
+
         // Dialogs
+
+        // Dialog manager
+        public static LocalizedString DialogManagerButtonOk() => new LocalizedString(DialogManagerButtonOkId_);
 
         // Choose plugin dialog
         public static LocalizedString DialogChoosePluginCaption() => new LocalizedString(DialogChoosePluginCaptionId_);
@@ -459,10 +508,16 @@ namespace Kuriimu2.ImGui.Resources
 
             public string Localize(string name, params object[] args)
             {
-                if (string.IsNullOrEmpty(CurrentLocale) || !_localizations[CurrentLocale].ContainsKey(name))
-                    return Undefined_;
+                // Return localization of current locale
+                if (!string.IsNullOrEmpty(CurrentLocale) && _localizations[CurrentLocale].ContainsKey(name))
+                    return string.Format(_localizations[CurrentLocale][name], args);
 
-                return string.Format(_localizations[CurrentLocale][name], args);
+                // Otherwise, return localization of default locale
+                if (!string.IsNullOrEmpty(DefaultLocale_) && _localizations[DefaultLocale_].ContainsKey(name))
+                    return string.Format(_localizations[DefaultLocale_][name], args);
+
+                // Otherwise, return localization placeholder
+                return Undefined_;
             }
 
             private IDictionary<string, IDictionary<string, string>> GetLocalizations()

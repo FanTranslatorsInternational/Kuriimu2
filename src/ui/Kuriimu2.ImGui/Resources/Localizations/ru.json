@@ -169,7 +169,31 @@
   "Archive.CancelOperation": "Отменить",
 
 
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Экспортировать изображение",
+  "Image.Menu.Import": "Импортировать изображение",
+  "Image.Menu.Export.Png": "Экспортировать PNG...",
+  "Image.Menu.Import.Png": "Импортировать PNG...",
+
+  // Labels
+  "Image.Label.Width": "Ширина:",
+  "Image.Label.Height": "Высота:",
+  "Image.Label.Format": "Формат:",
+  "Image.Label.Palette": "Палитра:",
+
+  // Status
+  "Image.Status.Import.Success": "Изображение импортировано успешно.",
+
+  // Progress
+  //"Image.Progress.Decode": "Decode image(s)",
+
+
   // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "Oк",
 
   // Choose plugin dialog
   "Dialog.ChoosePlugin.Caption": "Выберите плагин",
@@ -189,22 +213,6 @@
   "Dialog.ChoosePlugin.Cancel": "Отмена",
   "Dialog.ChoosePlugin.ShowAll": "Показать все плагины"
 
-  //// Kuriimu2 Image form
-  //"ExportImage": "Экспортировать изображение",
-  //"ImportImage": "Импортировать изображение",
-
-  //"Width": "Ширина:",
-  //"Height": "Высота:",
-  //"Format": "Формат:",
-  //"Palette": "Палитра:",
-
-  //"ExportPngTitle": "Экспортировать PNG...",
-  //"ImportPngTitle": "Импортировать PNG...",
-
-  //"ImageSuccessfullyImportedStatus": "Изображение импортировано успешно.",
-
-  //"PngFileFilter": "Portable Network Graphics (*.png)",
-
   //// Kuriimu2 Text Sequence Searcher
   //"TextSequenceSearcherTitle": "Поиск последовательности текста",
   //"SearchSubfolders": "Искать в подпапках",
@@ -220,11 +228,6 @@
   //"SelectEncodingCaption": "Выберите кодировку.",
   //"SelectSearchDirectoryCaption": "Выберите директорию для поиска.",
   //"SelectSearchTextCaption": "Выберите текст, который нужно найти",
-
-  //// Kuriimu2 DialogManager
-  //"CancelDialog": "Диалог был отменён.",
-  //"UnsupportedDialogFieldType": "Неподдерживаемый тип диалогового окна {0}.",
-  //"DialogOkButton": "Oк",
 
   //// Kuriimu2 InputBox
   //"InputBoxOkButton": "Oк",

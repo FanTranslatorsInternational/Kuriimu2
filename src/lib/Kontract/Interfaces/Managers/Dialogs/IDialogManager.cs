@@ -1,4 +1,5 @@
-﻿using Kontract.Models.Managers.Dialogs;
+﻿using System.Threading.Tasks;
+using Kontract.Models.Managers.Dialogs;
 
 namespace Kontract.Interfaces.Managers.Dialogs
 {
@@ -11,6 +12,6 @@ namespace Kontract.Interfaces.Managers.Dialogs
         /// Shows a dialog on which the user can interact with the plugin.
         /// </summary>
         /// <param name="fields">The fields to show on the dialog.</param>
-        void ShowDialog(DialogField[] fields);
+        Task<bool> ShowDialog(DialogField[] fields);
     }
 }

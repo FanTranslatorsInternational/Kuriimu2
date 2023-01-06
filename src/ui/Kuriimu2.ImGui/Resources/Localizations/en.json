@@ -169,7 +169,31 @@
   "Archive.CancelOperation": "Cancel",
 
 
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Export image",
+  "Image.Menu.Import": "Import image",
+  "Image.Menu.Export.Png": "Export PNG...",
+  "Image.Menu.Import.Png": "Import PNG...",
+
+  // Labels
+  "Image.Label.Width": "Width:",
+  "Image.Label.Height": "Height:",
+  "Image.Label.Format": "Format:",
+  "Image.Label.Palette": "Palette:",
+
+  // Status
+  "Image.Status.Import.Success": "Image successfully imported.",
+
+  // Progress
+  "Image.Progress.Decode": "Decode image(s)",
+
+
   // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "Ok",
 
   // Choose plugin dialog
   "Dialog.ChoosePlugin.Caption": "Choose plugin",
@@ -189,20 +213,6 @@
   "Dialog.ChoosePlugin.Cancel": "Cancel",
   "Dialog.ChoosePlugin.ShowAll": "Show all plugins"
 
-  //// Kuriimu2 Image form
-  //"ExportImage": "Export image",
-  //"ImportImage": "Import image",
-
-  //"Width": "Width:",
-  //"Height": "Height:",
-  //"Format": "Format:",
-  //"Palette": "Palette:",
-
-  //"ExportPngTitle": "Export PNG...",
-  //"ImportPngTitle": "Import PNG...",
-
-  //"ImageSuccessfullyImportedStatus": "Image successfully imported.",
-
   //// Kuriimu2 Text Sequence Searcher
   //"TextSequenceSearcherTitle": "Text Sequence Searcher",
   //"SearchSubfolders": "Search subfolders",
@@ -218,11 +228,6 @@
   //"SelectEncodingCaption": "Select an encoding.",
   //"SelectSearchDirectoryCaption": "Select a directory to search in.",
   //"SelectSearchTextCaption": "Select a text to search for.",
-
-  //// Kuriimu2 DialogManager
-  //"CancelDialog": "Dialog was cancelled.",
-  //"UnsupportedDialogFieldType": "Unsupported dialog field type {0}.",
-  //"DialogOkButton": "Ok",
 
   //// Kuriimu2 InputBox
   //"InputBoxOkButton": "Ok",

@@ -169,7 +169,31 @@
   "Archive.CancelOperation": "취소",
 
 
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "이미지 추출",
+  "Image.Menu.Import": "이미지 삽입",
+  "Image.Menu.Export.Png": "PNG 추출...",
+  "Image.Menu.Import.Png": "PNG 삽입...",
+
+  // Labels
+  "Image.Label.Width": "폭:",
+  "Image.Label.Height": "높이:",
+  "Image.Label.Format": "포맷:",
+  "Image.Label.Palette": "팔레트:",
+
+  // Status
+  "Image.Status.Import.Success": "이미지를 성공적으로 삽입했습니다.",
+
+  // Progress
+  //"Image.Progress.Decode": "Decode image(s)",
+
+
   // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "확인",
 
   // Choose plugin dialog
   "Dialog.ChoosePlugin.Caption": "플러그인 선택",
@@ -187,23 +211,7 @@
   "Dialog.ChoosePlugin.Continue": "계속하기",
   "Dialog.ChoosePlugin.ViewRaw": "헥스 값으로 보기",
   "Dialog.ChoosePlugin.Cancel": "취소",
-  "Dialog.ChoosePlugin.ShowAll": "모든 플러그인 표시",
-
-  //// Kuriimu2 Image form
-  //"ExportImage": "이미지 추출",
-  //"ImportImage": "이미지 삽입",
-
-  //"Width": "폭:",
-  //"Height": "높이:",
-  //"Format": "포맷:",
-  //"Palette": "팔레트:",
-
-  //"ExportPngTitle": "PNG 추출...",
-  //"ImportPngTitle": "PNG 삽입...",
-
-  //"ImageSuccessfullyImportedStatus": "이미지를 성공적으로 삽입했습니다",
-
-  //"PngFileFilter": "Portable Network Graphics (*.png)",
+  "Dialog.ChoosePlugin.ShowAll": "모든 플러그인 표시"
 
   //// Kuriimu2 Text Sequence Searcher
   //"TextSequenceSearcherTitle": "텍스트 시퀸스 검색기",

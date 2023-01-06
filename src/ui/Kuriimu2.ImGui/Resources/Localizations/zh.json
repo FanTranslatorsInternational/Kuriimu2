@@ -169,7 +169,31 @@
   "Archive.CancelOperation": "撤销",
 
 
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "导出图像",
+  "Image.Menu.Import": "导入图像",
+  "Image.Menu.Export.Png": "导出PNG...",
+  "Image.Menu.Import.Png": "导入PNG...",
+
+  // Labels
+  "Image.Label.Width": "宽度：",
+  "Image.Label.Height": "高度：",
+  "Image.Label.Format": "格式：",
+  "Image.Label.Palette": "调色板：",
+
+  // Status
+  "Image.Status.Import.Success": "图像成功导入。",
+
+  // Progress
+  //"Image.Progress.Decode": "Decode image(s)",
+
+
   // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "好的",
 
   // Choose plugin dialog
   "Dialog.ChoosePlugin.Caption": "选择插件",
@@ -189,22 +213,6 @@
   "Dialog.ChoosePlugin.Cancel": "取消",
   "Dialog.ChoosePlugin.ShowAll": "显示所有插件"
 
-  //// Kuriimu2 Image form
-  //"ExportImage": "导出图像",
-  //"ImportImage": "导入图像",
-
-  //"Width": "宽度:",
-  //"Height": "高度：",
-  //"Format": "格式：",
-  //"Palette": "调色板：",
-
-  //"ExportPngTitle": "导出PNG...",
-  //"ImportPngTitle": "导入PNG...",
-
-  //"ImageSuccessfullyImportedStatus": "图像成功导入。",
-
-  //"PngFileFilter": "便携式网络图形(*.png)",
-
   //// Kuriimu2 Text Sequence Searcher
   //"TextSequenceSearcherTitle": "文本序列搜索器",
   //"SearchSubfolders": "搜索子文件夹",
@@ -220,11 +228,6 @@
   //"SelectEncodingCaption": "选择一个编码。",
   //"SelectSearchDirectoryCaption": "选择一个要搜索的目录。",
   //"SelectSearchTextCaption": "选择一个要搜索的文本。",
-
-  //// Kuriimu2 DialogManager
-  //"CancelDialog": "对话框被取消了。",
-  //"UnsupportedDialogFieldType": "不支持的对话字段类型{0}。",
-  //"DialogOkButton": "好的",
 
   //// Kuriimu2 InputBox
   //"InputBoxOkButton": "好的",

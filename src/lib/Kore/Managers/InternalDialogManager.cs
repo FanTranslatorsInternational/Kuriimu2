@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Kontract.Interfaces.Managers.Dialogs;
 using Kontract.Models.Managers.Dialogs;
 
@@ -29,7 +30,7 @@ namespace Kore.Managers
         }
 
         /// <inheritdoc />
-        public void ShowDialog(params DialogField[] fields)
+        public async Task<bool> ShowDialog(params DialogField[] fields)
         {
             // If no dialog Manager is given and not enough predefined options are available.
             if (_dialogManager == null && _options.Count - _optionIndex < fields.Length)
@@ -47,15 +48,21 @@ namespace Kore.Managers
 
             // If all fields were already processed by predefined options
             if (fieldIndex >= fields.Length)
-                return;
+                return true;
 
             // Collect results from dialog manager if predefined options are exhausted
             var subFields = fields.Skip(fieldIndex).ToArray();
-            _dialogManager?.ShowDialog(subFields);
+            if (_dialogManager != null)
+            {
+                var result = await _dialogManager.ShowDialog(subFields);
+                if (!result) return false;
+            }
 
             // Add results from the dialog Manager to the results
             foreach (var subField in subFields)
                 DialogOptions.Add(subField.Result);
+
+            return true;
         }
     }
 }

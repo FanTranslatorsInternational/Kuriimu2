@@ -169,7 +169,31 @@
   "Archive.CancelOperation": "Aflyse",
 
 
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Eksport billede",
+  "Image.Menu.Import": "Importere billede",
+  "Image.Menu.Export.Png": "Eksport PNG...",
+  "Image.Menu.Import.Png": "Importere PNG...",
+
+  // Labels
+  "Image.Label.Width": "Bredde:",
+  "Image.Label.Height": "Højde:",
+  "Image.Label.Format": "Format:",
+  "Image.Label.Palette": "Palet:",
+
+  // Status
+  "Image.Status.Import.Success": "Billede succesrig importere.",
+
+  // Progress
+  //"Image.Progress.Decode": "Decode image(s)",
+
+
   // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "Ok",
 
   // Choose plugin dialog
   "Dialog.ChoosePlugin.Caption": "Vælge tilslutte",
@@ -189,20 +213,6 @@
   "Dialog.ChoosePlugin.Cancel": "Annuller",
   "Dialog.ChoosePlugin.ShowAll": "Vis alle tilslutter"
 
-  //// Kuriimu2 Image form
-  //"ExportImage": "Eksport billede",
-  //"ImportImage": "Importere billede",
-
-  //"Width": "Bredde:",
-  //"Height": "Højde:",
-  //"Format": "Format:",
-  //"Palette": "Palet:",
-
-  //"ExportPngTitle": "Eksport PNG...",
-  //"ImportPngTitle": "Importere PNG...",
-
-  //"ImageSuccessfullyImportedStatus": "Billede succesrig importere.",
-
   //"PngFileFilter": "Bærbar Netværksgrafik (*.png)",
 
   //// Kuriimu2 Text Sequence Searcher
@@ -220,28 +230,6 @@
   //"SelectEncodingCaption": "Vælg en Kryptere.",
   //"SelectSearchDirectoryCaption": "Vælg den mappe, der skal søges i.",
   //"SelectSearchTextCaption": "Vælg en tekst, du vil søge efter.",
-
-  //// Kuriimu2 ChoosePluginDialog
-  //"ChooseOpenFilePlugin": "Vælg tilslutte til at åbne filen med:",
-  //"MultiplePluginMatchesSelection": "Flere tilslutte kan identificere denne fil. Vælg venligst en:",
-  //"NonIdentifiablePluginSelection": "Kunne ikke automatisk bestemme tilslutte til åbning af denne fil, vælg venligst manuelt:",
-  //"NonIdentifiablePluginSelectionNote": "Som standard vises kun tilslutter, der ikke automatisk kunne bestemme, om de understøtter filen, som standard",
-
-  //"PluginNameColumn": "Navn",
-  //"PluginTypeColumn": "Type",
-  //"PluginDescriptionColumn": "Beskrivelse",
-  //"PluginIdColumn": "GUID",
-
-  //"ChoosePluginTitle": "Vælge tilslutte",
-  //"ChoosePluginContinue": "Fortsætte",
-  //"ChoosePluginRawBytes": "Vis rå bytes",
-  //"ChoosePluginCancel": "Annuller",
-  //"ChoosePluginShowAll": "Vis alle tilslutter",
-
-  //// Kuriimu2 DialogManager
-  //"CancelDialog": "Dialogen blev annulleret.",
-  //"UnsupportedDialogFieldType": "Ikke understøttet dialogfelt af typen {0}.",
-  //"DialogOkButton": "Ok",
 
   //// Kuriimu2 InputBox
   //"InputBoxOkButton": "Ok",
