@@ -72,12 +72,10 @@ namespace Kontract.Models.Plugins.State.Image
         /// </summary>
         public ImageAnchor IsAnchoredAt { get; set; } = ImageAnchor.TopLeft;
 
-        // TODO: Make not settable
-        // TODO: Use KanvasImage in Kontract
         /// <summary>
         /// Determines of the content of this instance changed.
         /// </summary>
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged { get; private set; }
 
         /// <summary>
         /// Creates a new <see cref="ImageData"/>.
@@ -107,6 +105,11 @@ namespace Kontract.Models.Plugins.State.Image
             ContractAssertions.IsNotNull(mipMaps, nameof(mipMaps));
 
             MipMapData = mipMaps;
+        }
+
+        internal void SetContentChanged(bool changed)
+        {
+            ContentChanged = changed;
         }
     }
 

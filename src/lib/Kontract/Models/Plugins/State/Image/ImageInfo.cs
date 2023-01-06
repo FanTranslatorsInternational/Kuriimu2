@@ -122,7 +122,7 @@ namespace Kontract.Models.Plugins.State.Image
             ImageData.MipMapData = imageData.Skip(1).ToArray();
             ImageData.ImageSize = image.Size;
 
-            ImageData.ContentChanged = true;
+            ImageData.SetContentChanged(true);
         }
 
         /// <inheritdoc />
@@ -160,7 +160,7 @@ namespace Kontract.Models.Plugins.State.Image
             ImageData.MipMapData = imageData.Skip(1).ToArray();
             ImageData.PaletteData = paletteData;
 
-            ImageData.ContentChanged = true;
+            ImageData.SetContentChanged(true);
         }
 
         #endregion
@@ -189,7 +189,7 @@ namespace Kontract.Models.Plugins.State.Image
 
             ImageData.PaletteData = EncodePalette(palette, PaletteFormat);
 
-            ImageData.ContentChanged = true;
+            ImageData.SetContentChanged(true);
         }
 
         /// <inheritdoc />
@@ -336,7 +336,7 @@ namespace Kontract.Models.Plugins.State.Image
             _decodedImage = null;
             _decodedPalette = null;
 
-            ImageData.ContentChanged = true;
+            ImageData.SetContentChanged(true);
         }
 
         private Bitmap ResizeImage(System.Drawing.Image image, int width, int height)
