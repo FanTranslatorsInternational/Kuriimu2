@@ -4,6 +4,7 @@ using ImGui.Forms.Localization;
 using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.FileSystem;
+using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Interfaces
 {
@@ -16,7 +17,7 @@ namespace Kuriimu2.ImGui.Interfaces
 
         void Update(IFileState fileState, bool updateParents, bool updateChildren);
 
-        void ReportStatus(bool isSuccessful, LocalizedString message);
+        void ReportStatus(StatusKind kind, LocalizedString message);
         void ClearStatus();
     }
 }

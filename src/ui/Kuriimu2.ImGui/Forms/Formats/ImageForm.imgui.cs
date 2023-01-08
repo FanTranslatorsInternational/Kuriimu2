@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -71,7 +70,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     {
                         Alignment = Alignment.Vertical,
                         ItemSpacing = 4,
-                        Size = new Size(.70f,SizeValue.Parent),
+                        Size = Size.Parent,
                         Items =
                         {
                             new StackLayout
@@ -120,7 +119,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     {
                         Alignment = Alignment.Vertical,
                         ItemSpacing = 4,
-                        Size = new Size(.3f,SizeValue.Parent),
+                        Size = new Size(300,SizeValue.Parent),
                         Items =
                         {
                             _imgList

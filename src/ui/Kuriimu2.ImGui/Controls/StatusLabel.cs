@@ -1,7 +1,10 @@
-﻿using ImGui.Forms.Controls;
+﻿using ImGui.Forms;
+using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Localization;
 using ImGui.Forms.Models;
+using ImGuiNET;
+using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using Veldrid;
 
@@ -11,7 +14,7 @@ namespace Kuriimu2.ImGui.Controls
     {
         private readonly Label _label;
 
-        public bool IsSuccessful { get; private set; }
+        public StatusKind StatusKind { get; private set; }
 
         public string Text
         {
@@ -35,24 +38,37 @@ namespace Kuriimu2.ImGui.Controls
             return _label.GetSize();
         }
 
-        public void Report(bool isSuccessful, LocalizedString message)
+        public void Report(StatusKind kind, LocalizedString message)
         {
             if (message.IsEmpty)
                 return;
 
             Text = message;
-            IsSuccessful = isSuccessful;
+            StatusKind = kind;
         }
 
         public void Clear()
         {
             Text = string.Empty;
-            IsSuccessful = true;
+            StatusKind = StatusKind.Info;
         }
 
         protected override void UpdateInternal(Rectangle contentRect)
         {
-            _label.TextColor = IsSuccessful ? ColorResources.TextSuccessful : ColorResources.TextFatal;
+            switch (StatusKind)
+            {
+                case StatusKind.Info:
+                    _label.TextColor = Style.GetColor(ImGuiCol.Text);
+                    break;
+
+                case StatusKind.Success:
+                    _label.TextColor = ColorResources.TextSuccessful;
+                    break;
+
+                case StatusKind.Failure:
+                    _label.TextColor = ColorResources.TextFatal;
+                    break;
+            }
 
             _label.Update(contentRect);
         }

@@ -14,9 +14,14 @@ namespace Kontract.Interfaces.Managers.Files
     public interface IFileState : IDisposable
     {
         /// <summary>
-        /// The plugin manager for this state.
+        /// The file manager for this state.
         /// </summary>
         IFileManager FileManager { get; }
+
+        /// <summary>
+        /// The stream manager for this state.
+        /// </summary>
+        IStreamManager StreamManager { get; }
 
         /// <summary>
         /// The entry class of the plugin for this file.
@@ -29,6 +34,12 @@ namespace Kontract.Interfaces.Managers.Files
         IPluginState PluginState { get; }
 
         /// <summary>
+        /// The file system <see cref="FilePath"/> is relative to.
+        /// The file system is rooted to <see cref="FilePath"/>.
+        /// </summary>
+        IFileSystem FileSystem { get; }
+
+        /// <summary>
         /// The path of the file initially opened for this state relative to the file system.
         /// <see cref="UPath.Empty"/> if a file of this format was newly created.
         /// </summary>
@@ -38,17 +49,6 @@ namespace Kontract.Interfaces.Managers.Files
         /// The absolute directory of the file system for this state over all parents.
         /// </summary>
         UPath AbsoluteDirectory { get; }
-
-        /// <summary>
-        /// The file system <see cref="FilePath"/> is relative to.
-        /// The file system is rooted to <see cref="FilePath"/>.
-        /// </summary>
-        IFileSystem FileSystem { get; }
-
-        /// <summary>
-        /// The stream manager for this state.
-        /// </summary>
-        IStreamManager StreamManager { get; }
 
         /// <summary>
         /// All child states that were opened from this one.

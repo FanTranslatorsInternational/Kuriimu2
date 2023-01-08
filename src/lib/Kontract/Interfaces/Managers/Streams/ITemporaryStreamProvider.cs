@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Kontract.Interfaces.Managers.Streams
+﻿namespace Kontract.Interfaces.Managers.Streams
 {
     /// <summary>
     /// Exposes methods to create temporary streams.
@@ -11,6 +9,6 @@ namespace Kontract.Interfaces.Managers.Streams
         /// Creates a temporary stream on the disk.
         /// </summary>
         /// <returns>The temporary stream.</returns>
-        Stream CreateTemporaryStream();
+        System.IO.Stream CreateTemporaryStream();
     }
 }

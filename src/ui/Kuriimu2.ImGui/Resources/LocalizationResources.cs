@@ -121,16 +121,39 @@ namespace Kuriimu2.ImGui.Resources
         // Status labels
         private const string StatusPluginSelectNoneId_ = "Status.Plugin.Select.None";
         private const string StatusPluginSelectUnknownId_ = "Status.Plugin.Select.Unknown";
+        private const string StatusPluginLoadNoneId_ = "Status.Plugin.Load.None";
+        private const string StatusPluginLoadNoArchiveId_ = "Status.Plugin.Load.NoArchive";
+        private const string StatusPluginStateInitErrorId_ = "Status.Plugin.State.Init.Error";
+        private const string StatusPluginStateLoadNoneId_ = "Status.Plugin.State.Load.None";
+        private const string StatusPluginStateLoadErrorId_ = "Status.Plugin.State.Load.Error";
         private const string StatusFileSelectNoneId_ = "Status.File.Select.None";
         private const string StatusFileSelectInvalidId_ = "Status.File.Select.Invalid";
+        private const string StatusFileLoadStartId_ = "Status.File.Load.Start";
         private const string StatusFileLoadCancelId_ = "Status.File.Load.Cancel";
         private const string StatusFileLoadOpeningId_ = "Status.File.Load.Opening";
         private const string StatusFileLoadSavingId_ = "Status.File.Load.Saving";
         private const string StatusFileLoadSuccessId_ = "Status.File.Load.Success";
-        private const string StatusFileLoadFailureId_ = "Status.File.Load.Failure";
+        private const string StatusFileLoadFailureId_ = "Status.File.Load.Error";
         private const string StatusFileLoadFailureWithPluginId_ = "Status.File.Load.FailureWithPlugin";
+        private const string StatusFileSaveStartId_ = "Status.File.Save.Start";
+        private const string StatusFileSaveClosedId_ = "Status.File.Save.Closed";
+        private const string StatusFileSaveSavingId_ = "Status.File.Save.Saving";
+        private const string StatusFileSaveClosingId_ = "Status.File.Save.Closing";
+        private const string StatusFileSaveNotLoadedId_ = "Status.File.Save.NotLoaded";
+        private const string StatusFileSaveNoChangesId_ = "Status.File.Save.NoChanges";
+        private const string StatusFileSaveStateErrorId_ = "Status.File.Save.State.Error";
+        private const string StatusFileSaveStateReloadErrorId_ = "Status.File.Save.State.Reload.Error";
+        private const string StatusFileSaveReplaceErrorId_ = "Status.File.Save.Replace.Error";
+        private const string StatusFileSaveCopyErrorId_ = "Status.File.Save.Copy.Error";
+        private const string StatusFileSaveDestinationNotExistId_ = "Status.File.Save.DestinationNotExist";
         private const string StatusFileSaveSuccessId_ = "Status.File.Save.Success";
-        private const string StatusFileSaveFailureId_ = "Status.File.Save.Failure";
+        private const string StatusFileSaveFailureId_ = "Status.File.Save.Error";
+        private const string StatusFileCloseStartId_ = "Status.File.Close.Start";
+        private const string StatusFileCloseCancelId_ = "Status.File.Close.Cancel";
+        private const string StatusFileCloseSavingId_ = "Status.File.Close.Saving";
+        private const string StatusFileCloseClosingId_ = "Status.File.Close.Closing";
+        private const string StatusFileCloseNotLoadedId_ = "Status.File.Close.NotLoaded";
+        private const string StatusFileCloseSuccessId_ = "Status.File.Close.Success";
         private const string StatusOperationRunningId_ = "Status.Operation.Running";
 
         // Error messages
@@ -320,16 +343,39 @@ namespace Kuriimu2.ImGui.Resources
         // Status labels
         public static LocalizedString StatusPluginSelectNone() => new LocalizedString(StatusPluginSelectNoneId_);
         public static LocalizedString StatusPluginSelectUnknown(IPluginState state) => new LocalizedString(StatusPluginSelectUnknownId_, () => state.GetType().Name);
+        public static LocalizedString StatusPluginLoadNone() => new LocalizedString(StatusPluginLoadNoneId_);
+        public static LocalizedString StatusPluginLoadNoArchive() => new LocalizedString(StatusPluginLoadNoArchiveId_);
+        public static LocalizedString StatusPluginStateInitError() => new LocalizedString(StatusPluginStateInitErrorId_);
+        public static LocalizedString StatusPluginStateLoadNone() => new LocalizedString(StatusPluginStateLoadNoneId_);
+        public static LocalizedString StatusPluginStateLoadError() => new LocalizedString(StatusPluginStateLoadErrorId_);
         public static LocalizedString StatusFileSelectNone() => new LocalizedString(StatusFileSelectNoneId_);
         public static LocalizedString StatusFileSelectInvalid() => new LocalizedString(StatusFileSelectInvalidId_);
+        public static LocalizedString StatusFileLoadStart(UPath path) => new LocalizedString(StatusFileLoadStartId_, () => path);
         public static LocalizedString StatusFileLoadCancel() => new LocalizedString(StatusFileLoadCancelId_);
         public static LocalizedString StatusFileLoadOpening(UPath path) => new LocalizedString(StatusFileLoadOpeningId_, () => path);
         public static LocalizedString StatusFileLoadSaving(UPath path) => new LocalizedString(StatusFileLoadSavingId_, () => path);
-
+        public static LocalizedString StatusFileLoadSuccess() => new LocalizedString(StatusFileLoadSuccessId_);
         public static LocalizedString StatusFileLoadFailure() => new LocalizedString(StatusFileLoadFailureId_);
         public static LocalizedString StatusFileLoadFailureWithPlugin(Guid id) => new LocalizedString(StatusFileLoadFailureWithPluginId_, () => id);
+        public static LocalizedString StatusFileSaveStart(UPath path) => new LocalizedString(StatusFileSaveStartId_, () => path);
+        public static LocalizedString StatusFileSaveClosed() => new LocalizedString(StatusFileSaveClosedId_);
+        public static LocalizedString StatusFileSaveSaving(UPath path) => new LocalizedString(StatusFileSaveSavingId_, () => path);
+        public static LocalizedString StatusFileSaveClosing(UPath path) => new LocalizedString(StatusFileSaveClosingId_, () => path);
+        public static LocalizedString StatusFileSaveNotLoaded() => new LocalizedString(StatusFileSaveNotLoadedId_);
+        public static LocalizedString StatusFileSaveNoChanges() => new LocalizedString(StatusFileSaveNoChangesId_);
+        public static LocalizedString StatusFileSaveStateError() => new LocalizedString(StatusFileSaveStateErrorId_);
+        public static LocalizedString StatusFileSaveStateReloadError() => new LocalizedString(StatusFileSaveStateReloadErrorId_);
+        public static LocalizedString StatusFileSaveReplaceError() => new LocalizedString(StatusFileSaveReplaceErrorId_);
+        public static LocalizedString StatusFileSaveCopyError() => new LocalizedString(StatusFileSaveCopyErrorId_);
+        public static LocalizedString StatusFileSaveDestinationNotExist() => new LocalizedString(StatusFileSaveDestinationNotExistId_);
         public static LocalizedString StatusFileSaveSuccess() => new LocalizedString(StatusFileSaveSuccessId_);
         public static LocalizedString StatusFileSaveFailure() => new LocalizedString(StatusFileSaveFailureId_);
+        public static LocalizedString StatusFileCloseStart(UPath path) => new LocalizedString(StatusFileCloseStartId_, () => path);
+        public static LocalizedString StatusFileCloseCancel() => new LocalizedString(StatusFileCloseCancelId_);
+        public static LocalizedString StatusFileCloseSaving(UPath path) => new LocalizedString(StatusFileCloseSavingId_, () => path);
+        public static LocalizedString StatusFileCloseClosing(UPath path) => new LocalizedString(StatusFileCloseClosingId_, () => path);
+        public static LocalizedString StatusFileCloseNotLoaded() => new LocalizedString(StatusFileCloseNotLoadedId_);
+        public static LocalizedString StatusFileCloseSuccess() => new LocalizedString(StatusFileCloseSuccessId_);
         public static LocalizedString StatusOperationRunning() => new LocalizedString(StatusOperationRunningId_);
 
         // Error messages

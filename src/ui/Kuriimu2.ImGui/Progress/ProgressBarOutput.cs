@@ -1,6 +1,6 @@
 ﻿using System;
 using ImGui.Forms.Controls;
-using Kore.Progress;
+using Kore.Implementation.Progress;
 
 namespace Kuriimu2.ImGui.Progress
 {

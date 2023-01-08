@@ -48,6 +48,9 @@ namespace Komponent.Models
                     existingDir.Files.Add(file);
         }
 
+        /// <summary>
+        /// Remove this entry from its parent
+        /// </summary>
         public void Remove()
         {
             _parent?.Directories.Remove(this);

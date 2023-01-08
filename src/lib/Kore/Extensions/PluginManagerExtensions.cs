@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.Entry;
-using Kore.Managers.Plugins;
+using Kore.Implementation.Managers.Files;
 
 namespace Kore.Extensions
 {
@@ -23,9 +22,9 @@ namespace Kore.Extensions
             return fileManager.GetFilePluginLoaders().GetNonIdentifiableFilePlugins();
         }
 
-        //public static IEnumerable<IGameAdapter> GetGameAdapters(this IFileManager fileManager)
+        //public static IEnumerable<IGameAdapter> GetGameAdapters(this IFileManager koreFileManager)
         //{
-        //    return fileManager.GetGamePluginLoaders().SelectMany(x => x.Plugins);
+        //    return koreFileManager.GetGamePluginLoaders().SelectMany(x => x.Plugins);
         //}
     }
 }

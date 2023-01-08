@@ -11,7 +11,7 @@ using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Models.FileSystem;
 using Kontract.Models.Managers.Files;
-using Kore.Managers.Plugins;
+using Kore.Implementation.Managers.Files;
 using Serilog;
 
 namespace Kore.Batch

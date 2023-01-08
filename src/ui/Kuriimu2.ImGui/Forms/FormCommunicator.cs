@@ -6,6 +6,7 @@ using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.FileSystem;
 using Kuriimu2.ImGui.Interfaces;
+using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Forms
 {
@@ -66,9 +67,9 @@ namespace Kuriimu2.ImGui.Forms
             _mainForm.RenameFile(_fileState, file, renamedPath);
         }
 
-        public void ReportStatus(bool isSuccessful, LocalizedString message)
+        public void ReportStatus(StatusKind status, LocalizedString message)
         {
-            _mainForm.ReportStatus(isSuccessful, message);
+            _mainForm.ReportStatus(status, message);
         }
 
         #endregion

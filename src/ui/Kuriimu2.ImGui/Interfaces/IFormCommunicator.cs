@@ -3,17 +3,18 @@ using System.Threading.Tasks;
 using ImGui.Forms.Localization;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.FileSystem;
+using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Interfaces
 {
-    public interface IFormCommunicator
+    interface IFormCommunicator
     {
         Task<bool> Save(bool saveAs);
         void Update(bool updateParents, bool updateChildren);
-        void ReportStatus(bool isSuccessful, LocalizedString message);
+        void ReportStatus(StatusKind status, LocalizedString message);
     }
 
-    public interface IArchiveFormCommunicator : IFormCommunicator
+    interface IArchiveFormCommunicator : IFormCommunicator
     {
         Task<bool> Open(IArchiveFileInfo file);
         Task<bool> Open(IArchiveFileInfo file, Guid pluginId);

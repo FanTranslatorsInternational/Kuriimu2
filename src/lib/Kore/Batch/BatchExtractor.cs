@@ -10,7 +10,7 @@ using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
 using Kontract.Models.FileSystem.EventArgs;
-using Kore.Managers.Plugins;
+using Kore.Implementation.Managers.Files;
 using Serilog;
 
 namespace Kore.Batch

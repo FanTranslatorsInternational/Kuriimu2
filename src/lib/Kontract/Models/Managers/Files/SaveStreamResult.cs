@@ -8,23 +8,18 @@ namespace Kontract.Models.Managers.Files
         /// <summary>
         /// The list of in-memory files, that were saved by the operation.
         /// </summary>
-        public IReadOnlyList<StreamFile> SavedStream { get; } = new List<StreamFile>();
+        public IReadOnlyList<StreamFile> SavedStreams { get; }
 
-        public SaveStreamResult(IReadOnlyList<StreamFile> files) : this(files, "")
+        protected SaveStreamResult(IReadOnlyList<StreamFile> files, bool isSuccessful, Exception exception) :
+            base(isSuccessful, exception)
         {
+            SavedStreams = files;
         }
 
-        public SaveStreamResult(IReadOnlyList<StreamFile> files, string message) : base(true, message)
-        {
-            SavedStream = files;
-        }
+        public SaveStreamResult(IReadOnlyList<StreamFile> files) : this(files, true, null)
+        { }
 
-        public SaveStreamResult(bool isSuccessful, string message) : base(isSuccessful, message)
-        {
-        }
-
-        public SaveStreamResult(Exception exception) : base(exception)
-        {
-        }
+        public SaveStreamResult(Exception exception) : this(Array.Empty<StreamFile>(), false, exception)
+        { }
     }
 }

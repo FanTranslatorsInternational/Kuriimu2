@@ -18,11 +18,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         public async Task<bool> ShowDialog(DialogField[] fields)
         {
             var modal = CreateDialog(fields);
-            var result = await modal.ShowAsync();
-            if (result == DialogResult.Ok)
-                return true;
 
-            return false;
+            var result = await modal.ShowAsync();
+            return result == DialogResult.Ok;
         }
 
         private Modal CreateDialog(DialogField[] fields)
@@ -41,7 +39,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             // Setup modal
             var layoutWidth = layout.GetWidth(Application.Instance.MainForm.Width);
-            var layoutHeight = layout.GetWidth(Application.Instance.MainForm.Height);
+            var layoutHeight = layout.GetHeight(Application.Instance.MainForm.Height);
 
             modal.Size = new Vector2(layoutWidth, layoutHeight);
             modal.Content = layout;

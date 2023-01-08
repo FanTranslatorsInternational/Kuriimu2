@@ -7,7 +7,7 @@ using ImGui.Forms.Modals;
 using Kontract;
 using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Models.Plugins.Entry;
-using Kore.Managers.Plugins;
+using Kore.Implementation.Managers.Files;
 using Kore.Models.UnsupportedPlugin;
 using Kuriimu2.ImGui.Resources;
 
@@ -20,7 +20,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         public IFilePlugin SelectedPlugin { get; private set; }
 
-        public ChoosePluginDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, FileManager.SelectionStatus status)
+        public ChoosePluginDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, KoreFileManager.SelectionStatus status)
         {
             InitializeComponent();
 
@@ -29,17 +29,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             switch (status)
             {
-                case FileManager.SelectionStatus.All:
+                case KoreFileManager.SelectionStatus.All:
                     _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderGeneric();
                     _showAllPlugins.Enabled = false;
                     _showAllPlugins.Checked = true;
                     break;
 
-                case FileManager.SelectionStatus.MultipleMatches:
+                case KoreFileManager.SelectionStatus.MultipleMatches:
                     _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationMultiple();
                     break;
 
-                case FileManager.SelectionStatus.NonIdentifiable:
+                case KoreFileManager.SelectionStatus.NonIdentifiable:
                     _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationNone();
                     _showAllPlugins.Tooltip = LocalizationResources.DialogChoosePluginHeaderIdentificationNote();
                     break;

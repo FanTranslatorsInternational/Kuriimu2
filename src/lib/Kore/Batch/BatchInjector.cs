@@ -4,7 +4,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
-using Kore.Managers.Plugins;
+using Kore.Implementation.Managers.Files;
 using Serilog;
 
 namespace Kore.Batch

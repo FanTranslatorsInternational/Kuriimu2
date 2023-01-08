@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using ImGui.Forms;
 using ImGui.Forms.Models;
 
 namespace Kuriimu2.ImGui.Resources
@@ -27,14 +28,12 @@ namespace Kuriimu2.ImGui.Resources
             }
         };
 
-        public static Color TextSuccessful => Store[GetTheme()][ImGuiColMax_ + 1];
+        public static Color TextSuccessful => Store[Style.Theme][ImGuiColMax_ + 1];
 
-        public static Color TextFatal => Store[GetTheme()][ImGuiColMax_ + 2];
+        public static Color TextFatal => Store[Style.Theme][ImGuiColMax_ + 2];
 
-        public static Color Progress => Store[GetTheme()][ImGuiColMax_ + 3];
+        public static Color Progress => Store[Style.Theme][ImGuiColMax_ + 3];
 
-        public static Color ArchiveChanged => Store[GetTheme()][ImGuiColMax_ + 4];
-
-        private static Theme GetTheme() => Enum.Parse<Theme>(Settings.Default.Theme);
+        public static Color ArchiveChanged => Store[Style.Theme][ImGuiColMax_ + 4];
     }
 }

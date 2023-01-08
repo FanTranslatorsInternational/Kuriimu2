@@ -7,7 +7,7 @@ using Kontract.Interfaces.Managers.Streams;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
 using Kontract.Models.Managers.Files;
-using Kore.FileSystem.Implementations;
+using Kore.Implementation.FileSystem;
 
 namespace Kore.Factories
 {

@@ -1,15 +1,13 @@
 ﻿using System;
 using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Plugins.State.Features;
 using Kontract.Interfaces.Progress;
 using Kuriimu2.ImGui.Interfaces;
 using Serilog;
 
 namespace Kuriimu2.ImGui.Models
 {
-    public class FormInfo<TState> where TState : IPluginState
+    class FormInfo<TState> where TState : IPluginState
     {
         public IFileState FileState { get; }
 
@@ -21,7 +19,7 @@ namespace Kuriimu2.ImGui.Models
 
         public ILogger Logger { get; }
 
-        public bool CanSave => FileState.PluginState is ISaveFiles;
+        public bool CanSave => FileState.PluginState.CanSave;
 
         public FormInfo(IFileState fileState, IFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
         {
@@ -35,7 +33,7 @@ namespace Kuriimu2.ImGui.Models
         }
     }
 
-    public class ArchiveFormInfo : FormInfo<IArchiveState>
+    class ArchiveFormInfo : FormInfo<IArchiveState>
     {
         public new IArchiveFormCommunicator FormCommunicator => (IArchiveFormCommunicator)base.FormCommunicator;
 
@@ -43,9 +41,9 @@ namespace Kuriimu2.ImGui.Models
         {
         }
 
-        public bool CanReplaceFiles => FileState.PluginState is IReplaceFiles;
-        public bool CanRenameFiles => FileState.PluginState is IRenameFiles;
-        public bool CanDeleteFiles => FileState.PluginState is IRemoveFiles;
-        public bool CanAddFiles => FileState.PluginState is IAddFiles;
+        public bool CanReplaceFiles => PluginState.CanReplaceFiles;
+        public bool CanRenameFiles => PluginState.CanRenameFiles;
+        public bool CanDeleteFiles => PluginState.CanDeleteFiles;
+        public bool CanAddFiles => PluginState.CanAddFiles;
     }
 }
