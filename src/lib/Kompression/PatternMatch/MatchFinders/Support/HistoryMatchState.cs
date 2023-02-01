@@ -98,9 +98,9 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                     continue;
 
                 // Check last value of longest match position
-                if (longestMatchSize >= _limits.MinLength &&
-                    input[position + longestMatchSize] != input[matchOffset + longestMatchSize])
-                    continue;
+                if (longestMatchSize >= _limits.MinLength)
+                    if (input[position + longestMatchSize] != input[matchOffset + longestMatchSize])
+                        continue;
 
                 // Calculate the length of a match
                 var nMaxSize = cappedLength;

@@ -228,5 +228,11 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new StingLzDecoder())
                 .EncodeWith(() => new StingLzEncoder());
+
+        /* Story of Seasons Switch/PC */
+        public static IKompressionConfiguration SosLz3 =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new SosLz3Decoder())
+                .EncodeWith(() => new SosLz3Encoder());
     }
 }
