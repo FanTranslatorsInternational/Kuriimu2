@@ -5,6 +5,7 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
+using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kryptography.Hash;
 
