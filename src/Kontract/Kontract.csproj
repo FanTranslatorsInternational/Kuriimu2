@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp31</TargetFrameworks>
@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.2" />
   </ItemGroup>
 
 </Project>
