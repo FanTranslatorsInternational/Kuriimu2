@@ -46,6 +46,7 @@ namespace Kuriimu2.ImGui.Resources
         private const string MenuCiphersId_ = "Menu.Ciphers";
         private const string MenuCompressionsId_ = "Menu.Compressions";
         private const string MenuSettingsId_ = "Menu.Settings";
+        private const string MenuHelpId_ = "Menu.Help";
 
         // File sub menu
         private const string MenuFileOpenId_ = "Menu.File.Open";
@@ -78,6 +79,11 @@ namespace Kuriimu2.ImGui.Resources
         // Change theme sub menu
         private const string MenuSettingsChangeThemeDarkId_ = "Menu.Settings.ChangeTheme.Dark";
         private const string MenuSettingsChangeThemeLightId_ = "Menu.Settings.ChangeTheme.Light";
+
+        // About Dialog
+        private const string MenuAboutTitleId_ = "Menu.About.Title";
+        private const string MenuAboutVersionId_ = "Menu.About.Version";
+        private const string MenuAboutDescriptionId_ = "Menu.About.Description";
 
         // Change language dialog
         private const string DialogChangeLanguageCaptionId_ = "Dialog.ChangeLanguage.Caption";
@@ -283,6 +289,8 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuCiphers() => new LocalizedString(MenuCiphersId_);
         public static LocalizedString MenuCompressions() => new LocalizedString(MenuCompressionsId_);
         public static LocalizedString MenuSettings() => new LocalizedString(MenuSettingsId_);
+        public static LocalizedString MenuHelp() => new LocalizedString(MenuHelpId_);
+
 
         // File sub menu
         public static LocalizedString MenuFileOpen() => new LocalizedString(MenuFileOpenId_);
@@ -313,6 +321,11 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuSettingsChangeThemeDark() => new LocalizedString(MenuSettingsChangeThemeDarkId_);
         public static LocalizedString MenuSettingsChangeThemeLight() => new LocalizedString(MenuSettingsChangeThemeLightId_);
 
+        // Show About Dialog
+        public static LocalizedString MenuAboutTitle() => new LocalizedString(MenuAboutTitleId_);
+        public static LocalizedString MenuAboutDescription() => new LocalizedString(MenuAboutDescriptionId_);
+        public static LocalizedString MenuAboutVersion() => new LocalizedString(MenuAboutVersionId_);
+        
         // Update available dialog
         public static LocalizedString DialogUpdateAvailableCaption() => new LocalizedString(DialogUpdateAvailableCaptionId_);
         public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
@@ -336,7 +349,7 @@ namespace Kuriimu2.ImGui.Resources
         // Dependant files dialog
         public static LocalizedString DialogDependantFilesCaption() => new LocalizedString(DialogDependantFilesCaptionId_);
         public static LocalizedString DialogDependantFilesText() => new LocalizedString(DialogDependantFilesTextId_);
-
+        public static string CloseResource() => Instance.Localize("Close");
         // Save error dialog
         public static LocalizedString DialogSaveErrorCaption() => new LocalizedString(DialogSaveErrorCaptionId_);
 

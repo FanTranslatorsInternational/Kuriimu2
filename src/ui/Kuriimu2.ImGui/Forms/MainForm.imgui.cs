@@ -71,7 +71,7 @@ namespace Kuriimu2.ImGui.Forms
             _changeLanguageMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeLanguage() };
             _changeThemeMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeTheme() };
 
-            _aboutButton = new MenuBarButton { Caption = LocalizationResources.AboutKuriimuResource() };
+            _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuAboutTitle() };
 
             AddLanguages(_changeLanguageMenu);
             AddThemes(_changeThemeMenu);
@@ -113,7 +113,7 @@ namespace Kuriimu2.ImGui.Forms
                         _changeLanguageMenu,
                         _changeThemeMenu
                     }},
-                    new MenuBarMenu{Caption = LocalizationResources.HelpResource(), Items =
+                    new MenuBarMenu{Text = LocalizationResources.MenuHelp(), Items =
                     {
                         _aboutButton
                     }}

@@ -29,9 +29,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var height = (int)Math.Ceiling(Application.Instance.MainForm.Height * .3f);
             Size = new Vector2(width, height);
 
-            _titleLabel = new Label { Caption = "Kuriimu2" };
-            _versionLabel = new Label { Caption = GetVersionText() };
-            _descriptionLabel = new Label { Caption = LocalizationResources.AboutDescriptionResource() };
+            _titleLabel = new Label { Text = "Kuriimu2" };
+            _versionLabel = new Label { Text = GetVersionText() };
+            _descriptionLabel = new Label { Text = LocalizationResources.MenuAboutDescription() };
             var mainLayout = new StackLayout
             {
                 Size = new Size(width, height),
@@ -46,7 +46,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 },
             };
 
-            Caption = LocalizationResources.AboutKuriimuResource();
+            Caption = LocalizationResources.MenuAboutTitle();
             Content = mainLayout;
         }
 
@@ -54,7 +54,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             string manifest = BinaryResources.VersionManifest;
             dynamic manifestObject = JsonConvert.DeserializeObject(manifest);
-            return LocalizationResources.AboutVersionResource() + " " + manifestObject?.version.ToString() ?? "2.0.0";
+            return LocalizationResources.MenuAboutVersion() + " " + manifestObject?.version.ToString() ?? "2.0.0";
         }
     }
 }

@@ -9,8 +9,8 @@
   "Menu.Ciphers": "Ciphers",
   "Menu.Compressions": "Compressions",
   "Menu.Settings": "Settings",
-  //"Help": "Help",
-  //"AboutKuriimu2": "About",
+  "Menu.Help": "Help",
+  "AboutKuriimu": "About Kuriimu",
 
   // File sub menu
   "Menu.File.Open": "Open",
@@ -44,6 +44,11 @@
   "Menu.Settings.ChangeTheme.Dark": "Dark",
   "Menu.Settings.ChangeTheme.Light": "Light",
 
+  // About Dialog
+  "Menu.About.Title": "About Kuriimu",
+  "Menu.About.Version": "Version",
+  "Menu.About.Description": "Kuriimu2 is a general purpose game translation project\nmanager and toolkit for authors of fan translations and\ngame mods.",
+  
   // Change language dialog
   "Dialog.ChangeLanguage.Caption": "Changed settings",
   "Dialog.ChangeLanguage.Text": "The changes will only take effect after a restart.",
