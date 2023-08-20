@@ -8,6 +8,10 @@ If you are on Mac or Linux, you can just install the .Net Core Runtime 3.1.6.
 We build against the .Net Core SDK version 3.1.302.<br>
 You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
+We only build for x64. If you have a x86 operating system, then the software will not run.<br>
+Make sure to download x64 version of the above mentioned runtimes only.
+We will not provide x86 builds of this software. You can compile it yourself if you really need to.
+
 ## Download
 You can download the latest release of Kuriimu2 from our release page:<br>
 https://github.com/FanTranslatorsInternational/Kuriimu2/releases/latest
