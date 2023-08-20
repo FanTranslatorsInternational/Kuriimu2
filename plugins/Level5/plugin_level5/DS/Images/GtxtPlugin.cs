@@ -2,12 +2,11 @@
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Managers.Files;
+using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.Entry;
 
 namespace plugin_level5.DS.Images
 {
@@ -33,7 +32,7 @@ namespace plugin_level5.DS.Images
             return magic == "GTXT" || magic == "GPLT";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new GtxtState();
         }

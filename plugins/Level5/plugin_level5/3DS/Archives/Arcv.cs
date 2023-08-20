@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
 
 namespace plugin_level5._3DS.Archives
 {
@@ -13,7 +13,7 @@ namespace plugin_level5._3DS.Archives
         private readonly int _headerSize = Tools.MeasureType(typeof(ArcvHeader));
         private readonly int _entrySize = Tools.MeasureType(typeof(ArcvFileInfo));
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -33,7 +33,7 @@ namespace plugin_level5._3DS.Archives
             return files;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<ArcvArchiveFileInfo>().ToArray();
             using var bw = new BinaryWriterX(output);

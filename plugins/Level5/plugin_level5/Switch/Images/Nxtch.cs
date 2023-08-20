@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Kontract.Models.Plugins.State.Image;
 
 namespace plugin_level5.Switch.Images
 {
@@ -15,7 +15,7 @@ namespace plugin_level5.Switch.Images
         private NxtchHeader _header;
         private byte[] _unkData;
 
-        public ImageInfo Load(Stream input)
+        public ImageData Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -48,7 +48,7 @@ namespace plugin_level5.Switch.Images
             }
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height))
+            var imageInfo = new ImageData(imageData, _header.format, new Size(_header.width, _header.height))
             {
                 MipMapData = mipData
             };
@@ -57,7 +57,7 @@ namespace plugin_level5.Switch.Images
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageData imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -69,8 +69,8 @@ namespace plugin_level5.Switch.Images
 
             var dataPosition = dataOffset;
             output.Position = dataPosition;
-            bw.Write(imageInfo.ImageData);
-            dataPosition += imageInfo.ImageData.Length;
+            bw.Write(imageInfo.Data);
+            dataPosition += imageInfo.Data.Length;
 
             if (imageInfo.MipMapCount > 0)
                 foreach (var mipData in imageInfo.MipMapData)
@@ -89,7 +89,7 @@ namespace plugin_level5.Switch.Images
 
             // Write header
             _header.mipMapCount = imageInfo.MipMapCount;
-            _header.format = imageInfo.ImageFormat;
+            _header.format = imageInfo.Format;
             _header.width = imageInfo.ImageSize.Width;
             _header.height = imageInfo.ImageSize.Height;
             _header.textureDataSize = (int)(output.Length - dataOffset);

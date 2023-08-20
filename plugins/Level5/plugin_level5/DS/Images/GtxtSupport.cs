@@ -4,9 +4,9 @@ using System.Linq;
 using Kanvas;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Kontract.Kanvas.Interfaces;
 using Kontract.Models.IO;
+using Kontract.Models.Plugins.State.Image;
 
 namespace plugin_level5.DS.Images
 {
@@ -64,7 +64,7 @@ namespace plugin_level5.DS.Images
             var definition = new EncodingDefinition();
 
             definition.AddPaletteEncodings(PaletteFormats);
-            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition(x.Value, new List<int> { 8 }))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new EncodingDefinition.IndexEncodingDefinition(x.Value, new List<int> { 8 }))).ToArray());
 
             return definition;
         }

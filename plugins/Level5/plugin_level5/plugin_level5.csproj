@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
@@ -14,21 +14,19 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\net5.0\plugins</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\net5.0\plugins</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Properties\**" />
     <EmbeddedResource Remove="Properties\**" />
     <None Remove="Properties\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="General\ImgxSupport.cs~RF389b60c9.TMP" />
   </ItemGroup>
 
   <ItemGroup>

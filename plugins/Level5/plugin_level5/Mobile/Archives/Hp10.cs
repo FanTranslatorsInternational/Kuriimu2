@@ -1,12 +1,11 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5.Mobile.Archives
@@ -18,7 +17,7 @@ namespace plugin_level5.Mobile.Archives
 
         private Hp10Header _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -42,7 +41,7 @@ namespace plugin_level5.Mobile.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             var crc32b = Crc32.Crc32B;
             var crc32c = Crc32.Crc32C;

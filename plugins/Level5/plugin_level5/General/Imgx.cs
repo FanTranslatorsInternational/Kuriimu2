@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.Plugins.State.Image;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
@@ -26,7 +26,7 @@ namespace plugin_level5.General
         public int BitDepth => _header.bitDepth;
         public int Format => _header.imageFormat;
 
-        public ImageInfo Load(Stream input)
+        public ImageData Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -64,13 +64,13 @@ namespace plugin_level5.General
                 (width, height) = (width >> 1, height >> 1);
             }
 
-            var imageInfo = new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height));
+            var imageInfo = new ImageData(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height));
             imageInfo.RemapPixels.With(context => new ImgxSwizzle(context, _header.magic));
 
             return imageInfo;
         }
 
-        public void Save(Stream output, IKanvasImage image)
+        public void Save(Stream output, IImageInfo image)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -82,9 +82,9 @@ namespace plugin_level5.General
 
             // Write image data to stream
             var combinedImageStream = new MemoryStream();
-            combinedImageStream.Write(image.ImageInfo.ImageData);
-            for (var i = 0; i < image.ImageInfo.MipMapCount; i++)
-                combinedImageStream.Write(image.ImageInfo.MipMapData[i]);
+            combinedImageStream.Write(image.ImageData.Data);
+            for (var i = 0; i < image.ImageData.MipMapCount; i++)
+                combinedImageStream.Write(image.ImageData.MipMapData[i]);
 
             // Create reduced tiles and indices
             var (imageData, tileTable) = SplitTiles(combinedImageStream, image.BitDepth);

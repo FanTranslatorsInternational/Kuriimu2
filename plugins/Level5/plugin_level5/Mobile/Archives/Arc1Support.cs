@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
+using Kontract.Models.Plugins.State.Archive;
 
 namespace plugin_level5.Mobile.Archives
 {

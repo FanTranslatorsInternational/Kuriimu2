@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Resources\Images\close.png" />
+    <None Remove="Resources\Images\dark\save.png" />
+    <None Remove="Resources\Images\dark\save_as.png" />
+    <None Remove="Resources\Images\kuriimu2.ico" />
+    <None Remove="Resources\Images\light\save.png" />
+    <None Remove="Resources\Images\light\save_as.png" />
+    <None Remove="Resources\Localizations\da.json" />
+    <None Remove="Resources\Localizations\de.json" />
+    <None Remove="Resources\Localizations\en.json" />
+    <None Remove="Resources\Localizations\ru.json" />
+    <None Remove="Resources\Localizations\zh.json" />
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\close.png" />
+    <EmbeddedResource Include="Resources\Images\dark\save.png" />
+    <EmbeddedResource Include="Resources\Images\dark\save_as.png" />
+    <EmbeddedResource Include="Resources\Images\kuriimu2.ico" />
+    <EmbeddedResource Include="Resources\Images\light\save.png" />
+    <EmbeddedResource Include="Resources\Images\light\save_as.png" />
+    <EmbeddedResource Include="Resources\Localizations\en.json" />
+    <EmbeddedResource Include="Resources\Localizations\da.json" />
+    <EmbeddedResource Include="Resources\Localizations\de.json" />
+    <EmbeddedResource Include="Resources\Localizations\ru.json" />
+    <EmbeddedResource Include="Resources\Localizations\zh.json" />
+    <EmbeddedResource Include="Resources\Localizations\ko.json" />
+    <EmbeddedResource Include="Resources\version.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Imgui.Forms" Version="1.0.33" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\..\lib\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\..\lib\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\..\lib\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\..\lib\Kore\Kore.csproj" />
+    <ProjectReference Include="..\..\lib\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Resources\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  
+  <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>
+  
+</Project>

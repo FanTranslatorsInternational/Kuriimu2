@@ -1,0 +1,317 @@
+﻿{
+  "Name": "Deutsch",
+
+  // Kuriimu2
+
+  // Menu bar texts
+  "Menu.File": "Datei",
+  "Menu.Tools": "Werkzeuge",
+  "Menu.Ciphers": "Verschlüsselungen",
+  "Menu.Compressions": "Kompressionen",
+  "Menu.Settings": "Einstellungen",
+  //"Help": "Hilfe",
+  //"AboutKuriimu2": "Über",
+
+  // File sub menu
+  "Menu.File.Open": "Öffnen",
+  "Menu.File.OpenWith": "Öffnen mit...",
+  "Menu.File.Save": "Speichern",
+  "Menu.File.SaveAs": "Speichern unter...",
+  "Menu.File.SaveAll": "Alles speichern",
+  "Menu.File.Close": "Schließen",
+
+  // Tools sub menu
+  "Menu.Tools.TextSequenceSearcher": "Textsuche",
+  "Menu.Tools.BatchExtractor": "Alles entpacken",
+  "Menu.Tools.BatchInjector": "Alles ersetzen",
+  "Menu.Tools.Hashes": "Prüfsummen",
+  "Menu.Tools.RawImageViewer": "Rohbildansicht",
+
+  // Ciphers sub menu
+  "Menu.Ciphers.Encrypt": "Verschlüsseln",
+  "Menu.Ciphers.Decrypt": "Entschlüsseln",
+
+  // Compressions sub menu
+  "Menu.Compressions.Decompress": "Dekomprimieren",
+  "Menu.Compressions.Compress": "Komprimieren",
+
+  // Settings sub menu
+  "Menu.Settings.IncludeDevBuilds": "Entwicklerversionen einbeziehen",
+  "Menu.Settings.ChangeLanguage": "Sprache ändern",
+  "Menu.Settings.ChangeTheme": "Farbschema ändern",
+
+  // Change theme sub menu
+  "Menu.Settings.ChangeTheme.Dark": "Dunkel",
+  "Menu.Settings.ChangeTheme.Light": "Hell",
+
+  // Change language dialog
+  "Dialog.ChangeLanguage.Caption": "Geänderte Sprache",
+  "Dialog.ChangeLanguage.Text": "Die Sprache wird erst nach einem Neustart aktiv.",
+
+  // Change theme dialog
+  "Dialog.ChangeTheme.Restart.Caption": "Neustart",
+  "Dialog.ChangeTheme.Restart.Text": "Bitte die Applikation neustarten, um das Farbschema anzuwenden.",
+
+  // Update available dialog
+  "Dialog.UpdateAvailable.Caption": "Updates verfügbar",
+  "Dialog.UpdateAvailable.Text": "Möchtest du von {0}-{1} nach {2}-{3} aktualisieren?",
+
+  // Exception catched dialog
+  "Dialog.ExceptionCatched.Caption": "Ausnahme abgefangen",
+
+  // Unhandled exception dialog
+  "Dialog.UnhandledException.Caption": "Unbehandelte Ausnahme",
+  "Dialog.UnhandledException.Text.Close": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen. Die Anwendung wird geschlossen.",
+  "Dialog.UnhandledException.Text.NotClose": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen.",
+
+  // Plugins not available dialog
+  "Dialog.PluginsNotAvailable.Caption": "Fehlerhafte Plugins",
+  "Dialog.PluginsNotAvailable.Text": "Folgende Plugins konnten nicht geladen werden:",
+
+  // Load error dialog
+  "Dialog.LoadError.Caption": "Fehler beim Laden",
+
+  // Unsaved changes dialog
+  "Dialog.UnsavedChanges.Caption": "Ungespeicherte Änderungen",
+  "Dialog.UnsavedChanges.Text.Specific": "Es wurden Änderungen an {0} oder dessen beinhaltete Dateien gemacht. Möchtest du diese Änderungen speichern?",
+  "Dialog.UnsavedChanges.Text.Generic": "Es wurden Änderungen an einer oder mehr Dateien gemacht. Möchtest du diese Änderungen speichern?",
+
+  // Dependant files dialog
+  "Dialog.DependantFiles.Caption": "Dateiabhängigkeiten",
+  "Dialog.DependantFiles.Text": "Diese und dessen beinhaltete Dateien werden geschlossen. Fortfahren?",
+
+  // Save error dialog
+  "Dialog.SaveError.Caption": "Fehler beim Speichern",
+
+  // Status labels
+  "Status.Plugin.Select.None": "Kein Plugin ausgewählt.",
+  "Status.Plugin.Select.Unknown": "Unbekannter Plugintyp {0}.",
+  "Status.Plugin.Load.None": "Kein Plugin konnte die Datei laden.",
+  "Status.Plugin.Load.NoArchive": "Das Plugin repräsentiert kein Archiv.",
+  "Status.Plugin.State.Init.Error": "Das Plugin konnte nicht initialisiert werden.",
+  "Status.Plugin.State.Load.None": "Das Plugin kann keine Dateien laden.",
+  "Status.Plugin.State.Load.Error": "Das Plugin konnte die Datei nicht laden.",
+  "Status.File.Select.None": "Keine Datei ausgewählt.",
+  "Status.File.Select.Invalid": "Die ausgewählte Datei ist ungültig.",
+  "Status.File.Load.Start": "Lade Datei {0}.",
+  "Status.File.Load.Cancel": "Laden abgebrochen.",
+  "Status.File.Load.Opening": "{0} wird bereits geöffnet.",
+  "Status.File.Load.Saving": "{0} wird bereits gespeichert.",
+  "Status.File.Load.Success": "Datei erfolgreich geladen.",
+  "Status.File.Load.Failure": "Datei nicht erfolgreich geladen.",
+  "Status.File.Load.FailureWithPlugin": "Datei nicht erfolgreich mit Plugin {0} geladen.",
+  "Status.File.Save.Start": "Speichere Datei {0}.",
+  "Status.File.Save.Closed": "Die Datei ist bereits geschlossen.",
+  "Status.File.Save.Saving": "Datei {0} speichert gerade.",
+  "Status.File.Save.Closing": "Datei {0} schließt gerade.",
+  "Status.File.Save.NotLoaded": "Die Datei ist nicht mehr geladen.",
+  "Status.File.Save.NoChanges": "Die Datei hatte keine Änderungen und wurde nicht gespeichert.",
+  "Status.File.Save.State.Error": "Die Datei konnte nicht gespeichert werden.",
+  "Status.File.Save.State.Reload.Error": "Die Datei konnte nach dem Speichern nicht mehr geladen werden.",
+  "Status.File.Save.Replace.Error": "Einige Dateien konnten nicht ersetzt werden.",
+  "Status.File.Save.Copy.Error": "Einige Dateien konnten nicht kopiert werden.",
+  "Status.File.Save.DestinationNotExist": "Neue Dateien können nicht beim Speichern erstellt werden.",
+  "Status.File.Save.Success": "Datei erfolgreich gespeichert.",
+  "Status.File.Save.Failure": "Datei nicht erfolgreich gespeichert.",
+  "Status.File.Close.Start": "Schließe Datei {0}.",
+  "Status.File.Close.Cancel": "Schließen abgebrochen.",
+  "Status.File.Close.Success": "Datei erfolgreich geschlossen.",
+  "Status.Operation.Running": "Es werden noch immer Operationen ausgeführt und die Datei kann nicht geschlossen werden.",
+
+  // Error messages
+  "Error.Unsupported.OperatingSystem": "Nicht unterstütztes Betriebssystem: {0}.",
+
+  // File Filters
+  "Filter.All": "Alle Dateien",
+  "Filter.Png": "Portable Network Graphics (*.png)",
+
+
+  // Archive Form
+
+  // File operations
+  "Archive.File.Extract": "Entpacken",
+  "Archive.File.Replace": "Ersetzen",
+  "Archive.File.Rename": "Umbenennen",
+  "Archive.File.Delete": "Löschen",
+
+  // Folder operations
+  "Archive.Directory.Extract": "Entpacken",
+  "Archive.Directory.Replace": "Ersetzen",
+  "Archive.Directory.Rename": "Umbenennen",
+  "Archive.Directory.Delete": "Löschen",
+  "Archive.Directory.Add": "Hinzufügen",
+
+  // Status labels
+  "Archive.Status.Extract.Cancel": "Entpacken abgebrochen.",
+  "Archive.Status.Replace.Cancel": "Ersetzen abgebrochen.",
+  "Archive.Status.Rename.Cancel": "Umbennen abgebrochen.",
+  "Archive.Status.Delete.Cancel": "Löschen abgebrochen.",
+  "Archive.Status.Add.Cancel": "Hinzufügen abgebrochen.",
+
+  "Archive.Status.Extract.Success": "Datei(en) erfolgreich entpackt.",
+  "Archive.Status.Replace.Success": "Datei(en) erfolgreich ersetzt.",
+  "Archive.Status.Rename.Success": "Datei(en) erfolgreich umbenannt.",
+  "Archive.Status.Delete.Success": "Datei(en) erfolgreich gelöscht.",
+  "Archive.Status.Add.Success": "Datei(en) erfolgreich hinzugefügt.",
+
+  "Archive.Status.Rename.Error.NoName": "Kein neuer Name angegeben.",
+  "Archive.Status.Add.Error": "Einige Dateien konnten nicht erfolgreich hinzugefügt werden. Siehe den Log für mehr Informationen.",
+
+  "Archive.Status.Select.None": "Kein Ziel ausgewählt.",
+  "Archive.Status.Extract.None": "Keine Dateien zum Entpacken.",
+  "Archive.Status.Replace.None": "Keine Dateien zum Ersetzen.",
+  "Archive.Status.Rename.None": "Keine Dateien zum Umbenennen.",
+  "Archive.Status.Delete.None": "Keine Dateien zum Löschen.",
+  "Archive.Status.Add.None": "Keine Dateien zum Hinzufügen.",
+
+  // Progress labels
+  "Archive.Progress.Extract": "Entpacke Dateien",
+  "Archive.Progress.Replace": "Ersetze Dateien",
+  "Archive.Progress.Rename": "Bename Dateien um",
+  "Archive.Progress.Delete": "Lösche Dateien",
+  "Archive.Progress.Add": "Füge Dateien hinzu",
+
+  // Rename dialog
+  "Archive.Dialog.Rename.File.Caption": "Datei umbenennen",
+  "Archive.Dialog.Rename.Directory.Caption": "Ordner umbenennen",
+  "Archive.Dialog.Rename.Text": "Wähle einen neuen Namen für {0}:",
+
+  // File headers
+  "Archive.Table.Files.Name": "Name",
+  "Archive.Table.Files.Size": "Größe",
+
+  // Search bar
+  "Archive.Search.Placeholder": "Suchen...",
+  "Archive.Search.Clear": "Leeren",
+
+  // Misc
+  "Archive.FileCount": "Dateien: {0}",
+  "Archive.CancelOperation": "Abbrechen",
+
+
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Bild exportieren",
+  "Image.Menu.Import": "Bild importieren",
+  "Image.Menu.Export.Png": "PNG exportieren...",
+  "Image.Menu.Import.Png": "PNG importieren...",
+
+  // Labels
+  "Image.Label.Width": "Breite:",
+  "Image.Label.Height": "Höhe:",
+  "Image.Label.Format": "Format:",
+  "Image.Label.Palette": "Palette:",
+
+  // Status
+  "Image.Status.Import.Success": "Bild erfolgreich importiert.",
+
+  // Progress
+  "Image.Progress.Decode": "Dekodiere Bilder",
+
+
+  // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "Ok",
+
+  // Choose plugin dialog
+  "Dialog.ChoosePlugin.Caption": "Pluginauswahl",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Wähle ein Plugin, um die Datei zu öffnen:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Kein Plugin konnte die Datei automatisch identifizieren. Bitte wähle manuell ein Plugin aus:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Mehrere Plugins können diese Datei identifizieren. Bitte wähle eins aus:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "Standardmäßig werden nur Plugins angezeigt, die generell keine Plugins identifizieren können.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Name",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Typ",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Beschreibung",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Fortsetzen",
+  "Dialog.ChoosePlugin.ViewRaw": "Öffne Rohdaten",
+  "Dialog.ChoosePlugin.Cancel": "Abbrechen",
+  "Dialog.ChoosePlugin.ShowAll": "Zeige alle Plugins"
+
+  //"Find": "Suche",
+  //"FindIn": "Suche in:",
+  //"FindWhat": "Suchtext:",
+  //"Browse": "Durchsuchen...",
+  //"Encoding": "Textkodierung:",
+
+  //"SelectSearchDirectory": "Wähle den Ordner, in dem gesucht werden soll",
+
+  //"SelectEncodingCaption": "Wähle eine Textkodierung.",
+  //"SelectSearchDirectoryCaption": "Wähle einen Ordner, in dem gesucht werden soll.",
+  //"SelectSearchTextCaption": "Wähle einen Text, nach dem gesucht werden soll.",
+
+  //// Kuriimu2 InputBox
+  //"InputBoxOkButton": "Ok",
+
+  //// Kuriimu2 RawImageViewer
+  //"NoSwizzle": "Keiner",
+  //"CustomSwizzle": "Benutzerdefiniert",
+
+  //"ComponentOrder": "ComponentOrder",
+  //"ByteOrder": "ByteOrder",
+  //"BitOrder": "BitOrder",
+  //"ZOrder": "Z-Order",
+  //"AlphaLuminance": "Alpha/Helligkeit",
+  //"AlphaMode": "AlphaMode",
+  //"SwizzleMode": "SwizzleMode",
+  //"BitMapping": "BitMapping",
+  //"InitPoint": "InitPoint",
+  //"YTransform": "YTransform",
+
+  //"InvalidInputValuesStatus": "Eingabewerte sind ungültig.",
+  //"InvalidCustomSwizzleStatus": "Benutzerdefinierter Swizzle ist ungültig.",
+
+  //"SelectedFileNotExistStatus": "Ausgewählte Datei existiert nicht.",
+
+  //"RawImageViewerEncodingParameters": "Kodierungsparameter",
+  //"RawImageViewerEncodingPaletteParameters": "Palettenkodierungsparameter",
+  //"RawImageViewerSwizzleParameters": "Swizzleparameter",
+
+  //"Offset": "Offset:",
+  //"PaletteOffset": "Palettenoffset:",
+  //"Swizzle": "Swizzle:",
+
+  //"Process": "Ausführen",
+
+  //// Kuriimu2 BatchDialog
+  //"AvgTimePerFile": "Durchschn. Zeit pro Datei:",
+  //"AvgTimePerFileTimed": "Durchschn. Zeit pro Datei: {0}ms",
+
+  //"BatchAvailablePlugins": "Plugins",
+  //"BatchSelectInput": "Wähle Eingabe...",
+  //"BatchSelectOutput": "Wähle Ausgabe...",
+  //"BatchExecute": "Ausführen",
+
+  //"BatchSelectPluginStatus": "Wähle ein Plugin.",
+
+  //"BatchExtractSourceEmpty": "Wähle einen Ordner mit Dateien, die entpackt werden sollen.",
+  //"BatchExtractDestinationEmpty": "Wähle einen Ordner, in den entpackt wird.",
+
+  //"BatchInjectSourceEmpty": "Wähle einen Ordner mit Dateien, die eingefügt werden sollen.",
+  //"BatchInjectDestinationEmpty": "Wähle einen Ordner mit Unterordnern, die eingefügt werden sollen.",
+
+  //// Kuriimu2 Extension Dialogs
+  //"ExtensionParameters": "Parameter",
+  //"AutoExecute": "Führe automatisch beim Ablegen aus",
+
+  //"SelectFolder": "Wähle Ordner...",
+  //"SelectFile": "Wähle Datei...",
+
+  //"Compression": "Kompression",
+  //"Decompression": "Dekompression",
+  //"Encryption": "Verschlüsselung",
+  //"Decryption": "Entschlüsselung",
+
+  //"SelectTypeExtension": "Wähle eine {0}.",
+  //"SelectFileOrFolder": "Wähle eine Datei oder einen Ordner zum Bearbeiten.",
+  //"FileFailed": "{0} fehlgeschlagen: {1}",
+  //"CipherProcessFinishedCaption": "Ergebnisse werden nach {0} geschrieben.",
+  //"ProcessFinishedTitle": "Erledigt!",
+  //"CipherNotSupported": "Nicht unterstützte Verschlüsselung {0}.",
+  //"CompressionNotSupported": "Nicht unterstützte Kompression {0}."
+}

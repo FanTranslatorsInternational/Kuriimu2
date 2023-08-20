@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Kontract.Kanvas.Interfaces;
 using Kontract.Models.IO;
+using Kontract.Models.Plugins.State.Image;
 
 #pragma warning disable 649
 
@@ -37,11 +37,11 @@ namespace plugin_level5.DS.Images
 
     class LimgSupport
     {
-        public static IDictionary<int, IndexEncodingDefinition> LimgFormats = new Dictionary<int, IndexEncodingDefinition>
+        public static IDictionary<int, EncodingDefinition.IndexEncodingDefinition> LimgFormats = new Dictionary<int, EncodingDefinition.IndexEncodingDefinition>
         {
-            [0] = new IndexEncodingDefinition(new Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 }),
-            [1] = new IndexEncodingDefinition(new Index(8), new[] { 0 }),
-            [2] = new IndexEncodingDefinition(new Index(5, 3), new[] { 0 }),
+            [0] = new EncodingDefinition.IndexEncodingDefinition(new Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 }),
+            [1] = new EncodingDefinition.IndexEncodingDefinition(new Index(8), new[] { 0 }),
+            [2] = new EncodingDefinition.IndexEncodingDefinition(new Index(5, 3), new[] { 0 }),
         };
 
         public static IDictionary<int, IColorEncoding> LimgPaletteFormats = new Dictionary<int, IColorEncoding>

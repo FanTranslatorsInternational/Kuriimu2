@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,27 +6,25 @@ using Kanvas;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Kontract.Interfaces.Plugins.State.Features;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Plugins.State;
 
 namespace plugin_level5.DS.Images
 {
     class GtxtState : IImageState, ILoadFiles, ISaveFiles
     {
         private Gtxt _img;
+        private List<IImageInfo> _images;
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        public IReadOnlyList<IImageInfo> Images { get; private set; }
 
-        public bool ContentChanged => IsContentChanged();
+        public bool ContentChanged => _images.Any(x => x.ContentChanged);
 
         public GtxtState()
         {
             _img = new Gtxt();
-
-            EncodingDefinition = GtxtSupport.GetEncodingDefinition();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
@@ -46,7 +43,9 @@ namespace plugin_level5.DS.Images
                 lpFileStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _img.Load(ltFileStream, lpFileStream)) };
+            var encDef= GtxtSupport.GetEncodingDefinition();
+
+            Images =_images= new List<IImageInfo> { new KanvasImageInfo(encDef, _img.Load(ltFileStream, lpFileStream)) };
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -65,14 +64,9 @@ namespace plugin_level5.DS.Images
                 lpFileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
             }
 
-            _img.Save(ltFileStream, lpFileStream, Images[0].ImageInfo);
+            _img.Save(ltFileStream, lpFileStream, _images[0].ImageData);
 
             return Task.CompletedTask;
-        }
-
-        private bool IsContentChanged()
-        {
-            return Images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

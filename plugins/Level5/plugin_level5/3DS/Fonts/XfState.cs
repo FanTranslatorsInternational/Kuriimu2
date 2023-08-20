@@ -4,28 +4,28 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Kanvas;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Managers.Files;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Archive;
+using Kontract.Interfaces.Plugins.State.Features;
 using Kontract.Interfaces.Plugins.State.Font;
-using Kontract.Models;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.Font;
-using Kontract.Models.IO;
+using Kontract.Models.FileSystem;
+using Kontract.Models.Managers.Files;
+using Kontract.Models.Plugins.State;
+using Kontract.Models.Plugins.State.Font;
 using plugin_level5._3DS.Archives;
 
 namespace plugin_level5._3DS.Fonts
 {
     public class XfState : IFontState, ILoadFiles, ISaveFiles, IAddCharacters, IRemoveCharacters
     {
-        private readonly IBaseFileManager _pluginManager;
+        private readonly IFileManager _pluginManager;
         private readonly Xf _xf;
         private readonly Xpck _xpck;
 
         private bool _isChanged;
-        private IList<IArchiveFileInfo> _xpckFiles;
+        private List<IArchiveFileInfo> _xpckFiles;
         private IFileState _imageStateInfo;
 
         private List<CharacterInfo> _characters;
@@ -35,9 +35,9 @@ namespace plugin_level5._3DS.Fonts
 
         public float DescentLine { get => 0; set { } }
 
-        public bool ContentChanged => IsChanged();
+        public bool ContentChanged => _characters.Any(x => x.ContentChanged) || _isChanged;
 
-        public XfState(IBaseFileManager pluginManager)
+        public XfState(IFileManager pluginManager)
         {
             _pluginManager = pluginManager;
             _xf = new Xf();
@@ -123,11 +123,6 @@ namespace plugin_level5._3DS.Fonts
         {
             _characters.Clear();
             _isChanged = true;
-        }
-
-        private bool IsChanged()
-        {
-            return _characters.Any(x => x.ContentChanged) || _isChanged;
         }
     }
 }

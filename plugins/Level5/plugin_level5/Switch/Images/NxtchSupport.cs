@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Kanvas;
 using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Kontract.Kanvas.Interfaces;
+using Kontract.Models.Plugins.State.Image;
 
 namespace plugin_level5.Switch.Images
 {

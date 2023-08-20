@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
-using Kontract.Models.Archive;
 using plugin_level5.Compression;
 using System.Linq;
 using System.Text;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 using plugin_level5._3DS.Archives;
 
@@ -21,7 +21,7 @@ namespace plugin_level5.DS.Archives
         private GfsaHeader _header;
         private byte[] _unkTable;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -65,7 +65,7 @@ namespace plugin_level5.DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             output.Position = HeaderSize;
 

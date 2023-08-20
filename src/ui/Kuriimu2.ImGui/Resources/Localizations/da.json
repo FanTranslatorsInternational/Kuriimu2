@@ -1,0 +1,323 @@
+﻿{
+  "Name": "Dansk",
+
+  // Kuriimu2
+
+  // Menu bar texts
+  "Menu.File": "Fil",
+  "Menu.Tools": "Værktøj",
+  "Menu.Ciphers": "Kodesprog",
+  "Menu.Compressions": "Sammenpresse",
+  "Menu.Settings": "Opsætning",
+  //"Help": "Hjælp",
+  //"AboutKuriimu2": "Angående Kuriimu2",
+
+  // File sub menu
+  "Menu.File.Open": "Åben",
+  "Menu.File.OpenWith": "Åben med...",
+  "Menu.File.Save": "Gemme",
+  "Menu.File.SaveAs": "Gemme som...",
+  "Menu.File.SaveAll": "Gemme Alting",
+  "Menu.File.Close": "Lukke",
+
+  // Tools sub menu
+  "Menu.Tools.TextSequenceSearcher": "Tekst Søgen",
+  "Menu.Tools.BatchExtractor": "Ekstrakt Alting",
+  "Menu.Tools.BatchInjector": "Erstatte Alting",
+  "Menu.Tools.Hashes": "Hash",
+  "Menu.Tools.RawImageViewer": "Se rå Images",
+
+  // Ciphers sub menu
+  "Menu.Ciphers.Encrypt": "Kryptere",
+  "Menu.Ciphers.Decrypt": "Dekode",
+
+  // Compressions sub menu
+  "Menu.Compressions.Decompress": "Dekomprimere",
+  "Menu.Compressions.Compress": "Komprimere",
+
+  // Settings sub menu
+  "Menu.Settings.IncludeDevBuilds": "Udvikler Opbygge",
+  "Menu.Settings.ChangeLanguage": "Udskifte Sprog",
+  //"Menu.Settings.ChangeTheme": "Change theme",
+
+  // Change theme sub menu
+  //"Menu.Settings.ChangeTheme.Dark": "Dark",
+  //"Menu.Settings.ChangeTheme.Light": "Light",
+
+  // Change language dialog
+  "Dialog.ChangeLanguage.Caption": "Ændre Indstilling",
+  "Dialog.ChangeLanguage.Text": "Alle ændre vilje afspejle sig efter genstarte.",
+
+  // Change theme dialog
+  //"Dialog.ChangeTheme.Restart.Caption": "Restart",
+  //"Dialog.ChangeTheme.Restart.Text": "Please restart to apply the theme.",
+
+  // Update available dialog
+  "Dialog.UpdateAvailable.Caption": "Opdatering lettilgængelig",
+  "Dialog.UpdateAvailable.Text": "Ønsker du at opdatere fra {0}-{1} til {2}-{3}?",
+
+  // Exception catched dialog
+  "Dialog.ExceptionCatched.Caption": "Undtagelse kaste",
+
+  // Unhandled exception dialog
+  "Dialog.UnhandledException.Caption": "Ubehandlet undtagelse",
+  "Dialog.UnhandledException.Text.Close": "Der opstod en ubehandlet undtagelse. Se loggen for at få flere oplysninger. Applikationen vil blive lukket.",
+  "Dialog.UnhandledException.Text.NotClose": "Der opstod en ubehandlet undtagelse. Se loggen for at få flere oplysninger.",
+
+  // Plugins not available dialog
+  "Dialog.PluginsNotAvailable.Caption": "Tilslutte ikke tilgængelig",
+  "Dialog.PluginsNotAvailable.Text": "Følgende tilslutte kunne ikke blive belæsset:",
+
+  // Load error dialog
+  "Dialog.LoadError.Caption": "Loade Fejl",
+
+  // Unsaved changes dialog
+  "Dialog.UnsavedChanges.Caption": "Ikke lagre ændre",
+  "Dialog.UnsavedChanges.Text.Specific": "Der er foretaget ændringer ved {0} eller dens åbnede subfiler. Ønsker du at gemme disse ændringer?",
+  "Dialog.UnsavedChanges.Text.Generic": "Der er foretaget ændringer ved en eller flere filer. Ønsker du at gemme disse ændringer?",
+
+  // Dependant files dialog
+  "Dialog.DependantFiles.Caption": "Afhængig filer",
+  "Dialog.DependantFiles.Text": "Alle fil, der er åbnet fra denne fil og derefter, vil også blive lukket. Fortsætte?",
+
+  // Save error dialog
+  "Dialog.SaveError.Caption": "Lagre Fejl",
+
+  // Status labels
+  "Status.Plugin.Select.None": "Intet tilslutte udsøgt.",
+  //"Status.Plugin.Select.Unknown": "Unknown plugin state type {0}.",
+  //"Status.Plugin.Load.None": "No plugin could open the file.",
+  //"Status.Plugin.Load.NoArchive": "Plugin does not represent an archive.",
+  //"Status.Plugin.State.Init.Error": "The plugin could not be initialized.",
+  //"Status.Plugin.State.Load.None": "The plugin can't load files.",
+  //"Status.Plugin.State.Load.Error": "The plugin could not be loaded.",
+  "Status.File.Select.None": "Intet fil udsøgt.",
+  "Status.File.Select.Invalid": "Den valgte fil er ugyldig.",
+  //"Status.File.Load.Start": "Now loading file {0}",
+  "Status.File.Load.Cancel": "Loade aflyst.",
+  "Status.File.Load.Opening": "{0} være allerede åbnings",
+  "Status.File.Load.Saving": "{0} være allerede lagring.",
+  "Status.File.Load.Success": "Fil belæsset succesfuldt.",
+  "Status.File.Load.Failure": "Fil behøve belæsset succesfuldt.",
+  "Status.File.Load.FailureWithPlugin": "Fil behøve belæsset succesfuldt med tilslutte {0}.",
+  //"Status.File.Save.Start": "Now saving file {0}",
+  //"Status.File.Save.Closed": "The given file is already closed.",
+  //"Status.File.Save.Saving": "File {0} is already saving.",
+  //"Status.File.Save.Closing": "File {0} is currently closing.",
+  //"Status.File.Save.NotLoaded": "The given file is not loaded anymore.",
+  //"Status.File.Save.NoChanges": "The file had no changes and was not saved.",
+  //"Status.File.Save.State.Error": "The file could not be saved.",
+  //"Status.File.Save.State.Reload.Error": "The file could not be reloaded after saving.",
+  //"Status.File.Save.Replace.Error": "Some files could not be replaced.",
+  //"Status.File.Save.Copy.Error": "Some files could not be copied.",
+  //"Status.File.Save.DestinationNotExist": "New files can't be created when saving.",
+  "Status.File.Save.Success": "Fil lagre succesfuldt.",
+  "Status.File.Save.Failure": "Fil behøve lagre succesfuldt.",
+  //"Status.File.Close.Start": "Now closing file {0}.",
+  //"Status.File.Close.Cancel": "Closing cancelled.",
+  //"Status.File.Close.Success": "File closed successfully.",
+  "Status.Operation.Running": "Operationer er stadig igang, og fil må ikke lukkes.",
+
+  // Error messages
+  "Error.Unsupported.OperatingSystem": "Operativsystem, der ikke understøttes: {0}.",
+
+  // File Filters
+  "Filter.All": "Alle Dokumenter",
+  "Filter.Png": "Bærbar Netværksgrafik (*.png)",
+
+
+  // Archive Form
+
+  // File operations
+  "Archive.File.Extract": "Ekstrakt",
+  "Archive.File.Replace": "Erstatte",
+  "Archive.File.Rename": "Omdøbe",
+  "Archive.File.Delete": "Slette",
+
+  // Folder operations
+  "Archive.Directory.Extract": "Ekstrakt",
+  "Archive.Directory.Replace": "Erstatte",
+  "Archive.Directory.Rename": "Omdøbe",
+  "Archive.Directory.Delete": "Slette",
+  "Archive.Directory.Add": "Tilføje",
+
+  // Status labels
+  "Archive.Status.Extract.Cancel": "Fil udvinding aflyse.",
+  "Archive.Status.Replace.Cancel": "Fil erstatning aflyse.",
+  "Archive.Status.Rename.Cancel": "Fil omdøbe aflyse.",
+  "Archive.Status.Delete.Cancel": "Fil strygning aflyse.",
+  "Archive.Status.Add.Cancel": "Fil tilsætte aflyse.",
+
+  "Archive.Status.Extract.Success": "Fil(er) ekstrakt succesfuldt.",
+  "Archive.Status.Replace.Success": "Fil(er) erstatte succesfuldt.",
+  "Archive.Status.Rename.Success": "Fil(er) omdøbe succesfuldt.",
+  "Archive.Status.Delete.Success": "Fil(er) slette succesfuldt.",
+  "Archive.Status.Add.Success": "Fil(er) tilsætte succesfuldt.",
+
+  "Archive.Status.Rename.Error.NoName": "Der gives ikke noget nyt navn.",
+  "Archive.Status.Add.Error": "Nogle filer kunne ikke tilføjes. Se loggen for at få flere oplysninger.",
+
+  "Archive.Status.Select.None": "Der blev ikke valgt noget mål.",
+  "Archive.Status.Extract.None": "Ingen filer til ekstrakt.",
+  "Archive.Status.Replace.None": "Ingen filer til erstatte.",
+  "Archive.Status.Rename.None": "Ingen filer til omdøbe.",
+  "Archive.Status.Delete.None": "Ingen filer til slette.",
+  "Archive.Status.Add.None": "Ingen filer til tilsætte.",
+
+  // Progress labels
+  "Archive.Progress.Extract": "Ekstrakt filer",
+  "Archive.Progress.Replace": "Erstatte filer",
+  "Archive.Progress.Rename": "Omdøbe filer",
+  "Archive.Progress.Delete": "Slette filer",
+  "Archive.Progress.Add": "Tilsætte filer",
+
+  // Rename dialog
+  "Archive.Dialog.Rename.File.Caption": "Omdøbe fil",
+  "Archive.Dialog.Rename.Directory.Caption": "Omdøbe mappe",
+  "Archive.Dialog.Rename.Text": "Vælge et ny navn til {0}:",
+
+  // File headers
+  "Archive.Table.Files.Name": "Navn",
+  "Archive.Table.Files.Size": "Størrelse",
+
+  // Search bar
+  //"Archive.Search.Placeholder": "Search...",
+  "Archive.Search.Clear": "Fjerne",
+
+  // Misc
+  //"Archive.FileCount": "Files: {0}",
+  "Archive.CancelOperation": "Aflyse",
+
+
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Eksport billede",
+  "Image.Menu.Import": "Importere billede",
+  "Image.Menu.Export.Png": "Eksport PNG...",
+  "Image.Menu.Import.Png": "Importere PNG...",
+
+  // Labels
+  "Image.Label.Width": "Bredde:",
+  "Image.Label.Height": "Højde:",
+  "Image.Label.Format": "Format:",
+  "Image.Label.Palette": "Palet:",
+
+  // Status
+  "Image.Status.Import.Success": "Billede succesrig importere.",
+
+  // Progress
+  //"Image.Progress.Decode": "Decode image(s)",
+
+
+  // Dialogs
+
+  // Dialog manager
+  "Dialog.Manager.Button.Ok": "Ok",
+
+  // Choose plugin dialog
+  "Dialog.ChoosePlugin.Caption": "Vælge tilslutte",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Vælg tilslutte til at åbne filen med:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Kunne ikke automatisk bestemme tilslutte til åbning af denne fil, vælg venligst manuelt:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Flere tilslutte kan identificere denne fil. Vælg venligst en:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "Som standard vises kun tilslutter, der ikke automatisk kunne bestemme, om de understøtter filen, som standard.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Navn",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Type",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Beskrivelse",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Fortsætte",
+  "Dialog.ChoosePlugin.ViewRaw": "Vis rå bytes",
+  "Dialog.ChoosePlugin.Cancel": "Annuller",
+  "Dialog.ChoosePlugin.ShowAll": "Vis alle tilslutter"
+
+  //"PngFileFilter": "Bærbar Netværksgrafik (*.png)",
+
+  //// Kuriimu2 Text Sequence Searcher
+  //"TextSequenceSearcherTitle": "Tekst Rækkefølge Søger",
+  //"SearchSubfolders": "Søgning Undermappe",
+
+  //"Find": "Finde",
+  //"FindIn": "Finde ind:",
+  //"FindWhat": "Finde hvad:",
+  //"Browse": "Surfe...",
+  //"Encoding": "Kryptere:",
+
+  //"SelectSearchDirectory": "Vælg den mappe, der skal søges i",
+
+  //"SelectEncodingCaption": "Vælg en Kryptere.",
+  //"SelectSearchDirectoryCaption": "Vælg den mappe, der skal søges i.",
+  //"SelectSearchTextCaption": "Vælg en tekst, du vil søge efter.",
+
+  //// Kuriimu2 InputBox
+  //"InputBoxOkButton": "Ok",
+
+  //// Kuriimu2 RawImageViewer
+  //"NoSwizzle": "Ingen",
+  //"CustomSwizzle": "Skrædder",
+
+  //"ComponentOrder": "Bestilling Rækkefølge",
+  //"ByteOrder": "Byte Rækkefølge",
+  //"BitOrder": "Stykke Rækkefølge",
+  //"ZOrder": "Z-Rækkefølge",
+  //"AlphaLuminance": "Alfa/Lysstyrke",
+  //"AlphaMode": "Alfa Modus",
+  //"SwizzleMode": "Swizzle Modus",
+  //"BitMapping": "Bit-Tilknytning",
+  //"InitPoint": "InitPoint",
+  //"YTransform": "Y Omforme",
+
+  //"InvalidInputValuesStatus": "Indtastede værdier er ugyldige.",
+  //"InvalidCustomSwizzleStatus": "Brugerdefineret swizzle er ugyldig.",
+
+  //"SelectedFileNotExistStatus": "Den valgte fil findes ikke.",
+
+  //"RawImageViewerEncodingParameters": "Kryptere Parameters",
+  //"RawImageViewerEncodingPaletteParameters": "Kryptere Palet Parameters",
+  //"RawImageViewerSwizzleParameters": "Swizzle Parameters",
+
+  //"Offset": "Modregne:",
+  //"PaletteOffset": "Palet Modregne:",
+  //"Swizzle": "Swizzle:",
+
+  //"Process": "Fremgangsmåde",
+
+  //// Kuriimu2 BatchDialog
+  //"AvgTimePerFile": "Gennemsnitlig tid pr. fil:",
+  //"AvgTimePerFileTimed": "Gennemsnitlig tid pr. fil: {0}ms",
+
+  //"BatchAvailablePlugins": "Tilslutte",
+  //"BatchSelectInput": "Udsøgt input...",
+  //"BatchSelectOutput": "Udsøgt output...",
+  //"Execute": "Udføre",
+
+  //"BatchSelectPluginStatus": "Udsøgt en tilslutte.",
+
+  //"BatchExtractSourceEmpty": "Udsøgt en mappe med filer, der skal udpakkes.",
+  //"BatchExtractDestinationEmpty": "Udsøgt en mappe til at udpakke filerne til.",
+
+  //"BatchInjectSourceEmpty": "Udsøgt en mappe med filer, der skal injiceres.",
+  //"BatchInjectDestinationEmpty": "Udsøgt en mappe med mapper til at injicere til filerne.",
+
+  //// Kuriimu2 Extension Dialogs
+  //"ExtensionParameters": "Parameters",
+  //"AutoExecute": "Automatisk udførelse ved udvælgelse",
+
+  //"SelectFolder": "Udsøgt mappe...",
+  //"SelectFile": "Udsøgt fil...",
+
+  //"Compression": "Komprimering",
+  //"Decompression": "Dekomprimering",
+  //"Encryption": "Kryptering",
+  //"Decryption": "Dekryptering",
+
+  //"SelectTypeExtension": "Udsøgt en {0}.",
+  //"SelectFileOrFolder": "Udsøgt en fil eller mappe, der skal behandles.",
+  //"FileFailed": "{0} Fejlslået: {1}",
+  //"ProcessFinishedCaption": "Resultaterne skrives til {0}.",
+  //"ProcessFinishedTitle": "Færdig!",
+  //"CipherNotSupported": "Uopfyldelig chiffer {0}.",
+  //"CompressionNotSupported": "Uopfyldelig chiffer {0}."
+}

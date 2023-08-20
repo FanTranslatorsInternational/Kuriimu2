@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8</LangVersion>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
+    <NuspecFile>Kompression.Debug.nuspec</NuspecFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
+    <NuspecFile>Kompression.nuspec</NuspecFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.16" />
+    <PackageReference Include="SharpZipLib" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+  </ItemGroup>
+
+</Project>

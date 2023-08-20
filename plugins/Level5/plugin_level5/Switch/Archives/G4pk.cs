@@ -5,7 +5,8 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
+using Kontract.Models.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5.Switch.Archives
@@ -23,7 +24,7 @@ namespace plugin_level5.Switch.Archives
         private G4pkHeader _header;
         private IList<short> _unkIds;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -58,7 +59,7 @@ namespace plugin_level5.Switch.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

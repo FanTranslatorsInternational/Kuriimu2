@@ -1,12 +1,12 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Kontract.Interfaces.Plugins.State.Archive;
+using Kontract.Models.Plugins.State.Archive;
 using Kryptography.Hash.Crc;
 
 namespace plugin_level5.DS.Archives
@@ -16,7 +16,7 @@ namespace plugin_level5.DS.Archives
         private static int HeaderSize = Tools.MeasureType(typeof(GfspHeader));
         private static int EntrySize = Tools.MeasureType(typeof(GfspFileInfo));
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -46,7 +46,7 @@ namespace plugin_level5.DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFileInfo> files)
         {
             var crc16 = Crc16.X25;
             using var bw = new BinaryWriterX(output);
