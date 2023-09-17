@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFramework>net7</TargetFramework>
     <LangVersion>8</LangVersion>
-    <Version>2.0.8</Version>
+    <Version>2.0.9</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\nuget</PackageOutputPath>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>Kanvas</PackageId>
-    <PackageVersion>2.0.8</PackageVersion>
+    <PackageVersion>2.0.9</PackageVersion>
 
     <Authors>IcySon55;onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
@@ -77,7 +77,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCnEncoder.Net" Version="2.0.1" />
+    <PackageReference Include="BCnEncoder.Net" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>

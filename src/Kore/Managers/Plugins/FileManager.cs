@@ -23,7 +23,6 @@ using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models;
 using Kore.Models.LoadInfo;
 using Kore.Progress;
-using MoreLinq;
 using Serilog;
 
 namespace Kore.Managers.Plugins

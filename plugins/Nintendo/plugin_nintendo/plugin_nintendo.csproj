@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFramework>net7</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
@@ -14,11 +14,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\net7\plugins</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\net7\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,17 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Archives\GcDisc.cs~RF24b82a33.TMP" />
-    <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
-    <None Remove="Images\Smdh.cs~RF145cc694.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.0.8" />
-    <PackageReference Include="Komponent" Version="2.0.8" />
-    <PackageReference Include="Kompression" Version="2.0.8" />
-    <PackageReference Include="Kontract" Version="2.0.8" />
-    <PackageReference Include="Kryptography" Version="2.0.8" />
+    <PackageReference Include="Kanvas" Version="2.0.9" />
+    <PackageReference Include="Komponent" Version="2.0.9" />
+    <PackageReference Include="Kompression" Version="2.0.9" />
+    <PackageReference Include="Kontract" Version="2.0.9" />
+    <PackageReference Include="Kryptography" Version="2.0.9" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">

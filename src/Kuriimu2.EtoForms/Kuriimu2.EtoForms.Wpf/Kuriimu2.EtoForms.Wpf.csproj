@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFramework>net7-windows</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Wpf" Version="2.5.11" />
+    <PackageReference Include="Eto.Platform.Wpf" Version="2.8.0" />
   </ItemGroup>
 
   <ItemGroup>
