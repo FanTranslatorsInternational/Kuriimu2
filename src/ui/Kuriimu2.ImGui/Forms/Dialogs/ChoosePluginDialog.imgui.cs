@@ -25,11 +25,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _msgLabel = new Label();
             _pluginList = new List { ItemSpacing = 4 };
-            _showAllPlugins = new CheckBox { Text = LocalizationResources.DialogChoosePluginShowAll() };
+            _showAllPlugins = new CheckBox { Text = LocalizationResources.DialogChoosePluginShowAll };
 
-            _continueButton = new Button { Text = LocalizationResources.DialogChoosePluginContinue(), Enabled = false };
-            _viewRawButton = new Button { Text = LocalizationResources.DialogChoosePluginViewRaw() };
-            _cancelButton = new Button { Text = LocalizationResources.DialogChoosePluginCancel() };
+            _continueButton = new Button { Width = 70, Text = LocalizationResources.DialogChoosePluginContinue, Enabled = false };
+            _viewRawButton = new Button { Padding = new Vector2(10, 2), Text = LocalizationResources.DialogChoosePluginViewRaw };
+            _cancelButton = new Button { Width = 70, Text = LocalizationResources.DialogChoosePluginCancel };
 
             #region Main layout
 
@@ -40,11 +40,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Items =
                 {
                     _msgLabel,
-                    new StackItem(_pluginList){ShowBorder = true},
+                    new StackItem(_pluginList) { Size = global::ImGui.Forms.Models.Size.Parent },
                     _showAllPlugins,
                     new StackLayout
                     {
-                        Size = new Size(1f, -1),
+                        Size = global::ImGui.Forms.Models.Size.WidthAlign,
                         Alignment = Alignment.Horizontal,
                         HorizontalAlignment = HorizontalAlignment.Right,
                         ItemSpacing = 4,
@@ -68,7 +68,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var height = (int)Math.Ceiling(Application.Instance.MainForm.Height * .8f);
             Size = new Vector2(width, height);
 
-            Caption = LocalizationResources.DialogChoosePluginCaption();
+            Caption = LocalizationResources.DialogChoosePluginCaption;
             Content = mainLayout;
 
             #endregion

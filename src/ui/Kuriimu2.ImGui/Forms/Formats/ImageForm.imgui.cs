@@ -41,13 +41,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             #region Controls
 
-            _widthTextLbl = new Label { Text = LocalizationResources.ImageLabelWidth() };
-            _heightTextLbl = new Label { Text = LocalizationResources.ImageLabelHeight() };
+            _widthTextLbl = new Label { Text = LocalizationResources.ImageLabelWidth };
+            _heightTextLbl = new Label { Text = LocalizationResources.ImageLabelHeight };
             _widthContentLbl = new Label();
             _heightContentLbl = new Label();
 
-            _formatTextLbl = new Label { Text = LocalizationResources.ImageLabelFormat() };
-            _paletteTextLbl = new Label { Text = LocalizationResources.ImageLabelPalette() };
+            _formatTextLbl = new Label { Text = LocalizationResources.ImageLabelFormat };
+            _paletteTextLbl = new Label { Text = LocalizationResources.ImageLabelPalette };
             _formatBox = new ComboBox<int>();
             _paletteBox = new ComboBox<int>();
 
@@ -142,7 +142,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             foreach (var img in images)
             {
-                var scopeProgress = progress.CreateScope(LocalizationResources.ImageProgressDecode(), perStart, perStart + perPart);
+                var scopeProgress = progress.CreateScope(LocalizationResources.ImageProgressDecode, perStart, perStart + perPart);
 
                 _imgList.Items.Add(new FormImageListItem(img, img.GetImage(scopeProgress)));
 

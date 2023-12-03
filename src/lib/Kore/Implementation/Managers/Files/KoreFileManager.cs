@@ -28,7 +28,6 @@ using Kore.Implementation.Progress;
 using Kore.Models.Managers.Files;
 using Kore.Models.Managers.Files.Support;
 using Kore.Models.UnsupportedPlugin;
-using MoreLinq;
 using Serilog;
 
 namespace Kore.Implementation.Managers.Files

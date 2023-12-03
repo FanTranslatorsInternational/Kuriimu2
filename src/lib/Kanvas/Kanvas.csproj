@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <LangVersion>8</LangVersion>
+    <TargetFramework>net7.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
   </PropertyGroup>
@@ -22,12 +20,10 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
     <NuspecFile>Kanvas.Debug.nuspec</NuspecFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
     <NuspecFile>Kanvas.nuspec</NuspecFile>
   </PropertyGroup>
 

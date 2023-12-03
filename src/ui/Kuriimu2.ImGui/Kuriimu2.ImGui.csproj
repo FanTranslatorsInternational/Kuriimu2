@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 	
   <ItemGroup>
@@ -37,10 +39,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Imgui.Forms" Version="1.0.33" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Imgui.Forms" Version="1.0.45" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -51,7 +53,15 @@
     <ProjectReference Include="..\..\lib\Kore\Kore.csproj" />
     <ProjectReference Include="..\..\lib\Kryptography\Kryptography.csproj" />
   </ItemGroup>
-  
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\..\dist\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\..\dist\Release\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Update="Resources\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

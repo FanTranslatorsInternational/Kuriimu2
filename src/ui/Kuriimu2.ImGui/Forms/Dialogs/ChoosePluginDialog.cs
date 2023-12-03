@@ -30,18 +30,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             switch (status)
             {
                 case KoreFileManager.SelectionStatus.All:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderGeneric();
+                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderGeneric;
                     _showAllPlugins.Enabled = false;
                     _showAllPlugins.Checked = true;
                     break;
 
                 case KoreFileManager.SelectionStatus.MultipleMatches:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationMultiple();
+                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationMultiple;
                     break;
 
                 case KoreFileManager.SelectionStatus.NonIdentifiable:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationNone();
-                    _showAllPlugins.Tooltip = LocalizationResources.DialogChoosePluginHeaderIdentificationNote();
+                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationNone;
+                    _showAllPlugins.Tooltip = LocalizationResources.DialogChoosePluginHeaderIdentificationNote;
                     break;
             }
 
@@ -77,10 +77,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Columns =
                 {
-                    new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.DialogChoosePluginPluginsTableName()),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Type.ToString(), LocalizationResources.DialogChoosePluginPluginsTableType()),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.DialogChoosePluginPluginsTableDescription()),
-                    new DataTableColumn<ChoosePluginElement>(e => e.PluginId.ToString("N"), LocalizationResources.DialogChoosePluginPluginsTableId())
+                    new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.DialogChoosePluginPluginsTableName),
+                    new DataTableColumn<ChoosePluginElement>(e => e.Type.ToString(), LocalizationResources.DialogChoosePluginPluginsTableType),
+                    new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.DialogChoosePluginPluginsTableDescription),
+                    new DataTableColumn<ChoosePluginElement>(e => e.PluginId.ToString("N"), LocalizationResources.DialogChoosePluginPluginsTableId)
                 },
                 Rows = plugins
             };

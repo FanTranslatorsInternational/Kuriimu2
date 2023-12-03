@@ -94,7 +94,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private Button CreateOkButton(Modal modal)
         {
-            var button = new Button { Text = LocalizationResources.DialogManagerButtonOk(), Width = 75 };
+            var button = new Button { Text = LocalizationResources.DialogManagerButtonOk, Width = 75 };
             button.Clicked += (s, e) => modal.Close(DialogResult.Ok);
 
             return button;

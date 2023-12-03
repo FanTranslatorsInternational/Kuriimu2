@@ -61,7 +61,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             var startIndex = 0;
 
             ErrorDiffusionLineTask parent = null;
-            foreach (var colorLine in colors.Batch(_imageSize.Width))
+            foreach (var colorLine in colors.Chunk(_imageSize.Width))
             {
                 var colorLineList = colorLine.ToList();
                 var errorElements = colorLineList.Select((c, index) =>

@@ -5,11 +5,9 @@ using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Models;
-using ImGui.Forms.Resources;
 using ImGuiNET;
 using Kuriimu2.ImGui.Controls;
 using Kuriimu2.ImGui.Resources;
-using ImageResources = Kuriimu2.ImGui.Resources.ImageResources;
 
 namespace Kuriimu2.ImGui.Forms
 {
@@ -47,31 +45,31 @@ namespace Kuriimu2.ImGui.Forms
         {
             #region Controls
 
-            _openButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen() };
-            _openWithButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpenWith() };
-            _saveAllButton = new MenuBarButton { Text = LocalizationResources.MenuFileSaveAll(), Enabled = false };
+            _openButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen };
+            _openWithButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpenWith };
+            _saveAllButton = new MenuBarButton { Text = LocalizationResources.MenuFileSaveAll, Enabled = false };
 
-            _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor() };
-            _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector() };
-            _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher() };
-            _hashesButton = new MenuBarButton { Text = LocalizationResources.MenuToolsHashes() };
-            _rawImageViewerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsRawImageViewer() };
+            _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor };
+            _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector };
+            _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher };
+            _hashesButton = new MenuBarButton { Text = LocalizationResources.MenuToolsHashes };
+            _rawImageViewerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsRawImageViewer };
 
-            _encryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersEncrypt() };
-            _decryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersDecrypt() };
+            _encryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersEncrypt };
+            _decryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersDecrypt };
 
-            _compressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsDecompress() };
-            _decompressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsCompress() };
+            _compressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsDecompress };
+            _decompressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsCompress };
 
             _includeDevBuildsButton = new MenuBarCheckBox
             {
-                Text = LocalizationResources.MenuSettingsIncludeDevBuilds(),
+                Text = LocalizationResources.MenuSettingsIncludeDevBuilds,
                 Checked = Settings.Default.IncludeDevBuilds
             };
-            _changeLanguageMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeLanguage() };
-            _changeThemeMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeTheme() };
+            _changeLanguageMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeLanguage };
+            _changeThemeMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeTheme };
 
-            _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuAboutTitle() };
+            _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuAboutTitle };
 
             AddLanguages(_changeLanguageMenu);
             AddThemes(_changeThemeMenu);
@@ -82,38 +80,38 @@ namespace Kuriimu2.ImGui.Forms
             {
                 Items =
                 {
-                    new MenuBarMenu{Text = LocalizationResources.MenuFile(), Items =
+                    new MenuBarMenu{Text = LocalizationResources.MenuFile, Items =
                     {
                         _openButton,
                         _openWithButton,
                         new MenuBarSplitter(),
                         _saveAllButton
                     }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuTools(), Items =
-                    {
-                        _batchExtractButton,
-                        _batchInjectButton,
-                        _textSequencerButton,
-                        _hashesButton,
-                        _rawImageViewerButton
-                    }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuCiphers(), Items =
-                    {
-                        _encryptButton,
-                        _decryptButton
-                    }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuCompressions(), Items =
-                    {
-                        _compressButton,
-                        _decompressButton
-                    }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuSettings(), Items =
+                    //new MenuBarMenu{Text = LocalizationResources.MenuTools, Items =
+                    //{
+                    //    _batchExtractButton,
+                    //    _batchInjectButton,
+                    //    _textSequencerButton,
+                    //    _hashesButton,
+                    //    _rawImageViewerButton
+                    //}},
+                    //new MenuBarMenu{Text = LocalizationResources.MenuCiphers, Items =
+                    //{
+                    //    _encryptButton,
+                    //    _decryptButton
+                    //}},
+                    //new MenuBarMenu{Text = LocalizationResources.MenuCompressions, Items =
+                    //{
+                    //    _compressButton,
+                    //    _decompressButton
+                    //}},
+                    new MenuBarMenu{Text = LocalizationResources.MenuSettings, Items =
                     {
                         _includeDevBuildsButton,
                         _changeLanguageMenu,
                         _changeThemeMenu
                     }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuHelp(), Items =
+                    new MenuBarMenu{Text = LocalizationResources.MenuHelp, Items =
                     {
                         _aboutButton
                     }}
@@ -125,7 +123,7 @@ namespace Kuriimu2.ImGui.Forms
             #region Main Content
 
             _tabControl = new TabControl();
-            _progressBar = new ProgressBar { Size = new Size(.5f, 24), ProgressColor = ColorResources.Progress };
+            _progressBar = new ProgressBar { Size = new Size(.3f, 24), ProgressColor = ColorResources.Progress };
             _statusText = new StatusLabel { Width = SizeValue.Relative(.5f) };
 
             var mainLayout = new StackLayout
@@ -137,7 +135,7 @@ namespace Kuriimu2.ImGui.Forms
                     _tabControl,
                     new StackLayout
                     {
-                        Size = new Size(1f, 24),
+                        Size = new Size(SizeValue.Parent, 24),
                         Alignment = Alignment.Horizontal,
                         ItemSpacing = 4,
                         Items =
@@ -155,12 +153,10 @@ namespace Kuriimu2.ImGui.Forms
 
             #region Properties
 
-            DefaultFont = FontResources.Arial(15);
-
             Icon = ImageResources.Icon;
             AllowDragDrop = true;
 
-            Size = new Vector2(1116, 643);
+            Size = new Vector2(1200, 700);
             Style.SetStyle(ImGuiStyleVar.WindowPadding, new Vector2(4));
 
             MainMenuBar = mainMenuBar;
@@ -173,11 +169,11 @@ namespace Kuriimu2.ImGui.Forms
         {
             menu.CheckItems.Clear();
 
-            foreach (var locale in LocalizationResources.GetLocales())
+            foreach (string locale in LocalizationResources.Instance.GetLocales())
             {
                 var checkBox = new MenuBarCheckBox
                 {
-                    Text = LocalizationResources.GetLanguageName(locale),
+                    Text = LocalizationResources.Instance.GetLanguageName(locale),
                     Checked = Settings.Default.Locale == locale
                 };
 
@@ -187,8 +183,8 @@ namespace Kuriimu2.ImGui.Forms
 
         private void AddThemes(MenuBarRadio menu)
         {
-            var lightCheckBox = new MenuBarCheckBox { Text = LocalizationResources.MenuSettingsChangeThemeLight(), Checked = Settings.Default.Theme == Theme.Light.ToString() };
-            var darkCheckBox = new MenuBarCheckBox { Text = LocalizationResources.MenuSettingsChangeThemeDark(), Checked = Settings.Default.Theme == Theme.Dark.ToString() };
+            var lightCheckBox = new MenuBarCheckBox { Text = LocalizationResources.MenuSettingsChangeThemeLight, Checked = Settings.Default.Theme == Theme.Light.ToString() };
+            var darkCheckBox = new MenuBarCheckBox { Text = LocalizationResources.MenuSettingsChangeThemeDark, Checked = Settings.Default.Theme == Theme.Dark.ToString() };
 
             _themes.Clear();
             _themes[lightCheckBox] = Theme.Light;

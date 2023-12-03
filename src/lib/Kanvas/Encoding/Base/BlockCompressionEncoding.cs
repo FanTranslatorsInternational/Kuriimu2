@@ -47,7 +47,7 @@ namespace Kanvas.Encoding.Base
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder);
 
-            var blocks = colors.Batch(ColorsPerValue)
+            var blocks = colors.Chunk(ColorsPerValue)
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(saveContext.TaskCount)
                 .Select(c => EncodeNextBlock(c.ToArray()));

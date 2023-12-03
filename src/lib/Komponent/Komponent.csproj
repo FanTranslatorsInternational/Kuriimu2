@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
-    <LangVersion>8</LangVersion>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
   </PropertyGroup>
@@ -16,12 +14,10 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <!--<OutputPath>..\..\..\dist\Debug\</OutputPath>-->
     <NuspecFile>Komponent.Debug.nuspec</NuspecFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <!--<OutputPath>..\..\..\dist\Release\</OutputPath>-->
     <NuspecFile>Komponent.nuspec</NuspecFile>
   </PropertyGroup>
 

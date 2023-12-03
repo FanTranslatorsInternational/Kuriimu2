@@ -9,7 +9,6 @@ using Kontract.Interfaces.Plugins.Entry;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
 using Kore.Implementation.FileSystem;
-using MoreLinq;
 
 namespace Kore.Implementation.Managers.Files
 {
@@ -123,11 +122,13 @@ namespace Kore.Implementation.Managers.Files
             switch (PluginState)
             {
                 case IArchiveState archiveState:
-                    archiveState.Files?.ForEach(x => x.Dispose());
+                    foreach (var file in archiveState.Files)
+                        file.Dispose();
                     break;
 
                 case IImageState imageState:
-                    imageState.Images?.ForEach(x => x.Dispose());
+                    foreach (var image in imageState.Images)
+                        image.Dispose();
                     break;
             }
 

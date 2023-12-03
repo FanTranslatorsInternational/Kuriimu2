@@ -1,613 +1,231 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using ImGui.Forms.Localization;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.FileSystem;
-using Kontract.Models.Managers.Dialogs;
-using Newtonsoft.Json;
 
 namespace Kuriimu2.ImGui.Resources
 {
     static class LocalizationResources
     {
-        private static readonly Lazy<Localizer> Lazy = new Lazy<Localizer>(new Localizer());
+        private static readonly Lazy<Localizer> Lazy = new(new Localizer());
         public static ILocalizer Instance => Lazy.Value;
 
-        #region Support methods
-
-        public static IEnumerable<string> GetLocales()
-        {
-            return Lazy.Value.GetLocales();
-        }
-
-        public static string GetLanguageName(string locale)
-        {
-            return Lazy.Value.GetLanguageName(locale);
-        }
-
-        public static string GetLocaleByName(string name)
-        {
-            return Lazy.Value.GetLocaleByName(name);
-        }
-
-        #endregion
-
-        #region Localization Id's
-
         // Kuriimu2
 
-        // Menu bar texts
-        private const string MenuFileId_ = "Menu.File";
-        private const string MenuToolsId_ = "Menu.Tools";
-        private const string MenuCiphersId_ = "Menu.Ciphers";
-        private const string MenuCompressionsId_ = "Menu.Compressions";
-        private const string MenuSettingsId_ = "Menu.Settings";
-        private const string MenuHelpId_ = "Menu.Help";
+        // Menus
+        public static LocalizedString MenuFile => new("Menu.File");
+        public static LocalizedString MenuTools => new("Menu.Tools");
+        public static LocalizedString MenuCiphers => new("Menu.Ciphers");
+        public static LocalizedString MenuCompressions => new("Menu.Compressions");
+        public static LocalizedString MenuSettings => new("Menu.Settings");
+        public static LocalizedString MenuHelp => new("Menu.Help");
 
-        // File sub menu
-        private const string MenuFileOpenId_ = "Menu.File.Open";
-        private const string MenuFileOpenWithId_ = "Menu.File.OpenWith";
-        private const string MenuFileSaveId_ = "Menu.File.Save";
-        private const string MenuFileSaveAsId_ = "Menu.File.SaveAs";
-        private const string MenuFileSaveAllId_ = "Menu.File.SaveAll";
-        private const string MenuFileCloseId_ = "Menu.File.Close";
+        // File Menu
+        public static LocalizedString MenuFileOpen => new("Menu.File.Open");
+        public static LocalizedString MenuFileOpenWith => new("Menu.File.OpenWith");
+        public static LocalizedString MenuFileSave => new("Menu.File.Save");
+        public static LocalizedString MenuFileSaveAs => new("Menu.File.SaveAs");
+        public static LocalizedString MenuFileSaveAll => new("Menu.File.SaveAll");
+        public static LocalizedString MenuFileClose => new("Menu.File.Close");
 
-        // Tools sub menu
-        private const string MenuToolsTextSequenceSearcherId_ = "Menu.Tools.TextSequenceSearcher";
-        private const string MenuToolsBatchExtractorId_ = "Menu.Tools.BatchExtractor";
-        private const string MenuToolsBatchInjectorId_ = "Menu.Tools.BatchInjector";
-        private const string MenuToolsHashesId_ = "Menu.Tools.Hashes";
-        private const string MenuToolsRawImageViewerId_ = "Menu.Tools.RawImageViewer";
+        // Tools Menu
+        public static LocalizedString MenuToolsTextSequenceSearcher => new("Menu.Tools.TextSequenceSearcher");
+        public static LocalizedString MenuToolsBatchExtractor => new("Menu.Tools.BatchExtractor");
+        public static LocalizedString MenuToolsBatchInjector => new("Menu.Tools.BatchInjector");
+        public static LocalizedString MenuToolsHashes => new("Menu.Tools.Hashes");
+        public static LocalizedString MenuToolsRawImageViewer => new("Menu.Tools.RawImageViewer");
 
-        // Ciphers sub menu
-        private const string MenuCiphersEncryptId_ = "Menu.Ciphers.Encrypt";
-        private const string MenuCiphersDecryptId_ = "Menu.Ciphers.Decrypt";
+        // Ciphers Menu
+        public static LocalizedString MenuCiphersEncrypt => new("Menu.Ciphers.Encrypt");
+        public static LocalizedString MenuCiphersDecrypt => new("Menu.Ciphers.Decrypt");
 
-        // Compressions sub menu
-        private const string MenuCompressionsDecompressId_ = "Menu.Compressions.Decompress";
-        private const string MenuCompressionsCompressId_ = "Menu.Compressions.Compress";
+        // Compressions Menu
+        public static LocalizedString MenuCompressionsDecompress => new("Menu.Compressions.Decompress");
+        public static LocalizedString MenuCompressionsCompress => new("Menu.Compressions.Compress");
 
-        // Settings sub menu
-        private const string MenuSettingsIncludeDevBuildsId_ = "Menu.Settings.IncludeDevBuilds";
-        private const string MenuSettingsChangeLanguageId_ = "Menu.Settings.ChangeLanguage";
-        private const string MenuSettingsChangeThemeId_ = "Menu.Settings.ChangeTheme";
+        // Settings Menu
+        public static LocalizedString MenuSettingsIncludeDevBuilds => new("Menu.Settings.IncludeDevBuilds");
+        public static LocalizedString MenuSettingsChangeLanguage => new("Menu.Settings.ChangeLanguage");
+        public static LocalizedString MenuSettingsChangeTheme => new("Menu.Settings.ChangeTheme");
 
-        // Change theme sub menu
-        private const string MenuSettingsChangeThemeDarkId_ = "Menu.Settings.ChangeTheme.Dark";
-        private const string MenuSettingsChangeThemeLightId_ = "Menu.Settings.ChangeTheme.Light";
+        // Theme Menu
+        public static LocalizedString MenuSettingsChangeThemeDark => new("Menu.Settings.ChangeTheme.Dark");
+        public static LocalizedString MenuSettingsChangeThemeLight => new("Menu.Settings.ChangeTheme.Light");
 
         // About Dialog
-        private const string MenuAboutTitleId_ = "Menu.About.Title";
-        private const string MenuAboutVersionId_ = "Menu.About.Version";
-        private const string MenuAboutDescriptionId_ = "Menu.About.Description";
+        public static LocalizedString MenuAboutTitle => new("Menu.About.Title");
+        public static LocalizedString MenuAboutVersion(string version) => new("Menu.About.Version", () => version);
+        public static LocalizedString MenuAboutDescription => new("Menu.About.Description");
 
-        // Change language dialog
-        private const string DialogChangeLanguageCaptionId_ = "Dialog.ChangeLanguage.Caption";
-        private const string DialogChangeLanguageTextId_ = "Dialog.ChangeLanguage.Text";
-
-        // Change theme dialog
-        private const string DialogChangeThemeRestartCaptionId_ = "Dialog.ChangeTheme.Restart.Caption";
-        private const string DialogChangeThemeRestartTextId_ = "Dialog.ChangeTheme.Restart.Text";
-
-        // Update available dialog
-        private const string DialogUpdateAvailableCaptionId_ = "Dialog.UpdateAvailable.Text";
-        private const string DialogUpdateAvailableTextId_ = "Dialog.UpdateAvailable.Text";
-
-        // Exception catched dialog
-        private const string DialogExceptionCatchedCaptionId_ = "Dialog.ExceptionCatched.Caption";
-
-        // Unhandled exception dialog
-        private const string DialogUnhandledExceptionCaptionId_ = "Dialog.UnhandledException.Caption";
-        private const string DialogUnhandledExceptionTextCloseId_ = "Dialog.UnhandledException.Text.Close";
-        private const string DialogUnhandledExceptionTextNotCloseId_ = "Dialog.UnhandledException.Text.NotClose";
-
-        // Plugins not available dialog
-        private const string DialogPluginsNotAvailableCaptionId_ = "Dialog.PluginsNotAvailable.Caption";
-        private const string DialogPluginsNotAvailableTextId_ = "Dialog.PluginsNotAvailable.Text";
-
-        // Load error dialog
-        private const string DialogLoadErrorCaptionId_ = "Dialog.LoadError.Caption";
-
-        // Unsaved changes dialog
-        private const string DialogUnsavedChangesCaptionId_ = "Dialog.UnsavedChanges.Caption";
-        private const string DialogUnsavedChangesTextSpecificId_ = "Dialog.UnsavedChanges.Text.Specific";
-        private const string DialogUnsavedChangesTextGenericId_ = "Dialog.UnsavedChanges.Text.Generic";
-
-        // Dependant files dialog
-        private const string DialogDependantFilesCaptionId_ = "Dialog.DependantFiles.Caption";
-        private const string DialogDependantFilesTextId_ = "Dialog.DependantFiles.Text";
-
-        // Save error dialog
-        private const string DialogSaveErrorCaptionId_ = "Dialog.SaveError.Caption";
-
-        // Status labels
-        private const string StatusPluginSelectNoneId_ = "Status.Plugin.Select.None";
-        private const string StatusPluginSelectUnknownId_ = "Status.Plugin.Select.Unknown";
-        private const string StatusPluginLoadNoneId_ = "Status.Plugin.Load.None";
-        private const string StatusPluginLoadNoArchiveId_ = "Status.Plugin.Load.NoArchive";
-        private const string StatusPluginStateInitErrorId_ = "Status.Plugin.State.Init.Error";
-        private const string StatusPluginStateLoadNoneId_ = "Status.Plugin.State.Load.None";
-        private const string StatusPluginStateLoadErrorId_ = "Status.Plugin.State.Load.Error";
-        private const string StatusFileSelectNoneId_ = "Status.File.Select.None";
-        private const string StatusFileSelectInvalidId_ = "Status.File.Select.Invalid";
-        private const string StatusFileLoadStartId_ = "Status.File.Load.Start";
-        private const string StatusFileLoadCancelId_ = "Status.File.Load.Cancel";
-        private const string StatusFileLoadOpeningId_ = "Status.File.Load.Opening";
-        private const string StatusFileLoadSavingId_ = "Status.File.Load.Saving";
-        private const string StatusFileLoadSuccessId_ = "Status.File.Load.Success";
-        private const string StatusFileLoadFailureId_ = "Status.File.Load.Error";
-        private const string StatusFileLoadFailureWithPluginId_ = "Status.File.Load.FailureWithPlugin";
-        private const string StatusFileSaveStartId_ = "Status.File.Save.Start";
-        private const string StatusFileSaveClosedId_ = "Status.File.Save.Closed";
-        private const string StatusFileSaveSavingId_ = "Status.File.Save.Saving";
-        private const string StatusFileSaveClosingId_ = "Status.File.Save.Closing";
-        private const string StatusFileSaveNotLoadedId_ = "Status.File.Save.NotLoaded";
-        private const string StatusFileSaveNoChangesId_ = "Status.File.Save.NoChanges";
-        private const string StatusFileSaveStateErrorId_ = "Status.File.Save.State.Error";
-        private const string StatusFileSaveStateReloadErrorId_ = "Status.File.Save.State.Reload.Error";
-        private const string StatusFileSaveReplaceErrorId_ = "Status.File.Save.Replace.Error";
-        private const string StatusFileSaveCopyErrorId_ = "Status.File.Save.Copy.Error";
-        private const string StatusFileSaveDestinationNotExistId_ = "Status.File.Save.DestinationNotExist";
-        private const string StatusFileSaveSuccessId_ = "Status.File.Save.Success";
-        private const string StatusFileSaveFailureId_ = "Status.File.Save.Error";
-        private const string StatusFileCloseStartId_ = "Status.File.Close.Start";
-        private const string StatusFileCloseCancelId_ = "Status.File.Close.Cancel";
-        private const string StatusFileCloseSavingId_ = "Status.File.Close.Saving";
-        private const string StatusFileCloseClosingId_ = "Status.File.Close.Closing";
-        private const string StatusFileCloseNotLoadedId_ = "Status.File.Close.NotLoaded";
-        private const string StatusFileCloseSuccessId_ = "Status.File.Close.Success";
-        private const string StatusOperationRunningId_ = "Status.Operation.Running";
-
-        // Error messages
-        private const string ErrorUnsupportedOperatingSystemId_ = "Error.Unsupported.OperatingSystem";
-
-        // File filters
-        private const string FilterAllId_ = "Filter.All";
-        private const string FilterPngId_ = "Filter.Png";
-
-
-        // Archive Form
-
-        // File operations
-        private const string ArchiveFileExtractId_ = "Archive.File.Extract";
-        private const string ArchiveFileReplaceId_ = "Archive.File.Replace";
-        private const string ArchiveFileRenameId_ = "Archive.File.Rename";
-        private const string ArchiveFileDeleteId_ = "Archive.File.Delete";
-
-        // Folder operations
-        private const string ArchiveDirectoryExtractId_ = "Archive.Directory.Extract";
-        private const string ArchiveDirectoryReplaceId_ = "Archive.Directory.Replace";
-        private const string ArchiveDirectoryRenameId_ = "Archive.Directory.Rename";
-        private const string ArchiveDirectoryDeleteId_ = "Archive.Directory.Delete";
-        private const string ArchiveDirectoryAddId_ = "Archive.Directory.Add";
-
-        // Status labels
-        private const string ArchiveStatusExtractCancelId_ = "Archive.Status.Extract.Cancel";
-        private const string ArchiveStatusReplaceCancelId_ = "Archive.Status.Replace.Cancel";
-        private const string ArchiveStatusRenameCancelId_ = "Archive.Status.Rename.Cancel";
-        private const string ArchiveStatusDeleteCancelId_ = "Archive.Status.Delete.Cancel";
-        private const string ArchiveStatusAddCancelId_ = "Archive.Status.Add.Cancel";
-
-        private const string ArchiveStatusExtractSuccessId_ = "Archive.Status.Extract.Success";
-        private const string ArchiveStatusReplaceSuccessId_ = "Archive.Status.Replace.Success";
-        private const string ArchiveStatusRenameSuccessId_ = "Archive.Status.Rename.Success";
-        private const string ArchiveStatusDeleteSuccessId_ = "Archive.Status.Delete.Success";
-        private const string ArchiveStatusAddSuccessId_ = "Archive.Status.Add.Success";
-
-        private const string ArchiveStatusRenameErrorNoNameId_ = "Archive.Status.Rename.Error.NoName";
-        private const string ArchiveStatusAddErrorId_ = "Archive.Status.Add.Error";
-
-        private const string ArchiveStatusSelectNoneId_ = "Archive.Status.Select.None";
-        private const string ArchiveStatusExtractNoneId_ = "Archive.Status.Extract.None";
-        private const string ArchiveStatusReplaceNoneId_ = "Archive.Status.Replace.None";
-        private const string ArchiveStatusRenameNoneId_ = "Archive.Status.Rename.None";
-        private const string ArchiveStatusDeleteNoneId_ = "Archive.Status.Delete.None";
-        private const string ArchiveStatusAddNoneId_ = "Archive.Status.Add.None";
-
-        // Progress labels
-        private const string ArchiveProgressExtractId_ = "Archive.Progress.Extract";
-        private const string ArchiveProgressReplaceId_ = "Archive.Progress.Replace";
-        private const string ArchiveProgressRenameId_ = "Archive.Progress.Rename";
-        private const string ArchiveProgressDeleteId_ = "Archive.Progress.Delete";
-        private const string ArchiveProgressAddId_ = "Archive.Progress.Add";
-
-        // Rename dialog
-        private const string ArchiveDialogRenameFileCaptionId_ = "Archive.Dialog.Rename.File.Caption";
-        private const string ArchiveDialogRenameDirectoryCaptionId_ = "Archive.Dialog.Rename.Directory.Caption";
-        private const string ArchiveDialogRenameTextId_ = "Archive.Dialog.Rename.Text";
-
-        // File headers
-        private const string ArchiveTableFilesNameId_ = "Archive.Table.Files.Name";
-        private const string ArchiveTableFilesSizeId_ = "Archive.Table.Files.Size";
-
-        // Search bar
-        private const string ArchiveSearchPlaceholderId_ = "Archive.Search.Placeholder";
-        private const string ArchiveSearchClearId_ = "Archive.Search.Clear";
-
-        // Misc
-        private const string ArchiveFileCountId_ = "Archive.FileCount";
-        private const string ArchiveCancelOperationId_ = "Archive.CancelOperation";
-
-
-        // Image Form
-
-        // Menu
-        private const string ImageMenuExportId_ = "Image.Menu.Export";
-        private const string ImageMenuImportId_ = "Image.Menu.Import";
-        private const string ImageMenuExportPngId_ = "Image.Menu.Export.Png";
-        private const string ImageMenuImportPngId_ = "Image.Menu.Import.Png";
-
-        // Labels
-        private const string ImageLabelWidthId_ = "Image.Label.Width";
-        private const string ImageLabelHeightId_ = "Image.Label.Height";
-        private const string ImageLabelFormatId_ = "Image.Label.Format";
-        private const string ImageLabelPaletteId_ = "Image.Label.Palette";
-
-        // Status
-        private const string ImageStatusImportSuccessId_ = "Image.Status.Import.Success";
-
-        // Progress
-        private const string ImageProgressDecodeId_ = "Image.Progress.Decode";
-
-
-        // Dialogs
-
-        // Dialog manager
-        private const string DialogManagerButtonOkId_ = "Dialog.Manager.Button.Ok";
-
-        // Choose plugin dialog
-        private const string DialogChoosePluginCaptionId_ = "Dialog.ChoosePlugin.Caption";
-
-        private const string DialogChoosePluginHeaderGenericId_ = "Dialog.ChoosePlugin.Header.Generic";
-        private const string DialogChoosePluginHeaderIdentificationNoneId_ = "Dialog.ChoosePlugin.Header.Identification.None";
-        private const string DialogChoosePluginHeaderIdentificationMultipleId_ = "Dialog.ChoosePlugin.Header.Identification.Multiple";
-        private const string DialogChoosePluginHeaderIdentificationNoteId_ = "Dialog.ChoosePlugin.Header.Identification.Note";
-
-        private const string DialogChoosePluginPluginsTableNameId_ = "Dialog.ChoosePlugin.Plugins.Table.Name";
-        private const string DialogChoosePluginPluginsTableTypeId_ = "Dialog.ChoosePlugin.Plugins.Table.Type";
-        private const string DialogChoosePluginPluginsTableDescriptionId_ = "Dialog.ChoosePlugin.Plugins.Table.Description";
-        private const string DialogChoosePluginPluginsTableIdId_ = "Dialog.ChoosePlugin.Plugins.Table.ID";
-
-        private const string DialogChoosePluginContinueId_ = "Dialog.ChoosePlugin.Continue";
-        private const string DialogChoosePluginViewRawId_ = "Dialog.ChoosePlugin.ViewRaw";
-        private const string DialogChoosePluginCancelId_ = "Dialog.ChoosePlugin.Cancel";
-        private const string DialogChoosePluginShowAllId_ = "Dialog.ChoosePlugin.ShowAll";
-
-        #endregion
-
-        #region Resource Instances
-
-        // Kuriimu2
-
-        // Menu bar texts
-        public static LocalizedString MenuFile() => new LocalizedString(MenuFileId_);
-        public static LocalizedString MenuTools() => new LocalizedString(MenuToolsId_);
-        public static LocalizedString MenuCiphers() => new LocalizedString(MenuCiphersId_);
-        public static LocalizedString MenuCompressions() => new LocalizedString(MenuCompressionsId_);
-        public static LocalizedString MenuSettings() => new LocalizedString(MenuSettingsId_);
-        public static LocalizedString MenuHelp() => new LocalizedString(MenuHelpId_);
-
-
-        // File sub menu
-        public static LocalizedString MenuFileOpen() => new LocalizedString(MenuFileOpenId_);
-        public static LocalizedString MenuFileOpenWith() => new LocalizedString(MenuFileOpenWithId_);
-        public static LocalizedString MenuFileSaveAll() => new LocalizedString(MenuFileSaveAllId_);
-
-        // Tools sub menu
-        public static LocalizedString MenuToolsTextSequenceSearcher() => new LocalizedString(MenuToolsTextSequenceSearcherId_);
-        public static LocalizedString MenuToolsBatchExtractor() => new LocalizedString(MenuToolsBatchExtractorId_);
-        public static LocalizedString MenuToolsBatchInjector() => new LocalizedString(MenuToolsBatchInjectorId_);
-        public static LocalizedString MenuToolsHashes() => new LocalizedString(MenuToolsHashesId_);
-        public static LocalizedString MenuToolsRawImageViewer() => new LocalizedString(MenuToolsRawImageViewerId_);
-
-        // Ciphers sub menu
-        public static LocalizedString MenuCiphersEncrypt() => new LocalizedString(MenuCiphersEncryptId_);
-        public static LocalizedString MenuCiphersDecrypt() => new LocalizedString(MenuCiphersDecryptId_);
-
-        // Compressions sub menu
-        public static LocalizedString MenuCompressionsDecompress() => new LocalizedString(MenuCompressionsDecompressId_);
-        public static LocalizedString MenuCompressionsCompress() => new LocalizedString(MenuCompressionsCompressId_);
-
-        // Settings sub menu
-        public static LocalizedString MenuSettingsIncludeDevBuilds() => new LocalizedString(MenuSettingsIncludeDevBuildsId_);
-        public static LocalizedString MenuSettingsChangeLanguage() => new LocalizedString(MenuSettingsChangeLanguageId_);
-        public static LocalizedString MenuSettingsChangeTheme() => new LocalizedString(MenuSettingsChangeThemeId_);
-
-        // Change theme sub menu
-        public static LocalizedString MenuSettingsChangeThemeDark() => new LocalizedString(MenuSettingsChangeThemeDarkId_);
-        public static LocalizedString MenuSettingsChangeThemeLight() => new LocalizedString(MenuSettingsChangeThemeLightId_);
-
-        // Show About Dialog
-        public static LocalizedString MenuAboutTitle() => new LocalizedString(MenuAboutTitleId_);
-        public static LocalizedString MenuAboutDescription() => new LocalizedString(MenuAboutDescriptionId_);
-        public static LocalizedString MenuAboutVersion() => new LocalizedString(MenuAboutVersionId_);
-        
-        // Update available dialog
-        public static LocalizedString DialogUpdateAvailableCaption() => new LocalizedString(DialogUpdateAvailableCaptionId_);
+        // Update Available Dialog
+        public static LocalizedString DialogUpdateAvailableCaption => new("Dialog.UpdateAvailable.Text");
         public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
-            => new LocalizedString(DialogUpdateAvailableTextId_, () => version, () => build, () => remoteVersion, () => remoteBuild);
+            => new("Dialog.UpdateAvailable.Text", () => version, () => build, () => remoteVersion, () => remoteBuild);
 
-        // Exception catched dialog
-        public static LocalizedString DialogExceptionCatchedCaption() => new LocalizedString(DialogExceptionCatchedCaptionId_);
+        // Exception Dialog
+        public static LocalizedString DialogExceptionCatchedCaption => new("Dialog.ExceptionCatched.Caption");
 
-        // Plugins not available dialog
-        public static LocalizedString DialogPluginsNotAvailableCaption() => new LocalizedString(DialogPluginsNotAvailableCaptionId_);
-        public static LocalizedString DialogPluginsNotAvailableText() => new LocalizedString(DialogPluginsNotAvailableTextId_);
+        // Plugins Not Available Dialog
+        public static LocalizedString DialogPluginsNotAvailableCaption => new("Dialog.PluginsNotAvailable.Caption");
+        public static LocalizedString DialogPluginsNotAvailableText => new("Dialog.PluginsNotAvailable.Text");
 
-        // Load error dialog
-        public static LocalizedString DialogLoadErrorCaption() => new LocalizedString(DialogLoadErrorCaptionId_);
+        // Unsaved Changes Dialog
+        public static LocalizedString DialogUnsavedChangesCaption => new("Dialog.UnsavedChanges.Caption");
+        public static LocalizedString DialogUnsavedChangesTextGeneric => new("Dialog.UnsavedChanges.Text.Generic");
+        public static LocalizedString DialogUnsavedChangesTextSpecific(UPath path) => new("Dialog.UnsavedChanges.Text.Specific", () => path);
 
-        // Unsaved changes dialog
-        public static LocalizedString DialogUnsavedChangesCaption() => new LocalizedString(DialogUnsavedChangesCaptionId_);
-        public static LocalizedString DialogUnsavedChangesTextGeneric() => new LocalizedString(DialogUnsavedChangesTextGenericId_);
-        public static LocalizedString DialogUnsavedChangesTextSpecific(UPath path) => new LocalizedString(DialogUnsavedChangesTextSpecificId_, () => path);
+        // Dependant Files Dialog
+        public static LocalizedString DialogDependantFilesCaption => new("Dialog.DependantFiles.Caption");
+        public static LocalizedString DialogDependantFilesText => new("Dialog.DependantFiles.Text");
 
-        // Dependant files dialog
-        public static LocalizedString DialogDependantFilesCaption() => new LocalizedString(DialogDependantFilesCaptionId_);
-        public static LocalizedString DialogDependantFilesText() => new LocalizedString(DialogDependantFilesTextId_);
-        public static string CloseResource() => Instance.Localize("Close");
-        // Save error dialog
-        public static LocalizedString DialogSaveErrorCaption() => new LocalizedString(DialogSaveErrorCaptionId_);
+        // Status
+        public static LocalizedString StatusPluginSelectNone => new("Status.Plugin.Select.None");
+        public static LocalizedString StatusPluginSelectUnknown(IPluginState state) => new("Status.Plugin.Select.Unknown", () => state.GetType().Name);
+        public static LocalizedString StatusPluginLoadNone => new("Status.Plugin.Load.None");
+        public static LocalizedString StatusPluginLoadNoArchive => new("Status.Plugin.Load.NoArchive");
+        public static LocalizedString StatusPluginStateInitError => new("Status.Plugin.State.Init.Error");
+        public static LocalizedString StatusPluginStateLoadNone => new("Status.Plugin.State.Load.None");
+        public static LocalizedString StatusPluginStateLoadError => new("Status.Plugin.State.Load.Error");
+        public static LocalizedString StatusFileSelectNone => new("Status.File.Select.None");
+        public static LocalizedString StatusFileSelectInvalid => new("Status.File.Select.Invalid");
+        public static LocalizedString StatusFileLoadStart(UPath path) => new("Status.File.Load.Start", () => path);
+        public static LocalizedString StatusFileLoadCancel => new("Status.File.Load.Cancel");
+        public static LocalizedString StatusFileLoadOpening(UPath path) => new("Status.File.Load.Opening", () => path);
+        public static LocalizedString StatusFileLoadSaving(UPath path) => new("Status.File.Load.Saving", () => path);
+        public static LocalizedString StatusFileLoadSuccess => new("Status.File.Load.Success");
+        public static LocalizedString StatusFileLoadError => new("Status.File.Load.Error");
+        public static LocalizedString StatusFileLoadErrorPlugin(Guid id) => new("Status.File.Load.Error.Plugin", () => id);
+        public static LocalizedString StatusFileSaveStart(UPath path) => new("Status.File.Save.Start", () => path);
+        public static LocalizedString StatusFileSaveClosed => new("Status.File.Save.Closed");
+        public static LocalizedString StatusFileSaveSaving(UPath path) => new("Status.File.Save.Saving", () => path);
+        public static LocalizedString StatusFileSaveClosing(UPath path) => new("Status.File.Save.Closing", () => path);
+        public static LocalizedString StatusFileSaveNotLoaded => new("Status.File.Save.NotLoaded");
+        public static LocalizedString StatusFileSaveNoChanges => new("Status.File.Save.NoChanges");
+        public static LocalizedString StatusFileSaveStateError => new("Status.File.Save.State.Error");
+        public static LocalizedString StatusFileSaveStateReloadError => new("Status.File.Save.State.Reload.Error");
+        public static LocalizedString StatusFileSaveReplaceError => new("Status.File.Save.Replace.Error");
+        public static LocalizedString StatusFileSaveCopyError => new("Status.File.Save.Copy.Error");
+        public static LocalizedString StatusFileSaveDestinationNotExist => new("Status.File.Save.DestinationNotExist");
+        public static LocalizedString StatusFileSaveSuccess => new("Status.File.Save.Success");
+        public static LocalizedString StatusFileSaveError => new("Status.File.Save.Error");
+        public static LocalizedString StatusFileCloseStart(UPath path) => new("Status.File.Close.Start", () => path);
+        public static LocalizedString StatusFileCloseCancel => new("Status.File.Close.Cancel");
+        public static LocalizedString StatusFileCloseSaving(UPath path) => new("Status.File.Close.Saving", () => path);
+        public static LocalizedString StatusFileCloseClosing(UPath path) => new("Status.File.Close.Closing", () => path);
+        public static LocalizedString StatusFileCloseNotLoaded => new("Status.File.Close.NotLoaded");
+        public static LocalizedString StatusFileCloseSuccess => new("Status.File.Close.Success");
+        public static LocalizedString StatusOperationRunning => new("Status.Operation.Running");
 
-        // Status labels
-        public static LocalizedString StatusPluginSelectNone() => new LocalizedString(StatusPluginSelectNoneId_);
-        public static LocalizedString StatusPluginSelectUnknown(IPluginState state) => new LocalizedString(StatusPluginSelectUnknownId_, () => state.GetType().Name);
-        public static LocalizedString StatusPluginLoadNone() => new LocalizedString(StatusPluginLoadNoneId_);
-        public static LocalizedString StatusPluginLoadNoArchive() => new LocalizedString(StatusPluginLoadNoArchiveId_);
-        public static LocalizedString StatusPluginStateInitError() => new LocalizedString(StatusPluginStateInitErrorId_);
-        public static LocalizedString StatusPluginStateLoadNone() => new LocalizedString(StatusPluginStateLoadNoneId_);
-        public static LocalizedString StatusPluginStateLoadError() => new LocalizedString(StatusPluginStateLoadErrorId_);
-        public static LocalizedString StatusFileSelectNone() => new LocalizedString(StatusFileSelectNoneId_);
-        public static LocalizedString StatusFileSelectInvalid() => new LocalizedString(StatusFileSelectInvalidId_);
-        public static LocalizedString StatusFileLoadStart(UPath path) => new LocalizedString(StatusFileLoadStartId_, () => path);
-        public static LocalizedString StatusFileLoadCancel() => new LocalizedString(StatusFileLoadCancelId_);
-        public static LocalizedString StatusFileLoadOpening(UPath path) => new LocalizedString(StatusFileLoadOpeningId_, () => path);
-        public static LocalizedString StatusFileLoadSaving(UPath path) => new LocalizedString(StatusFileLoadSavingId_, () => path);
-        public static LocalizedString StatusFileLoadSuccess() => new LocalizedString(StatusFileLoadSuccessId_);
-        public static LocalizedString StatusFileLoadFailure() => new LocalizedString(StatusFileLoadFailureId_);
-        public static LocalizedString StatusFileLoadFailureWithPlugin(Guid id) => new LocalizedString(StatusFileLoadFailureWithPluginId_, () => id);
-        public static LocalizedString StatusFileSaveStart(UPath path) => new LocalizedString(StatusFileSaveStartId_, () => path);
-        public static LocalizedString StatusFileSaveClosed() => new LocalizedString(StatusFileSaveClosedId_);
-        public static LocalizedString StatusFileSaveSaving(UPath path) => new LocalizedString(StatusFileSaveSavingId_, () => path);
-        public static LocalizedString StatusFileSaveClosing(UPath path) => new LocalizedString(StatusFileSaveClosingId_, () => path);
-        public static LocalizedString StatusFileSaveNotLoaded() => new LocalizedString(StatusFileSaveNotLoadedId_);
-        public static LocalizedString StatusFileSaveNoChanges() => new LocalizedString(StatusFileSaveNoChangesId_);
-        public static LocalizedString StatusFileSaveStateError() => new LocalizedString(StatusFileSaveStateErrorId_);
-        public static LocalizedString StatusFileSaveStateReloadError() => new LocalizedString(StatusFileSaveStateReloadErrorId_);
-        public static LocalizedString StatusFileSaveReplaceError() => new LocalizedString(StatusFileSaveReplaceErrorId_);
-        public static LocalizedString StatusFileSaveCopyError() => new LocalizedString(StatusFileSaveCopyErrorId_);
-        public static LocalizedString StatusFileSaveDestinationNotExist() => new LocalizedString(StatusFileSaveDestinationNotExistId_);
-        public static LocalizedString StatusFileSaveSuccess() => new LocalizedString(StatusFileSaveSuccessId_);
-        public static LocalizedString StatusFileSaveFailure() => new LocalizedString(StatusFileSaveFailureId_);
-        public static LocalizedString StatusFileCloseStart(UPath path) => new LocalizedString(StatusFileCloseStartId_, () => path);
-        public static LocalizedString StatusFileCloseCancel() => new LocalizedString(StatusFileCloseCancelId_);
-        public static LocalizedString StatusFileCloseSaving(UPath path) => new LocalizedString(StatusFileCloseSavingId_, () => path);
-        public static LocalizedString StatusFileCloseClosing(UPath path) => new LocalizedString(StatusFileCloseClosingId_, () => path);
-        public static LocalizedString StatusFileCloseNotLoaded() => new LocalizedString(StatusFileCloseNotLoadedId_);
-        public static LocalizedString StatusFileCloseSuccess() => new LocalizedString(StatusFileCloseSuccessId_);
-        public static LocalizedString StatusOperationRunning() => new LocalizedString(StatusOperationRunningId_);
+        // Errors
+        public static LocalizedString ErrorUnsupportedOperatingSystem(string os) => new("Error.Unsupported.OperatingSystem", () => os);
 
-        // Error messages
-        public static LocalizedString ErrorUnsupportedOperatingSystem(string os) => new LocalizedString(ErrorUnsupportedOperatingSystemId_, () => os);
-
-        // File filters
-        public static LocalizedString FilterAll() => new LocalizedString(FilterAllId_);
-        public static LocalizedString FilterPng() => new LocalizedString(FilterPngId_);
-
+        // File Filters
+        public static LocalizedString FilterAll => new("Filter.All");
+        public static LocalizedString FilterPng => new("Filter.Png");
 
         // Archive Form
 
-        // File operations
-        public static LocalizedString ArchiveFileExtract() => new LocalizedString(ArchiveFileExtractId_);
-        public static LocalizedString ArchiveFileReplace() => new LocalizedString(ArchiveFileReplaceId_);
-        public static LocalizedString ArchiveFileRename() => new LocalizedString(ArchiveFileRenameId_);
-        public static LocalizedString ArchiveFileDelete() => new LocalizedString(ArchiveFileDeleteId_);
+        // File Operations
+        public static LocalizedString ArchiveFileExtract => new("Archive.File.Extract");
+        public static LocalizedString ArchiveFileReplace => new("Archive.File.Replace");
+        public static LocalizedString ArchiveFileRename => new("Archive.File.Rename");
+        public static LocalizedString ArchiveFileDelete => new("Archive.File.Delete");
 
-        // Folder operations
-        public static LocalizedString ArchiveDirectoryExtract() => new LocalizedString(ArchiveDirectoryExtractId_);
-        public static LocalizedString ArchiveDirectoryReplace() => new LocalizedString(ArchiveDirectoryReplaceId_);
-        public static LocalizedString ArchiveDirectoryRename() => new LocalizedString(ArchiveDirectoryRenameId_);
-        public static LocalizedString ArchiveDirectoryDelete() => new LocalizedString(ArchiveDirectoryDeleteId_);
-        public static LocalizedString ArchiveDirectoryAdd() => new LocalizedString(ArchiveDirectoryAddId_);
+        // Folder Operations
+        public static LocalizedString ArchiveDirectoryExtract => new("Archive.Directory.Extract");
+        public static LocalizedString ArchiveDirectoryReplace => new("Archive.Directory.Replace");
+        public static LocalizedString ArchiveDirectoryRename => new("Archive.Directory.Rename");
+        public static LocalizedString ArchiveDirectoryDelete => new("Archive.Directory.Delete");
+        public static LocalizedString ArchiveDirectoryAdd => new("Archive.Directory.Add");
 
-        // Status labels
-        public static LocalizedString ArchiveStatusExtractCancel() => new LocalizedString(ArchiveStatusExtractCancelId_);
-        public static LocalizedString ArchiveStatusReplaceCancel() => new LocalizedString(ArchiveStatusReplaceCancelId_);
-        public static LocalizedString ArchiveStatusRenameCancel() => new LocalizedString(ArchiveStatusRenameCancelId_);
-        public static LocalizedString ArchiveStatusDeleteCancel() => new LocalizedString(ArchiveStatusDeleteCancelId_);
-        public static LocalizedString ArchiveStatusAddCancel() => new LocalizedString(ArchiveStatusAddCancelId_);
+        // Archive Status
+        public static LocalizedString ArchiveStatusExtractCancel => new("Archive.Status.Extract.Cancel");
+        public static LocalizedString ArchiveStatusReplaceCancel => new("Archive.Status.Replace.Cancel");
+        public static LocalizedString ArchiveStatusRenameCancel => new("Archive.Status.Rename.Cancel");
+        public static LocalizedString ArchiveStatusDeleteCancel => new("Archive.Status.Delete.Cancel");
+        public static LocalizedString ArchiveStatusAddCancel => new("Archive.Status.Add.Cancel");
 
-        public static LocalizedString ArchiveStatusExtractSuccess() => new LocalizedString(ArchiveStatusExtractSuccessId_);
-        public static LocalizedString ArchiveStatusReplaceSuccess() => new LocalizedString(ArchiveStatusReplaceSuccessId_);
-        public static LocalizedString ArchiveStatusRenameSuccess() => new LocalizedString(ArchiveStatusRenameSuccessId_);
-        public static LocalizedString ArchiveStatusDeleteSuccess() => new LocalizedString(ArchiveStatusDeleteSuccessId_);
-        public static LocalizedString ArchiveStatusAddSuccess() => new LocalizedString(ArchiveStatusAddSuccessId_);
+        public static LocalizedString ArchiveStatusExtractSuccess => new("Archive.Status.Extract.Success");
+        public static LocalizedString ArchiveStatusReplaceSuccess => new("Archive.Status.Replace.Success");
+        public static LocalizedString ArchiveStatusRenameSuccess => new("Archive.Status.Rename.Success");
+        public static LocalizedString ArchiveStatusDeleteSuccess => new("Archive.Status.Delete.Success");
+        public static LocalizedString ArchiveStatusAddSuccess => new("Archive.Status.Add.Success");
 
-        public static LocalizedString ArchiveStatusRenameErrorNoName() => new LocalizedString(ArchiveStatusRenameErrorNoNameId_);
-        public static LocalizedString ArchiveStatusAddError() => new LocalizedString(ArchiveStatusAddErrorId_);
+        public static LocalizedString ArchiveStatusRenameErrorNoName => new("Archive.Status.Rename.Error.NoName");
+        public static LocalizedString ArchiveStatusAddError => new("Archive.Status.Add.Error");
 
-        public static LocalizedString ArchiveStatusSelectNone() => new LocalizedString(ArchiveStatusSelectNoneId_);
-        public static LocalizedString ArchiveStatusExtractNone() => new LocalizedString(ArchiveStatusExtractNoneId_);
-        public static LocalizedString ArchiveStatusReplaceNone() => new LocalizedString(ArchiveStatusReplaceNoneId_);
-        public static LocalizedString ArchiveStatusRenameNone() => new LocalizedString(ArchiveStatusRenameNoneId_);
-        public static LocalizedString ArchiveStatusDeleteNone() => new LocalizedString(ArchiveStatusDeleteNoneId_);
-        public static LocalizedString ArchiveStatusAddNone() => new LocalizedString(ArchiveStatusAddNoneId_);
+        public static LocalizedString ArchiveStatusSelectNone => new("Archive.Status.Select.None");
+        public static LocalizedString ArchiveStatusExtractNone => new("Archive.Status.Extract.None");
+        public static LocalizedString ArchiveStatusReplaceNone => new("Archive.Status.Replace.None");
+        public static LocalizedString ArchiveStatusRenameNone => new("Archive.Status.Rename.None");
+        public static LocalizedString ArchiveStatusDeleteNone => new("Archive.Status.Delete.None");
+        public static LocalizedString ArchiveStatusAddNone => new("Archive.Status.Add.None");
 
-        // Progress labels
-        public static LocalizedString ArchiveProgressExtract() => new LocalizedString(ArchiveProgressExtractId_);
-        public static LocalizedString ArchiveProgressReplace() => new LocalizedString(ArchiveProgressReplaceId_);
-        public static LocalizedString ArchiveProgressRename() => new LocalizedString(ArchiveProgressRenameId_);
-        public static LocalizedString ArchiveProgressDelete() => new LocalizedString(ArchiveProgressDeleteId_);
-        public static LocalizedString ArchiveProgressAdd() => new LocalizedString(ArchiveProgressAddId_);
+        // Archive Progress
+        public static LocalizedString ArchiveProgressExtract => new("Archive.Progress.Extract");
+        public static LocalizedString ArchiveProgressReplace => new("Archive.Progress.Replace");
+        public static LocalizedString ArchiveProgressRename => new("Archive.Progress.Rename");
+        public static LocalizedString ArchiveProgressDelete => new("Archive.Progress.Delete");
+        public static LocalizedString ArchiveProgressAdd => new("Archive.Progress.Add");
 
-        // Rename dialog
-        public static LocalizedString ArchiveDialogRenameFileCaption() => new LocalizedString(ArchiveDialogRenameFileCaptionId_);
-        public static LocalizedString ArchiveDialogRenameDirectoryCaption() => new LocalizedString(ArchiveDialogRenameDirectoryCaptionId_);
-        public static LocalizedString ArchiveDialogRenameText(string name) => new LocalizedString(ArchiveDialogRenameTextId_, () => name);
+        // Archive Rename Dialog
+        public static LocalizedString ArchiveDialogRenameFileCaption => new("Archive.Dialog.Rename.File.Caption");
+        public static LocalizedString ArchiveDialogRenameDirectoryCaption => new("Archive.Dialog.Rename.Directory.Caption");
+        public static LocalizedString ArchiveDialogRenameText(string name) => new("Archive.Dialog.Rename.Text", () => name);
 
-        // File headers
-        public static LocalizedString ArchiveTableFilesName() => new LocalizedString(ArchiveTableFilesNameId_);
-        public static LocalizedString ArchiveTableFilesSize() => new LocalizedString(ArchiveTableFilesSizeId_);
+        // Archive File Headers
+        public static LocalizedString ArchiveTableFilesName => new("Archive.Table.Files.Name");
+        public static LocalizedString ArchiveTableFilesSize => new("Archive.Table.Files.Size");
 
-        // Search bar
-        public static LocalizedString ArchiveSearchPlaceholder() => new LocalizedString(ArchiveSearchPlaceholderId_);
-        public static LocalizedString ArchiveSearchClear() => new LocalizedString(ArchiveSearchClearId_);
+        // Archive Search Bar
+        public static LocalizedString ArchiveSearchPlaceholder => new("Archive.Search.Placeholder");
+        public static LocalizedString ArchiveSearchClear => new("Archive.Search.Clear");
 
         // Misc
-        public static LocalizedString ArchiveFileCount(int fileCount) => new LocalizedString(ArchiveFileCountId_, () => fileCount);
-        public static LocalizedString ArchiveCancelOperation() => new LocalizedString(ArchiveCancelOperationId_);
-
+        public static LocalizedString ArchiveFileCount(int fileCount) => new("Archive.FileCount", () => fileCount);
+        public static LocalizedString ArchiveCancelOperation => new("Archive.CancelOperation");
 
         // Image Form
 
         // Menu
-        public static LocalizedString ImageMenuExport() => new LocalizedString(ImageMenuExportId_);
-        public static LocalizedString ImageMenuImport() => new LocalizedString(ImageMenuImportId_);
-        public static LocalizedString ImageMenuExportPng() => new LocalizedString(ImageMenuExportPngId_);
-        public static LocalizedString ImageMenuImportPng() => new LocalizedString(ImageMenuImportPngId_);
+        public static LocalizedString ImageMenuExport => new("Image.Menu.Export");
+        public static LocalizedString ImageMenuImport => new("Image.Menu.Import");
+        public static LocalizedString ImageMenuExportPng => new("Image.Menu.Export.Png");
+        public static LocalizedString ImageMenuImportPng => new("Image.Menu.Import.Png");
 
         // Labels
-        public static LocalizedString ImageLabelWidth() => new LocalizedString(ImageLabelWidthId_);
-        public static LocalizedString ImageLabelHeight() => new LocalizedString(ImageLabelHeightId_);
-        public static LocalizedString ImageLabelFormat() => new LocalizedString(ImageLabelFormatId_);
-        public static LocalizedString ImageLabelPalette() => new LocalizedString(ImageLabelPaletteId_);
+        public static LocalizedString ImageLabelWidth => new("Image.Label.Width");
+        public static LocalizedString ImageLabelHeight => new("Image.Label.Height");
+        public static LocalizedString ImageLabelFormat => new("Image.Label.Format");
+        public static LocalizedString ImageLabelPalette => new("Image.Label.Palette");
 
-        // Status
-        public static LocalizedString ImageStatusImportSuccess() => new LocalizedString(ImageStatusImportSuccessId_);
+        // Image Status
+        public static LocalizedString ImageStatusImportSuccess => new("Image.Status.Import.Success");
 
-        // Progress
-        public static LocalizedString ImageProgressDecode() => new LocalizedString(ImageProgressDecodeId_);
-
+        // Image Progress
+        public static LocalizedString ImageProgressDecode => new("Image.Progress.Decode");
 
         // Dialogs
 
-        // Dialog manager
-        public static LocalizedString DialogManagerButtonOk() => new LocalizedString(DialogManagerButtonOkId_);
+        // Dialog Manager
+        public static LocalizedString DialogManagerButtonOk => new("Dialog.Manager.Button.Ok");
 
-        // Choose plugin dialog
-        public static LocalizedString DialogChoosePluginCaption() => new LocalizedString(DialogChoosePluginCaptionId_);
+        // Choose Plugin Dialog
+        public static LocalizedString DialogChoosePluginCaption => new("Dialog.ChoosePlugin.Caption");
 
-        public static LocalizedString DialogChoosePluginHeaderGeneric() => new LocalizedString(DialogChoosePluginHeaderGenericId_);
-        public static LocalizedString DialogChoosePluginHeaderIdentificationNone() => new LocalizedString(DialogChoosePluginHeaderIdentificationNoneId_);
-        public static LocalizedString DialogChoosePluginHeaderIdentificationMultiple() => new LocalizedString(DialogChoosePluginHeaderIdentificationMultipleId_);
-        public static LocalizedString DialogChoosePluginHeaderIdentificationNote() => new LocalizedString(DialogChoosePluginHeaderIdentificationNoteId_);
+        public static LocalizedString DialogChoosePluginHeaderGeneric => new("Dialog.ChoosePlugin.Header.Generic");
+        public static LocalizedString DialogChoosePluginHeaderIdentificationNone => new("Dialog.ChoosePlugin.Header.Identification.None");
+        public static LocalizedString DialogChoosePluginHeaderIdentificationMultiple => new("Dialog.ChoosePlugin.Header.Identification.Multiple");
+        public static LocalizedString DialogChoosePluginHeaderIdentificationNote => new("Dialog.ChoosePlugin.Header.Identification.Note");
 
-        public static LocalizedString DialogChoosePluginPluginsTableName() => new LocalizedString(DialogChoosePluginPluginsTableNameId_);
-        public static LocalizedString DialogChoosePluginPluginsTableType() => new LocalizedString(DialogChoosePluginPluginsTableTypeId_);
-        public static LocalizedString DialogChoosePluginPluginsTableDescription() => new LocalizedString(DialogChoosePluginPluginsTableDescriptionId_);
-        public static LocalizedString DialogChoosePluginPluginsTableId() => new LocalizedString(DialogChoosePluginPluginsTableIdId_);
+        public static LocalizedString DialogChoosePluginPluginsTableName => new("Dialog.ChoosePlugin.Plugins.Table.Name");
+        public static LocalizedString DialogChoosePluginPluginsTableType => new("Dialog.ChoosePlugin.Plugins.Table.Type");
+        public static LocalizedString DialogChoosePluginPluginsTableDescription => new("Dialog.ChoosePlugin.Plugins.Table.Description");
+        public static LocalizedString DialogChoosePluginPluginsTableId => new("Dialog.ChoosePlugin.Plugins.Table.ID");
 
-        public static LocalizedString DialogChoosePluginContinue() => new LocalizedString(DialogChoosePluginContinueId_);
-        public static LocalizedString DialogChoosePluginViewRaw() => new LocalizedString(DialogChoosePluginViewRawId_);
-        public static LocalizedString DialogChoosePluginCancel() => new LocalizedString(DialogChoosePluginCancelId_);
-        public static LocalizedString DialogChoosePluginShowAll() => new LocalizedString(DialogChoosePluginShowAllId_);
-
-        #endregion
-
-        #region ILocalizer implementation
-
-        class Localizer : ILocalizer
-        {
-            private const string NameSpace_ = "Kuriimu2.ImGui.Resources.Localizations.";
-            private const string DefaultLocale_ = "en";
-            private const string NameValue_ = "Name";
-
-            private const string Undefined_ = "<undefined>";
-
-            private readonly IDictionary<string, IDictionary<string, string>> _localizations;
-
-            public string CurrentLocale { get; private set; } = DefaultLocale_;
-
-            public Localizer()
-            {
-                // Load localizations
-                _localizations = GetLocalizations();
-
-                // Set default locale
-                if (_localizations.Count == 0)
-                    CurrentLocale = string.Empty;
-                else if (!_localizations.ContainsKey(DefaultLocale_))
-                    CurrentLocale = _localizations.FirstOrDefault().Key;
-            }
-
-            public IEnumerable<string> GetLocales()
-            {
-                return _localizations.Keys;
-            }
-
-            public string GetLanguageName(string locale)
-            {
-                if (!_localizations.ContainsKey(locale) || !_localizations[locale].ContainsKey(NameValue_))
-                    return Undefined_;
-
-                return _localizations[locale][NameValue_];
-            }
-
-            public string GetLocaleByName(string name)
-            {
-                foreach (var locale in GetLocales())
-                    if (GetLanguageName(locale) == name)
-                        return locale;
-
-                return Undefined_;
-            }
-
-            public void ChangeLocale(string locale)
-            {
-                // Do nothing, if locale was not found
-                if (!_localizations.ContainsKey(locale))
-                    return;
-
-                CurrentLocale = locale;
-            }
-
-            public string Localize(string name, params object[] args)
-            {
-                // Return localization of current locale
-                if (!string.IsNullOrEmpty(CurrentLocale) && _localizations[CurrentLocale].ContainsKey(name))
-                    return string.Format(_localizations[CurrentLocale][name], args);
-
-                // Otherwise, return localization of default locale
-                if (!string.IsNullOrEmpty(DefaultLocale_) && _localizations[DefaultLocale_].ContainsKey(name))
-                    return string.Format(_localizations[DefaultLocale_][name], args);
-
-                // Otherwise, return localization placeholder
-                return Undefined_;
-            }
-
-            private IDictionary<string, IDictionary<string, string>> GetLocalizations()
-            {
-                var assembly = Assembly.GetExecutingAssembly();
-                var localNames = assembly.GetManifestResourceNames().Where(n => n.StartsWith(NameSpace_));
-
-                var result = new Dictionary<string, IDictionary<string, string>>();
-                foreach (var localName in localNames)
-                {
-                    var locStream = assembly.GetManifestResourceStream(localName);
-                    if (locStream == null)
-                        continue;
-
-                    // Read text from stream
-                    var reader = new StreamReader(locStream, Encoding.UTF8);
-                    var json = reader.ReadToEnd();
-
-                    // Deserialize JSON
-                    result.Add(GetLocale(localName), JsonConvert.DeserializeObject<IDictionary<string, string>>(json));
-                }
-
-                return result;
-            }
-
-            private string GetLocale(string resourceName)
-            {
-                return resourceName.Replace(NameSpace_, "").Replace(".json", "");
-            }
-        }
-
-        #endregion
+        public static LocalizedString DialogChoosePluginContinue => new("Dialog.ChoosePlugin.Continue");
+        public static LocalizedString DialogChoosePluginViewRaw => new("Dialog.ChoosePlugin.ViewRaw");
+        public static LocalizedString DialogChoosePluginCancel => new("Dialog.ChoosePlugin.Cancel");
+        public static LocalizedString DialogChoosePluginShowAll => new("Dialog.ChoosePlugin.ShowAll");
     }
 }

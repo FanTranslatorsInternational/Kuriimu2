@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
@@ -50,18 +49,18 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             #region Controls
 
-            _extractDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryExtract() };
-            _replaceDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryReplace() };
-            _renameDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryRename() };
-            _addDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryAdd() };
-            _deleteDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryDelete() };
+            _extractDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryExtract };
+            _replaceDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryReplace };
+            _renameDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryRename };
+            _addDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryAdd };
+            _deleteDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryDelete };
 
-            _openFileButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen() };
-            _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.MenuFileOpenWith() };
-            _extractFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileExtract() };
-            _replaceFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileReplace() };
-            _renameFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileRename() };
-            _deleteFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileDelete() };
+            _openFileButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen };
+            _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.MenuFileOpenWith };
+            _extractFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileExtract };
+            _replaceFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileReplace };
+            _renameFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileRename };
+            _deleteFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileDelete };
 
             _directoryContext = new ContextMenu
             {
@@ -92,7 +91,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _saveBtn = new ImageButton { Image = ImageResources.Save(Style.Theme), ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
             _saveAsBtn = new ImageButton { Image = ImageResources.SaveAs(Style.Theme), ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
 
-            _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder() };
+            _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder };
             _clearButton = new ImageButton { Image = ImageResources.Close };
 
             _treeView = new TreeView<DirectoryEntry> { ContextMenu = _directoryContext };
@@ -100,14 +99,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 Columns =
                 {
-                    new DataTableColumn<ArchiveFile>(a => a.Name,LocalizationResources.ArchiveTableFilesName()),
-                    new DataTableColumn<ArchiveFile>(a => $"{a.Size}",LocalizationResources.ArchiveTableFilesSize())
+                    new DataTableColumn<ArchiveFile>(a => a.Name,LocalizationResources.ArchiveTableFilesName),
+                    new DataTableColumn<ArchiveFile>(a => $"{a.Size}",LocalizationResources.ArchiveTableFilesSize)
                 },
                 ContextMenu = _fileContext
             };
 
             _fileCount = new Label();
-            _cancelBtn = new Button { Text = LocalizationResources.ArchiveCancelOperation(), Width = 75, Enabled = false };
+            _cancelBtn = new Button { Text = LocalizationResources.ArchiveCancelOperation, Width = 75, Enabled = false };
 
             #endregion
 

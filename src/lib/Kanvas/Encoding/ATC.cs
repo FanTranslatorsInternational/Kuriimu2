@@ -69,7 +69,7 @@ namespace Kanvas.Encoding
             var heightBlocks = ((saveContext.Size.Height + 3) & ~3) >> 2;
             var buffer = new byte[widthBlocks * heightBlocks * blockSize];
 
-            colors.Batch(ColorsPerValue).Select((x, i) => (x, i))
+            colors.Chunk(ColorsPerValue).Select((x, i) => (x, i))
                 .AsParallel()
                 .WithDegreeOfParallelism(saveContext.TaskCount)
                 .ForAll(element =>

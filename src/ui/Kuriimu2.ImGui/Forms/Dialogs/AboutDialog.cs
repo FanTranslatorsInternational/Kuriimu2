@@ -4,6 +4,7 @@ using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Lists;
+using ImGui.Forms.Localization;
 using ImGui.Forms.Models;
 using ImGui.Forms.Modals;
 using Kore.Models.UnsupportedPlugin;
@@ -31,7 +32,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _titleLabel = new Label { Text = "Kuriimu2" };
             _versionLabel = new Label { Text = GetVersionText() };
-            _descriptionLabel = new Label { Text = LocalizationResources.MenuAboutDescription() };
+            _descriptionLabel = new Label { Text = LocalizationResources.MenuAboutDescription };
             var mainLayout = new StackLayout
             {
                 Size = new Size(width, height),
@@ -46,15 +47,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 },
             };
 
-            Caption = LocalizationResources.MenuAboutTitle();
+            Caption = LocalizationResources.MenuAboutTitle;
             Content = mainLayout;
         }
 
-        private string GetVersionText()
+        private LocalizedString GetVersionText()
         {
             string manifest = BinaryResources.VersionManifest;
             dynamic manifestObject = JsonConvert.DeserializeObject(manifest);
-            return LocalizationResources.MenuAboutVersion() + " " + manifestObject?.version.ToString() ?? "2.0.0";
+            return LocalizationResources.MenuAboutVersion(manifestObject?.version.ToString() ?? "2.0.0");
         }
     }
 }

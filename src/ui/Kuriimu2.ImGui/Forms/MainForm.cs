@@ -203,7 +203,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private void _changeLanguageMenu_SelectedItemChanged(object sender, EventArgs e)
         {
-            var locale = LocalizationResources.GetLocaleByName(((MenuBarRadio)sender).SelectedItem.Text);
+            var locale = LocalizationResources.Instance.GetLocaleByName(((MenuBarRadio)sender).SelectedItem.Text);
 
             Settings.Default.Locale = locale;
             Settings.Default.Save();
@@ -319,7 +319,7 @@ namespace Kuriimu2.ImGui.Forms
 
             if (fileToOpen == null)
             {
-                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectNone());
+                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectNone);
                 return;
             }
 
@@ -345,7 +345,7 @@ namespace Kuriimu2.ImGui.Forms
             // Check if path is invalid
             if (filePath.IsNull || filePath.IsEmpty)
             {
-                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectInvalid());
+                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectInvalid);
                 return false;
             }
 
@@ -374,7 +374,7 @@ namespace Kuriimu2.ImGui.Forms
                 chosenPlugin = await ChoosePlugin(allPlugins, allPlugins, KoreFileManager.SelectionStatus.All);
                 if (chosenPlugin == null)
                 {
-                    ReportStatus(StatusKind.Failure, LocalizationResources.StatusPluginSelectNone());
+                    ReportStatus(StatusKind.Failure, LocalizationResources.StatusPluginSelectNone);
                     return false;
                 }
             }
@@ -384,7 +384,7 @@ namespace Kuriimu2.ImGui.Forms
             if (loadResult.IsCancelled)
             {
                 // Load was canceled
-                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileLoadCancel());
+                ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileLoadCancel);
                 return false;
             }
 
@@ -404,7 +404,7 @@ namespace Kuriimu2.ImGui.Forms
 
             UpdateFormTitle();
 
-            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileLoadSuccess());
+            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileLoadSuccess);
 
             return true;
         }
@@ -417,19 +417,19 @@ namespace Kuriimu2.ImGui.Forms
                     return LocalizationResources.StatusFileLoadOpening(path);
 
                 case LoadErrorReason.NoPlugin:
-                    return LocalizationResources.StatusPluginLoadNone();
+                    return LocalizationResources.StatusPluginLoadNone;
 
                 case LoadErrorReason.NoArchive:
-                    return LocalizationResources.StatusPluginLoadNoArchive();
+                    return LocalizationResources.StatusPluginLoadNoArchive;
 
                 case LoadErrorReason.StateCreateError:
-                    return LocalizationResources.StatusPluginStateInitError();
+                    return LocalizationResources.StatusPluginStateInitError;
 
                 case LoadErrorReason.StateNoLoad:
-                    return LocalizationResources.StatusPluginStateLoadNone();
+                    return LocalizationResources.StatusPluginStateLoadNone;
 
                 case LoadErrorReason.StateLoadError:
-                    return LocalizationResources.StatusPluginStateLoadError();
+                    return LocalizationResources.StatusPluginStateLoadError;
 
                 case LoadErrorReason.None:
                     return string.Empty;
@@ -467,7 +467,7 @@ namespace Kuriimu2.ImGui.Forms
                 savePath = await SelectNewFile(fileState.FilePath.GetName());
                 if (savePath.IsNull || savePath.IsEmpty)
                 {
-                    ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectInvalid());
+                    ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileSelectInvalid);
                     return false;
                 }
             }
@@ -491,7 +491,7 @@ namespace Kuriimu2.ImGui.Forms
             // Update parents
             UpdateTab(fileState.ParentFileState, true);
 
-            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileSaveSuccess());
+            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileSaveSuccess);
 
             return true;
         }
@@ -501,7 +501,7 @@ namespace Kuriimu2.ImGui.Forms
             switch (reason)
             {
                 case SaveErrorReason.Closed:
-                    return LocalizationResources.StatusFileSaveClosed();
+                    return LocalizationResources.StatusFileSaveClosed;
 
                 case SaveErrorReason.Saving:
                     return LocalizationResources.StatusFileSaveSaving(path);
@@ -510,25 +510,25 @@ namespace Kuriimu2.ImGui.Forms
                     return LocalizationResources.StatusFileSaveClosing(path);
 
                 case SaveErrorReason.NotLoaded:
-                    return LocalizationResources.StatusFileSaveNotLoaded();
+                    return LocalizationResources.StatusFileSaveNotLoaded;
 
                 case SaveErrorReason.NoChanges:
-                    return LocalizationResources.StatusFileSaveNoChanges();
+                    return LocalizationResources.StatusFileSaveNoChanges;
 
                 case SaveErrorReason.StateSaveError:
-                    return LocalizationResources.StatusFileSaveStateError();
+                    return LocalizationResources.StatusFileSaveStateError;
 
                 case SaveErrorReason.DestinationNotExist:
-                    return LocalizationResources.StatusFileSaveDestinationNotExist();
+                    return LocalizationResources.StatusFileSaveDestinationNotExist;
 
                 case SaveErrorReason.FileReplaceError:
-                    return LocalizationResources.StatusFileSaveReplaceError();
+                    return LocalizationResources.StatusFileSaveReplaceError;
 
                 case SaveErrorReason.FileCopyError:
-                    return LocalizationResources.StatusFileSaveCopyError();
+                    return LocalizationResources.StatusFileSaveCopyError;
 
                 case SaveErrorReason.StateReloadError:
-                    return LocalizationResources.StatusFileSaveStateReloadError();
+                    return LocalizationResources.StatusFileSaveStateReloadError;
 
                 case SaveErrorReason.None:
                     return string.Empty;
@@ -549,14 +549,14 @@ namespace Kuriimu2.ImGui.Forms
             // Check if operations are running
             if (!ignoreRunningOperations && _stateDictionary[fileState].Form.HasRunningOperations())
             {
-                ReportStatus(StatusKind.Failure, LocalizationResources.StatusOperationRunning());
+                ReportStatus(StatusKind.Failure, LocalizationResources.StatusOperationRunning);
                 return false;
             }
 
             // Security question, so the user knows that every sub file will be closed
             if (fileState.ArchiveChildren.Any() && !ignoreChildWarning)
             {
-                var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogDependantFilesCaption(), LocalizationResources.DialogDependantFilesText());
+                var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogDependantFilesCaption, LocalizationResources.DialogDependantFilesText);
 
                 switch (result)
                 {
@@ -564,7 +564,7 @@ namespace Kuriimu2.ImGui.Forms
                         break;
 
                     default:
-                        ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileCloseCancel());
+                        ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileCloseCancel);
                         return false;
                 }
             }
@@ -590,7 +590,7 @@ namespace Kuriimu2.ImGui.Forms
                         break;
 
                     default:
-                        ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileCloseCancel());
+                        ReportStatus(StatusKind.Failure, LocalizationResources.StatusFileCloseCancel);
                         return false;
                 }
             }
@@ -617,15 +617,15 @@ namespace Kuriimu2.ImGui.Forms
             // Update parents before state is disposed
             UpdateTab(parentState, true);
 
-            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileCloseSuccess());
+            ReportStatus(StatusKind.Success, LocalizationResources.StatusFileCloseSuccess);
 
             return true;
         }
 
         private Task<DialogResult> ConfirmSavingChanges(IFileState fileState = null)
         {
-            var text = fileState == null ? LocalizationResources.DialogUnsavedChangesTextGeneric() : LocalizationResources.DialogUnsavedChangesTextSpecific(fileState.FilePath);
-            return MessageBox.ShowYesNoCancelAsync(LocalizationResources.DialogUnsavedChangesCaption(), text);
+            var text = fileState == null ? LocalizationResources.DialogUnsavedChangesTextGeneric : LocalizationResources.DialogUnsavedChangesTextSpecific(fileState.FilePath);
+            return MessageBox.ShowYesNoCancelAsync(LocalizationResources.DialogUnsavedChangesCaption, text);
         }
 
         private void RemoveOpenedFile(IFileState fileState)
@@ -653,7 +653,7 @@ namespace Kuriimu2.ImGui.Forms
                     return LocalizationResources.StatusFileCloseClosing(path);
 
                 case CloseErrorReason.NotLoaded:
-                    return LocalizationResources.StatusFileCloseNotLoaded();
+                    return LocalizationResources.StatusFileCloseNotLoaded;
 
                 case CloseErrorReason.None:
                     return string.Empty;
@@ -743,12 +743,12 @@ namespace Kuriimu2.ImGui.Forms
 
             var sb = new StringBuilder();
 
-            sb.AppendLine(LocalizationResources.DialogPluginsNotAvailableText());
+            sb.AppendLine(LocalizationResources.DialogPluginsNotAvailableText);
 
             foreach (var error in errors)
                 sb.AppendLine(error.AssemblyPath);
 
-            await MessageBox.ShowErrorAsync(LocalizationResources.DialogPluginsNotAvailableCaption(), sb.ToString());
+            await MessageBox.ShowErrorAsync(LocalizationResources.DialogPluginsNotAvailableCaption, sb.ToString());
         }
 
         private async Task CheckForUpdate()
@@ -762,7 +762,7 @@ namespace Kuriimu2.ImGui.Forms
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, Settings.Default.IncludeDevBuilds))
                 return;
 
-            var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogUpdateAvailableCaption(),
+            var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogUpdateAvailableCaption,
                 LocalizationResources.DialogUpdateAvailableText(_localManifest.Version, _localManifest.BuildNumber, remoteManifest.Version, remoteManifest.BuildNumber));
             if (result == DialogResult.No)
                 return;
@@ -831,7 +831,7 @@ namespace Kuriimu2.ImGui.Forms
             var ofd = new OpenFileDialog { InitialDirectory = Settings.Default.LastDirectory };
 
             // Set file filters
-            foreach (var filter in GetFileFilters(_koreFileManager.GetFilePluginLoaders()).OrderBy(x => x.Name))
+            foreach (var filter in GetFileFilters(_koreFileManager.GetFilePluginLoaders()).OrderBy(x => $"{x.Name}"))
                 ofd.FileFilters.Add(filter);
 
             // Show dialog and wait for result
@@ -856,13 +856,13 @@ namespace Kuriimu2.ImGui.Forms
         {
             var filters = new List<FileFilter>
             {
-                new FileFilter(LocalizationResources.FilterAll(), ".*")
+                new FileFilter(LocalizationResources.FilterAll, string.Empty)
             };
 
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins).Where(x => x.FileExtensions != null))
             {
                 var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
-                filters.Add(new FileFilter(pluginName, plugin.FileExtensions.Select(x => x.Replace("*", "")).ToArray()));
+                filters.Add(new FileFilter(pluginName, plugin.FileExtensions.Select(x => x.Replace("*.", "")).ToArray()));
             }
 
             return filters;
@@ -904,7 +904,7 @@ namespace Kuriimu2.ImGui.Forms
             catch (Exception e)
             {
                 _logger.Fatal(e, "Error creating state form.");
-                await MessageBox.ShowErrorAsync(LocalizationResources.DialogExceptionCatchedCaption(), e.Message);
+                await MessageBox.ShowErrorAsync(LocalizationResources.DialogExceptionCatchedCaption, e.Message);
 
                 return false;
             }
