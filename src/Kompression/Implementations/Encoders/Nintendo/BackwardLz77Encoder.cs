@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Komponent.IO.Streams;
 using Kompression.Extensions;
 using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
@@ -42,47 +43,50 @@ namespace Kompression.Implementations.Encoders.Nintendo
         {
             var matchArray = matches.ToArray();
 
-            // Compress file into memory buffer
-            var compressedLength = CalculateCompressedLength(input.Length, matchArray);
-            var compressedBuffer = Compress(input, matchArray, compressedLength);
+            var compressedLength = CalculateCompressedLength(input.Length, matchArray, out var lastRawLength);
 
-            // Determine safe compressed size until destination catches up
-            var compressSafe = CalculateSafeCompressedSize(compressedBuffer, (int)input.Length, out var origSafe);
+            var block = new Block();
 
-            // Write compressed data
-            var newCompressedSize = compressedLength - compressSafe;
-            var padOffset = origSafe + newCompressedSize;
-            var compFooterOffset = (padOffset + 3) / 4 * 4;
-            compressedLength = compFooterOffset + 8;
-            var top = compressedLength - origSafe;
-            var bottom = compressedLength - padOffset;
+            using (var inputReverseStream = new ReverseStream(input, input.Length))
+            using (var outputReverseStream = new ReverseStream(output, compressedLength + lastRawLength))
+            {
+                foreach (var match in matchArray)
+                {
+                    while (match.Position < input.Length - inputReverseStream.Position)
+                    {
+                        if (block.codeBlockPosition == 0)
+                            WriteAndResetBuffer(outputReverseStream, block);
 
-            // Write uncompressed start
-            var origSafeBuffer = new byte[origSafe];
-            input.Position = 0;
-            input.Read(origSafeBuffer);
-            output.Write(origSafeBuffer);
+                        block.codeBlockPosition--;
+                        block.buffer[block.bufferLength++] = (byte)inputReverseStream.ReadByte();
+                    }
 
-            // Write compressed buffer
-            output.Write(compressedBuffer[compressSafe..(compressSafe + newCompressedSize)]);
+                    var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
+                    var byte2 = match.Displacement - 3;
 
-            // Write footer
-            var bufferTopAndBottomInt = top | (bottom << 24);
-            var originalBottomInt = (int)input.Length - compressedLength;
+                    if (block.codeBlockPosition == 0)
+                        WriteAndResetBuffer(outputReverseStream, block);
 
-            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian
-                ? bufferTopAndBottomInt.GetArrayLittleEndian()
-                : bufferTopAndBottomInt.GetArrayBigEndian();
-            var originalBottom = _byteOrder == ByteOrder.LittleEndian
-                ? originalBottomInt.GetArrayLittleEndian()
-                : originalBottomInt.GetArrayBigEndian();
-            for (var i = 0; i < compFooterOffset - padOffset; i++)
-                output.WriteByte(0xFF);
-            output.Write(bufferTopAndBottom, 0, 4);
-            output.Write(originalBottom, 0, 4);
+                    block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
+                    block.buffer[block.bufferLength++] = (byte)byte1;
+                    block.buffer[block.bufferLength++] = (byte)byte2;
+
+                    inputReverseStream.Position += match.Length;
+                }
+
+                // Flush remaining buffer to stream
+                WriteAndResetBuffer(outputReverseStream, block);
+
+                // Write any data after last match as raw unbuffered data
+                while (inputReverseStream.Position < inputReverseStream.Length)
+                    outputReverseStream.WriteByte((byte)inputReverseStream.ReadByte());
+
+                output.Position = compressedLength + lastRawLength;
+                WriteFooterInformation(input, output, lastRawLength);
+            }
         }
 
-        private int CalculateCompressedLength(long uncompressedLength, Match[] matches)
+        private int CalculateCompressedLength(long uncompressedLength, Match[] matches, out int lastRawLength)
         {
             var result = 0;
 
@@ -101,123 +105,51 @@ namespace Kompression.Implementations.Encoders.Nintendo
                 lastMatchPosition = match.Position - match.Length;
             }
 
-            return result / 8 + (result % 8 > 0 ? 1 : 0) + (int)lastMatchPosition;
+            lastRawLength = (int)lastMatchPosition;
+            return result / 8 + (result % 8 > 0 ? 1 : 0);
         }
 
-        private byte[] Compress(Stream input, IList<Match> matches, int compressedLength)
+        private void WriteFooterInformation(Stream input, Stream output, int lastRawLength)
         {
-            var buffer = new byte[compressedLength];
-            var bufferPosition = compressedLength;
-            var inputPosition = input.Length;
+            // Remember count of padding bytes
+            var padding = 0;
+            if (output.Length % 4 != 0)
+                padding = (int)(4 - output.Position % 4);
 
-            var block = new Block();
-            foreach (var match in matches)
-            {
-                while (inputPosition > match.Position)
-                {
-                    // Write literals
-                    if (block.codeBlockPosition == 0)
-                        bufferPosition -= WriteAndResetBuffer(buffer, bufferPosition, block);
+            // Write padding
+            for (var i = 0; i < padding; i++)
+                output.WriteByte(0xFF);
 
-                    block.codeBlockPosition--;
-                    input.Position = --inputPosition;
-                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
-                }
+            // Write footer
+            var compressedSize = output.Length + 8 - lastRawLength;
+            var bufferTopAndBottomInt = ((8 + padding) << 24) | (int)(compressedSize & 0xFFFFFF);
+            var originalBottomInt = (int)(input.Length - (output.Length + 8));
 
-                // Write match
-                var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
-                var byte2 = match.Displacement - 3;
-
-                if (block.codeBlockPosition == 0)
-                    bufferPosition -= WriteAndResetBuffer(buffer, bufferPosition, block);
-
-                block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
-                block.buffer[block.bufferLength++] = (byte)byte1;
-                block.buffer[block.bufferLength++] = (byte)byte2;
-
-                inputPosition -= match.Length;
-            }
-
-            // Flush remaining buffer to stream
-            WriteAndResetBuffer(buffer, bufferPosition, block);
-
-            // Write remaining literals
-            while (inputPosition > 0)
-            {
-                input.Position = --inputPosition;
-                buffer[--bufferPosition] = (byte)input.ReadByte();
-            }
-
-            return buffer;
+            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian
+                ? bufferTopAndBottomInt.GetArrayLittleEndian()
+                : bufferTopAndBottomInt.GetArrayBigEndian();
+            var originalBottom = _byteOrder == ByteOrder.LittleEndian
+                ? originalBottomInt.GetArrayLittleEndian()
+                : originalBottomInt.GetArrayBigEndian();
+            output.Write(bufferTopAndBottom, 0, 4);
+            output.Write(originalBottom, 0, 4);
         }
 
-        private int CalculateSafeCompressedSize(byte[] compressedBuffer, int decompressedSize, out int origSafe)
+        private void WriteAndResetBuffer(Stream output, Block block)
         {
-            origSafe = 0;
-            var compressSafe = 0;
-
-            var compressedBufferPosition = compressedBuffer.Length;
-            var finished = false;
-
-            while (decompressedSize > 0)
-            {
-                var flag = compressedBuffer[--compressedBufferPosition];
-                for (var i = 0; i < 8; i++)
-                {
-                    if ((flag << i & 0x80) == 0)
-                    {
-                        compressedBufferPosition--;
-                        decompressedSize--;
-                    }
-                    else
-                    {
-                        var size = (compressedBuffer[--compressedBufferPosition] >> 4 & 0x0F) + 3;
-
-                        compressedBufferPosition--;
-                        decompressedSize -= size;
-
-                        if (decompressedSize < compressedBufferPosition)
-                        {
-                            origSafe = decompressedSize;
-                            compressSafe = compressedBufferPosition;
-                            finished = true;
-
-                            break;
-                        }
-                    }
-
-                    if (decompressedSize <= 0)
-                        break;
-                }
-
-                if (finished)
-                    break;
-            }
-
-            return compressSafe;
-        }
-
-        private int WriteAndResetBuffer(byte[] buffer, int bufferPosition, Block block)
-        {
-            var blockLength = block.bufferLength + 1;
-
             // Write data to output
-            buffer[--bufferPosition] = block.codeBlock;
-            for (var i = 0; i < block.bufferLength; i++)
-                buffer[--bufferPosition] = block.buffer[i];
+            output.WriteByte(block.codeBlock);
+            output.Write(block.buffer, 0, block.bufferLength);
 
             // Reset codeBlock and buffer
             block.codeBlock = 0;
             block.codeBlockPosition = 8;
             Array.Clear(block.buffer, 0, block.bufferLength);
             block.bufferLength = 0;
-
-            return blockLength;
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
         }
     }
 }
