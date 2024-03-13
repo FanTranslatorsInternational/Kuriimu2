@@ -171,7 +171,7 @@ namespace plugin_mt_framework.Images
             {
                 // Read mips
                 var mipData = new List<byte[]>();
-                for (var m = 1; m < _header.mipCount; m++)
+                for (var m = 0; m < _header.mipCount; m++)
                 {
                     var mipSize = (_header.width >> m) * (_header.height >> m) * bitDepth / 8;
 

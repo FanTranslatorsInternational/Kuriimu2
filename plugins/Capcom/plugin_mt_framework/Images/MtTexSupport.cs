@@ -145,13 +145,16 @@ namespace plugin_mt_framework.Images
             [0x11] = ImageFormats.Rgb888(),
 
             [0x13] = ImageFormats.Dxt1(),
-            [0x14] = ImageFormats.Dxt3(),
+            [0x14] = ImageFormats.Dxt1(),
             [0x17] = ImageFormats.Dxt5(),
 
+            [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Dxt1(),
+            [0x1E] = ImageFormats.Dxt1(),
             [0x1F] = ImageFormats.Dxt5(),
             [0x21] = ImageFormats.Dxt5(),
             [0x27] = ImageFormats.Dxt5(),
+            [0x28] = ImageFormats.Rgba8888(),
             [0x2A] = ImageFormats.Dxt5()
         };
 
@@ -264,6 +267,7 @@ namespace plugin_mt_framework.Images
                     return wiiMagic == "bres" ? MtTexPlatform.Wii : MtTexPlatform.Pc87;
 
                 case 0x97:
+                case 0x98:
                 case 0x9a:
                 case 0x9d:
                     return MtTexPlatform.PS3;
