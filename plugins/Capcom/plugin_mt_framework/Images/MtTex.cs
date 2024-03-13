@@ -159,7 +159,7 @@ namespace plugin_mt_framework.Images
 
         private IList<ImageInfo> LoadPs3(BinaryReaderX br)
         {
-            var format = _header.version == 0x98 ? 0xFF : _header.format;
+            var format = _header.version == 0x98 && _header.format == 0x14 ? 0xFF : _header.format;
 
             var bitDepth = MtTexSupport.Ps3Formats[format].BitDepth;
             var colorsPerValue = MtTexSupport.Ps3Formats[format].ColorsPerValue;
