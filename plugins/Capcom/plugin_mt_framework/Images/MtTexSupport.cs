@@ -145,7 +145,7 @@ namespace plugin_mt_framework.Images
             [0x11] = ImageFormats.Rgb888(),
 
             [0x13] = ImageFormats.Dxt1(),
-            [0x14] = ImageFormats.Dxt1(),
+            [0x14] = ImageFormats.Dxt3(),
             [0x17] = ImageFormats.Dxt5(),
 
             [0x18] = ImageFormats.Dxt5(),
@@ -155,7 +155,10 @@ namespace plugin_mt_framework.Images
             [0x21] = ImageFormats.Dxt5(),
             [0x27] = ImageFormats.Dxt5(),
             [0x28] = ImageFormats.Rgba8888(),
-            [0x2A] = ImageFormats.Dxt5()
+            [0x2A] = ImageFormats.Dxt5(),
+
+            // placeholder for verison=0x98 format=0x14 
+            [0xFF] = ImageFormats.Dxt1()
         };
 
         public static readonly IDictionary<int, IColorEncoding> SwitchFormats = new Dictionary<int, IColorEncoding>

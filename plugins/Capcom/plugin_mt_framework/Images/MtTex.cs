@@ -159,8 +159,10 @@ namespace plugin_mt_framework.Images
 
         private IList<ImageInfo> LoadPs3(BinaryReaderX br)
         {
-            var bitDepth = MtTexSupport.Ps3Formats[_header.format].BitDepth;
-            var colorsPerValue = MtTexSupport.Ps3Formats[_header.format].ColorsPerValue;
+            var format = _header.version == 0x98 ? 0xFF : _header.format;
+
+            var bitDepth = MtTexSupport.Ps3Formats[format].BitDepth;
+            var colorsPerValue = MtTexSupport.Ps3Formats[format].ColorsPerValue;
 
             // Skip mip offsets
             var mipOffsets = br.ReadMultiple<int>(_header.mipCount);
@@ -180,7 +182,7 @@ namespace plugin_mt_framework.Images
                 }
 
                 // Create image info
-                var imageInfo = new ImageInfo(mipData[0], _header.format, new Size(_header.width, _header.height));
+                var imageInfo = new ImageInfo(mipData[0], format, new Size(_header.width, _header.height));
 
                 if (_header.mipCount > 1)
                     imageInfo.MipMapData = mipData.Skip(1).ToArray();
