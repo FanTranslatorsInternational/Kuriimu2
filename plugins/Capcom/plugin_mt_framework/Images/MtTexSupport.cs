@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Kanvas;
+using Kanvas.Encoding;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Managers;
@@ -154,7 +155,7 @@ namespace plugin_mt_framework.Images
             [0x1F] = ImageFormats.Dxt5(),
             [0x21] = ImageFormats.Dxt5(),
             [0x27] = ImageFormats.Dxt5(),
-            [0x28] = ImageFormats.Rgba8888(),
+            [0x28] = new Rgba(8, 8, 8, 8, "BGRA"),
             [0x2A] = ImageFormats.Dxt5(),
 
             // placeholder for verison=0x98 format=0x14 
