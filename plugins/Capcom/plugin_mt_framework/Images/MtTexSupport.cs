@@ -155,7 +155,7 @@ namespace plugin_mt_framework.Images
             [0x1F] = ImageFormats.Dxt5(),
             [0x21] = ImageFormats.Dxt5(),
             [0x27] = ImageFormats.Dxt5(),
-            [0x28] = new Rgba(8, 8, 8, 8, "BGRA"),
+            [0x28] = new Rgba(8, 8, 8, 8, "ARGB", ByteOrder.BigEndian),
             [0x2A] = ImageFormats.Dxt5(),
 
             // placeholder for verison=0x98 format=0x14 
