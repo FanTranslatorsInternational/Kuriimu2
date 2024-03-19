@@ -556,7 +556,7 @@ namespace plugin_mt_framework.Archives
             [0x052CCE4E] = ".mef",
             [0x55E21D03] = ".emp",
             [0x51BE0EC] = ".rut",
-            [0x70078B5] = ".mnt",
+            [0x70078B5] = ".rmt",
             [0x949A1DA] = ".adl",
             [0x9C48A11] = ".unk",
             [0xA736313] = ".mdl",
