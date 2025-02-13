@@ -5,6 +5,7 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
+using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kryptography.Hash;
 
@@ -56,7 +57,7 @@ namespace plugin_alpha_dream.Archives
             var stringPosition = 0;
             var stringDictionary = new Dictionary<string, int>();
 
-            foreach (var distinctString in files.Select(x => x.FilePath.FullName).Distinct())
+            foreach (var distinctString in files.Select(x => x.FilePath.ToRelative().FullName).Distinct())
             {
                 stringDictionary[distinctString] = stringPosition;
                 stringPosition += Encoding.ASCII.GetByteCount(distinctString) + 1;
@@ -76,7 +77,7 @@ namespace plugin_alpha_dream.Archives
                 var writtenSize = file.SaveFileData(output);
 
                 // Create entry
-                var fileName = file.FilePath.FullName;
+                var fileName = file.FilePath.ToRelative().FullName;
                 entries.Add(new Bg4Entry
                 {
                     FileOffset = filePosition,
