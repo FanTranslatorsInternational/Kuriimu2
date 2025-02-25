@@ -1,36 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp31</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <LangVersion>8</LangVersion>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <SelfContained>false</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishReadyToRun>false</PublishReadyToRun>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\net8.0\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Archives\HpiHpbSupport.cs~RF8848273.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.0.8" />
-    <PackageReference Include="Komponent" Version="2.0.8" />
-    <PackageReference Include="Kompression" Version="2.0.8" />
-    <PackageReference Include="Kontract" Version="2.0.8" />
-    <PackageReference Include="Kryptography" Version="2.0.8" />
+    <PackageReference Include="Komponent" Version="2.1.2" />
+    <PackageReference Include="Konnect" Version="2.1.15" />
+    <PackageReference Include="Kryptography" Version="2.1.1" />
   </ItemGroup>
 
 </Project>
