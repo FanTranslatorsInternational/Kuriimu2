@@ -1,8 +1,6 @@
-﻿using Kanvas;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
-using Kryptography.Checksum.Crc;
 using SixLabors.ImageSharp;
 using System.Text;
 

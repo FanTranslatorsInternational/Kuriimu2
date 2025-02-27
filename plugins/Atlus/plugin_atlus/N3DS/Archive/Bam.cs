@@ -2,6 +2,7 @@
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.N3DS.Archive
 {
@@ -49,7 +50,8 @@ namespace plugin_atlus.N3DS.Archive
             long fileOffset = AlignTo(subHeaderOffset + SubHeaderSize, 0x80);
 
             // Write the file data
-            output.Position = fileOffset;
+            output.Position = fileOffset;            
+            var writtenSize = file.WriteFileData(binaryWriter.BaseStream, false);
             binaryWriter.WriteAlignment(0x80);
 
             // Write the sub-header with updated size
