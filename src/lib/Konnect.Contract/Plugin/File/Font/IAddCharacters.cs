@@ -12,7 +12,7 @@ namespace Konnect.Contract.Plugin.File.Font
         /// </summary>
         /// <param name="codePoint">The code point this character represents.</param>
         /// <returns>CharacterInfo or a derived type.</returns>
-        CharacterInfo CreateCharacterInfo(uint codePoint);
+        CharacterInfo CreateCharacterInfo(char codePoint);
 
         /// <summary>
         /// Adds a newly created character to the file and allows the plugin to perform any required adding steps.

@@ -4,7 +4,7 @@ using SixLabors.ImageSharp;
 
 namespace Kaligraphy.Generation.Packing
 {
-    public class FontBinPacker : BinPacker<GlyphData, PackedGylphData>
+    public class FontBinPacker : BinPacker<GlyphData, PackedGlyphData>
     {
         public FontBinPacker(Size canvasSize, int margin) : base(canvasSize, new Size(margin))
         {
@@ -22,9 +22,9 @@ namespace Kaligraphy.Generation.Packing
                 element.Description.Size.Height + Margin.Height);
         }
 
-        protected override PackedGylphData CreatePackedElement(GlyphData element, Point position)
+        protected override PackedGlyphData CreatePackedElement(GlyphData element, Point position)
         {
-            return new PackedGylphData
+            return new PackedGlyphData
             {
                 Element = element,
                 Position = position + Margin

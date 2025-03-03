@@ -50,8 +50,8 @@ namespace Kaligraphy.Generation
                 var fontCanvas = new Image<Rgba32>(_canvasSize.Width, _canvasSize.Height);
 
                 // Draw each positioned glyph on the font texture
-                var packedGlyphs = new List<PackedGylphData>(remainingGlyphs.Count);
-                foreach (PackedGylphData packedGlyph in _fontPacker.Pack(remainingGlyphs))
+                var packedGlyphs = new List<PackedGlyphData>(remainingGlyphs.Count);
+                foreach (PackedGlyphData packedGlyph in _fontPacker.Pack(remainingGlyphs))
                 {
                     DrawGlyph(fontCanvas, packedGlyph);
                     packedGlyphs.Add(packedGlyph);
@@ -76,7 +76,7 @@ namespace Kaligraphy.Generation
         /// </summary>
         /// <param name="fontImage">The font texture to draw on.</param>
         /// <param name="packedGlyph">The adjusted glyph positioned in relation to the texture.</param>
-        private void DrawGlyph(Image<Rgba32> fontImage, PackedGylphData packedGlyph)
+        private void DrawGlyph(Image<Rgba32> fontImage, PackedGlyphData packedGlyph)
         {
             GlyphData glyph = packedGlyph.Element;
 

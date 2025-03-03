@@ -8,6 +8,6 @@ namespace Kaligraphy.Contract.DataClasses.Generation
     {
         public required Image<Rgba32> Image { get; init; }
 
-        public required IList<PackedGylphData> Glyphs { get; init; }
+        public required IList<PackedGlyphData> Glyphs { get; init; }
     }
 }
