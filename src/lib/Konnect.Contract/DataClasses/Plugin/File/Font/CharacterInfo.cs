@@ -19,9 +19,9 @@ namespace Konnect.Contract.DataClasses.Plugin.File.Font
         public required Size CharacterSize { get; set; }
 
         /// <summary>
-        /// The glyph of the character.
+        /// The glyph of the character, if any.
         /// </summary>
-        public required Image<Rgba32> Glyph { get; set; }
+        public Image<Rgba32>? Glyph { get; set; }
 
         /// <summary>
         /// Determines if the content of this character was changed.
