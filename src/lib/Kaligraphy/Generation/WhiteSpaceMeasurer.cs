@@ -60,7 +60,7 @@ namespace Kaligraphy.Generation
 
         private int MeasureWhiteSpaceRight(Image<Rgba32> glyph)
         {
-            for (var x = 0; x < glyph.Width; x++)
+            for (var x = glyph.Width - 1; x >= 0; x--)
                 for (var y = 0; y < glyph.Height; y++)
                     if ((Color)glyph[x, y] != Color.Transparent)
                         return glyph.Width - x - 1;
