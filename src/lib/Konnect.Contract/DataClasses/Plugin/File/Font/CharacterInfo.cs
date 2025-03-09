@@ -16,7 +16,7 @@ namespace Konnect.Contract.DataClasses.Plugin.File.Font
         /// <summary>
         /// The size of the character.
         /// </summary>
-        public required Size CharacterSize { get; set; }
+        public Size? CharacterSize { get; set; }
 
         /// <summary>
         /// The glyph of the character, if any.
