@@ -11,7 +11,11 @@ namespace Komponent.Streams
         public override bool CanWrite => _baseStream.CanWrite;
         public override bool CanSeek => _baseStream.CanSeek;
         public override long Position { get; set; }
-        
+
+        public SubStream(Stream baseStream, long offset) : this(baseStream, offset, baseStream.Length - offset)
+        {
+        }
+
         public SubStream(Stream baseStream, long offset, long length)
         {
             // Sanity Checks
@@ -64,7 +68,7 @@ namespace Komponent.Streams
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (!CanWrite) throw new NotSupportedException("Write is not supported.");
-            if (Position >= _length) throw new ArgumentOutOfRangeException(nameof(Position),"Stream has fixed length and Position was out of range.");
+            if (Position >= _length) throw new ArgumentOutOfRangeException(nameof(Position), "Stream has fixed length and Position was out of range.");
 
             // Cap data to write at length, instead of throwing an exception for too much data
             count = (int)Math.Min(_length - Position, count);
