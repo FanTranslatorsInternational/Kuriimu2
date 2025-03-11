@@ -15,6 +15,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Archives\**" />
+    <Compile Remove="Images\**" />
+    <EmbeddedResource Remove="Archives\**" />
+    <EmbeddedResource Remove="Images\**" />
+    <None Remove="Archives\**" />
+    <None Remove="Images\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Komponent" Version="2.1.2" />
     <PackageReference Include="Konnect" Version="2.1.15" />
     <PackageReference Include="Kryptography" Version="2.1.1" />
