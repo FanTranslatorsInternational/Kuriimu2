@@ -1,6 +1,5 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;

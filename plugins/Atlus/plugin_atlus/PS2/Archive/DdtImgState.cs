@@ -1,13 +1,10 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
-using Kryptography.Encryption;
-using System.IO;
 
 namespace plugin_atlus.PS2.Archive
 {
@@ -15,9 +12,9 @@ namespace plugin_atlus.PS2.Archive
     {
         private DdtImg _ddtImg = new();
 
-        public List<ArchiveFileInfo> _files;
+        public List<DdtArchiveFile> _files;
 
-        public IReadOnlyList<IArchiveFile> Files => (IReadOnlyList<IArchiveFile>)_files;
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => _files.Any(x => x.ContentChanged);
 
@@ -43,6 +40,7 @@ namespace plugin_atlus.PS2.Archive
                 imgStream = await fileSystem.OpenFileAsync(imgPath);
                 ddtStream = await fileSystem.OpenFileAsync(filePath);
             }
+
             _files = _ddtImg.Load(ddtStream, imgStream);
         }
 
@@ -53,15 +51,18 @@ namespace plugin_atlus.PS2.Archive
             if (savePath.GetExtensionWithDot() == ".IMG")
             {
                 var ddtPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".DDT");
-                imgStream = fileSystem.OpenFile(savePath, FileMode.Create);
-                ddtStream = fileSystem.OpenFile(ddtPath, FileMode.Create);
+
+                imgStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+                ddtStream = await fileSystem.OpenFileAsync(ddtPath, FileMode.Create);
             }
             else
             {
                 var imgPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".IMG");
-                imgStream = fileSystem.OpenFile(imgPath, FileMode.Create);
-                ddtStream = fileSystem.OpenFile(savePath, FileMode.Create);
+
+                imgStream = await fileSystem.OpenFileAsync(imgPath, FileMode.Create);
+                ddtStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
             }
+
             _ddtImg.Save(ddtStream, imgStream, (List<ArchiveFile>)Files);
         }
 

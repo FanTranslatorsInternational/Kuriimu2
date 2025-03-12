@@ -1,8 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.IO;
-using System.IO.Pipes;
-using System.Reflection.PortableExecutable;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.FileSystem;
@@ -19,10 +15,10 @@ namespace plugin_atlus.PS2.Archive
         private static readonly Encoding EucJpEncoding = Encoding.GetEncoding("EUC-JP");
         private static readonly int EntrySize = 12;
 
-        public List<ArchiveFileInfo> Load(Stream ddtStream, Stream imgStream)
+        public List<DdtArchiveFile> Load(Stream ddtStream, Stream imgStream)
         {
             using var br = new BinaryReaderX(ddtStream);
-            var files = EnumerateFiles(br, imgStream, UPath.Root).OfType<ArchiveFileInfo>().ToList();
+            var files = EnumerateFiles(br, imgStream, UPath.Root).ToList();
             return files;
         }
 
@@ -30,7 +26,7 @@ namespace plugin_atlus.PS2.Archive
         {
         }
 
-        private IEnumerable<IArchiveFile> EnumerateFiles(BinaryReaderX br, Stream imgStream, UPath currentPath)
+        private IEnumerable<DdtArchiveFile> EnumerateFiles(BinaryReaderX br, Stream imgStream, UPath currentPath)
         {
             var typeReader = new BinaryTypeReader();
 
@@ -46,11 +42,11 @@ namespace plugin_atlus.PS2.Archive
             {
                 var subStream = new SubStream(imgStream, entry.entryOffset * Alignment_, entry.entrySize);
 
-                yield return new ArchiveFileInfo
+                yield return new DdtArchiveFile(new ArchiveFileInfo
                 {
                     FilePath = (currentPath / name).FullName,
                     FileData = subStream
-                } as IArchiveFile;
+                }, entry);
                 yield break;
             }
 
@@ -58,7 +54,7 @@ namespace plugin_atlus.PS2.Archive
             for (var i = 0; i < -entry.entrySize; i++)
             {
                 br.BaseStream.Position = entry.entryOffset + i * EntrySize;
-                foreach (var file in EnumerateFiles(br, imgStream, currentPath / name))
+                foreach (DdtArchiveFile file in EnumerateFiles(br, imgStream, currentPath / name))
                     yield return file;
             }
         }

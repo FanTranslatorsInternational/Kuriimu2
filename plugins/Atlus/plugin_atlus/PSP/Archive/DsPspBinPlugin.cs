@@ -1,10 +1,7 @@
 ﻿using Konnect.Contract.DataClasses.Plugin;
-using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.Enums.Plugin.File;
-using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
-using plugin_atlus.N3DS.Archive;
 
 namespace plugin_atlus.PSP.Archive
 {

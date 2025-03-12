@@ -4,7 +4,6 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
-using System.Threading;
 
 namespace plugin_atlus.N3DS.Image
 {

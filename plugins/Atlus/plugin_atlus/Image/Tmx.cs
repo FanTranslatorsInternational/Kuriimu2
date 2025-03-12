@@ -1,13 +1,7 @@
-﻿using Kanvas;
-using Kanvas.Swizzle;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
-using Kryptography.Checksum.Crc;
-using plugin_atlus.N3DS.Image;
 using SixLabors.ImageSharp;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Xml.Linq;
 
 namespace plugin_atlus.Image
 {

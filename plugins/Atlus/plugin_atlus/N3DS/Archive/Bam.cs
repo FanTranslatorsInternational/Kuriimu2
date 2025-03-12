@@ -1,8 +1,6 @@
 ﻿using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Contract.Plugin.File.Archive;
-using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.N3DS.Archive
 {

@@ -5,7 +5,6 @@ using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_atlus.Image
