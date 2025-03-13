@@ -63,7 +63,7 @@ namespace plugin_atlus.PS2.Archive
                 ddtStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
             }
 
-            _ddtImg.Save(ddtStream, imgStream, (List<ArchiveFile>)Files);
+            _ddtImg.Save(ddtStream, imgStream, (List<DdtArchiveFile>)Files);
         }
 
         public void ReplaceFile(IArchiveFile file, Stream fileData)
