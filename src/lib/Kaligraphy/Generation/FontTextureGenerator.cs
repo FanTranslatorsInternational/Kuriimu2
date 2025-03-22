@@ -32,18 +32,18 @@ namespace Kaligraphy.Generation
         /// <summary>
         /// Generate font textures for the given glyphs.
         /// </summary>
-        /// <param name="glyphs">The enumeration of adjusted glyphs.</param>
-        /// <param name="textureCount">The maximum texture count.</param>
-        /// <returns>The generated textures.</returns>
-        public IList<FontImageData> Generate(IList<GlyphData> glyphs, int textureCount = -1)
+        /// <param name="glyphs">The list of glyphs to pack.</param>
+        /// <param name="textureCount">The maximum texture count. -1 for unlimited textures.</param>
+        /// <returns>The generated textures and their packed glyphs.</returns>
+        public IList<PackedGlyphsData> Generate(IList<GlyphData> glyphs, int textureCount = -1)
         {
-            var fontTextures = new List<FontImageData>(textureCount >= 0 ? textureCount : 0);
+            var fontTextures = new List<PackedGlyphsData>(Math.Max(textureCount, 0));
 
             IList<GlyphData> remainingGlyphs = glyphs;
             while (remainingGlyphs.Count > 0)
             {
                 // Stop if the texture limit is reached
-                if (textureCount > 0 && fontTextures.Count >= textureCount)
+                if (textureCount >= 0 && fontTextures.Count >= textureCount)
                     break;
 
                 // Create new font texture to draw on.
@@ -53,11 +53,14 @@ namespace Kaligraphy.Generation
                 var packedGlyphs = new List<PackedGlyphData>(remainingGlyphs.Count);
                 foreach (PackedGlyphData packedGlyph in _fontPacker.Pack(remainingGlyphs))
                 {
-                    DrawGlyph(fontCanvas, packedGlyph);
+                    // Ignore drawing empty, packed glyphs
+                    if (packedGlyph.Element.Description.Size != Size.Empty)
+                        DrawGlyph(fontCanvas, packedGlyph);
+
                     packedGlyphs.Add(packedGlyph);
                 }
 
-                var fontImage = new FontImageData
+                var fontImage = new PackedGlyphsData
                 {
                     Image = fontCanvas,
                     Glyphs = packedGlyphs

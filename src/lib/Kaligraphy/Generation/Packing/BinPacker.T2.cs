@@ -46,6 +46,12 @@ namespace Kaligraphy.Generation.Packing
             {
                 Size elementSize = CalculateSize(element);
 
+                if (elementSize == Size.Empty)
+                {
+                    yield return CreatePackedElement(element, Point.Empty);
+                    continue;
+                }
+
                 BinPackerNode? foundNode = FindNode(rootNode, elementSize);
                 if (foundNode == null)
                     continue;

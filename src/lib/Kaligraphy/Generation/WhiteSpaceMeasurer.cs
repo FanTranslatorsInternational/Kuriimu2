@@ -18,6 +18,16 @@ namespace Kaligraphy.Generation
         {
             int top = MeasureWhiteSpaceTop(glyph);
             int left = MeasureWhiteSpaceLeft(glyph);
+
+            if (top >= glyph.Height || left >= glyph.Width)
+            {
+                return new GlyphDescriptionData
+                {
+                    Position = new Point(left, top),
+                    Size = Size.Empty
+                };
+            }
+
             int bottom = MeasureWhiteSpaceBottom(glyph);
             int right = MeasureWhiteSpaceRight(glyph);
 

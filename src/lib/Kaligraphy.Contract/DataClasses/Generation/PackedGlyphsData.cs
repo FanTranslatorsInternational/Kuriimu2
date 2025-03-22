@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kaligraphy.Contract.DataClasses.Generation
 {
-    public class FontImageData
+    public class PackedGlyphsData
     {
         public required Image<Rgba32> Image { get; init; }
 

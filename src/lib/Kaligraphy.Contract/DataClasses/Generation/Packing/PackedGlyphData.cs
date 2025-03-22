@@ -1,6 +1,4 @@
 ﻿namespace Kaligraphy.Contract.DataClasses.Generation.Packing
 {
-    public class PackedGlyphData : PackedElement<GlyphData>
-    {
-    }
+    public class PackedGlyphData : PackedElement<GlyphData>;
 }
