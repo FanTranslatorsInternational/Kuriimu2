@@ -1,5 +1,6 @@
-﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Plugin.File.Archive;
+﻿using Konnect.Contract.Plugin.File.Archive;
+using Konnect.DataClasses.FileSystem;
+using Konnect.Extensions;
 
 namespace plugin_atlus.PS2.Archive
 {
@@ -8,16 +9,26 @@ namespace plugin_atlus.PS2.Archive
         public uint nameOffset;
         public uint entryOffset;
         public int entrySize;
-    }    
+    }
 
-    public class DdtArchiveFile : ArchiveFile
+    class DdtInfoHolder
     {
-        public DdtEntry Entry { get; }
-        public bool IsFile => Entry.entrySize >= 0;
+        public DdtEntry Entry { get; } = new();
+        public DirectoryEntry? Directory { get; }
+        public IArchiveFile? File { get; }
 
-        public DdtArchiveFile(ArchiveFileInfo fileInfo, DdtEntry entry) : base(fileInfo)
+        public bool IsFile => File != null;
+
+        public string Name => File?.FilePath.GetName() ?? Directory!.Name;
+
+        public DdtInfoHolder(DirectoryEntry entry)
         {
-            Entry = entry;
+            Directory = entry;
+        }
+
+        public DdtInfoHolder(IArchiveFile fileInfo)
+        {
+            File = fileInfo;
         }
     }
 }

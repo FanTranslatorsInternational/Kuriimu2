@@ -4,7 +4,6 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
-using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.PS2.Archive
 {
@@ -12,7 +11,7 @@ namespace plugin_atlus.PS2.Archive
     {
         private DdtImg _ddtImg = new();
 
-        public List<DdtArchiveFile> _files;
+        public List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
 
@@ -52,18 +51,18 @@ namespace plugin_atlus.PS2.Archive
             {
                 var ddtPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".DDT");
 
-                imgStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
-                ddtStream = await fileSystem.OpenFileAsync(ddtPath, FileMode.Create);
+                imgStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+                ddtStream = await fileSystem.OpenFileAsync(ddtPath, FileMode.Create, FileAccess.Write);
             }
             else
             {
                 var imgPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".IMG");
 
-                imgStream = await fileSystem.OpenFileAsync(imgPath, FileMode.Create);
-                ddtStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+                imgStream = await fileSystem.OpenFileAsync(imgPath, FileMode.Create, FileAccess.Write);
+                ddtStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             }
 
-            _ddtImg.Save(ddtStream, imgStream, (List<DdtArchiveFile>)Files);
+            _ddtImg.Save(ddtStream, imgStream, _files);
         }
 
         public void ReplaceFile(IArchiveFile file, Stream fileData)

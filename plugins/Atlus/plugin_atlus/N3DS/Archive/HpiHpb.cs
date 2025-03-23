@@ -2,105 +2,91 @@
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.N3DS.Archive
 {
-    public class HpiHpb
+    class HpiHpb
     {
-        private static readonly int HeaderSize = 0x18;
-        private static readonly int HashEntrySize = 4;
-        private static readonly int FileEntrySize = 0x10;
-        private static readonly Encoding encoding = Encoding.GetEncoding("SJIS");
-
         private const int HashSlotCount_ = 0x1000;
 
-        public List<HpiHpbArchiveFile> Load(Stream hpiStream, Stream hpbStream)
+        private const int HeaderSize_ = 0x18;
+        private const int HashEntrySize_ = 4;
+        private const int FileEntrySize_ = 0x10;
+
+        private readonly Encoding _sjis = Encoding.GetEncoding("Shift-JIS");
+
+        public List<IArchiveFile> Load(Stream hpiStream, Stream hpbStream)
         {
             var typeReader = new BinaryTypeReader();
-
-            using var hpiBr = new BinaryReaderX(hpiStream, encoding);
+            using var reader = new BinaryReaderX(hpiStream, _sjis);
 
             // Read header
-            var header = typeReader.Read<HpiHeader>(hpiBr);
+            var header = typeReader.Read<HpiHeader>(reader);
 
             // Read hashes
-            for (int i = 0; i < header.hashCount; i++)
-            {
-                typeReader.Read<HpiHashEntry>(hpiBr);
-            }
+            typeReader.ReadMany<HpiHashEntry>(reader, header.hashCount);
 
             // Read entries
-            List<HpiFileEntry> entries = new List<HpiFileEntry>();
-            for (int i = 0; i < header.entryCount; i++)
-            {
-                var entry = typeReader.Read<HpiFileEntry>(hpiBr);
-                if (entry != null)
-                {
-                    entries.Add(entry);
-                }
-            }
+            var entries = typeReader.ReadMany<HpiFileEntry>(reader, header.entryCount);
 
             // Prepare string table
             var stringStream = new SubStream(hpiStream, hpiStream.Position, hpiStream.Length - hpiStream.Position);
-            using var stringBr = new BinaryReaderX(stringStream, encoding);
-
-            var t = entries.Select(x => (x.offset, x.offset + x.compSize)).OrderByDescending(x => x.offset).ToArray();
+            using var stringBr = new BinaryReaderX(stringStream);
 
             // Add files
-            List<HpiHpbArchiveFile> result = new List<HpiHpbArchiveFile>();
-
-            foreach (var entry in entries)
+            var result = new List<IArchiveFile>();
+            foreach (HpiFileEntry entry in entries)
             {
+                var subStream = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize);
+
                 stringStream.Position = entry.stringOffset;
-                result.Add(
-                    new HpiHpbArchiveFile(
-                        new ArchiveFileInfo
-                        {
-                            FilePath = stringBr.ReadNullTerminatedString(),
-                            FileData = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize)
-                        },
-                        entries[0]
-                    )
-                );
-            }            
+                var name = stringBr.ReadNullTerminatedString();
+                result.Add(CreateFile(subStream, name, entry));
+            }
 
             return result;
         }
 
-        public void Save(Stream hpiStream, Stream hpbStream, List<HpiHpbArchiveFile> files)
+        public void Save(Stream hpiStream, Stream hpbStream, List<IArchiveFile> files)
         {
-            var sjis = Encoding.GetEncoding("SJIS");
             var hash = new Kryptography.Checksum.Simple(0x25);
 
             var typeWriter = new BinaryTypeWriter();
-            using var hpiBw = new BinaryWriterX(hpiStream);
+            using var writer = new BinaryWriterX(hpiStream);
 
             // Calculate offsets
             var fileOffset = 0;
-            var hashOffset = HeaderSize;
-            var entryOffset = hashOffset + HashSlotCount_ * HashEntrySize;
-            var stringOffset = entryOffset + files.Count * FileEntrySize;
+            var hashOffset = HeaderSize_;
+            var entryOffset = hashOffset + HashSlotCount_ * HashEntrySize_;
+            var stringOffset = entryOffset + files.Count * FileEntrySize_;
 
             // Group files
-            var fileLookup = files.ToLookup(x => hash.ComputeValue(x.FilePath.ToRelative().FullName, sjis) % HashSlotCount_);
+            var fileLookup = files.ToLookup(x => hash.ComputeValue(x.FilePath.ToRelative().FullName, _sjis) % HashSlotCount_);
 
             // Write files and strings
+            var entryLookup = new Dictionary<IArchiveFile, HpiFileEntry>();
+
             hpiStream.Position = stringOffset;
             hpbStream.Position = fileOffset;
-
-            foreach (var file in files.OrderBy(x => x.FilePath, new SlashFirstStringComparer()))
+            foreach (IArchiveFile file in files.OrderBy(x => x.FilePath, new SlashFirstStringComparer()))
             {
                 fileOffset = (int)hpbStream.Position;
                 var nameOffset = (int)hpiStream.Position;
 
-                var writtenSize = file.WriteFileData(hpbStream, false);
-                hpiBw.WriteString(file.FilePath.ToRelative().FullName, sjis, false);
+                var writtenSize = WriteFile(hpbStream, file);
+                writer.WriteString(file.FilePath.ToRelative().FullName, _sjis);
 
-                file.Entry.offset = fileOffset;
-                file.Entry.stringOffset = nameOffset - stringOffset;
-                file.Entry.compSize = (int)writtenSize;
-                file.Entry.decompSize = file.UsesCompression ? (int)file.FileSize : 0;
+                var entry = new HpiFileEntry
+                {
+                    offset = fileOffset,
+                    stringOffset = nameOffset - stringOffset,
+                    compSize = (int)writtenSize,
+                    decompSize = file.UsesCompression ? (int)file.FileSize : 0
+                };
+                entryLookup[file] = entry;
             }
 
             // Write entries
@@ -117,16 +103,16 @@ namespace plugin_atlus.N3DS.Archive
                 hashes.Add(hashEntry);
                 offset += (uint)hashEntry.entryCount;
 
-                foreach (var file in fileLookup[i])
-                    typeWriter.Write(file.Entry, hpiBw);
+                foreach (IArchiveFile file in fileLookup[i])
+                {
+                    if (entryLookup.TryGetValue(file, out HpiFileEntry? entry))
+                        typeWriter.Write(entry, writer);
+                }
             }
 
             // Write hash entries
             hpiStream.Position = hashOffset;
-            foreach (var h in hashes)
-            {
-                typeWriter.Write(h, hpiBw);
-            }
+            typeWriter.WriteMany(hashes, writer);
 
             // Write header
             hpiStream.Position = 0;
@@ -134,7 +120,58 @@ namespace plugin_atlus.N3DS.Archive
             {
                 hashCount = (short)hashes.Count,
                 entryCount = files.Count
-            }, hpiBw);
+            }, writer);
+        }
+
+        private IArchiveFile CreateFile(Stream file, string name, HpiFileEntry entry)
+        {
+            string magic = HpiHpbSupport.PeekString(file, 4);
+            if (magic != "ACMP")
+                return new ArchiveFile(new ArchiveFileInfo { FilePath = name, FileData = file });
+
+            var compressedStream = new SubStream(file, 0x20, file.Length - 0x20);
+            return new ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = name,
+                FileData = compressedStream,
+                Compression = Kompression.Compressions.Nintendo.BackwardLz77.Build(),
+                DecompressedSize = entry.decompSize
+            });
+        }
+
+        private long WriteFile(Stream output, IArchiveFile file)
+        {
+            var position = output.Position;
+
+            var offset = 0;
+            if (file.UsesCompression)
+                offset = 0x20;
+
+            output.Position += offset;
+            var writtenSize = file.WriteFileData(output, file.UsesCompression);
+
+            // Padding
+            while (output.Position % 4 != 0)
+                output.WriteByte(0);
+
+            if (!file.UsesCompression)
+                return writtenSize + offset;
+
+            var bkPos = output.Position;
+            using var bw = new BinaryWriterX(output, true);
+
+            output.Position = position;
+            bw.WriteString("ACMP", Encoding.ASCII, false, false);
+            bw.Write((int)writtenSize);
+            bw.Write(0x20);
+            bw.Write(0);
+            bw.Write((int)file.FileSize);
+            bw.Write(0x01234567);
+            bw.Write(0x01234567);
+            bw.Write(0x01234567);
+
+            output.Position = bkPos;
+            return writtenSize + offset;
         }
     }
 }

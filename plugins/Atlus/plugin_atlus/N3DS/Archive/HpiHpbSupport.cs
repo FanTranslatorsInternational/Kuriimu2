@@ -1,10 +1,6 @@
 ﻿using Komponent.Contract.Aspects;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.FileSystem;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Contract.Progress;
-using Konnect.Plugin.File.Archive;
-using System.Text;
 
 namespace plugin_atlus.N3DS.Archive
 {
@@ -26,57 +22,12 @@ namespace plugin_atlus.N3DS.Archive
         public short entryCount;
     }
 
-    public class HpiFileEntry
+    class HpiFileEntry
     {
         public int stringOffset;
         public int offset;
         public int compSize;
         public int decompSize;
-    }
-
-    public class HpiHpbArchiveFile : ArchiveFile
-    {
-        public HpiFileEntry Entry { get; }
-
-        public HpiHpbArchiveFile(ArchiveFileInfo fileInfo, HpiFileEntry entry) : base(fileInfo)
-        {
-            Entry = entry;
-        }
-
-        public long WriteFileData(Stream output, bool compress, IProgressContext? progress = null)
-        {
-            var position = output.Position;
-
-            var offset = 0;
-            if (UsesCompression)
-                offset = 0x20;
-
-            output.Position += offset;
-            var writtenSize = base.WriteFileData(output, compress, progress);
-
-            // Padding
-            while (output.Position % 4 != 0)
-                output.WriteByte(0);
-
-            if (!UsesCompression)
-                return writtenSize + offset;
-
-            var bkPos = output.Position;
-            using var bw = new BinaryWriterX(output, true);
-
-            output.Position = position;
-            bw.WriteString("ACMP", Encoding.ASCII, false, false);
-            bw.Write((int)writtenSize);
-            bw.Write(0x20);
-            bw.Write(0);
-            bw.Write((int)FileSize);
-            bw.Write(0x01234567);
-            bw.Write(0x01234567);
-            bw.Write(0x01234567);
-
-            output.Position = bkPos;
-            return writtenSize + offset;
-        }
     }
 
     class HpiHpbSupport
@@ -100,7 +51,9 @@ namespace plugin_atlus.N3DS.Archive
 
         private readonly IComparer<UPath> _comparer;
 
-        public SlashFirstStringComparer() : this(DefaultComparer) {}
+        public SlashFirstStringComparer() : this(DefaultComparer)
+        {
+        }
 
         public SlashFirstStringComparer(IComparer<UPath> stringComparer)
         {

@@ -3,85 +3,85 @@ using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
-
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.DataClasses.FileSystem;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.PS2.Archive
 {
-    public class DdtImg
+    class DdtImg
     {
         private const int Alignment_ = 0x800;
+        private const int EntrySize_ = 0xC;
 
         private static readonly Encoding EucJpEncoding = Encoding.GetEncoding("EUC-JP");
-        private static readonly int EntrySize = 0xC;
 
-        public List<DdtArchiveFile> Load(Stream ddtStream, Stream imgStream)
+        public List<IArchiveFile> Load(Stream ddtStream, Stream imgStream)
         {
-            using var br = new BinaryReaderX(ddtStream);
-            var files = EnumerateFiles(br, imgStream, UPath.Root).ToList();
-            return files;
+            var typeReader = new BinaryTypeReader();
+            using var reader = new BinaryReaderX(ddtStream, EucJpEncoding);
+
+            return EnumerateFiles(typeReader, reader, imgStream, UPath.Root).ToList();
         }
 
-        public void Save(Stream ddtStream, Stream imgStream, List<DdtArchiveFile> files)
+        public void Save(Stream ddtStream, Stream imgStream, IList<IArchiveFile> files)
         {
             var typeWriter = new BinaryTypeWriter();
-            using var bw = new BinaryWriterX(ddtStream);
+            using var writer = new BinaryWriterX(ddtStream);
 
-            /*var fileTree = files.ToTree();
+            var fileTree = files.ToTree();
 
             // Write entries below root
-            bw.BaseStream.Position = EntrySize;
-            WriteEntries(bw, fileTree, imgStream);
+            writer.BaseStream.Position = EntrySize_;
+            WriteEntries(typeWriter, writer, fileTree, imgStream);
 
             // Write root
-            bw.BaseStream.Position = 0;
+            writer.BaseStream.Position = 0;
             typeWriter.Write(new DdtEntry
             {
                 nameOffset = 0,
-                entryOffset = (uint)EntrySize,
+                entryOffset = (uint)EntrySize_,
                 entrySize = -(fileTree.Directories.Count + fileTree.Files.Count)
-            }, bw);*/
+            }, writer);
         }
 
-        private IEnumerable<DdtArchiveFile> EnumerateFiles(BinaryReaderX br, Stream imgStream, UPath currentPath)
+        private IEnumerable<IArchiveFile> EnumerateFiles(BinaryTypeReader typeReader, BinaryReaderX reader, Stream imgStream, UPath currentPath)
         {
-            var typeReader = new BinaryTypeReader();
-
             // Read current entry
-            var entry = typeReader.Read<DdtEntry>(br);
+            var entry = typeReader.Read<DdtEntry>(reader);
 
             // Read name
-            br.BaseStream.Position = entry.nameOffset;
-            var name = br.ReadNullTerminatedString();
+            var name = reader.ReadNullTerminatedString();
 
-            // If entry is a file
             if (entry.entrySize >= 0)
             {
+                // If entry is a file
                 var subStream = new SubStream(imgStream, entry.entryOffset * Alignment_, entry.entrySize);
 
-                yield return new DdtArchiveFile(new ArchiveFileInfo
+                yield return new ArchiveFile(new ArchiveFileInfo
                 {
                     FilePath = (currentPath / name).FullName,
                     FileData = subStream
-                }, entry);
-                yield break;
+                });
             }
-
-            // If entry is a directory
-            for (var i = 0; i < -entry.entrySize; i++)
+            else
             {
-                br.BaseStream.Position = entry.entryOffset + i * EntrySize;
-                foreach (DdtArchiveFile file in EnumerateFiles(br, imgStream, currentPath / name))
-                    yield return file;
+                // If entry is a directory
+                for (var i = 0; i < -entry.entrySize; i++)
+                {
+                    reader.BaseStream.Position = entry.entryOffset + i * EntrySize_;
+                    foreach (IArchiveFile file in EnumerateFiles(typeReader, reader, imgStream, currentPath / name))
+                        yield return file;
+                }
             }
         }
 
-        /*private long WriteEntries(BinaryWriterX bw, DirectoryEntry entry, Stream imgStream)
+        private long WriteEntries(BinaryTypeWriter typeWriter, BinaryWriterX writer, DirectoryEntry entry, Stream imgStream)
         {
-            var typeWriter = new BinaryTypeWriter();
-
             // Collect offsets
-            var entryOffset = bw.BaseStream.Position;
-            var stringOffset = entryOffset + (entry.Directories.Count + entry.Files.Count) * EntrySize;
+            var entryOffset = writer.BaseStream.Position;
+            var stringOffset = entryOffset + (entry.Directories.Count + entry.Files.Count) * EntrySize_;
             var entryEndOffset = stringOffset +
                                  entry.Directories.Sum(x => EucJpEncoding.GetByteCount(x.Name) + 1) +
                                  entry.Files.Sum(x => EucJpEncoding.GetByteCount(x.FilePath.GetName()) + 1);
@@ -97,9 +97,10 @@ namespace plugin_atlus.PS2.Archive
             foreach (var file in entries.Where(x => x.IsFile))
             {
                 file.Entry.entryOffset = (uint)(imgStream.Position / Alignment_);
-                file.Entry.entrySize = (int)file.File.FileSize;
+                file.Entry.entrySize = (int)file.File!.FileSize;
 
-                (file.File as ArchiveFileInfo).SaveFileData(imgStream);
+                file.File.WriteFileData(imgStream);
+
                 while (imgStream.Position % Alignment_ != 0)
                     imgStream.WriteByte(0);
             }
@@ -108,26 +109,26 @@ namespace plugin_atlus.PS2.Archive
             foreach (var directory in entries.Where(x => !x.IsFile))
             {
                 directory.Entry.entryOffset = (uint)entryEndOffset;
-                directory.Entry.entrySize = -(directory.Directory.Directories.Count + directory.Directory.Files.Count);
+                directory.Entry.entrySize = -(directory.Directory!.Directories.Count + directory.Directory.Files.Count);
 
-                bw.BaseStream.Position = entryEndOffset;
-                entryEndOffset = (uint)WriteEntries(bw, directory.Directory, imgStream);
+                writer.BaseStream.Position = entryEndOffset;
+                entryEndOffset = (uint)WriteEntries(typeWriter, writer, directory.Directory, imgStream);
             }
 
             // Write strings
-            bw.BaseStream.Position = stringOffset;
+            writer.BaseStream.Position = stringOffset;
             foreach (var infoHolder in entries)
             {
-                infoHolder.Entry.nameOffset = (uint)bw.BaseStream.Position;
-                bw.WriteString(infoHolder.Name, EucJpEncoding, false);
+                infoHolder.Entry.nameOffset = (uint)writer.BaseStream.Position;
+                writer.WriteString(infoHolder.Name, EucJpEncoding);
             }
 
             // Write current entries
-            bw.BaseStream.Position = entryOffset;
+            writer.BaseStream.Position = entryOffset;
             foreach (var infoHolder in entries)
-                typeWriter.Write(infoHolder.Entry, bw);
+                typeWriter.Write(infoHolder.Entry, writer);
 
             return entryEndOffset;
-        }*/
+        }
     }
 }

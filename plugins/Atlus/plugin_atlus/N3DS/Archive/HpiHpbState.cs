@@ -12,7 +12,7 @@ namespace plugin_atlus.N3DS.Archive
     {
         private HpiHpb _hpiHpb = new();
 
-        public List<HpiHpbArchiveFile> _files;
+        public List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
 
@@ -63,7 +63,7 @@ namespace plugin_atlus.N3DS.Archive
                     break;
             }
 
-            _hpiHpb.Save(hpiStream, hpbStream, (List<HpiHpbArchiveFile>)Files);
+            _hpiHpb.Save(hpiStream, hpbStream, _files);
 
             return Task.CompletedTask;
         }
