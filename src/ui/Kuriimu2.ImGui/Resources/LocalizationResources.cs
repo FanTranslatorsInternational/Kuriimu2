@@ -59,7 +59,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Update Available Dialog
         public static LocalizedString DialogUpdateAvailableCaption => LocalizedString.FromId("Dialog.UpdateAvailable.Text");
-        public static LocalizedString DialogUpdateAvailableText(string version, long build, string remoteVersion, long remoteBuild)
+        public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
             => LocalizedString.FromId("Dialog.UpdateAvailable.Text", () => version, () => build, () => remoteVersion, () => remoteBuild);
 
         // Exception Dialog

@@ -11,6 +11,6 @@ namespace Kuriimu2.ImGui.Models
         public string Version { get; set; }
 
         [JsonPropertyName("build_number")]
-        public long BuildNumber { get; set; }
+        public string BuildNumber { get; set; }
     }
 }
