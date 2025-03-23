@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
@@ -9,9 +8,9 @@ namespace plugin_atlus.N3DS.Archive
 {
     public class HpiHpb
     {
-        private static readonly int HeaderSize = Marshal.SizeOf<HpiHeader>();
-        private static readonly int HashEntrySize = Marshal.SizeOf<HpiHashEntry>();
-        private static readonly int FileEntrySize = Marshal.SizeOf<HpiFileEntry>();
+        private static readonly int HeaderSize = 0x18;
+        private static readonly int HashEntrySize = 4;
+        private static readonly int FileEntrySize = 0x10;
         private static readonly Encoding encoding = Encoding.GetEncoding("SJIS");
 
         private const int HashSlotCount_ = 0x1000;

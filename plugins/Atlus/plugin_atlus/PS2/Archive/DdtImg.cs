@@ -1,6 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.FileSystem;
@@ -14,7 +12,7 @@ namespace plugin_atlus.PS2.Archive
         private const int Alignment_ = 0x800;
 
         private static readonly Encoding EucJpEncoding = Encoding.GetEncoding("EUC-JP");
-        private static readonly int EntrySize = Marshal.SizeOf<DdtEntry>();
+        private static readonly int EntrySize = 0xC;
 
         public List<DdtArchiveFile> Load(Stream ddtStream, Stream imgStream)
         {
