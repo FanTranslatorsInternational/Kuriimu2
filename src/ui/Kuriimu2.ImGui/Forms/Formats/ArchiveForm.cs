@@ -34,7 +34,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly ArchiveFormInfo _formInfo;
         private readonly IPluginManager _pluginManager;
         private readonly IFileManager _fileManager;
-        private readonly IFileSystem _fileSystem;
+        private IFileSystem _fileSystem;
 
         private readonly IList<IArchiveFile> _openingFiles;
 
@@ -381,14 +381,21 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Execute save operation
             var wasSuccessful = await _formInfo.FormCommunicator.Save(saveAs);
             if (!wasSuccessful)
+            {
+                _saveLock = false;
+                UpdateSaveButtons();
+
                 return;
+            }
+
+            _fileSystem = FileSystemFactory.CreateArchivePluginFileSystem(_formInfo.FileState);
 
             // Clear changed element cache
             _changedDirectories.Clear();
             UpdateFileTree();
 
             _changedFiles.Clear();
-            UpdateFileView(_treeView.Nodes[0].Data);
+            UpdateFileView(_treeView.SelectedNode.Data);
 
             // Call update methods
             _saveLock = false;
@@ -1065,10 +1072,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void UpdateFileTree()
         {
-            var afis = _fileSystem.EnumerateAllFileEntries(UPath.Root, _searchTerm.Get()).Select(x => ((AfiFileEntry)x).ArchiveFile).ToArray();
+            var files = _fileSystem.EnumerateAllFileEntries(UPath.Root, _searchTerm.Get()).Select(x => ((AfiFileEntry)x).ArchiveFile).ToArray();
 
             TreeNode<DirectoryEntry> selected = null;
-            UpdateFileTree(afis.ToTree(), ref selected);
+            UpdateFileTree(files.ToTree(), ref selected);
         }
 
         private void UpdateFileTree(DirectoryEntry entry, ref TreeNode<DirectoryEntry> selected, TreeNode<DirectoryEntry> currentNode = null)
@@ -1278,7 +1285,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var canSave = _formInfo.FileState.PluginState.CanSave && !_saveLock;
 
             _saveBtn.Enabled = canSave && _formInfo.FileState.StateChanged && !_asyncOperation.IsRunning;
-            _saveAsBtn.Enabled = canSave && _formInfo.FileState.StateChanged && _formInfo.FileState.ParentFileState == null && !_asyncOperation.IsRunning;
+            _saveAsBtn.Enabled = canSave && _formInfo.FileState is { StateChanged: true, ParentFileState: null } && !_asyncOperation.IsRunning;
         }
 
         public bool HasRunningOperations()
