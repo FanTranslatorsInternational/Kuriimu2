@@ -3,8 +3,7 @@ using Kaligraphy.Contract.DataClasses.Generation;
 using Kaligraphy.Contract.DataClasses.Generation.Packing;
 using Kaligraphy.Generation.Packing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Drawing.Processing;
+
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -15,6 +14,8 @@ namespace Kaligraphy.Generation
     /// </summary>
     public class FontTextureGenerator
     {
+        private static readonly GraphicsOptions _options = new();
+
         private readonly Size _canvasSize;
         private readonly FontBinPacker _fontPacker;
 
@@ -83,10 +84,9 @@ namespace Kaligraphy.Generation
         {
             GlyphData glyph = packedGlyph.Element;
 
-            var destRect = new Rectangle(packedGlyph.Position, glyph.Description.Size);
             var sourceRect = new Rectangle(glyph.Description.Position, glyph.Description.Size);
 
-            fontImage.Mutate(i => i.Clip(new RectangularPolygon(destRect), context => context.DrawImage(glyph.Glyph, sourceRect, 1f)));
+            fontImage.Mutate(i => i.DrawImage(glyph.Glyph, packedGlyph.Position, sourceRect, _options));
         }
     }
 }
