@@ -75,7 +75,7 @@ namespace plugin_level5.N3DS.Archive
             switch (extension)
             {
                 case ".xi":
-                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
+                    return new[] { Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c") };
 
                 case ".xf":
                     return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };

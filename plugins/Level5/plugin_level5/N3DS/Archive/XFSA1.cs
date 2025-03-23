@@ -5,7 +5,7 @@ using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
-using plugin_level5.Compression;
+using plugin_level5.Common.Compression;
 
 namespace plugin_level5.N3DS.Archive
 {

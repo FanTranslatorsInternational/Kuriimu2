@@ -1,6 +1,6 @@
 ﻿using System.Buffers.Binary;
 using Konnect.Plugin.File.Archive;
-using plugin_level5.Compression;
+using plugin_level5.Common.Compression;
 
 namespace plugin_level5.N3DS.Archive
 {

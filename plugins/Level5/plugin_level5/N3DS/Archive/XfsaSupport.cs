@@ -4,7 +4,8 @@ using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Progress;
 using Konnect.Plugin.File.Archive;
-using plugin_level5.Compression;
+using plugin_level5.Common.Compression;
+
 
 #pragma warning disable 649
 
@@ -169,7 +170,7 @@ namespace plugin_level5.N3DS.Archive
             switch (extension)
             {
                 case ".xi":
-                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
+                    return new[] { Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c") };
 
                 case ".xf":
                     return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };
@@ -185,18 +186,7 @@ namespace plugin_level5.N3DS.Archive
 
                 case ".arc":
                     return new[] { Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896") };
-
-                // TODO: add t2b cfg.bin
-                //case ".bin":
-                //    if (!fileName.EndsWith(".cfg.bin"))
-                //        return null;
-
-                //    fileStream.Position = fileStream.Length - 0xF;
-                //    if (br.ReadString(3) == "t2b")
-                //        return null;
-
-                //    return null;
-
+                    
                 default:
                     return null;
             }

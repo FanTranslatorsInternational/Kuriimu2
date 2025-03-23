@@ -3,7 +3,7 @@ using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Extensions;
 using Kryptography.Checksum.Crc;
-using plugin_level5.Compression;
+using plugin_level5.Common.Compression;
 using plugin_level5.N3DS.Archive;
 
 namespace plugin_level5.NDS.Archive
