@@ -6,6 +6,11 @@ namespace Kaligraphy.Contract.DataClasses
     public class GlyphData
     {
         /// <summary>
+        /// The character this glyph represents.
+        /// </summary>
+        public required char Character { get; init; }
+
+        /// <summary>
         /// The glyph.
         /// </summary>
         public required Image<Rgba32> Glyph { get; init; }
