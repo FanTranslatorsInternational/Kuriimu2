@@ -15,6 +15,7 @@ using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.DataClasses.FileSystem;
 using Konnect.Extensions;
 using Konnect.FileSystem;
 using Konnect.Management.Streams;

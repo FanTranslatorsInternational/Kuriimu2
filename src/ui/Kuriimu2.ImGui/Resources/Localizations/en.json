@@ -204,6 +204,15 @@
   // Image Progress
   "Image.Progress.Decode": "Decode image(s)",
 
+  // Font Form
+
+  // Labels
+  "Font.Label.BaseLine": "Baseline:",
+  "Font.Label.DescentLine": "Descent:",
+
+  // Generate
+  "Font.Generate.Caption": "Generate Font",
+
   // Dialogs
 
   // Dialog Manager
@@ -225,5 +234,32 @@
   "Dialog.ChoosePlugin.Continue": "Continue",
   "Dialog.ChoosePlugin.ViewRaw": "View raw bytes",
   "Dialog.ChoosePlugin.Cancel": "Cancel",
-  "Dialog.ChoosePlugin.ShowAll": "Show all plugins"
+  "Dialog.ChoosePlugin.ShowAll": "Show all plugins",
+
+  // Font Generation Dialog
+  "Dialog.GenerateFont.Caption": "Font Generation",
+
+  "Dialog.GenerateFont.Family": "Font Family",
+  "Dialog.GenerateFont.Style": "Font Style",
+  "Dialog.GenerateFont.Size": "Font Size",
+  "Dialog.GenerateFont.Baseline": "Baseline",
+  "Dialog.GenerateFont.GlyphHeight": "Glyph Height",
+  "Dialog.GenerateFont.SpaceWidth": "Space Width",
+  "Dialog.GenerateFont.Characters": "Characters",
+
+  "Dialog.GenerateFont.Style.Bold": "Bold",
+  "Dialog.GenerateFont.Style.Italic": "Italic",
+
+  "Dialog.GenerateFont.Load": "Load",
+  "Dialog.GenerateFont.Load.Caption": "Load font profile...",
+
+  "Dialog.GenerateFont.Save": "Save",
+  "Dialog.GenerateFont.Save.Caption": "Save font profile...",
+
+  "Dialog.GenerateFont.Profile": "Font Profile",
+
+  "Dialog.GenerateFont.Generate": "Generate",
+
+  "Dialog.GenerateFont.Padding.Left": "Left Padding",
+  "Dialog.GenerateFont.Padding.Right": "Right Padding"
 }

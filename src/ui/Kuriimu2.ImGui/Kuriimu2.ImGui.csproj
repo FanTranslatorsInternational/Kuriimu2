@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -72,14 +73,13 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Projekte\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy.Contract\Kaligraphy.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy\Kaligraphy.csproj" />
-    <ProjectReference Include="..\..\lib\Kompression.Contract\Kompression.Contract.csproj" />
-    <ProjectReference Include="..\..\lib\Kompression\Kompression.csproj" />
     <ProjectReference Include="..\..\lib\Konnect.Contract\Konnect.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Konnect\Konnect.csproj" />
     <ProjectReference Include="..\..\lib\Kryptography.Contract\Kryptography.Contract.csproj" />

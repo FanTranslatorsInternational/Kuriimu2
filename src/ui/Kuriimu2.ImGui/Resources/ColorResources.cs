@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ImGui.Forms;
 using ImGui.Forms.Models;
+using ImGuiNET;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -35,5 +36,7 @@ namespace Kuriimu2.ImGui.Resources
         public static Color Progress => Store[Style.Theme][ImGuiColMax_ + 3];
 
         public static Color ArchiveChanged => Store[Style.Theme][ImGuiColMax_ + 4];
+
+        public static ThemedColor GlyphBackground => new(Color.FromRgba(0xdb, 0xdb, 0xdb, 0xff), Color.FromRgba(0x1d, 0x1d, 0x1d, 0xff));
     }
 }

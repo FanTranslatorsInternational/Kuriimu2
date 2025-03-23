@@ -25,6 +25,7 @@ using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Hex;
 using Konnect.Contract.Plugin.File.Image;
 using Konnect.Contract.Progress;
@@ -897,6 +898,10 @@ namespace Kuriimu2.ImGui.Forms
 
                     case IArchiveFilePluginState _:
                         kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _pluginManager, _fileManager);
+                        break;
+
+                    case IFontFilePluginState _:
+                        kuriimuForm = new FontForm(new FormInfo<IFontFilePluginState>(fileState, communicator, _progress, _logger));
                         break;
 
                     case IHexFilePluginState _:

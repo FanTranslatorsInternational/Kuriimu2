@@ -6,6 +6,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Models;
+using Konnect.DataClasses.FileSystem;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 
