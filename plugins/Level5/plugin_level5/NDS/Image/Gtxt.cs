@@ -116,7 +116,7 @@ namespace plugin_level5.NDS.Image
 
             _ltHeader.width = (short)imageInfo.ImageSize.Width;
             _ltHeader.height = (short)imageInfo.ImageSize.Height;
-            _ltHeader.paddedWidth = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Width, 1);
+            _ltHeader.paddedWidth = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Width);
             _ltHeader.paddedHeight = (short)((imageInfo.ImageSize.Height + 7) & ~7);
 
             _ltHeader.unkOffset1 = (short)unkRegion1Offset;

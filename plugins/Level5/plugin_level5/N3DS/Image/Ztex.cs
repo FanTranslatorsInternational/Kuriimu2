@@ -105,8 +105,8 @@ namespace plugin_level5.N3DS.Image
                     crc32 = crc32.ComputeValue(imageInfo.Name),
                     offset = dataPosition,
                     dataSize = (int)(output.Position - dataPosition),
-                    width = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Width, 1),
-                    height = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Height, 1),
+                    width = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Width),
+                    height = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Height),
                     mipCount = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1),
                     format = (byte)imageInfo.ImageFormat
                 });
