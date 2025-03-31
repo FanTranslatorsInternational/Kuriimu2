@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
-#pragma warning disable 649
+﻿using Komponent.Contract.Aspects;
 
 namespace plugin_nintendo.Archives
 {

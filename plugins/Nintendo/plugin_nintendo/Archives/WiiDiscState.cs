@@ -1,36 +1,23 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class WiiDiscState : IArchiveState, ILoadFiles
+    class WiiDiscState : IArchiveFilePluginState, ILoadFiles
     {
-        private readonly WiiDisc _wiiDisc;
+        private readonly WiiDisc _wiiDisc = new();
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        private List<IArchiveFile> _files;
 
-        public bool ContentChanged => IsChanged();
-
-        public WiiDiscState()
-        {
-            _wiiDisc = new WiiDisc();
-        }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _wiiDisc.Load(fileStream);
-        }
-
-        private bool IsChanged()
-        {
-            return Files.Any(x => x.ContentChanged);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _wiiDisc.Load(fileStream);
         }
     }
 }

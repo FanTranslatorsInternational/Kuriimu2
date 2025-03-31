@@ -1,32 +1,32 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class MMBin
+    class MmBin
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(MMBinHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(MMBinResourceEntry));
+        private const int HeaderSize_ = 0xC;
+        private const int EntrySize_ = 0x40;
 
         private MMBinHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<MMBinHeader>();
+            _header = typeReader.Read<MMBinHeader>(br);
 
             // Read entries
-            var entries = br.ReadMultiple<MMBinResourceEntry>(_header.resourceCount);
+            var entries = typeReader.ReadMany<MMBinResourceEntry>(br, _header.resourceCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var offset = entry.offset;
@@ -34,24 +34,33 @@ namespace plugin_nintendo.Archives
 
                 var metaStream = new SubStream(input, offset, entry.metaSize);
                 var metaName = $"{resourceName}/{resourceName}.meta";
-                result.Add(new ArchiveFileInfo(metaStream, metaName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = metaName,
+                    FileData = metaStream
+                }));
                 offset += entry.metaSize;
 
                 var ctpkStream = new SubStream(input, offset, entry.ctpkSize);
                 var ctpkName = $"{resourceName}/{resourceName}.ctpk";
-                result.Add(new ArchiveFileInfo(ctpkStream, ctpkName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = ctpkName,
+                    FileData = ctpkStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
-            var entryOffset = HeaderSize;
-            var fileOffset = entryOffset + (files.Count / 2) * EntrySize;
+            var entryOffset = HeaderSize_;
+            var fileOffset = entryOffset + (files.Count / 2) * EntrySize_;
             var filePosition = fileOffset;
 
             // Write files
@@ -60,12 +69,12 @@ namespace plugin_nintendo.Archives
             var entries = new List<MMBinResourceEntry>();
             foreach (var fileGroup in files.GroupBy(x => x.FilePath.ToRelative().GetDirectory()))
             {
-                var metaFile = fileGroup.First(x => x.FilePath.GetExtensionWithDot() == ".meta") as ArchiveFileInfo;
-                metaFile.SaveFileData(output);
+                var metaFile = fileGroup.First(x => x.FilePath.GetExtensionWithDot() == ".meta");
+                metaFile.WriteFileData(output);
                 var metaSize = metaFile.FileSize;
 
-                var ctpkFile = fileGroup.First(x => x.FilePath.GetExtensionWithDot() == ".ctpk") as ArchiveFileInfo;
-                ctpkFile.SaveFileData(output);
+                var ctpkFile = fileGroup.First(x => x.FilePath.GetExtensionWithDot() == ".ctpk");
+                ctpkFile.WriteFileData(output);
                 var ctpkSize = ctpkFile.FileSize;
 
                 var entry = new MMBinResourceEntry
@@ -82,14 +91,14 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            typeWriter.WriteMany(entries, bw);
 
             // Write header
             output.Position = 0;
 
             _header.tableSize = fileOffset;
             _header.resourceCount = (short)(files.Count / 2);
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
         }
     }
 }

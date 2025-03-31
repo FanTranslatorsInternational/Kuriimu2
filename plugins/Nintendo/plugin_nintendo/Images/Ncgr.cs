@@ -1,38 +1,36 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
-using Kanvas.Configuration;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
 using plugin_nintendo.Nitro;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
     class Ncgr
     {
-        private static readonly int CharHeaderSize = Tools.MeasureType(typeof(NitroCharHeader));
-        private static readonly int TtlpHeaderSize = Tools.MeasureType(typeof(NitroTtlpHeader));
+        private const int CharHeaderSize_ = 0x20;
+        private const int TtlpHeaderSize_ = 0x18;
 
         private NitroHeader _ncgrHeader;
         private NitroHeader _nclrHeader;
         private NitroCharHeader _charHeader;
         private NitroTtlpHeader _ttlpHeader;
 
-        public ImageInfo Load(Stream ncgrStream, Stream nclrStream)
+        public ImageFileInfo Load(Stream ncgrStream, Stream nclrStream)
         {
+            var typeReader = new BinaryTypeReader();
             using var ncgrBr = new BinaryReaderX(ncgrStream);
             using var nclrBr = new BinaryReaderX(nclrStream);
 
             // Read generic headers
-            _ncgrHeader = ncgrBr.ReadType<NitroHeader>();
-            _nclrHeader = nclrBr.ReadType<NitroHeader>();
+            _ncgrHeader = typeReader.Read<NitroHeader>(ncgrBr);
+            _nclrHeader = typeReader.Read<NitroHeader>(nclrBr);
 
             // Read Char header
-            _charHeader = ncgrBr.ReadType<NitroCharHeader>();
+            _charHeader = typeReader.Read<NitroCharHeader>(ncgrBr);
 
             // Read Ttlp header
-            _ttlpHeader = nclrBr.ReadType<NitroTtlpHeader>();
+            _ttlpHeader = typeReader.Read<NitroTtlpHeader>(nclrBr);
 
             // Read palette data
             var paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
@@ -42,14 +40,17 @@ namespace plugin_nintendo.Images
             var data = ncgrBr.ReadBytes(dataLength);
             var size = GetImageSize(_charHeader);
 
-            var imageInfo = new ImageInfo(data, _charHeader.imageFormat, size)
+            var imageInfo = new ImageFileInfo
             {
+                BitDepth = GetBitDepth(_charHeader.imageFormat),
+                ImageData = data,
                 ImageFormat = _charHeader.imageFormat,
-
+                ImageSize = size,
                 PaletteData = paletteData,
-                PaletteFormat = 0
+                PaletteFormat = 0,
+                PaletteBitDepth = 15,
+                RemapPixels = context => new NitroSwizzle(context)
             };
-            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
 
             return imageInfo;
         }

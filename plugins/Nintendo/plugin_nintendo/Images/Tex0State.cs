@@ -1,33 +1,24 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
-    class Tex0State : IImageState, ILoadFiles, ISaveFiles
+    class Tex0State : IImageFilePluginState, ILoadFiles, ISaveFiles
     {
-        private Tex0 _img;
+        private readonly Tex0 _img = new();
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        private ImageFileInfo _imageInfo;
+
+        public IReadOnlyList<IImageFile> Images { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
-
-        public Tex0State()
-        {
-            _img = new Tex0();
-
-            EncodingDefinition = Tex0Support.GetEncodingDefinition();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -37,7 +28,9 @@ namespace plugin_nintendo.Images
             var texStream = await fileSystem.OpenFileAsync(texPath);
             var pltStream = fileSystem.FileExists(pltPath) ? await fileSystem.OpenFileAsync(pltPath) : null;
 
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _img.Load(texStream, pltStream)) };
+            _imageInfo = _img.Load(texStream, pltStream);
+
+            Images = [new ImageFile(_imageInfo, Tex0Support.GetEncodingDefinition())];
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -46,9 +39,9 @@ namespace plugin_nintendo.Images
             var pltPath = $"{savePath.GetDirectory()}/../Palettes(NW4R)/{savePath.GetName()}";
 
             var texStream = fileSystem.OpenFile(texPath, FileMode.Create, FileAccess.Write);
-            var pltStream = Images[0].ImageInfo.HasPaletteInformation ? fileSystem.OpenFile(pltPath, FileMode.Create, FileAccess.Write) : null;
+            var pltStream = _imageInfo.PaletteData is not null ? fileSystem.OpenFile(pltPath, FileMode.Create, FileAccess.Write) : null;
 
-            _img.Save(texStream, pltStream, Images[0].ImageInfo);
+            _img.Save(texStream, pltStream, _imageInfo);
 
             return Task.CompletedTask;
         }

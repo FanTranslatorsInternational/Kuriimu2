@@ -1,8 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
@@ -11,7 +10,7 @@ namespace plugin_nintendo.Images
         private Tex0File _tex0;
         private Plt0File _plt0;
 
-        public ImageInfo Load(Stream texStream, Stream pltStream)
+        public ImageFileInfo Load(Stream texStream, Stream pltStream)
         {
             using var br = new BinaryReaderX(texStream);
 
@@ -22,8 +21,15 @@ namespace plugin_nintendo.Images
             if (pltStream != null)
                 _plt0 = new Plt0File(pltStream);
 
-            var imageInfo = new ImageInfo(_tex0.ImageData, _tex0.MipData, _tex0.Header.format, new Size(_tex0.Header.width, _tex0.Header.height));
-            imageInfo.RemapPixels.With(context => new RevolutionSwizzle(context));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = _tex0.BitDepth,
+                ImageData = _tex0.ImageData,
+                ImageFormat = _tex0.Header.format,
+                ImageSize = new Size(_tex0.Header.width, _tex0.Header.height),
+                MipMapData = _tex0.MipData,
+                RemapPixels = context => new RevolutionSwizzle(context)
+            };
 
             if (_plt0 != null)
             {
@@ -34,7 +40,7 @@ namespace plugin_nintendo.Images
             return imageInfo;
         }
 
-        public void Save(Stream texOutput, Stream pltStream, ImageInfo imageInfo)
+        public void Save(Stream texOutput, Stream pltStream, ImageFileInfo imageInfo)
         {
             // Update TEX0 File
             _tex0.ImageData = imageInfo.ImageData;
@@ -49,13 +55,13 @@ namespace plugin_nintendo.Images
             _tex0.Header.width = (short)imageInfo.ImageSize.Width;
             _tex0.Header.height = (short)imageInfo.ImageSize.Height;
             _tex0.Header.format = imageInfo.ImageFormat;
-            _tex0.Header.imgCount = imageInfo.MipMapCount + 1;
-            _tex0.Header.mipLevels = imageInfo.MipMapCount;
+            _tex0.Header.imgCount = (imageInfo.MipMapData?.Count ?? 0) + 1;
+            _tex0.Header.mipLevels = (imageInfo.MipMapData?.Count ?? 0);
 
             // Write TEX0 File
             _tex0.Write(texOutput);
 
-            if (!imageInfo.HasPaletteInformation)
+            if (imageInfo.PaletteData is null)
                 return;
 
             // Update PLT0 File

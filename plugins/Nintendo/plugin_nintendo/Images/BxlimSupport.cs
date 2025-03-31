@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Kanvas.Encoding;
-using Kanvas.Swizzle.Models;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas.Contract.Enums.Swizzle;
+using Konnect.Plugin.File.Image;
 using plugin_nintendo.NW4C;
-
-#pragma warning disable 649
 
 namespace plugin_nintendo.Images
 {
@@ -16,7 +9,7 @@ namespace plugin_nintendo.Images
         public short width;
         public short height;
         public byte format;
-        public CtrTransformation transformation;
+        public byte transformation;
         public short alignment;
         public int dataSize;
     }

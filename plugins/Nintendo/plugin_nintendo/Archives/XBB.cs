@@ -1,56 +1,60 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography.Hash;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    public class XBB
+    public class Xbb
     {
-        private static int _headerSize = 0x20;
-        private static int _entrySize = Tools.MeasureType(typeof(XbbFileEntry));
-        private static int _hashEntrySize = Tools.MeasureType(typeof(XbbHashEntry));
+        private const int HeaderSize_ = 0x20;
+        private const int EntrySize_ = 0x10;
+        private const int HashEntrySize_ = 0x8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<XbbHeader>();
+            var header = typeReader.Read<XbbHeader>(br);
 
             // Read entries
-            var entries = br.ReadMultiple<XbbFileEntry>(header.entryCount);
+            var entries = typeReader.ReadMany<XbbFileEntry>(br, header.entryCount);
 
             // Read hash entries
-            var hashEntries = br.ReadMultiple<XbbHashEntry>(header.entryCount);
+            var hashEntries = typeReader.ReadMany<XbbHashEntry>(br, header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.offset, entry.size);
 
                 br.BaseStream.Position = entry.nameOffset;
-                var name = br.ReadCStringASCII();
+                var name = br.ReadNullTerminatedString();
 
-                result.Add(new ArchiveFileInfo(fileStream, name));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = fileStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var entryPosition = _headerSize;
-            var hashEntryPosition = entryPosition + files.Count * _entrySize;
-            var namePosition = hashEntryPosition + files.Count * _hashEntrySize;
+            var entryPosition = HeaderSize_;
+            var hashEntryPosition = entryPosition + files.Count * EntrySize_;
+            var namePosition = hashEntryPosition + files.Count * HashEntrySize_;
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write names
@@ -70,13 +74,13 @@ namespace plugin_nintendo.Archives
             // Write files
             bw.BaseStream.Position = dataPosition;
 
-            var xbbHash = new XbbHash();
+            var xbbHash = new Kryptography.Checksum.Xbb();
             var fileEntries = new List<XbbFileEntry>();
             var hashEntries = new List<XbbHashEntry>();
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 var offset = bw.BaseStream.Position;
-                var writtenSize = file.SaveFileData(bw.BaseStream, null);
+                var writtenSize = file.WriteFileData(bw.BaseStream);
                 bw.WriteAlignment(0x80);
 
                 var hash = xbbHash.ComputeValue(file.FilePath.ToRelative().FullName);
@@ -97,18 +101,18 @@ namespace plugin_nintendo.Archives
 
             // Write file entries
             bw.BaseStream.Position = entryPosition;
-            bw.WriteMultiple(fileEntries);
+            typeWriter.WriteMany(fileEntries, bw);
 
             // Write hash entries
             bw.BaseStream.Position = hashEntryPosition;
-            bw.WriteMultiple(hashEntries.OrderBy(x=>x.hash));
+            typeWriter.WriteMany(hashEntries.OrderBy(x => x.hash), bw);
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new XbbHeader
+            typeWriter.Write(new XbbHeader
             {
                 entryCount = files.Count
-            });
+            }, bw);
         }
     }
 }

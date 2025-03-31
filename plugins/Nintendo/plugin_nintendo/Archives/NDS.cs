@@ -1,38 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class NDS
+    class Nds
     {
-        private readonly int OverlayEntrySize = Tools.MeasureType(typeof(OverlayEntry));
-        private readonly int FatEntrySize = Tools.MeasureType(typeof(FatEntry));
+        private const int OverlayEntrySize_ = 0x20;
+        private const int FatEntrySize_ = 0x8;
 
         private NDSHeader _ndsHeader;
         private DSiHeader _dsiHeader;
         private Arm9Footer _arm9Footer;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
+
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read unit code
             input.Position = 0x12;
-            var unitCode = br.ReadType<UnitCode>();
+            var unitCode = typeReader.Read<UnitCode>(br);
 
             // Read header
             input.Position = 0;
             if (unitCode == UnitCode.NDS)
-                _ndsHeader = br.ReadType<NDSHeader>();
+                _ndsHeader = typeReader.Read<NDSHeader>(br);
             else
-                _dsiHeader = br.ReadType<DSiHeader>();
+                _dsiHeader = typeReader.Read<DSiHeader>(br);
 
             // Read ARM9
             var arm9Offset = _ndsHeader?.arm9Offset ?? _dsiHeader.arm9Offset;
@@ -45,18 +45,18 @@ namespace plugin_nintendo.Archives
             if (nitroCode == 0xDEC00621)
             {
                 input.Position -= 4;
-                _arm9Footer = br.ReadType<Arm9Footer>();
+                _arm9Footer = typeReader.Read<Arm9Footer>(br);
             }
 
             // Read ARM9 Overlays
             var arm9OvlOffset = _ndsHeader?.arm9OverlayOffset ?? _dsiHeader.arm9OverlayOffset;
             var arm9OvlSize = _ndsHeader?.arm9OverlaySize ?? _dsiHeader.arm9OverlaySize;
-            var arm9OvlEntryCount = arm9OvlSize / OverlayEntrySize;
+            var arm9OvlEntryCount = arm9OvlSize / OverlayEntrySize_;
 
             input.Position = arm9OvlOffset;
             IList<OverlayEntry> arm9OverlayEntries = Array.Empty<OverlayEntry>();
             if (arm9OvlOffset != 0)
-                arm9OverlayEntries = br.ReadMultiple<OverlayEntry>(arm9OvlEntryCount);
+                arm9OverlayEntries = typeReader.ReadMany<OverlayEntry>(br, arm9OvlEntryCount);
 
             // Read ARM7
             var arm7Offset = _ndsHeader?.arm7Offset ?? _dsiHeader.arm7Offset;
@@ -66,24 +66,24 @@ namespace plugin_nintendo.Archives
             // Read ARM7 Overlays
             var arm7OvlOffset = _ndsHeader?.arm7OverlayOffset ?? _dsiHeader.arm7OverlayOffset;
             var arm7OvlSize = _ndsHeader?.arm7OverlaySize ?? _dsiHeader.arm7OverlaySize;
-            var arm7OvlEntryCount = arm7OvlSize / OverlayEntrySize;
+            var arm7OvlEntryCount = arm7OvlSize / OverlayEntrySize_;
 
             input.Position = arm7OvlOffset;
             IList<OverlayEntry> arm7OverlayEntries = Array.Empty<OverlayEntry>();
             if (arm7OvlOffset != 0)
-                arm7OverlayEntries = br.ReadMultiple<OverlayEntry>(arm7OvlEntryCount);
+                arm7OverlayEntries = typeReader.ReadMany<OverlayEntry>(br, arm7OvlEntryCount);
 
             // Read FAT
             var fatOffset = _ndsHeader?.fatOffset ?? _dsiHeader.fatOffset;
             var fatSize = _ndsHeader?.fatSize ?? _dsiHeader.fatSize;
-            var fatCount = fatSize / FatEntrySize;
+            var fatCount = fatSize / FatEntrySize_;
 
             input.Position = fatOffset;
-            var fileEntries = br.ReadMultiple<FatEntry>(fatCount);
+            var fileEntries = typeReader.ReadMany<FatEntry>(br, fatCount);
 
             // Read FNT
             var fntOffset = _ndsHeader?.fntOffset ?? _dsiHeader.fntOffset;
-            foreach (var file in NdsSupport.ReadFnt(br, fntOffset, 0, fileEntries))
+            foreach (var file in NdsSupport.ReadFnt(typeReader, br, fntOffset, 0, fileEntries))
                 result.Add(file);
 
             // Add banner
@@ -101,40 +101,41 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var arm9File = (ArchiveFileInfo)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm9.bin"));
-            var arm7File = (ArchiveFileInfo)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm7.bin"));
-            var iconFile = (ArchiveFileInfo)files.FirstOrDefault(x => x.FilePath.ToRelative() == Path.Combine("sys", "banner.bin"));
+            var arm9File = (IArchiveFile)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm9.bin"));
+            var arm7File = (IArchiveFile)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm7.bin"));
+            var iconFile = (IArchiveFile)files.FirstOrDefault(x => x.FilePath.ToRelative() == Path.Combine("sys", "banner.bin"));
 
             var arm9Overlays = files.Where(x => x.FilePath.ToRelative().IsInDirectory(Path.Combine("sys", "ovl"), false) &&
                                                 x.FilePath.GetName().StartsWith("overlay9"))
-                .Cast<OverlayArchiveFileInfo>().ToArray();
+                .Cast<OverlayArchiveFile>().ToArray();
             var arm7Overlays = files.Where(x => x.FilePath.ToRelative().IsInDirectory(Path.Combine("sys", "ovl"), false) &&
                                                 x.FilePath.GetName().StartsWith("overlay7"))
-                .Cast<OverlayArchiveFileInfo>().ToArray();
+                .Cast<OverlayArchiveFile>().ToArray();
 
             var arm9OverlayEntries = new List<OverlayEntry>();
             var arm7OverlayEntries = new List<OverlayEntry>();
             var fatEntries = new List<FatEntry>();
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             // Write ARM9
             var arm9Offset = output.Position = 0x4000;
-            var arm9Size = arm9File.SaveFileData(output);
+            var arm9Size = arm9File.WriteFileData(output);
             if (_arm9Footer != null)
-                bw.WriteType(_arm9Footer);
+                typeWriter.Write(_arm9Footer, bw);
             bw.WriteAlignment(0x200, 0xFF);
 
             // Write ARM9 Overlays
             var arm9OverlayOffset = output.Position;
-            var arm9OverlaySize = arm9Overlays.Length * OverlayEntrySize;
+            var arm9OverlaySize = arm9Overlays.Length * OverlayEntrySize_;
             var arm9OverlayPosition = (arm9OverlayOffset + arm9OverlaySize + 0x1FF) & ~0x1FF;
             foreach (var arm9Overlay in arm9Overlays.OrderBy(x => x.Entry.id))
             {
                 output.Position = arm9OverlayPosition;
-                var writtenSize = arm9Overlay.SaveFileData(output);
+                var writtenSize = arm9Overlay.WriteFileData(output, true);
                 bw.WriteAlignment(0x200, 0xFF);
 
                 arm9Overlay.Entry.fileId = fatEntries.Count;
@@ -150,22 +151,22 @@ namespace plugin_nintendo.Archives
             }
 
             output.Position = arm9OverlayOffset;
-            bw.WriteMultiple(arm9OverlayEntries);
+            typeWriter.WriteMany(arm9OverlayEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
             output.Position = arm9OverlayPosition;
 
             // Write ARM7
             var arm7Offset = output.Position = arm9OverlayPosition;
-            var arm7Size = arm7File.SaveFileData(output);
+            var arm7Size = arm7File.WriteFileData(output);
 
             // Write ARM7 Overlays
             var arm7OverlayOffset = output.Position = arm7Offset + arm7Size;
-            var arm7OverlaySize = arm7Overlays.Length * OverlayEntrySize;
+            var arm7OverlaySize = arm7Overlays.Length * OverlayEntrySize_;
             var arm7OverlayPosition = (arm7OverlayOffset + arm7OverlaySize + 0x1FF) & ~0x1FF;
             foreach (var arm7Overlay in arm7Overlays)
             {
                 output.Position = arm7OverlayPosition;
-                var writtenSize = arm7Overlay.SaveFileData(output);
+                var writtenSize = arm7Overlay.WriteFileData(output, true);
                 bw.WriteAlignment(0x200, 0xFF);
 
                 arm7Overlay.Entry.fileId = fatEntries.Count;
@@ -181,7 +182,7 @@ namespace plugin_nintendo.Archives
             }
 
             output.Position = arm7OverlayOffset;
-            bw.WriteMultiple(arm7OverlayEntries);
+            typeWriter.WriteMany(arm7OverlayEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
             output.Position = arm7OverlayPosition;
 
@@ -190,13 +191,13 @@ namespace plugin_nintendo.Archives
 
             // Write FNT
             var fntOffset = arm7OverlayPosition;
-            NdsSupport.WriteFnt(bw, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
+            NdsSupport.WriteFnt(typeWriter, bw, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
 
             var fntSize = bw.BaseStream.Position - fntOffset;
             bw.WriteAlignment(0x200, 0xFF);
 
             var fatOffset = bw.BaseStream.Position;
-            var fatSize = (files.Count - 3) * FatEntrySize;     // Not counting arm9.bin, arm7.bin, banner.bin
+            var fatSize = (files.Count - 3) * FatEntrySize_;     // Not counting arm9.bin, arm7.bin, banner.bin
 
             // Write icon
             var iconOffset = (fatOffset + fatSize + 0x1FF) & ~0x1FF;
@@ -204,18 +205,18 @@ namespace plugin_nintendo.Archives
             if (iconFile != null)
             {
                 output.Position = iconOffset;
-                iconSize = (int)iconFile.SaveFileData(output);
+                iconSize = (int)iconFile.WriteFileData(output);
 
                 bw.WriteAlignment(0x200, 0xFF);
             }
 
             // Write rom files
             var filePosition = (iconOffset + iconSize + 0x1FF) & ~0x1FF;
-            foreach (var romFile in romFiles.Cast<FileIdArchiveFileInfo>().OrderBy(x => x.FileId))
+            foreach (var romFile in romFiles.Cast<FileIdArchiveFile>().OrderBy(x => x.FileId))
             {
                 output.Position = filePosition;
 
-                var romFileSize = romFile.SaveFileData(output);
+                var romFileSize = romFile.WriteFileData(output, true);
 
                 fatEntries.Add(new FatEntry
                 {
@@ -228,7 +229,7 @@ namespace plugin_nintendo.Archives
 
             // Write FAT
             bw.BaseStream.Position = fatOffset;
-            bw.WriteMultiple(fatEntries);
+            typeWriter.WriteMany(fatEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
 
             // Write header
@@ -251,7 +252,7 @@ namespace plugin_nintendo.Archives
                 _ndsHeader.fntSize = (int)fntSize;
                 _ndsHeader.fatSize = (int)fatSize;
 
-                bw.WriteType(_ndsHeader);
+                typeWriter.Write(_ndsHeader, bw);
             }
             else
             {
@@ -271,11 +272,11 @@ namespace plugin_nintendo.Archives
                 _dsiHeader.fatSize = (int)fatSize;
                 _dsiHeader.extendedEntries.iconSize = iconSize;
 
-                bw.WriteType(_dsiHeader);
+                typeWriter.Write(_dsiHeader, bw);
             }
         }
 
-        private ArchiveFileInfo ReadIcon(BinaryReaderX br, int iconOffset)
+        private IArchiveFile ReadIcon(BinaryReaderX br, int iconOffset)
         {
             if (iconOffset == 0)
                 return null;
@@ -306,7 +307,11 @@ namespace plugin_nintendo.Archives
                     throw new InvalidOperationException($"Invalid icon version '{version}'.");
             }
 
-            return new ArchiveFileInfo(new SubStream(br.BaseStream, iconOffset, iconSize), "sys/banner.bin");
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = "sys/banner.bin",
+                FileData = new SubStream(br.BaseStream, iconOffset, iconSize)
+            });
         }
     }
 }

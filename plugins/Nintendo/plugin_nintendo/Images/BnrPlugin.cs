@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Images
 {
     public class BnrPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("f1fd5589-550d-4916-a358-4866e0e904e1");
+
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] {"*.bnr", "*.bin"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bnr", "*.bin"];
 
-        public BnrPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("BNR","onepiecefreak","The DS Banner format.");
-        }
+            Name = "BNR",
+            Author = "onepiecefreak",
+            LongDescription = "The DS Banner format."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new BnrState();
         }

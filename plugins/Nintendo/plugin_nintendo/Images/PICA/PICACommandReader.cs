@@ -1,10 +1,6 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Text;
+﻿using System.Buffers.Binary;
 using Komponent.IO;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images.PICA
 {
@@ -327,10 +323,11 @@ namespace plugin_nintendo.Images.PICA
         public Color getFragmentBufferColor()
         {
             uint rgba = GetParameter(PICACommand.fragmentBufferColor);
-            return Color.FromArgb((byte)(rgba >> 24),
+            return Color.FromRgba(
                 (byte)(rgba & 0xff),
                 (byte)((rgba >> 8) & 0xff),
-                (byte)((rgba >> 16) & 0xff));
+                (byte)((rgba >> 16) & 0xff),
+                (byte)(rgba >> 24));
         }
 
         /// <summary>
@@ -530,10 +527,11 @@ namespace plugin_nintendo.Images.PICA
         public Color getTexUnit0BorderColor()
         {
             uint rgba = GetParameter(PICACommand.texUnit0BorderColor);
-            return Color.FromArgb((byte)(rgba >> 24),
+            return Color.FromRgba(
                 (byte)(rgba & 0xff),
                 (byte)((rgba >> 8) & 0xff),
-                (byte)((rgba >> 16) & 0xff));
+                (byte)((rgba >> 16) & 0xff),
+                (byte)(rgba >> 24));
         }
 
         /// <summary>
@@ -597,10 +595,11 @@ namespace plugin_nintendo.Images.PICA
         public Color getTexUnit1BorderColor()
         {
             uint rgba = GetParameter(PICACommand.texUnit1BorderColor);
-            return Color.FromArgb((byte)(rgba >> 24),
+            return Color.FromRgba(
                 (byte)(rgba & 0xff),
                 (byte)((rgba >> 8) & 0xff),
-                (byte)((rgba >> 16) & 0xff));
+                (byte)((rgba >> 16) & 0xff),
+                (byte)(rgba >> 24));
         }
 
         /// <summary>
@@ -664,11 +663,11 @@ namespace plugin_nintendo.Images.PICA
         public Color getTexUnit2BorderColor()
         {
             uint rgba = GetParameter(PICACommand.texUnit2BorderColor);
-            return Color.FromArgb(
-                (byte)(rgba >> 24),
+            return Color.FromRgba(
                 (byte)(rgba & 0xff),
                 (byte)((rgba >> 8) & 0xff),
-                (byte)((rgba >> 16) & 0xff));
+                (byte)((rgba >> 16) & 0xff),
+                (byte)(rgba >> 24));
         }
 
         /// <summary>

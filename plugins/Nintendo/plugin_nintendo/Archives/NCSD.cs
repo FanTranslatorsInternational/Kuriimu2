@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
@@ -16,15 +14,16 @@ namespace plugin_nintendo.Archives
 
         private NcsdHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<NcsdHeader>();
+            _header = typeReader.Read<NcsdHeader>(br);
 
             // Parse NCCH partitions
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < 8; i++)
             {
                 var partitionEntry = _header.partitionEntries[i];
@@ -33,21 +32,22 @@ namespace plugin_nintendo.Archives
 
                 var name = GetPartitionName(i);
                 var fileStream = new SubStream(input, (long)partitionEntry.offset * MediaSize_, (long)partitionEntry.length * MediaSize_);
-                result.Add(new ArchiveFileInfo(fileStream, name)
+                result.Add(new ArchiveFile(new ArchiveFileInfo
                 {
-                    // Add NCCH plugin
-                    PluginIds = new[] { Guid.Parse("7d0177a6-1cab-44b3-bf22-39f5548d6cac") }
-                });
+                    FilePath = name,
+                    FileData = fileStream,
+                    PluginIds = [Guid.Parse("7d0177a6-1cab-44b3-bf22-39f5548d6cac")]
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
             // Update partition entries
             long partitionOffset = FirstPartitionOffset_;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 var partitionIndex = GetPartitionIndex(file.FilePath.GetName());
                 var partitionEntry = _header.partitionEntries[partitionIndex];
@@ -56,7 +56,7 @@ namespace plugin_nintendo.Archives
                 partitionEntry.length = (int)(file.FileSize / MediaSize_);
 
                 output.Position = partitionOffset;
-                file.SaveFileData(output);
+                file.WriteFileData(output);
 
                 partitionOffset = output.Position;
             }
@@ -76,16 +76,18 @@ namespace plugin_nintendo.Archives
             _header.cardHeader.cardInfoHeader.firstNcchHeader = firstNcchHeader;
 
             output.Position = 0;
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Update NCSD size
             _header.ncsdSize = (int)(output.Length / MediaSize_);
 
             // Write NCSD header
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
 
             // Pad until first partition
-            bw.WritePadding(FirstPartitionOffset_ - Tools.MeasureType(typeof(NcsdHeader)), 0xFF);
+            bw.WritePadding(FirstPartitionOffset_ - 0x1200, 0xFF);
         }
 
         private string GetPartitionName(int partitionIndex)

@@ -1,45 +1,45 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Archive;
-using Kryptography.Hash;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Checksum;
 
 namespace plugin_alpha_dream.Archives
 {
     class Bg4
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(Bg4Header));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(Bg4Entry));
+        private const int HeaderSize_ = 0x10;
+        private const int EntrySize_ = 0x1E;
 
         private const int HashSeed_ = 0x1F;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<Bg4Header>();
+            var header = typeReader.Read<Bg4Header>(br);
 
             // Read entries
-            var entries = br.ReadMultiple<Bg4Entry>(header.fileEntryCount);
+            var entries = typeReader.ReadMany<Bg4Entry>(br, header.fileEntryCount);
 
             // Prepare string stream
             var stringStream = new SubStream(input, br.BaseStream.Position, header.metaSecSize - br.BaseStream.Position);
             using var stringBr = new BinaryReaderX(stringStream);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
-            foreach (var entry in entries.Where(x => !x.IsInvalid))
+            foreach (Bg4Entry entry in entries.Where(x => !x.IsInvalid))
             {
                 var subStream = new SubStream(input, entry.FileOffset, entry.FileSize);
 
                 stringBr.BaseStream.Position = entry.nameOffset;
-                var fileName = stringBr.ReadCStringASCII();
+                string fileName = stringBr.ReadNullTerminatedString();
 
                 result.Add(CreateAfi(subStream, fileName, entry));
             }
@@ -47,9 +47,11 @@ namespace plugin_alpha_dream.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var hash = new SimpleHash(HashSeed_);
+            var hash = new Simple(HashSeed_);
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Create string dictionary
@@ -63,17 +65,17 @@ namespace plugin_alpha_dream.Archives
             }
 
             // Calculate offsets
-            var entryOffset = HeaderSize;
-            var stringOffset = entryOffset + files.Count * EntrySize;
+            var entryOffset = HeaderSize_;
+            var stringOffset = entryOffset + files.Count * EntrySize_;
             var fileOffset = (stringOffset + stringPosition + 3) & ~3;
             var filePosition = fileOffset;
 
             // Write files
             var entries = new List<Bg4Entry>();
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 // Create entry
                 var fileName = file.FilePath.FullName;
@@ -93,30 +95,40 @@ namespace plugin_alpha_dream.Archives
             // Write strings
             output.Position = stringOffset;
             foreach (var distinctString in stringDictionary.Keys)
-                bw.WriteString(distinctString, Encoding.ASCII, false);
+                bw.WriteString(distinctString, Encoding.ASCII);
             bw.WriteAlignment(4, 0xFF);
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            typeWriter.WriteMany(entries, bw);
 
             // Write header
             output.Position = 0;
-            bw.WriteType(new Bg4Header
+            typeWriter.Write(new Bg4Header
             {
                 fileEntryCount = (short)files.Count,
                 metaSecSize = fileOffset,
                 fileEntryCountMultiplier = 1,
                 fileEntryCountDerived = (short)files.Count
-            });
+            }, bw);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream fileStream, string fileName, Bg4Entry entry)
+        private IArchiveFile CreateAfi(Stream fileStream, string fileName, Bg4Entry entry)
         {
             if (!entry.IsCompressed)
-                return new ArchiveFileInfo(fileStream, fileName);
+                return new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = fileStream
+                });
 
-            return new ArchiveFileInfo(fileStream, fileName, Compressions.Nintendo.BackwardLz77, Bg4Support.PeekDecompressedSize(fileStream));
+            return new ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = fileStream,
+                Compression = Compressions.Nintendo.BackwardLz77.Build(),
+                DecompressedSize = (int)Bg4Support.PeekDecompressedSize(fileStream)
+            });
         }
 
         private string ReverseString(string value)

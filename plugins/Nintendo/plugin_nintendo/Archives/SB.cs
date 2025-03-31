@@ -1,68 +1,73 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
     public class SB
     {
-        private static int _headerSize = Tools.MeasureType(typeof(SbHeader));
+        private const int HeaderSize_ = 0x4;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<SbHeader>();
+            var header = typeReader.Read<SbHeader>(br);
 
             // Read offsets
-            var offsets = br.ReadMultiple<uint>(header.entryCount);
+            var offsets = typeReader.ReadMany<uint>(br, header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < offsets.Count; i++)
             {
                 var endOffset = i + 1 < offsets.Count ? offsets[i + 1] : input.Length;
                 var fileStream = new SubStream(input, offsets[i], endOffset - offsets[i]);
 
-                result.Add(new ArchiveFileInfo(fileStream, $"{i:00000000}.bin"));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = $"{i:00000000}.bin",
+                    FileData = fileStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var dataPosition = (_headerSize + (files.Count + 1) * 4 + 0x7F) & ~0x7F;
+            var dataPosition = (HeaderSize_ + (files.Count + 1) * 4 + 0x7F) & ~0x7F;
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write files
             bw.BaseStream.Position = dataPosition;
 
             var offsets = new List<uint>();
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 offsets.Add((uint)bw.BaseStream.Position);
 
-                file.SaveFileData(bw.BaseStream, null);
+                file.WriteFileData(bw.BaseStream);
                 bw.WriteAlignment(0x80);
             }
 
             // Write offsets
-            bw.BaseStream.Position = _headerSize;
-            bw.WriteMultiple(offsets);
+            bw.BaseStream.Position = HeaderSize_;
+            typeWriter.WriteMany(offsets, bw);
             bw.Write(bw.BaseStream.Length);
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new SbHeader
+            typeWriter.Write(new SbHeader
             {
                 entryCount = (short)files.Count
-            });
+            }, bw);
         }
     }
 }

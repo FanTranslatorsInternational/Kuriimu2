@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
+﻿using Kanvas;
+using Komponent.Contract.Aspects;
+using Konnect.Plugin.File.Image;
+using Komponent.Contract.Enums;
 
 namespace plugin_nintendo.Images
 {
@@ -13,5 +13,17 @@ namespace plugin_nintendo.Images
         public ushort crc16_v2;
         public ushort crc16_v3;
         public ushort crc16_v103;
+    }
+
+    class BnrSupport
+    {
+        public static EncodingDefinition GetEncodingDefinition()
+        {
+            var encodingDefinition = new EncodingDefinition();
+            encodingDefinition.AddPaletteEncoding(0, ImageFormats.Rgb555());
+            encodingDefinition.AddIndexEncoding(0, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), [0]);
+
+            return encodingDefinition;
+        }
     }
 }

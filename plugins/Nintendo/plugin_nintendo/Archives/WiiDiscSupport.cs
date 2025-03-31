@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using Komponent.IO.Attributes;
-using Kontract;
-using Kontract.Models.IO;
-#pragma warning disable 649
+﻿using Komponent.Contract.Aspects;
+using Konnect.Contract.DataClasses.FileSystem;
 
 namespace plugin_nintendo.Archives
 {
@@ -203,8 +199,6 @@ namespace plugin_nintendo.Archives
 
         public WiiDiscPartitionDataStream(Stream baseStream)
         {
-            ContractAssertions.IsNotNull(baseStream, nameof(baseStream));
-
             if (baseStream.Length % BlockSize_ != 0)
                 throw new InvalidOperationException($"The given stream needs to be aligned to 0x{BlockSize_:X4}");
 

@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
@@ -13,7 +12,7 @@ namespace plugin_nintendo.Archives
         public string magic = "SARC";
         public short headerSize = 0x14;
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ByteOrder byteOrder;
+        public ushort byteOrder;
         public int fileSize;
         public int dataOffset;
         public int unk1;
@@ -56,15 +55,15 @@ namespace plugin_nintendo.Archives
         public short zero0;
     }
 
-    class SarcArchiveFileInfo : ArchiveFileInfo
+    class SarcArchiveFile : ArchiveFile
     {
         public string Type { get; private set; }
 
         public SfatEntry Entry { get; }
 
-        public SarcArchiveFileInfo(Stream fileData, string filePath, string magic, SfatEntry entry) : base(fileData, filePath)
+        public SarcArchiveFile(ArchiveFileInfo fileInfo, string type, SfatEntry entry) : base(fileInfo)
         {
-            Type = magic;
+            Type = type;
             Entry = entry;
         }
 
@@ -147,7 +146,7 @@ namespace plugin_nintendo.Archives
             return Extensions.ContainsKey(magic) ? Extensions[magic] : ".bin";
         }
 
-        public static int DetermineAlignment(SarcArchiveFileInfo file, ByteOrder byteOrder, bool isCompressed)
+        public static int DetermineAlignment(SarcArchiveFile file, ByteOrder byteOrder, bool isCompressed)
         {
             // Special cases
             using var br = new BinaryReaderX(file.GetFileData().Result, true, byteOrder);
@@ -167,10 +166,10 @@ namespace plugin_nintendo.Archives
                 isCompressed ? AlignmentLittleEndianCompressed : AlignmentLittleEndian :
                 AlignmentBigEndian;
 
-            if (string.IsNullOrEmpty(file.Type) || !alignments.ContainsKey(file.Type))
+            if (string.IsNullOrEmpty(file.Type) || !alignments.TryGetValue(file.Type, out int alignment))
                 return isCompressed ? DefaultAlignmentCompressed : DefaultAlignment;
 
-            return alignments[file.Type];
+            return alignment;
         }
     }
 }

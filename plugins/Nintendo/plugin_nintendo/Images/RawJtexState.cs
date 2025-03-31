@@ -1,64 +1,54 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
-using plugin_nintendo.Compression;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
+using plugin_nintendo.Common.Compression;
 
 namespace plugin_nintendo.Images
 {
-    class RawJtexState : IImageState, ILoadFiles, ISaveFiles
+    class RawJtexState : IImageFilePluginState, ILoadFiles, ISaveFiles
     {
-        private RawJtex _raw;
+        private readonly RawJtex _raw = new();
         private NintendoCompressionMethod? _method;
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        private ImageFileInfo _imageInfo;
+
+        public IReadOnlyList<IImageFile> Images { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
 
-        public RawJtexState()
-        {
-            _raw = new RawJtex();
-
-            EncodingDefinition = RawJtexSupport.GetEncodingDefinition();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             if (IsCompressed(fileStream))
                 _method = NintendoCompressor.PeekCompressionMethod(fileStream);
 
             if (_method != null)
                 fileStream = Decompress(fileStream);
 
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _raw.Load(fileStream)) };
+            _imageInfo = _raw.Load(fileStream);
+
+            Images = [new ImageFile(_imageInfo, RawJtexSupport.GetEncodingDefinition())];
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = _method != null ?
+            Stream fileStream = _method != null ?
                 new MemoryStream() :
-                fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+                await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
-            _raw.Save(fileStream, Images[0].ImageInfo);
+            _raw.Save(fileStream, _imageInfo);
 
             if (_method == null)
-                return Task.CompletedTask;
+                return;
 
-            var output = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
             fileStream.Position = 0;
             NintendoCompressor.Compress(fileStream, output, _method.Value);
-
-            return Task.CompletedTask;
         }
 
         private bool IsContentChanged()

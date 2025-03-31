@@ -1,44 +1,34 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class U8State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class U8State : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly U8 _u8;
+        private readonly U8 _u8 = new();
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        private List<IArchiveFile> _files;
+
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsChanged();
 
-        public U8State()
-        {
-            _u8 = new U8();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _u8.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _u8.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _u8.Save(output, Files);
-
-            return Task.CompletedTask;
+            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            _u8.Save(output, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

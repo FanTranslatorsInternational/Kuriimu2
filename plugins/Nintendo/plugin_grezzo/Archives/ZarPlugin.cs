@@ -1,38 +1,37 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Providers;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_grezzo.Archives
 {
-    public class ZarPlugin : IFilePlugin, IIdentifyFiles
+    public class ZarPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("184e9010-0c35-4ab9-a556-262cbbd2d452");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.zar" };
-        public PluginMetadata Metadata { get; }
 
-        public ZarPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.zar"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("ZAR", "onepiecefreak", "Main archive type in Zelda - Ocarina of Time.");
-        }
+            Name = "ZAR",
+            Author = "onepiecefreak",
+            LongDescription = "Main archive type in Zelda: Ocarina of Time."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            using var br = new BinaryReaderX(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
+            using var br = new BinaryReaderX(fileStream);
             return br.ReadString(3) == "ZAR";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new ZarState();
         }

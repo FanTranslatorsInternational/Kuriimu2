@@ -1,28 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Providers;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Archives
 {
-    public class DarcPlugin : IFilePlugin, IIdentifyFiles
+    public class DarcPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("f49fda83-44d8-42be-bdba-5c6a787edc11");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.arc" };
-        public PluginMetadata Metadata { get; }
 
-        public DarcPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.arc"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("DARC", "onepiecefreak", "Archive found in Nintendo games.");
-        }
+            Name = "DARC",
+            Author = "onepiecefreak",
+            LongDescription = "Archive found in Nintendo games."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -37,7 +36,7 @@ namespace plugin_nintendo.Archives
             return magic == "darc" || magic2 == "darc" || magic3 == "darc";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new DarcState();
         }

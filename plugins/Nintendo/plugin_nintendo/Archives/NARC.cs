@@ -1,58 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class NARC
+    class Narc
     {
-        private static readonly int NarcHeaderSize = Tools.MeasureType(typeof(NarcHeader));
-        private static readonly int FatHeaderSize = Tools.MeasureType(typeof(NarcFatHeader));
-        private static readonly int FatEntrySize = Tools.MeasureType(typeof(FatEntry));
+        private const int NarcHeaderSize_ = 0x10;
+        private const int FatHeaderSize_ = 0xC;
+        private const int FatEntrySize_ = 0x8;
 
         private bool _hasNames;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Determine byte order
             br.BaseStream.Position = 4;
-            br.ByteOrder = br.ReadType<ByteOrder>();
+            br.ByteOrder = (ByteOrder)br.ReadUInt16();
 
             // Read header
             br.BaseStream.Position = 0;
-            var header = br.ReadType<NarcHeader>();
+            var header = typeReader.Read<NarcHeader>(br);
 
             // Read file entries
-            var fatHeader = br.ReadType<NarcFatHeader>();
-            var entries = br.ReadMultiple<FatEntry>(fatHeader.fileCount);
+            var fatHeader = typeReader.Read<NarcFatHeader>(br);
+            var entries = typeReader.ReadMany<FatEntry>(br, fatHeader.fileCount);
 
             // Read FNT
             var fntOffset = (int)br.BaseStream.Position;
-            var fntHeader = br.ReadType<NarcFntHeader>();
+            var fntHeader = typeReader.Read<NarcFntHeader>(br);
 
             var gmifOffset = fntOffset + fntHeader.chunkSize;
 
             _hasNames = br.ReadInt32() >= 8;
             if (_hasNames)
-                return NdsSupport.ReadFnt(br, fntOffset + 8, gmifOffset + 8, entries).ToList();
+                return NdsSupport.ReadFnt(typeReader, br, fntOffset + 8, gmifOffset + 8, entries).ToList();
 
-            return entries.Select((x, i) => NdsSupport.CreateAfi(br.BaseStream, x.offset + gmifOffset + 8, x.Length, $"{i:00000000}.bin", i)).ToArray();
+            return entries.Select((x, i) => NdsSupport.CreateAfi(br.BaseStream, x.offset + gmifOffset + 8, x.Length, $"{i:00000000}.bin", i)).ToList();
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
-            var fatOffset = NarcHeaderSize;
-            var fntOffset = fatOffset + FatHeaderSize + files.Count * FatEntrySize;
+            var fatOffset = NarcHeaderSize_;
+            var fntOffset = fatOffset + FatHeaderSize_ + files.Count * FatEntrySize_;
 
             // Write FNT
             int fntSize;
@@ -65,25 +63,25 @@ namespace plugin_nintendo.Archives
             }
             else
             {
-                NdsSupport.WriteFnt(bw, fntOffset + 8, files);
+                NdsSupport.WriteFnt(typeWriter, bw, fntOffset + 8, files);
                 fntSize = (int)(bw.BaseStream.Position - fntOffset);
             }
 
             output.Position = fntOffset;
-            bw.WriteType(new NarcFntHeader
+            typeWriter.Write(new NarcFntHeader
             {
                 chunkSize = fntSize
-            });
+            }, bw);
 
             // Write GMIF
             var fatEntries = new List<FatEntry>();
 
             var gmifOffset = fntOffset + fntSize;
             output.Position = gmifOffset + 8;
-            foreach (var file in files.Cast<FileIdArchiveFileInfo>().OrderBy(x => x.FileId))
+            foreach (var file in files.Cast<FileIdArchiveFile>().OrderBy(x => x.FileId))
             {
                 var filePosition = output.Position;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 fatEntries.Add(new FatEntry
                 {
@@ -98,19 +96,19 @@ namespace plugin_nintendo.Archives
 
             // Write FAT
             output.Position = fatOffset;
-            bw.WriteType(new NarcFatHeader
+            typeWriter.Write(new NarcFatHeader
             {
-                chunkSize = FatHeaderSize + files.Count * FatEntrySize,
+                chunkSize = FatHeaderSize_ + files.Count * FatEntrySize_,
                 fileCount = (short)files.Count
-            });
-            bw.WriteMultiple(fatEntries);
+            }, bw);
+            typeWriter.WriteMany(fatEntries, bw);
 
             // Write header
             output.Position = 0;
-            bw.WriteType(new NarcHeader
+            typeWriter.Write(new NarcHeader
             {
                 fileSize = (int)output.Length
-            });
+            }, bw);
         }
     }
 }

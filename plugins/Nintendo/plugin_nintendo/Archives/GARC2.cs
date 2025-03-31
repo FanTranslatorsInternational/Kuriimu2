@@ -1,58 +1,56 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    public class GARC2
+    public class Garc2
     {
-        private static int _headerSize = Tools.MeasureType(typeof(Garc2Header));
-        private static int _fatoHeaderSize = Tools.MeasureType(typeof(GarcFatoHeader));
-        private static int _fatbHeaderSize = Tools.MeasureType(typeof(GarcFatbHeader));
-        private static int _fatbEntrySize = Tools.MeasureType(typeof(Garc2FatbEntry));
-        private static int _fimbHeaderSize = Tools.MeasureType(typeof(GarcFimbHeader));
+        private const int HeaderSize_ = 0x18;
+        private const int FatoHeaderSize_ = 0xC;
+        private const int FatbHeaderSize_ = 0xC;
+        private const int FatbEntrySize_ = 0xC;
+        private const int FimbHeaderSize_ = 0xC;
 
         private ByteOrder _byteOrder;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Select byte order
             br.ByteOrder = ByteOrder.BigEndian;
             br.BaseStream.Position = 0x8;
-            _byteOrder = br.ReadType<ByteOrder>();
+            _byteOrder = (ByteOrder)br.ReadUInt16();
 
             br.ByteOrder = _byteOrder;
 
             // Read header
             br.BaseStream.Position = 0;
-            var header = br.ReadType<Garc2Header>();
+            var header = typeReader.Read<Garc2Header>(br);
 
             // Read Fat Offsets
-            var fatoHeader = br.ReadType<GarcFatoHeader>();
-            var offsets = br.ReadMultiple<int>(fatoHeader.entryCount);
+            var fatoHeader = typeReader.Read<GarcFatoHeader>(br);
+            var offsets = typeReader.ReadMany<int>(br, fatoHeader.entryCount);
 
             // Read FATB
-            var fatbHeader = br.ReadType<GarcFatbHeader>();
+            var fatbHeader = typeReader.Read<GarcFatbHeader>(br);
             var fatbOffset = br.BaseStream.Position;
 
             var fatbEntries = new Garc2FatbEntry[fatoHeader.entryCount];
             for (var i = 0; i < fatoHeader.entryCount; i++)
             {
                 br.BaseStream.Position = fatbOffset + offsets[i];
-                fatbEntries[i] = br.ReadType<Garc2FatbEntry>();
+                fatbEntries[i] = typeReader.Read<Garc2FatbEntry>(br);
             }
 
             // Read FIMB
-            br.ReadType<GarcFimbHeader>();
+            typeReader.Read<GarcFimbHeader>(br);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < fatbEntries.Length; i++)
             {
                 var fileStream = new SubStream(input, header.dataOffset + fatbEntries[i].offset, fatbEntries[i].nextFileOffset - fatbEntries[i].offset);
@@ -63,13 +61,14 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var fatOffsetPosition = _headerSize;
-            var fatbPosition = fatOffsetPosition + _fatoHeaderSize + files.Count * 4;
-            var fimbPosition = fatbPosition + _fatbHeaderSize + files.Count * _fatbEntrySize;
-            var dataPosition = fimbPosition + _fimbHeaderSize;
+            var fatOffsetPosition = HeaderSize_;
+            var fatbPosition = fatOffsetPosition + FatoHeaderSize_ + files.Count * 4;
+            var fimbPosition = fatbPosition + FatbHeaderSize_ + files.Count * FatbEntrySize_;
+            var dataPosition = fimbPosition + FimbHeaderSize_;
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, _byteOrder);
 
             // Write file data
@@ -77,9 +76,9 @@ namespace plugin_nintendo.Archives
 
             var fileEntries = new List<Garc2FatbEntry>();
             var fileOffset = 0;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
-                var writtenSize = file.SaveFileData(output, null);
+                var writtenSize = file.WriteFileData(output);
                 bw.WriteAlignment(4);
 
                 fileEntries.Add(new Garc2FatbEntry
@@ -92,49 +91,49 @@ namespace plugin_nintendo.Archives
             }
 
             bw.BaseStream.Position = fimbPosition;
-            bw.WriteType(new GarcFimbHeader
+            typeWriter.Write(new GarcFimbHeader
             {
                 dataSize = (uint)(bw.BaseStream.Length - dataPosition)
-            });
+            }, bw);
 
             // Write file entries
-            bw.BaseStream.Position = fatbPosition + _fatbHeaderSize;
+            bw.BaseStream.Position = fatbPosition + FatbHeaderSize_;
 
             var fatOffsets = new List<uint>();
             var fatbOffset = 0u;
             foreach (var entry in fileEntries)
             {
-                bw.WriteType(entry);
+                typeWriter.Write(entry, bw);
                 fatOffsets.Add(fatbOffset);
 
-                fatbOffset += (uint)_fatbEntrySize;
+                fatbOffset += (uint)FatbEntrySize_;
             }
 
             bw.BaseStream.Position = fatbPosition;
-            bw.WriteType(new GarcFatbHeader
+            typeWriter.Write(new GarcFatbHeader
             {
-                sectionSize = _fatbHeaderSize + fileEntries.Count * _fatbEntrySize,
+                sectionSize = FatbHeaderSize_ + fileEntries.Count * FatbEntrySize_,
                 entryCount = fileEntries.Count
-            });
+            }, bw);
 
             // Write FAT Offsets
             bw.BaseStream.Position = fatOffsetPosition;
-            bw.WriteType(new GarcFatoHeader
+            typeWriter.Write(new GarcFatoHeader
             {
-                sectionSize = _fatoHeaderSize + fatOffsets.Count * 4,
+                sectionSize = FatoHeaderSize_ + fatOffsets.Count * 4,
                 entryCount = (short)fatOffsets.Count
-            });
-            bw.WriteMultiple(fatOffsets);
+            }, bw);
+            typeWriter.WriteMany(fatOffsets, bw);
 
             // Write GARC Header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new Garc2Header
+            typeWriter.Write(new Garc2Header
             {
                 byteOrder = (ushort)_byteOrder,
                 dataOffset = (uint)dataPosition,
                 fileSize = (uint)bw.BaseStream.Length,
-                headerSize = (uint)_headerSize
-            });
+                headerSize = (uint)HeaderSize_
+            }, bw);
         }
     }
 }

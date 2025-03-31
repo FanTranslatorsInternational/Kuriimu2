@@ -1,44 +1,44 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_grezzo.Archives
 {
     public class ZAR
     {
-        private static int _headerSize = Tools.MeasureType(typeof(ZarHeader));
-        private static int _fileTypeEntrySize = Tools.MeasureType(typeof(ZarFileTypeEntry));
-        private static int _fileEntrySize = Tools.MeasureType(typeof(ZarFileEntry));
+        private const int HeaderSize_ = 0x20;
+        private const int FileTypeEntrySize_ = 0x10;
+        private const int FileEntrySize_ = 0x8;
 
         private string _headerString;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<ZarHeader>();
+            var header = typeReader.Read<ZarHeader>(br);
             _headerString = header.headerString;
 
             // Read file type entries
             br.BaseStream.Position = header.fileTypeEntryOffset;
-            var fileTypeEntries = br.ReadMultiple<ZarFileTypeEntry>(header.fileTypeCount);
+            var fileTypeEntries = typeReader.ReadMany<ZarFileTypeEntry>(br, header.fileTypeCount);
 
             // Read file entries
             br.BaseStream.Position = header.fileEntryOffset;
-            var fileEntries = br.ReadMultiple<ZarFileEntry>(header.fileCount);
+            var fileEntries = typeReader.ReadMany<ZarFileEntry>(br, header.fileCount);
 
             // Read file offsets
             br.BaseStream.Position = header.fileOffsetsOffset;
-            var fileOffsets = br.ReadMultiple<int>(header.fileCount);
+            var fileOffsets = typeReader.ReadMany<int>(br, header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var fileTypeEntry in fileTypeEntries)
             {
                 if (fileTypeEntry.fileIndexOffset < 0)
@@ -46,37 +46,42 @@ namespace plugin_grezzo.Archives
 
                 // Read file indices
                 br.BaseStream.Position = fileTypeEntry.fileIndexOffset;
-                var fileIndeces = br.ReadMultiple<int>(fileTypeEntry.fileCount);
+                var fileIndexes = typeReader.ReadMany<int>(br, fileTypeEntry.fileCount);
 
-                foreach (var fileIndex in fileIndeces)
+                foreach (var fileIndex in fileIndexes)
                 {
                     var fileStream = new SubStream(input, fileOffsets[fileIndex], fileEntries[fileIndex].fileSize);
 
                     br.BaseStream.Position = fileEntries[fileIndex].fileNameOffset;
-                    var fileName = br.ReadCStringASCII();
+                    var fileName = br.ReadNullTerminatedString();
                     fileName = fileName.Replace("..\\", "dd\\").Replace(".\\", "d\\");
 
-                    result.Add(new ArchiveFileInfo(fileStream, fileName));
+                    result.Add(new ArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = fileName,
+                        FileData = fileStream
+                    }));
                 }
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             var fileTypes = files.Select(x => x.FilePath.GetExtensionWithDot()).Distinct().ToArray();
 
-            var fileTypeEntriesPosition = _headerSize;
-            var fileTypeNamesPosition = fileTypeEntriesPosition + fileTypes.Length * _fileTypeEntrySize;
+            var fileTypeEntriesPosition = HeaderSize_;
+            var fileTypeNamesPosition = fileTypeEntriesPosition + fileTypes.Length * FileTypeEntrySize_;
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write file types
             var fileTypeEntryOffset = fileTypeEntriesPosition;
             var fileTypeNameOffset = fileTypeNamesPosition;
 
-            var fileInfos = new List<IArchiveFileInfo>();
+            var fileInfos = new List<IArchiveFile>();
             var fileIndex = 0;
             foreach (var fileType in fileTypes)
             {
@@ -85,7 +90,7 @@ namespace plugin_grezzo.Archives
 
                 // Write file indices
                 var fileIndexOffset = bw.BaseStream.Position = fileTypeNameOffset;
-                bw.WriteMultiple(Enumerable.Range(fileIndex, relevantFiles.Length));
+                typeWriter.WriteMany(Enumerable.Range(fileIndex, relevantFiles.Length), bw);
                 fileIndex += relevantFiles.Length;
 
                 // Write file type name
@@ -97,18 +102,18 @@ namespace plugin_grezzo.Archives
 
                 // Write file type
                 bw.BaseStream.Position = fileTypeEntryOffset;
-                bw.WriteType(new ZarFileTypeEntry
+                typeWriter.Write(new ZarFileTypeEntry
                 {
                     fileCount = relevantFiles.Length,
                     fileTypeNameOffset = newFileTypeNameOffset,
                     fileIndexOffset = (int)fileIndexOffset
-                });
+                }, bw);
 
-                fileTypeEntryOffset += _fileTypeEntrySize;
+                fileTypeEntryOffset += FileTypeEntrySize_;
             }
 
             var fileEntryPosition = fileTypeNameOffset;
-            var fileEntryNamePosition = fileEntryPosition + fileInfos.Count * _fileEntrySize;
+            var fileEntryNamePosition = fileEntryPosition + fileInfos.Count * FileEntrySize_;
 
             // Write file entries
             var fileEntryOffset = fileEntryPosition;
@@ -129,14 +134,14 @@ namespace plugin_grezzo.Archives
 
                 // Write file entry
                 bw.BaseStream.Position = fileEntryOffset;
-                bw.WriteType(new ZarFileEntry
+                typeWriter.Write(new ZarFileEntry
                 {
                     fileSize = (int)fileInfo.FileSize,
                     fileNameOffset = fileEntryNameOffset
-                });
+                }, bw);
 
                 fileEntryNameOffset = (int)newFileEntryNameOffset;
-                fileEntryOffset += _fileEntrySize;
+                fileEntryOffset += FileEntrySize_;
             }
 
             var fileOffsetsPosition = fileEntryNameOffset;
@@ -153,15 +158,15 @@ namespace plugin_grezzo.Archives
             }
 
             // Write file data
-            foreach (var fileInfo in fileInfos.Cast<ArchiveFileInfo>())
+            foreach (var fileInfo in fileInfos)
             {
-                fileInfo.SaveFileData(bw.BaseStream, null);
+                fileInfo.WriteFileData(bw.BaseStream);
                 bw.WriteAlignment(4);
             }
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new ZarHeader
+            typeWriter.Write(new ZarHeader
             {
                 fileTypeCount = (short)fileTypes.Length,
                 fileCount = (short)fileInfos.Count,
@@ -173,7 +178,7 @@ namespace plugin_grezzo.Archives
                 fileSize = (int)bw.BaseStream.Length,
 
                 headerString = _headerString
-            });
+            }, bw);
         }
     }
 }

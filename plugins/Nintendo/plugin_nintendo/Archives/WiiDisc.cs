@@ -1,38 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography.Nintendo.Wii;
+using Komponent.Streams;
+using Konnect.Contract.Plugin.File.Archive;
+using Kryptography.Encryption.Nintendo.Wii;
 
 namespace plugin_nintendo.Archives
 {
     // TODO: Make partition reading its own plugin?
     class WiiDisc
     {
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             var wiiDiscStream = new WiiDiscStream(input);
+
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(wiiDiscStream, ByteOrder.BigEndian);
 
             // Read disc header
-            var header = br.ReadType<WiiDiscHeader>();
+            var header = typeReader.Read<WiiDiscHeader>(br);
 
             // Read partition infos
             br.BaseStream.Position = 0x40000;
-            var partitionInformation = br.ReadType<WiiDiscPartitionInformation>();
+            var partitionInformation = typeReader.Read<WiiDiscPartitionInformation>(br);
 
             // Read partitions
             var partitions = new List<WiiDiscPartitionEntry>();
             br.BaseStream.Position = partitionInformation.partitionOffset1 << 2;
-            partitions.AddRange(br.ReadMultiple<WiiDiscPartitionEntry>(partitionInformation.partitionCount1));
+            partitions.AddRange(typeReader.ReadMany<WiiDiscPartitionEntry>(br, partitionInformation.partitionCount1));
 
             // Read region settings
             br.BaseStream.Position = 0x4E000;
-            var regionSettings = br.ReadType<WiiDiscRegionSettings>();
+            var regionSettings = typeReader.Read<WiiDiscRegionSettings>(br);
 
             // Read magic word
             br.BaseStream.Position = 0x4FFFC;
@@ -41,11 +39,11 @@ namespace plugin_nintendo.Archives
                 throw new InvalidOperationException("Invalid Wii disc magic word.");
 
             // Read data partitions
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var partition in partitions.Where(x => x.type == 0))
             {
                 br.BaseStream.Position = partition.offset << 2;
-                var partitionHeader = br.ReadType<WiiDiscPartitionHeader>();
+                var partitionHeader = typeReader.Read<WiiDiscPartitionHeader>(br);
 
                 var partitionStream = new SubStream(wiiDiscStream, (partition.offset << 2) + ((long)partitionHeader.dataOffset << 2), (long)partitionHeader.dataSize << 2);
                 var partitionDataStream = new WiiDiscPartitionDataStream(partitionStream);
@@ -53,7 +51,7 @@ namespace plugin_nintendo.Archives
                 using (var partitionBr = new BinaryReaderX(partitionDataStream, true, ByteOrder.BigEndian))
                 {
                     // Read partition data header
-                    var partitionDataHeader = partitionBr.ReadType<WiiDiscHeader>();
+                    var partitionDataHeader = typeReader.Read<WiiDiscHeader>(partitionBr);
 
                     // Read file system offset
                     partitionBr.BaseStream.Position = 0x424;

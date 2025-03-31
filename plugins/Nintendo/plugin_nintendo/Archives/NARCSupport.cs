@@ -1,6 +1,5 @@
-﻿using Komponent.IO.Attributes;
-using Kontract.Models.IO;
-#pragma warning disable 649
+﻿using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 
 namespace plugin_nintendo.Archives
 {
@@ -8,7 +7,7 @@ namespace plugin_nintendo.Archives
     {
         [FixedLength(4)]
         public string magic = "NARC";
-        public ByteOrder bom = ByteOrder.LittleEndian;
+        public ushort bom = (ushort)ByteOrder.LittleEndian;
         public short version = 0x100;
         public int fileSize;
         public short chunkSize = 0x10;

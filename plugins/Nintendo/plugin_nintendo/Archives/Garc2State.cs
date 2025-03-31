@@ -1,48 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class Garc2State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class Garc2State : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly GARC2 _garc2;
+        private readonly Garc2 _garc2 = new();
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        private List<IArchiveFile> _files;
+
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsChanged();
 
-        public Garc2State()
-        {
-            _garc2 = new GARC2();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _garc2.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _garc2.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _garc2.Save(output, Files);
-
-            return Task.CompletedTask;
+            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            _garc2.Save(output, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

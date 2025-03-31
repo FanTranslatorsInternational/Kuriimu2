@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using Kanvas;
-using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_grezzo.Images
 {
@@ -45,19 +43,13 @@ namespace plugin_grezzo.Images
         public string name;
     }
 
-    class CtxbImageInfo : ImageInfo
+    class CtxbImageFileInfo : ImageFileInfo
     {
         public int ChunkIndex { get; }
 
         public CtxbEntry Entry { get; }
 
-        public CtxbImageInfo(byte[] imageData, int imageFormat, Size imageSize, int chunkIndex, CtxbEntry entry) : base(imageData, imageFormat, imageSize)
-        {
-            ChunkIndex = chunkIndex;
-            Entry = entry;
-        }
-
-        public CtxbImageInfo(byte[] imageData, IList<byte[]> mipMaps, int imageFormat, Size imageSize, int chunkIndex, CtxbEntry entry) : base(imageData, mipMaps, imageFormat, imageSize)
+        public CtxbImageFileInfo(int chunkIndex, CtxbEntry entry)
         {
             ChunkIndex = chunkIndex;
             Entry = entry;

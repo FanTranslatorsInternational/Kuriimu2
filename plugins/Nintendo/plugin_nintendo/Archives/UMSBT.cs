@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
     class UMSBT
     {
-        private static readonly int EntrySize = Tools.MeasureType(typeof(UMSBTEntry));
+        private const int EntrySize = 0x8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read first offset
@@ -25,7 +24,7 @@ namespace plugin_nintendo.Archives
             var entries = new List<UMSBTEntry>();
             while (input.Position < firstOffset)
             {
-                var entry = br.ReadType<UMSBTEntry>();
+                var entry = typeReader.Read<UMSBTEntry>(br);
                 if (entry.size <= 0)
                     break;
 
@@ -33,7 +32,7 @@ namespace plugin_nintendo.Archives
             }
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
@@ -41,14 +40,19 @@ namespace plugin_nintendo.Archives
                 var subStream = new SubStream(input, entry.offset, entry.size);
                 var fileName = $"{i:00000000}.msbt";
 
-                result.Add(new ArchiveFileInfo(subStream, fileName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -58,10 +62,10 @@ namespace plugin_nintendo.Archives
             var entries = new List<UMSBTEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 entries.Add(new UMSBTEntry
                 {
@@ -74,7 +78,7 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             output.Position = 0;
-            bw.WriteMultiple(entries);
+            typeWriter.WriteMany(entries, bw);
         }
     }
 }

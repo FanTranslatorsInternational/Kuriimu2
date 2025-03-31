@@ -1,5 +1,5 @@
-﻿using Komponent.IO.Attributes;
-using Kontract.Models.IO;
+﻿using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 
 namespace plugin_nintendo.NW4C
 {
@@ -11,7 +11,7 @@ namespace plugin_nintendo.NW4C
         [FixedLength(4)]
         public string magic;
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ByteOrder byteOrder;
+        public ushort byteOrder;
         public short headerSize;
         public int version;
         public int fileSize;

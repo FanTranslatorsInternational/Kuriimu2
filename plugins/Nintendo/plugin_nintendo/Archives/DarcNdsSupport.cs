@@ -1,4 +1,4 @@
-﻿using Komponent.IO.Attributes;
+﻿using Komponent.Contract.Aspects;
 
 namespace plugin_nintendo.Archives
 {

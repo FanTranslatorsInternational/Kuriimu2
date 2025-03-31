@@ -1,13 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using Kanvas;
-using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
-
-#pragma warning disable 649
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
@@ -55,7 +51,7 @@ namespace plugin_nintendo.Images
 
     public class CtpkSupport
     {
-        public static Dictionary<int, IColorEncoding> CtrFormat = new Dictionary<int, IColorEncoding>
+        private static Dictionary<int, IColorEncoding> CtrFormat = new()
         {
             [0] = ImageFormats.Rgba8888(),
             [1] = ImageFormats.Rgb888(),
@@ -72,24 +68,19 @@ namespace plugin_nintendo.Images
             [12] = ImageFormats.Etc1(true),
             [13] = ImageFormats.Etc1A4(true)
         };
+
+        public static EncodingDefinition GetEncodingDefinitions()
+        {
+            var encodingDefinition = new EncodingDefinition();
+            encodingDefinition.AddColorEncodings(CtrFormat);
+
+            return encodingDefinition;
+        }
     }
 
-    class CtpkImageInfo : ImageInfo
+    class CtpkImageFileInfo : ImageFileInfo
     {
-        public TexEntry Entry { get; }
-
-        public MipmapEntry MipEntry { get; }
-
-        public CtpkImageInfo(byte[] imageData, int imageFormat, Size imageSize, TexEntry entry, MipmapEntry mipEntry) : base(imageData, imageFormat, imageSize)
-        {
-            Entry = entry;
-            MipEntry = mipEntry;
-        }
-
-        public CtpkImageInfo(byte[] imageData, IList<byte[]> mipMaps, int imageFormat, Size imageSize, TexEntry entry, MipmapEntry mipEntry) : base(imageData, mipMaps, imageFormat, imageSize)
-        {
-            Entry = entry;
-            MipEntry = mipEntry;
-        }
+        public TexEntry Entry { get; init; }
+        public MipmapEntry MipEntry { get; init; }
     }
 }

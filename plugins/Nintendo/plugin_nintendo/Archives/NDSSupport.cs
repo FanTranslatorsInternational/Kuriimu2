@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Komponent.Extensions;
+﻿using System.Text;
+using Komponent.Contract.Aspects;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-#pragma warning disable 649
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.DataClasses.FileSystem;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 /* Source: https://problemkaputt.de/gbatek.htm#dscartridgesencryptionfirmware */
 
@@ -344,55 +339,55 @@ namespace plugin_nintendo.Archives
         DSi = 3
     }
 
-    class OverlayArchiveFileInfo : ArchiveFileInfo
+    class OverlayArchiveFile : ArchiveFile
     {
         public OverlayEntry Entry { get; }
 
-        public OverlayArchiveFileInfo(Stream fileData, string filePath, OverlayEntry entry) : base(fileData, filePath)
+        public OverlayArchiveFile(ArchiveFileInfo fileInfo, OverlayEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
     }
 
-    class FileIdArchiveFileInfo : ArchiveFileInfo, IFileIdArchiveFileInfo
+    class FileIdArchiveFile : ArchiveFile, IFileIdArchiveFile
     {
         public int FileId { get; set; }
 
-        public FileIdArchiveFileInfo(Stream fileData, string filePath, int fileId) : base(fileData, filePath)
+        public FileIdArchiveFile(ArchiveFileInfo fileInfo, int fileId) : base(fileInfo)
         {
             FileId = fileId;
         }
     }
 
-    interface IFileIdArchiveFileInfo : IArchiveFileInfo
+    interface IFileIdArchiveFile : IArchiveFile
     {
         int FileId { get; set; }
     }
 
     static class NdsSupport
     {
-        public static IEnumerable<IArchiveFileInfo> ReadFnt(BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
+        public static IEnumerable<IArchiveFile> ReadFnt(BinaryTypeReader typeReader, BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
         {
             br.BaseStream.Position = fntOffset;
-            var mainEntry = br.ReadType<MainFntEntry>();
+            var mainEntry = typeReader.Read<MainFntEntry>(br);
 
             br.BaseStream.Position = fntOffset;
-            var mainEntries = br.ReadMultiple<MainFntEntry>(mainEntry.parentDirectory);
+            var mainEntries = typeReader.ReadMany<MainFntEntry>(br, mainEntry.parentDirectory);
 
-            foreach (var file in ReadSubFnt(br, mainEntries[0], fntOffset, contentOffset, "/", mainEntries, fileEntries))
+            foreach (var file in ReadSubFnt(typeReader, br, mainEntries[0], fntOffset, contentOffset, "/", mainEntries, fileEntries))
                 yield return file;
         }
 
-        public static void WriteFnt(BinaryWriterX bw, int fntOffset, IList<IArchiveFileInfo> files, int startFileId = 0)
+        public static void WriteFnt(BinaryTypeWriter typeWriter, BinaryWriterX bw, int fntOffset, IList<IArchiveFile> files, int startFileId = 0)
         {
             var fileTree = files.ToTree();
             var totalDirectories = CountTotalDirectories(fileTree);
-            var contentOffset = fntOffset + totalDirectories * Tools.MeasureType(typeof(MainFntEntry));
+            var contentOffset = fntOffset + totalDirectories * 0x8;
 
             var baseOffset = fntOffset;
             var fileId = startFileId;
             var dirId = 0;
-            WriteFnt(bw, baseOffset, ref fntOffset, ref contentOffset, ref fileId, ref dirId, 0, fileTree);
+            WriteFnt(typeWriter, bw, baseOffset, ref fntOffset, ref contentOffset, ref fileId, ref dirId, 0, fileTree);
 
             // Write total directories
             bw.BaseStream.Position = baseOffset + 6;
@@ -409,21 +404,21 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        private static void WriteFnt(BinaryWriterX bw, int baseOffset, ref int fntOffset, ref int contentOffset, ref int fileId, ref int dirId, int parentDirId, DirectoryEntry entry)
+        private static void WriteFnt(BinaryTypeWriter typeWriter, BinaryWriterX bw, int baseOffset, ref int fntOffset, ref int contentOffset, ref int fileId, ref int dirId, int parentDirId, DirectoryEntry entry)
         {
             // Write dir entry
             bw.BaseStream.Position = fntOffset;
-            bw.WriteType(new MainFntEntry
+            typeWriter.Write(new MainFntEntry
             {
                 subTableOffset = contentOffset - baseOffset,
                 firstFileId = (short)fileId,
                 parentDirectory = (ushort)(0xF000 + parentDirId)
-            });
+            }, bw);
             fntOffset += 8;
 
             // Write file names
             bw.BaseStream.Position = contentOffset;
-            foreach (var file in entry.Files.Cast<IFileIdArchiveFileInfo>())
+            foreach (var file in entry.Files.Cast<IFileIdArchiveFile>())
             {
                 bw.WriteString(file.FilePath.GetName(), Encoding.ASCII, true, false);
                 file.FileId = fileId++;
@@ -443,13 +438,13 @@ namespace plugin_nintendo.Archives
 
                 contentOffset = (int)bw.BaseStream.Position;
 
-                WriteFnt(bw, baseOffset, ref fntOffset, ref nextContentOffset, ref fileId, ref dirId, currentDirId, dir);
+                WriteFnt(typeWriter, bw, baseOffset, ref fntOffset, ref nextContentOffset, ref fileId, ref dirId, currentDirId, dir);
             }
 
             contentOffset = nextContentOffset;
         }
 
-        private static IEnumerable<IArchiveFileInfo> ReadSubFnt(BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, int contentOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
+        private static IEnumerable<IArchiveFile> ReadSubFnt(BinaryTypeReader typeReader, BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, int contentOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
         {
             var tableOffset = fntOffset + dirEntry.subTableOffset;
             var firstFileId = dirEntry.firstFileId;
@@ -480,7 +475,7 @@ namespace plugin_nintendo.Archives
                     tableOffset = (int)br.BaseStream.Position;
 
                     var subDirEntry = directoryEntries[dirEntryId & 0x0FFF];
-                    foreach (var file in ReadSubFnt(br, subDirEntry, fntOffset, contentOffset, Path.Combine(path, name), directoryEntries, fileEntries))
+                    foreach (var file in ReadSubFnt(typeReader, br, subDirEntry, fntOffset, contentOffset, Path.Combine(path, name), directoryEntries, fileEntries))
                         yield return file;
                 }
 
@@ -489,19 +484,31 @@ namespace plugin_nintendo.Archives
             }
         }
 
-        public static IArchiveFileInfo CreateAfi(Stream input, int offset, int length, string fileName)
+        public static IArchiveFile CreateAfi(Stream input, int offset, int length, string fileName)
         {
-            return new ArchiveFileInfo(new SubStream(input, offset, length), fileName);
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = new SubStream(input, offset, length)
+            });
         }
 
-        public static IArchiveFileInfo CreateAfi(Stream input, int offset, int length, string fileName, int fileId)
+        public static IArchiveFile CreateAfi(Stream input, int offset, int length, string fileName, int fileId)
         {
-            return new FileIdArchiveFileInfo(new SubStream(input, offset, length), fileName, fileId);
+            return new FileIdArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = new SubStream(input, offset, length)
+            }, fileId);
         }
 
-        public static IArchiveFileInfo CreateAfi(Stream input, int offset, int length, string fileName, OverlayEntry entry)
+        public static IArchiveFile CreateAfi(Stream input, int offset, int length, string fileName, OverlayEntry entry)
         {
-            return new OverlayArchiveFileInfo(new SubStream(input, offset, length), fileName, entry);
+            return new OverlayArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = new SubStream(input, offset, length)
+            }, entry);
         }
     }
 }

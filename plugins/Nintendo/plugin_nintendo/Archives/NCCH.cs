@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Checksum;
 
 namespace plugin_nintendo.Archives
 {
-    public class NCCH
+    public class Ncch
     {
         private const int MediaSize_ = 0x200;
 
@@ -19,40 +18,53 @@ namespace plugin_nintendo.Archives
         private const string ExeFsFolder_ = "ExeFs";
         private const string RomFsFolder_ = "RomFs";
 
-        private static int _ncchHeaderSize = Tools.MeasureType(typeof(NcchHeader));
-        private static int _exeFsHeaderSize = Tools.MeasureType(typeof(NcchExeFsHeader));
+        private const int NcchHeaderSize_ = 0x200;
+        private const int ExeFsHeaderSize_ = 0x200;
 
         private NcchHeader _ncchHeader;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _ncchHeader = br.ReadType<NcchHeader>();
+            _ncchHeader = typeReader.Read<NcchHeader>(br);
 
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
             // Add ExtendedHeader
             if (_ncchHeader.exHeaderSize != 0)
             {
                 // ExHeader is stored 2 times, but stored size only reflects one of them
                 var exHeaderStream = new SubStream(input, br.BaseStream.Position, _ncchHeader.exHeaderSize * 2);
-                result.Add(new ArchiveFileInfo(exHeaderStream, ExHeaderFileName_));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = ExHeaderFileName_,
+                    FileData = exHeaderStream
+                }));
             }
 
             // Add PlainRegion
             if (_ncchHeader.plainRegionOffset != 0 && _ncchHeader.plainRegionSize != 0)
             {
                 var plainRegionStream = new SubStream(input, _ncchHeader.plainRegionOffset * MediaSize_, _ncchHeader.plainRegionSize * MediaSize_);
-                result.Add(new ArchiveFileInfo(plainRegionStream, PlainRegionFileName_));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = PlainRegionFileName_,
+                    FileData = plainRegionStream
+                }));
             }
 
             // Add LogoRegion
             if (_ncchHeader.logoRegionOffset != 0 && _ncchHeader.logoRegionSize != 0)
             {
                 var logoStream = new SubStream(input, _ncchHeader.logoRegionOffset * MediaSize_, _ncchHeader.logoRegionSize * MediaSize_);
-                result.Add(new ArchiveFileInfo(logoStream, LogoRegionFileName_));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = LogoRegionFileName_,
+                    FileData = logoStream
+                }));
                 // TODO: Add Guid for logo icn
             }
 
@@ -61,7 +73,7 @@ namespace plugin_nintendo.Archives
             {
                 // Read and resolve ExeFS data
                 br.BaseStream.Position = _ncchHeader.exeFsOffset * MediaSize_;
-                var exeFs = br.ReadType<NcchExeFsHeader>();
+                var exeFs = typeReader.Read<NcchExeFsHeader>(br);
                 var exeFsFilePosition = br.BaseStream.Position;
 
                 // Add Files from ExeFS
@@ -71,7 +83,11 @@ namespace plugin_nintendo.Archives
                         break;
 
                     var exeFsFileStream = new SubStream(input, exeFsFilePosition + file.offset, file.size);
-                    result.Add(new ArchiveFileInfo(exeFsFileStream, ExeFsFolder_ + "/" + file.name.TrimEnd('\0')));
+                    result.Add(new ArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = ExeFsFolder_ + "/" + file.name.TrimEnd('\0'),
+                        FileData = exeFsFileStream
+                    }));
                     // TODO: Add decompression if file.name == ".code" && (exHeader.sci.flag & 0x1) == 1
                 }
             }
@@ -87,26 +103,32 @@ namespace plugin_nintendo.Archives
                 foreach (var file in romFs.Files)
                 {
                     var romFsFileStream = new SubStream(br.BaseStream, file.fileOffset, file.fileSize);
-                    result.Add(new ArchiveFileInfo(romFsFileStream, RomFsFolder_ + file.filePath));
+                    result.Add(new ArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = RomFsFolder_ + file.filePath,
+                        FileData = romFsFileStream
+                    }));
                 }
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
-            var hash = new Kryptography.Hash.Sha256();
+            var hash = new Sha256();
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
-            bw.BaseStream.Position = _ncchHeaderSize;
+            bw.BaseStream.Position = NcchHeaderSize_;
 
             // Write and update exHeader information
             var exHeaderFile = files.FirstOrDefault(f => f.FilePath.GetName() == ExHeaderFileName_);
             if (exHeaderFile != null)
             {
                 var exHeaderPosition = bw.BaseStream.Position;
-                var writtenSize = (exHeaderFile as ArchiveFileInfo).SaveFileData(output);
+                var writtenSize = exHeaderFile.WriteFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -124,7 +146,7 @@ namespace plugin_nintendo.Archives
             if (logoRegionFile != null)
             {
                 var logoRegionPosition = bw.BaseStream.Position;
-                var writtenSize = (logoRegionFile as ArchiveFileInfo).SaveFileData(output);
+                var writtenSize = logoRegionFile.WriteFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -144,7 +166,7 @@ namespace plugin_nintendo.Archives
             if (plainRegionFile != null)
             {
                 var plainRegionPosition = bw.BaseStream.Position;
-                (plainRegionFile as ArchiveFileInfo).SaveFileData(output);
+                plainRegionFile.WriteFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -166,8 +188,8 @@ namespace plugin_nintendo.Archives
 
                 _ncchHeader.exeFsOffset = (int)(exeFsPosition / MediaSize_);
                 _ncchHeader.exeFsSize = (int)(exeFsSize / MediaSize_);
-                _ncchHeader.exeFsHashRegionSize = _exeFsHeaderSize / MediaSize_;
-                _ncchHeader.exeFsSuperBlockHash = hash.Compute(new SubStream(output, exeFsPosition, _exeFsHeaderSize));
+                _ncchHeader.exeFsHashRegionSize = ExeFsHeaderSize_ / MediaSize_;
+                _ncchHeader.exeFsSuperBlockHash = hash.Compute(new SubStream(output, exeFsPosition, ExeFsHeaderSize_));
 
                 bw.WriteAlignment(0x1000);
             }
@@ -218,7 +240,7 @@ namespace plugin_nintendo.Archives
             _ncchHeader.ncchSize = (int)(output.Length / MediaSize_);
 
             bw.BaseStream.Position = 0;
-            bw.WriteType(_ncchHeader);
+            typeWriter.Write(_ncchHeader, bw);
         }
     }
 }

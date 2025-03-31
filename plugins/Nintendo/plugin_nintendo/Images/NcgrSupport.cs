@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
-#pragma warning disable 649
+﻿using Kanvas;
+using Kanvas.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
@@ -10,7 +10,6 @@ namespace plugin_nintendo.Images
     {
         [FixedLength(4)]
         public string magic;
-
         public int sectionSize;
         public short tileCountX;
         public short tileCountY;
@@ -24,11 +23,25 @@ namespace plugin_nintendo.Images
 
     class NitroTtlpHeader
     {
-        [FixedLength(4)] public string magic;
+        [FixedLength(4)]
+        public string magic;
         public int sectionSize;
         public int colorDepth;  // Not depth of the palette colors; Colors are BGR555 always
         public int unk1;
         public int paletteSize;
         public int colorsPerPalette;
+    }
+
+    class NcgrSupport
+    {
+        public static EncodingDefinition GetEncodingDefinition()
+        {
+            var encodingDefinition = new EncodingDefinition();
+            encodingDefinition.AddPaletteEncoding(0, new Rgba(5, 5, 5, "BGR"));
+            encodingDefinition.AddIndexEncoding(3, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), [0]);
+            encodingDefinition.AddIndexEncoding(4, ImageFormats.I8(), [0]);
+
+            return encodingDefinition;
+        }
     }
 }

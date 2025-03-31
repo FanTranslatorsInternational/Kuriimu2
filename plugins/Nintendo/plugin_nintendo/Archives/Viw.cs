@@ -1,42 +1,42 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using plugin_nintendo.Compression;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using plugin_nintendo.Common.Compression;
 
 namespace plugin_nintendo.Archives
 {
     class Viw
     {
-        private static readonly int InfHeaderSize = Tools.MeasureType(typeof(ViwInfHeader));
-        private static readonly int InfEntrySize = Tools.MeasureType(typeof(ViwInfEntry));
+        private const int InfHeaderSize = 0x10;
+        private const int InfEntrySize = 0x8;
 
         private IList<ViwInfMetaEntry> _metas;
         private IList<ViwEntry> _nameEntries;
 
-        public IList<IArchiveFileInfo> Load(Stream viwStream, Stream infStream, Stream dataStream)
+        public List<IArchiveFile> Load(Stream viwStream, Stream infStream, Stream dataStream)
         {
+            var typeReader = new BinaryTypeReader();
             using var infBr = new BinaryReaderX(infStream);
             using var viwBr = new BinaryReaderX(viwStream);
 
             // Read inf header
-            var infHeader = infBr.ReadType<ViwInfHeader>();
+            var infHeader = typeReader.Read<ViwInfHeader>(infBr);
 
             // Read entries
             infStream.Position = infHeader.entryOffset;
-            var entries = infBr.ReadMultiple<ViwInfEntry>(infHeader.fileCount);
+            var entries = typeReader.ReadMany<ViwInfEntry>(infBr, infHeader.fileCount);
 
             // Read meta entries
             infStream.Position = infHeader.metaOffset;
-            _metas = infBr.ReadMultiple<ViwInfMetaEntry>(infHeader.metaCount);
+            _metas = typeReader.ReadMany<ViwInfMetaEntry>(infBr, infHeader.metaCount);
 
             // Read name entries
-            _nameEntries = viwBr.ReadMultiple<ViwEntry>(infHeader.metaCount <= 0 ? infHeader.fileCount : infHeader.metaCount);
+            _nameEntries = typeReader.ReadMany<ViwEntry>(viwBr, infHeader.metaCount <= 0 ? infHeader.fileCount : infHeader.metaCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < infHeader.fileCount; i++)
             {
                 var entry = entries[i];
@@ -51,8 +51,9 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream viwStream, Stream infStream, Stream dataStream, IList<IArchiveFileInfo> files)
+        public void Save(Stream viwStream, Stream infStream, Stream dataStream, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var infBw = new BinaryWriterX(infStream);
             using var viwBw = new BinaryWriterX(viwStream);
 
@@ -64,10 +65,10 @@ namespace plugin_nintendo.Archives
             var entries = new List<ViwInfEntry>();
 
             var filePosition = 0;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 dataStream.Position = filePosition;
-                var writtenSize = file.SaveFileData(dataStream);
+                var writtenSize = file.WriteFileData(dataStream);
 
                 entries.Add(new ViwInfEntry
                 {
@@ -80,34 +81,40 @@ namespace plugin_nintendo.Archives
 
             // Write metas
             infStream.Position = metaOffset;
-            infBw.WriteMultiple(_metas);
+            typeWriter.WriteMany(_metas, infBw);
 
             // Write entries
             infStream.Position = entryOffset;
-            infBw.WriteMultiple(entries);
+            typeWriter.WriteMany(entries, infBw);
 
             // Write inf header
             infStream.Position = 0;
-            infBw.WriteType(new ViwInfHeader
+            typeWriter.Write(new ViwInfHeader
             {
                 fileCount = files.Count,
                 metaCount = _metas.Count,
                 entryOffset = entryOffset,
                 metaOffset = metaOffset
-            });
+            }, infBw);
 
             // Write name entries
-            viwBw.WriteMultiple(_nameEntries);
+            typeWriter.WriteMany(_nameEntries, viwBw);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream file, string name)
+        private IArchiveFile CreateAfi(Stream file, string name)
         {
             file.Position = 0;
 
             var method = NintendoCompressor.PeekCompressionMethod(file);
             var size = NintendoCompressor.PeekDecompressedSize(file);
 
-            return new ArchiveFileInfo(file, name, NintendoCompressor.GetConfiguration(method), size);
+            return new ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = name,
+                FileData = file,
+                Compression = NintendoCompressor.GetCompression(method),
+                DecompressedSize = size
+            });
         }
     }
 }

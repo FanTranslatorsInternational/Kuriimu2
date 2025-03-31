@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Kanvas;
-using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {

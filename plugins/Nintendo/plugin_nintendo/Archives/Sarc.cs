@@ -1,55 +1,54 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography.Hash;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Kryptography.Checksum;
 
 namespace plugin_nintendo.Archives
 {
     class Sarc
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(SarcHeader));
-        private static readonly int SfatHeaderSize = Tools.MeasureType(typeof(SfatHeader));
-        private static readonly int SfatEntrySize = Tools.MeasureType(typeof(SfatEntry));
-        private static readonly int SfntHeaderSize = Tools.MeasureType(typeof(SfntHeader));
+        private const int HeaderSize = 0x14;
+        private const int SfatHeaderSize = 0xC;
+        private const int SfatEntrySize = 0x10;
+        private const int SfntHeaderSize = 0x8;
 
         private ByteOrder _byteOrder;
         private SarcHeader _header;
         private SfatHeader _sfatHeader;
         private SfntHeader _sfntHeader;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Determine byte order
             input.Position = 0x6;
-            br.ByteOrder = _byteOrder = br.ReadType<ByteOrder>();
+            br.ByteOrder = _byteOrder = (ByteOrder)br.ReadUInt16();
 
             // Read header
             input.Position = 0;
-            _header = br.ReadType<SarcHeader>();
+            _header = typeReader.Read<SarcHeader>(br);
 
             // Read entries
-            _sfatHeader = br.ReadType<SfatHeader>();
-            var entries = br.ReadMultiple<SfatEntry>(_sfatHeader.entryCount);
+            _sfatHeader = typeReader.Read<SfatHeader>(br);
+            var entries = typeReader.ReadMany<SfatEntry>(br, _sfatHeader.entryCount);
 
             // Read names
             BinaryReaderX nameBr = null;
             if (entries.Any(x => (x.Flags & 0x100) > 0))
             {
-                _sfntHeader = br.ReadType<SfntHeader>();
+                _sfntHeader = typeReader.Read<SfntHeader>(br);
                 var nameStream = new SubStream(input, input.Position, _header.dataOffset - input.Position);
                 nameBr = new BinaryReaderX(nameStream);
             }
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, _header.dataOffset + entry.startOffset, entry.endOffset - entry.startOffset);
@@ -59,21 +58,27 @@ namespace plugin_nintendo.Archives
                 if (nameBr != null)
                 {
                     nameBr.BaseStream.Position = entry.FntOffset;
-                    name = nameBr.ReadCStringASCII();
+                    name = nameBr.ReadNullTerminatedString();
                 }
 
-                result.Add(new SarcArchiveFileInfo(fileStream, name, magic, entry));
+                result.Add(new SarcArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = fileStream
+                }, magic, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files, bool isCompressed)
+        public void Save(Stream output, IList<IArchiveFile> files, bool isCompressed)
         {
-            var simpleHash = new SimpleHash(_sfatHeader.hashMultiplier);
+            var simpleHash = new Simple(_sfatHeader.hashMultiplier);
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true, _byteOrder);
 
-            var sortedFiles = files.Cast<SarcArchiveFileInfo>().OrderBy(x => _sfntHeader == null ? x.Entry.nameHash : simpleHash.ComputeValue(x.FilePath.ToRelative().FullName)).ToArray();
+            var sortedFiles = files.Cast<SarcArchiveFile>().OrderBy(x => _sfntHeader == null ? x.Entry.nameHash : simpleHash.ComputeValue(x.FilePath.ToRelative().FullName)).ToArray();
 
             // Calculate offsets
             var sfatOffset = HeaderSize;
@@ -98,7 +103,7 @@ namespace plugin_nintendo.Archives
                 var alignedDataPosition = (dataPosition + alignment - 1) & ~(alignment - 1);
 
                 output.Position = alignedDataPosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 // Add entry
                 entries.Add(new SfatEntry
@@ -119,25 +124,25 @@ namespace plugin_nintendo.Archives
 
             // Write SFNT
             output.Position = sfntOffset;
-            bw.WriteType(new SfntHeader());
+            typeWriter.Write(new SfntHeader(), bw);
 
             if (_sfntHeader != null)
             {
                 foreach (var s in strings)
                 {
-                    bw.WriteString(s, Encoding.ASCII, false);
+                    bw.WriteString(s, Encoding.ASCII);
                     bw.WriteAlignment(4);
                 }
             }
 
             // Write SFAT
             output.Position = sfatOffset;
-            bw.WriteType(new SfatHeader { entryCount = (short)files.Count, hashMultiplier = _sfatHeader.hashMultiplier });
-            bw.WriteMultiple(entries);
+            typeWriter.Write(new SfatHeader { entryCount = (short)files.Count, hashMultiplier = _sfatHeader.hashMultiplier }, bw);
+            typeWriter.WriteMany(entries, bw);
 
             // Write header
             output.Position = 0;
-            bw.WriteType(new SarcHeader { byteOrder = _byteOrder, dataOffset = alignedDataOffset, fileSize = (int)output.Length, unk1 = _header.unk1 });
+            typeWriter.Write(new SarcHeader { byteOrder = (ushort)_byteOrder, dataOffset = alignedDataOffset, fileSize = (int)output.Length, unk1 = _header.unk1 }, bw);
         }
     }
 }

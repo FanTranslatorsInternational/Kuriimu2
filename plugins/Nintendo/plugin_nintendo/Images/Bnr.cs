@@ -1,10 +1,9 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Image;
-using Kryptography.Hash.Crc;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Kryptography.Checksum.Crc;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
@@ -14,12 +13,13 @@ namespace plugin_nintendo.Images
         private byte[] _titleInfo;
         private byte[] _animationInfo;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<BnrHeader>();
+            _header = typeReader.Read<BnrHeader>(br);
 
             // Read indices
             var indexData = br.ReadBytes(0x200);
@@ -34,18 +34,24 @@ namespace plugin_nintendo.Images
             if (_header.version >= 0x103)
                 _animationInfo = br.ReadBytes(0x1180);
 
-            var imageInfo =new ImageInfo(indexData, 0, new Size(32, 32))
+            var imageInfo = new ImageFileInfo
             {
+                BitDepth = BnrSupport.GetEncodingDefinition().GetIndexEncoding(0).IndexEncoding.BitDepth,
+                ImageData = indexData,
+                ImageFormat = 0,
+                ImageSize = new Size(32, 32),
                 PaletteData = paletteData,
-                PaletteFormat = 0
+                PaletteFormat = 0,
+                PaletteBitDepth = BnrSupport.GetEncodingDefinition().GetPaletteEncoding(0).BitDepth,
+                RemapPixels = context => new NitroSwizzle(context)
             };
-            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -82,7 +88,7 @@ namespace plugin_nintendo.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
         }
 
         private int GetTitleInfoSize(short version)

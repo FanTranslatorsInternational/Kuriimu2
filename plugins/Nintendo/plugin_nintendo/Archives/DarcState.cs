@@ -1,64 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
-using plugin_nintendo.Compression;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using plugin_nintendo.Common.Compression;
 
 namespace plugin_nintendo.Archives
 {
-    class DarcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class DarcState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly Darc _arc;
+        private readonly Darc _arc = new();
         private NintendoCompressionMethod _method;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        private List<IArchiveFile> _files;
+
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsChanged();
 
-        public DarcState()
-        {
-            _arc = new Darc();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            if (TryDecompress(fileStream, out var decompressedFile, out _method))
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            if (TryDecompress(fileStream, out Stream decompressedFile, out _method))
                 fileStream = decompressedFile;
 
-            Files = _arc.Load(fileStream);
+            _files = _arc.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var output = _method == NintendoCompressionMethod.Unsupported ?
-                fileSystem.OpenFile(savePath, FileMode.Create) :
+            Stream output = _method == NintendoCompressionMethod.Unsupported ?
+                await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write) :
                 new MemoryStream();
 
-            _arc.Save(output, Files);
+            _arc.Save(output, _files);
 
             if (_method != NintendoCompressionMethod.Unsupported)
             {
-                var final = fileSystem.OpenFile(savePath, FileMode.Create);
+                Stream final = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
                 output.Position = 0;
-                NintendoCompressor.GetConfiguration(_method).Build().Compress(output, final);
+                NintendoCompressor.Compress(output, final, _method);
             }
-
-            return Task.CompletedTask;
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
@@ -79,7 +65,7 @@ namespace plugin_nintendo.Archives
             try
             {
                 decompressedFile = new MemoryStream();
-                NintendoCompressor.GetConfiguration(method).Build().Decompress(input, decompressedFile);
+                NintendoCompressor.Decompress(input, decompressedFile);
                 decompressedFile.Position = 0;
             }
             catch

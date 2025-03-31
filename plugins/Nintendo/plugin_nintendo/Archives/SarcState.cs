@@ -1,34 +1,25 @@
 ﻿using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class SarcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class SarcState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Sarc _arc;
+        private readonly Sarc _arc = new();
 
         private string _compMagic;
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public SarcState()
-        {
-            _arc = new Sarc();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -37,30 +28,28 @@ namespace plugin_nintendo.Archives
             // Decompress, if necessary
             fileStream = Decompress(fileStream);
 
-            Files = _arc.Load(fileStream);
+            _files = _arc.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = _compMagic == null ?
-                fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write) :
+                await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write) :
                 new MemoryStream();
 
-            _arc.Save(fileStream, Files, _compMagic != null);
+            _arc.Save(fileStream, _files, _compMagic != null);
 
             // Compress if necessary
             if (_compMagic != null)
             {
                 fileStream.Position = 0;
-                var compStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+                var compStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
                 Compress(fileStream, compStream);
             }
-
-            return Task.CompletedTask;
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
@@ -81,8 +70,8 @@ namespace plugin_nintendo.Archives
             {
                 _compMagic = "zlib";
 
-                var destination=new MemoryStream();
-                Compressions.ZLib.Build().Decompress(new SubStream(input, 4, input.Length - 4),destination);
+                var destination = new MemoryStream();
+                Compressions.ZLib.Build().Decompress(new SubStream(input, 4, input.Length - 4), destination);
                 destination.Position = 0;
 
                 return destination;
@@ -90,7 +79,7 @@ namespace plugin_nintendo.Archives
 
             // Detect Yaz0
             br.BaseStream.Position = 0;
-            _compMagic = br.PeekString();
+            _compMagic = br.PeekString(4);
 
             if (_compMagic == "Yaz0")
             {
@@ -121,7 +110,7 @@ namespace plugin_nintendo.Archives
                 case "zlib":
                     var decompSizeBytes = new byte[4];
 
-                    BinaryPrimitives.WriteInt32BigEndian(decompSizeBytes,(int)input.Length);
+                    BinaryPrimitives.WriteInt32BigEndian(decompSizeBytes, (int)input.Length);
                     output.Write(decompSizeBytes);
 
                     Compressions.ZLib.Build().Compress(input, output);

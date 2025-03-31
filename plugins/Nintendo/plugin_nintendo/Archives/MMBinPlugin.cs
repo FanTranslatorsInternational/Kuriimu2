@@ -1,28 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Archives
 {
     public class MMBinPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("3f6edc1c-215f-4c25-9e06-1bea714e72fe");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.bin" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bin"];
 
-        public MMBinPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("MMBin", "IcySon55", "2D resource from Mario Maker.");
-        }
+            Name = "MMBin",
+            Author = "IcySon55",
+            LongDescription = "2D resource from Mario Maker."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new MMBinState();
         }

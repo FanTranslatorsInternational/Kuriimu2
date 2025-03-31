@@ -1,31 +1,31 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
     public class U8
     {
-        private static int _headerSize = 0x20;
-        private static int _entrySize = Tools.MeasureType(typeof(U8Entry));
+        private const int HeaderSize_ = 0x20;
+        private const int EntrySize_ = 0xC;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header
-            var header = br.ReadType<U8Header>();
+            var header = typeReader.Read<U8Header>(br);
 
             // Parse file system
             var fileSystemParser = new DefaultU8FileSystem(UPath.Root);
-            return fileSystemParser.Parse(input, header.entryDataOffset, header.entryDataSize, 0).ToArray();
+            return fileSystemParser.Parse(input, header.entryDataOffset, header.entryDataSize, 0).ToList();
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
             var u8TreeBuilder = new U8TreeBuilder(Encoding.ASCII);
             u8TreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
@@ -33,9 +33,10 @@ namespace plugin_nintendo.Archives
             var entries = u8TreeBuilder.Entries;
             var nameStream = u8TreeBuilder.NameStream;
 
-            var namePosition = _headerSize + entries.Count * _entrySize;
+            var namePosition = HeaderSize_ + entries.Count * EntrySize_;
             var dataOffset = (namePosition + (int)nameStream.Length + 0x1F) & ~0x1F;
 
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Write names
@@ -50,24 +51,24 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(0x20);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream);
+                var writtenSize = afi.WriteFileData(bw.BaseStream);
 
                 u8Entry.offset = fileOffset;
                 u8Entry.size = (int)writtenSize;
             }
 
             // Write entries
-            bw.BaseStream.Position = _headerSize;
-            bw.WriteMultiple(entries.Select(x => x.Item1));
+            bw.BaseStream.Position = HeaderSize_;
+            typeWriter.WriteMany(entries.Select(x => x.Item1), bw);
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new U8Header
+            typeWriter.Write(new U8Header
             {
-                entryDataOffset = _headerSize,
-                entryDataSize = entries.Count * _entrySize + (int)nameStream.Length,
+                entryDataOffset = HeaderSize_,
+                entryDataSize = entries.Count * EntrySize_ + (int)nameStream.Length,
                 dataOffset = dataOffset
-            });
+            }, bw);
             bw.WritePadding(0x10, 0xCC);
         }
     }

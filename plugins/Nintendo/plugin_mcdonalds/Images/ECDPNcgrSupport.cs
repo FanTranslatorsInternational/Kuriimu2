@@ -1,6 +1,4 @@
-﻿using Komponent.IO.Attributes;
-using Kontract.Models.IO;
-#pragma warning disable 649
+﻿using Komponent.Contract.Aspects;
 
 namespace plugin_mcdonalds.Images
 {
@@ -8,7 +6,6 @@ namespace plugin_mcdonalds.Images
     {
         [FixedLength(4)]
         public string magic;
-
         public int sectionSize;
         public short tileCountX;
         public short tileCountY;
@@ -22,9 +19,10 @@ namespace plugin_mcdonalds.Images
 
     class NitroTtlpHeader
     {
-        [FixedLength(4)] public string magic;
+        [FixedLength(4)]
+        public string magic;
         public int sectionSize;
-        public int colorDepth;  // Not depth of the palette colors; Colors are BGR555 always
+        public int colorDepth;
         public int unk1;
         public int paletteSize;
         public int colorsPerPalette;
@@ -34,8 +32,7 @@ namespace plugin_mcdonalds.Images
     {
         [FixedLength(4)]
         public string magic;
-
-        public ByteOrder byteOrder;
+        public ushort byteOrder;
         public short unk1;
         public int sectionSize;
         public short headerSize;

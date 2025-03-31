@@ -1,49 +1,50 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Providers;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
-using plugin_nintendo.Images;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 using plugin_nintendo.NW4C;
 
-namespace plugin_nintendo.BCLIM
+namespace plugin_nintendo.Images
 {
-    public class BxlimPlugin : IFilePlugin, IIdentifyFiles
+    public class BxlimPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("cf5ae49f-0ce9-4241-900c-668b5c62ce33");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.bclim", "*.bflim" };
-        public PluginMetadata Metadata { get; }
 
-        public BxlimPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.bclim", "*.bflim"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("BXLIM", "IcySon55, onepiecefreak", "The BCLIM and BFLIM image containers used in Nintendo 3DS games or newer.");
-        }
+            Name = "BXLIM",
+            Author = "IcySon55, onepiecefreak",
+            LongDescription = "The BCLIM and BFLIM image containers used in Nintendo 3DS games or newer."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
+
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(fileStream, ByteOrder.BigEndian);
 
             // Read byte order
             fileStream.Position = fileStream.Length - 0x24;
-            var byteOrder = br.ReadType<ByteOrder>();
+            var byteOrder = (ByteOrder)br.ReadUInt16();
 
             // Read header
             br.ByteOrder = byteOrder;
             fileStream.Position = fileStream.Length - 0x28;
-            var header = br.ReadType<NW4CHeader>();
+            var header = typeReader.Read<NW4CHeader>(br);
 
             return (header.magic == "CLIM" || header.magic == "FLIM") && header.fileSize == fileStream.Length;
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new BxlimState();
         }

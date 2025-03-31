@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Kanvas.Encoding;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
@@ -17,7 +15,7 @@ namespace plugin_nintendo.Images
 
     public class RawJtexSupport
     {
-        private static readonly IDictionary<int, IColorEncoding> JtexFormats = new Dictionary<int, IColorEncoding>
+        private static readonly Dictionary<int, IColorEncoding> JtexFormats = new()
         {
             [2] = ImageFormats.Rgba8888(),
             [3] = ImageFormats.Rgb888(),

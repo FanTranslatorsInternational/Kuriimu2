@@ -1,34 +1,32 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_grezzo.Images
 {
-	/* Original understanding by xdaniel and his tool Tharsis
+    /* Original understanding by xdaniel and his tool Tharsis
 	 * https://github.com/xdanieldzd/Tharsis */
-	 
+
     class Ctxb
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(CtxbHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(CtxbEntry));
+        private const int HeaderSize_ = 0x18;
+        private const int EntrySize_ = 0x24;
 
-        public IList<ImageInfo> Load(Stream input)
+        public List<ImageFileInfo> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            var header = br.ReadType<CtxbHeader>();
+            var header = typeReader.Read<CtxbHeader>(br);
 
             // Read chunks
             input.Position = header.chunkOffset;
-            var chunks = br.ReadMultiple<CtxbChunk>((int)header.chunkCount);
+            var chunks = typeReader.ReadMany<CtxbChunk>(br, (int)header.chunkCount);
 
             // Read images
-            var infos = new List<ImageInfo>();
+            var infos = new List<ImageFileInfo>();
             for (var i = 0; i < chunks.Count; i++)
             {
                 foreach (var texture in chunks[i].textures)
@@ -43,17 +41,20 @@ namespace plugin_grezzo.Images
                     var imageData = br.ReadBytes(dataLength);
 
                     // Read mip maps
-                    var mipMaps = new byte[texture.mipLvl-1][];
+                    var mipMaps = new byte[texture.mipLvl - 1][];
                     for (var j = 1; j < texture.mipLvl; j++)
-                        mipMaps[j-1] = br.ReadBytes((texture.width >> j) * (texture.width >> j) * bitDepth / 8);
+                        mipMaps[j - 1] = br.ReadBytes((texture.width >> j) * (texture.width >> j) * bitDepth / 8);
 
-                    var imageInfo = new CtxbImageInfo(imageData, format, new Size(texture.width, texture.height), i, texture)
+                    var imageInfo = new CtxbImageFileInfo(i, texture)
                     {
-                        MipMapData = mipMaps,
                         Name = texture.name,
+                        ImageData = imageData,
+                        MipMapData = mipMaps,
+                        BitDepth = bitDepth,
+                        ImageFormat = format,
+                        ImageSize = new Size(texture.width, texture.height),
+                        RemapPixels = context => new CtrSwizzle(context)
                     };
-
-                    imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
 
                     infos.Add(imageInfo);
                 }
@@ -62,20 +63,21 @@ namespace plugin_grezzo.Images
             return infos;
         }
 
-        public void Save(Stream output, IList<ImageInfo> images)
+        public void Save(Stream output, List<ImageFileInfo> images)
         {
-            using var bw=new BinaryWriterX(output);
+            var typeWriter = new BinaryTypeWriter();
+            using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
-            var chunkOffset = HeaderSize;
-            var texDataOffset = chunkOffset + images.Count * EntrySize +
-                                images.Cast<CtxbImageInfo>().GroupBy(x => x.ChunkIndex).Count() * 0xC;
+            var chunkOffset = HeaderSize_;
+            var texDataOffset = chunkOffset + images.Count * EntrySize_ +
+                                images.Cast<CtxbImageFileInfo>().GroupBy(x => x.ChunkIndex).Count() * 0xC;
 
             // Write image data
             var texDataPosition = texDataOffset;
 
             var entries = new List<(int, CtxbEntry)>();
-            foreach (var imageInfo in images.Cast<CtxbImageInfo>())
+            foreach (var imageInfo in images.Cast<CtxbImageFileInfo>())
             {
                 var dataOffset = texDataPosition - texDataOffset;
                 var dataLength = imageInfo.ImageData.Length;
@@ -84,7 +86,7 @@ namespace plugin_grezzo.Images
                 output.Write(imageInfo.ImageData);
 
                 // Write mipmaps
-                for (var i = 0; i < imageInfo.MipMapCount; i++)
+                for (var i = 0; i < (imageInfo.MipMapData?.Count ?? 0); i++)
                 {
                     output.Write(imageInfo.MipMapData[i]);
                     dataLength += imageInfo.MipMapData[i].Length;
@@ -114,18 +116,18 @@ namespace plugin_grezzo.Images
             var chunks = entries.GroupBy(x => x.Item1).ToArray();
             foreach (var chunk in chunks)
             {
-                var chunkEntry=new CtxbChunk
+                var chunkEntry = new CtxbChunk
                 {
                     texCount = chunk.Count(),
-                    textures = chunk.Select(x=>x.Item2).ToArray(),
-                    chunkSize = 0xC+chunk.Count()*EntrySize
+                    textures = chunk.Select(x => x.Item2).ToArray(),
+                    chunkSize = 0xC + chunk.Count() * EntrySize_
                 };
 
-                bw.WriteType(chunkEntry);
+                typeWriter.Write(chunkEntry, bw);
             }
 
             // Write header
-            var header=new CtxbHeader
+            var header = new CtxbHeader
             {
                 fileSize = (int)output.Length,
                 chunkOffset = chunkOffset,
@@ -134,7 +136,7 @@ namespace plugin_grezzo.Images
             };
 
             output.Position = 0;
-            bw.WriteType(header);
+            typeWriter.Write(header, bw);
         }
     }
 }

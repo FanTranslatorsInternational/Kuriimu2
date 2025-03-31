@@ -1,21 +1,18 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
+﻿using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
 using plugin_nintendo.NW4C;
+using SixLabors.ImageSharp;
+using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_nintendo.Images
 {
     public class Bxlim
     {
-        private static readonly int Nw4CHeaderSize = Tools.MeasureType(typeof(NW4CHeader));
-        private static readonly int BclimHeaderSize = Tools.MeasureType(typeof(BclimHeader));
-        private static readonly int BflimHeaderSize = Tools.MeasureType(typeof(BflimHeader));
+        private const int Nw4CHeaderSize_ = 0x14;
+        private const int BclimHeaderSize_ = 0xC;
+        private const int BflimHeaderSize_ = 0xC;
 
         private NW4CHeader _header;
 
@@ -24,50 +21,52 @@ namespace plugin_nintendo.Images
 
         public bool IsCtr { get; private set; }
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, ByteOrder.BigEndian);
 
             // Read byte order
             input.Position = input.Length - 0x24;
-            var byteOrder = br.ReadType<ByteOrder>();
+            var byteOrder = (ByteOrder)br.ReadUInt16();
             br.ByteOrder = byteOrder;
 
             // Read common header
             input.Position = input.Length - 0x28;
-            _header = br.ReadType<NW4CHeader>();
+            _header = typeReader.Read<NW4CHeader>(br);
 
             switch (_header.magic)
             {
                 case "CLIM":
                     IsCtr = true;
-                    return LoadBclim(br);
+                    return LoadBclim(typeReader, br);
 
                 case "FLIM":
                     IsCtr = byteOrder == ByteOrder.LittleEndian;
-                    return LoadBflim(br);
+                    return LoadBflim(typeReader, br);
 
                 default:
                     throw new InvalidOperationException($"{_header.magic} is not supported.");
             }
         }
 
-        public void Save(Stream output, ImageInfo image)
+        public void Save(Stream output, ImageFileInfo image)
         {
-            using var bw = new BinaryWriterX(output, _header.byteOrder);
+            var typeWriter = new BinaryTypeWriter();
+            using var bw = new BinaryWriterX(output, (ByteOrder)_header.byteOrder);
 
             // Calculate offsets
-            var nw4cOffset = ((image.ImageData.Length + 0xF) & ~0xF);
-            var headerOffset = nw4cOffset + Nw4CHeaderSize;
+            var nw4COffset = ((image.ImageData.Length + 0xF) & ~0xF);
+            var headerOffset = nw4COffset + Nw4CHeaderSize_;
 
             // Write image data
             output.Write(image.ImageData);
 
             // Write NW4C header
-            _header.fileSize = headerOffset + 0x8 + (_bclimHeader == null ? BflimHeaderSize : BclimHeaderSize);
+            _header.fileSize = headerOffset + 0x8 + (_bclimHeader == null ? BflimHeaderSize_ : BclimHeaderSize_);
 
-            output.Position = nw4cOffset;
-            bw.WriteType(_header);
+            output.Position = nw4COffset;
+            typeWriter.Write(_header, bw);
 
             // Write img header
             if (_bclimHeader != null)
@@ -80,12 +79,12 @@ namespace plugin_nintendo.Images
                 var section = new NW4CSection<BclimHeader>
                 {
                     magic = "imag",
-                    sectionSize = 0x4 + BclimHeaderSize,
+                    sectionSize = 0x4 + BclimHeaderSize_,
                     sectionData = _bclimHeader
                 };
 
                 output.Position = headerOffset;
-                bw.WriteType(section);
+                typeWriter.Write(section, bw);
             }
             else
             {
@@ -97,19 +96,19 @@ namespace plugin_nintendo.Images
                 var section = new NW4CSection<BclimHeader>
                 {
                     magic = "imag",
-                    sectionSize = 0x4 + BclimHeaderSize,
+                    sectionSize = 0x4 + BclimHeaderSize_,
                     sectionData = _bclimHeader
                 };
 
                 output.Position = headerOffset;
-                bw.WriteType(section);
+                typeWriter.Write(section, bw);
             }
         }
 
-        private ImageInfo LoadBclim(BinaryReaderX br)
+        private ImageFileInfo LoadBclim(BinaryTypeReader typeReader, BinaryReaderX br)
         {
             // Read section
-            var imageSection = br.ReadType<NW4CSection<BclimHeader>>();
+            var imageSection = typeReader.Read<NW4CSection<BclimHeader>>(br);
             _bclimHeader = imageSection.sectionData;
 
             // Read image data
@@ -119,17 +118,24 @@ namespace plugin_nintendo.Images
             var size = new Size(_bclimHeader.width, _bclimHeader.height);
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _bclimHeader.format, size);
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context, _bclimHeader.transformation));
-            imageInfo.PadSize.ToPowerOfTwo();
+            var encodingDefinition = IsCtr ? BxlimSupport.GetCtrDefinition() : BxlimSupport.GetCafeDefinition();
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = encodingDefinition.GetColorEncoding(_bclimHeader.format).BitDepth,
+                ImageData = imageData,
+                ImageFormat = _bclimHeader.format,
+                ImageSize = size,
+                RemapPixels = context => new CtrSwizzle(context, (CtrTransformation)_bclimHeader.transformation),
+                PadSize = builder => builder.ToPowerOfTwo()
+            };
 
             return imageInfo;
         }
 
-        private ImageInfo LoadBflim(BinaryReaderX br)
+        private ImageFileInfo LoadBflim(BinaryTypeReader typeReader, BinaryReaderX br)
         {
             // Read section
-            var imageSection = br.ReadType<NW4CSection<BflimHeader>>();
+            var imageSection = typeReader.Read<NW4CSection<BflimHeader>>(br);
             _bflimHeader = imageSection.sectionData;
 
             // Read image data
@@ -139,13 +145,18 @@ namespace plugin_nintendo.Images
             var size = new Size(_bflimHeader.width, _bflimHeader.height);
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _bflimHeader.format, size);
-            imageInfo.RemapPixels.With(context => IsCtr
-                ? (IImageSwizzle)new CtrSwizzle(context, (CtrTransformation)_bflimHeader.swizzleTileMode)
-                : new CafeSwizzle(context, _bflimHeader.swizzleTileMode));
-
-            if (IsCtr)
-                imageInfo.PadSize.ToPowerOfTwo();
+            var encodingDefinition = IsCtr ? BxlimSupport.GetCtrDefinition() : BxlimSupport.GetCafeDefinition();
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = encodingDefinition.GetColorEncoding(_bflimHeader.format).BitDepth,
+                ImageData = imageData,
+                ImageFormat = _bflimHeader.format,
+                ImageSize = size,
+                RemapPixels = context => IsCtr
+                    ? new CtrSwizzle(context, (CtrTransformation)_bflimHeader.swizzleTileMode)
+                    : new CafeSwizzle(context, _bflimHeader.swizzleTileMode),
+                PadSize = IsCtr ? builder => builder.ToPowerOfTwo() : null
+            };
 
             return imageInfo;
         }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace plugin_nintendo.Images.PICA
+﻿namespace plugin_nintendo.Images.PICA
 {
     public class PICACommand
     {

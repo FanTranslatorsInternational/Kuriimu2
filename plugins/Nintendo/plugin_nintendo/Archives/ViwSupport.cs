@@ -1,11 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Komponent.Contract.Aspects;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
@@ -35,17 +31,6 @@ namespace plugin_nintendo.Archives
         public short unk1;
         public short unk2;
         public int unk3;
-    }
-
-    class ViwArchiveFileInfo : ArchiveFileInfo
-    {
-        public ViwEntry Entry { get; }
-
-        public ViwArchiveFileInfo(Stream fileData, string filePath, ViwEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-            Entry = entry;
-        }
     }
 
     class ViwSupport
@@ -110,7 +95,7 @@ namespace plugin_nintendo.Archives
             input.Position = bkPos + 6;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

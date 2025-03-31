@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-#pragma warning disable 649
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Kryptography.Checksum;
 
 namespace plugin_nintendo.Archives
 {
@@ -91,33 +90,34 @@ namespace plugin_nintendo.Archives
 
         public NcchRomFs(Stream instream)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(instream, true);
 
             // Read header
             var romFsOffset = br.BaseStream.Position;
-            header = br.ReadType<NcchRomFsHeader>();
+            header = typeReader.Read<NcchRomFsHeader>(br);
             masterHash = br.ReadBytes(header.masterHashSize);
 
             // Read Level 3
             lv3Offset = romFsOffset + 0x1000;
             br.BaseStream.Position = lv3Offset;
-            lv3Header = br.ReadType<NcchRomFsLevelHeader>();
+            lv3Header = typeReader.Read<NcchRomFsLevelHeader>(br);
 
             // Resolve file and directory tree
             br.BaseStream.Position = lv3Offset + lv3Header.dirMetaTableOffset;
             Files = new List<FinalFileInfo>();
-            ResolveDirectories(br);
+            ResolveDirectories(typeReader, br);
         }
 
-        private void ResolveDirectories(BinaryReaderX br, string currentPath = "")
+        private void ResolveDirectories(BinaryTypeReader typeReader, BinaryReaderX br, string currentPath = "")
         {
-            var currentDirEntry = br.ReadType<NcchRomFsDirectoryMetaData>();
+            var currentDirEntry = typeReader.Read<NcchRomFsDirectoryMetaData>(br);
 
             // First go through all sub dirs
             if (currentDirEntry.firstChildDirOffset != -1)
             {
                 br.BaseStream.Position = lv3Offset + lv3Header.dirMetaTableOffset + currentDirEntry.firstChildDirOffset;
-                ResolveDirectories(br, currentPath + currentDirEntry.name + "/");
+                ResolveDirectories(typeReader, br, currentPath + currentDirEntry.name + "/");
             }
 
             // Then get all Files of current directory
@@ -130,7 +130,7 @@ namespace plugin_nintendo.Archives
                 do
                 {
                     br.BaseStream.Position = lv3Offset + lv3Header.fileMetaTableOffset + fileOffset;
-                    currentFileEntry = br.ReadType<NcchRomFsFileMetaData>();
+                    currentFileEntry = typeReader.Read<NcchRomFsFileMetaData>(br);
 
                     // Add current file
                     Files.Add(new FinalFileInfo
@@ -148,7 +148,7 @@ namespace plugin_nintendo.Archives
             if (currentDirEntry.nextSiblingDirOffset != -1)
             {
                 br.BaseStream.Position = lv3Offset + lv3Header.dirMetaTableOffset + currentDirEntry.nextSiblingDirOffset;
-                ResolveDirectories(br, currentPath);
+                ResolveDirectories(typeReader, br, currentPath);
             }
         }
 
@@ -224,30 +224,32 @@ namespace plugin_nintendo.Archives
 
     public static class ExeFsBuilder
     {
-        private static int _exeFsHeaderSize = Tools.MeasureType(typeof(NcchExeFsHeader));
-        private static int _exeFsFileEntrySize = Tools.MeasureType(typeof(NcchExeFsFileEntry));
-        private static int _exeFsFileEntryHashSize = Tools.MeasureType(typeof(NcchExeFsFileEntryHash));
+        private const int ExeFsHeaderSize_ = 0x200;
+        private const int ExeFsFileEntrySize_ = 0x10;
+        private const int ExeFsFileEntryHashSize_ = 0x20;
 
         private const int MediaSize_ = 0x200;
         private const int MaxFiles_ = 0xA;
 
-        public static long Build(Stream output, IList<IArchiveFileInfo> files)
+        public static long Build(Stream output, IList<IArchiveFile> files)
         {
-            var hash = new Kryptography.Hash.Sha256();
+            var hash = new Sha256();
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             var inOffset = output.Position;
 
             // Write file data
-            bw.BaseStream.Position = inOffset + _exeFsHeaderSize;
+            bw.BaseStream.Position = inOffset + ExeFsHeaderSize_;
             var filePosition = bw.BaseStream.Position;
 
             IList<NcchExeFsFileEntry> fileEntries = new List<NcchExeFsFileEntry>(MaxFiles_);
             IList<NcchExeFsFileEntryHash> fileHashes = new List<NcchExeFsFileEntryHash>(MaxFiles_);
             var fileOffset = 0;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
-                var writtenSize = file.SaveFileData(bw.BaseStream);
+                var writtenSize = file.WriteFileData(bw.BaseStream);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -269,15 +271,15 @@ namespace plugin_nintendo.Archives
 
             // Write file entries
             bw.BaseStream.Position = inOffset;
-            bw.WriteMultiple(fileEntries);
-            bw.WritePadding(_exeFsFileEntrySize * (MaxFiles_ - fileEntries.Count));
+            typeWriter.WriteMany(fileEntries, bw);
+            bw.WritePadding(ExeFsFileEntrySize_ * (MaxFiles_ - fileEntries.Count));
 
             // Write reserved data
             bw.WritePadding(0x20);
 
             // Write file entry hashes
-            bw.WritePadding(_exeFsFileEntryHashSize * (MaxFiles_ - fileEntries.Count));
-            bw.WriteMultiple(fileHashes.Reverse());
+            bw.WritePadding(ExeFsFileEntryHashSize_ * (MaxFiles_ - fileEntries.Count));
+            typeWriter.WriteMany(fileHashes.Reverse(), bw);
 
             output.Position = inOffset + finalSize;
             return finalSize;
@@ -298,7 +300,7 @@ namespace plugin_nintendo.Archives
 
         public IList<RomFsDirectoryNode> Directories { get; private set; }
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFile> Files { get; private set; }
 
         public static int CountDirectories(IList<ArchiveFileInfo> files, UPath rootDirectory)
         {
@@ -307,13 +309,13 @@ namespace plugin_nintendo.Archives
                 .Count();
         }
 
-        public static RomFsDirectoryNode Parse(IList<IArchiveFileInfo> files, UPath rootDirectory)
+        public static RomFsDirectoryNode Parse(IList<IArchiveFile> files, UPath rootDirectory)
         {
             var root = new RomFsDirectoryNode
             {
                 Name = "/",
                 Directories = new List<RomFsDirectoryNode>(),
-                Files = new List<IArchiveFileInfo>()
+                Files = new List<IArchiveFile>()
             };
 
             var directories = files.Select(x => x.FilePath.GetSubDirectory(rootDirectory.ToAbsolute()).GetDirectory()).Distinct().OrderBy(x => x).ToArray();
@@ -335,7 +337,7 @@ namespace plugin_nintendo.Archives
 
                         Name = part,
                         Directories = new List<RomFsDirectoryNode>(),
-                        Files = new List<IArchiveFileInfo>()
+                        Files = new List<IArchiveFile>()
                     };
                     currentNode.Directories.Add(newNode);
 
@@ -467,7 +469,7 @@ namespace plugin_nintendo.Archives
             }
         }
 
-        public static long CalculateRomFsSize(IList<IArchiveFileInfo> files, UPath rootDirectory)
+        public static long CalculateRomFsSize(IList<IArchiveFile> files, UPath rootDirectory)
         {
             var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);
 
@@ -499,7 +501,7 @@ namespace plugin_nintendo.Archives
             return totalSize;
         }
 
-        public static (long, long) Build(Stream input, IList<IArchiveFileInfo> files, UPath rootDirectory)
+        public static (long, long) Build(Stream input, IList<IArchiveFile> files, UPath rootDirectory)
         {
             // Parse files into file tree
             var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);
@@ -628,10 +630,11 @@ namespace plugin_nintendo.Archives
             var levelData = WriteIvfcLevels(output, metaDataPosition, metaDataSize, masterHashPosition, 3);
 
             // Write RomFs header
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             bw.BaseStream.Position = 0;
-            bw.WriteType(new NcchRomFsHeader
+            typeWriter.Write(new NcchRomFsHeader
             {
                 masterHashSize = (int)levelData[2].Item2,
 
@@ -643,7 +646,7 @@ namespace plugin_nintendo.Archives
 
                 lv3LogicalOffset = levelData[1].Item3 + levelData[0].Item3,
                 lv3HashDataSize = metaDataSize
-            });
+            }, bw);
 
             var romFsSize = levelData[0].Item1 + levelData[0].Item3;
             var romFsHeaderSize = 0x60 + levelData[2].Item2;
@@ -660,6 +663,8 @@ namespace plugin_nintendo.Archives
         private static long WriteMetaData(Stream output, MetaData metaData)
         {
             var startPosition = output.Position;
+
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             var header = new NcchRomFsLevelHeader
@@ -716,7 +721,7 @@ namespace plugin_nintendo.Archives
             header.fileDataOffset = (int)((bw.BaseStream.Position - startPosition + 0xF) & ~0xF);
             foreach (var file in metaData.Files)
             {
-                bw.WriteAlignment();
+                bw.WriteAlignment(16);
                 file.FileData.CopyTo(bw.BaseStream);
             }
 
@@ -725,7 +730,7 @@ namespace plugin_nintendo.Archives
             bw.WriteAlignment(BlockSize_);
 
             bw.BaseStream.Position = startPosition;
-            bw.WriteType(header);
+            typeWriter.Write(header, bw);
 
             return level3Size;
         }
@@ -772,7 +777,7 @@ namespace plugin_nintendo.Archives
 
             // Write hash levels
             var result = new List<(long, long, long)>();
-            var sha256 = new Kryptography.Hash.Sha256();
+            var sha256 = new Sha256();
 
             var previousLevelPosition = alignedMetaDataPosition;
             var previousLevelSize = alignedMetaDataSize;

@@ -1,57 +1,68 @@
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
     class Smdh
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(SmdhHeader));
-        private static readonly int AppTitleSize = Tools.MeasureType(typeof(SmdhApplicationTitle));
-        private static readonly int AppSettingsSize = Tools.MeasureType(typeof(SmdhAppSettings));
+        private const int HeaderSize_ = 0x8;
+        private const int AppTitleSize_ = 0x200;
+        private const int AppSettingsSize_ = 0x30;
 
         private SmdhHeader _header;
         private IList<SmdhApplicationTitle> _appTitles;
         private SmdhAppSettings _settings;
 
-        public IList<ImageInfo> Load(Stream input)
+        public List<ImageFileInfo> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<SmdhHeader>();
+            _header = typeReader.Read<SmdhHeader>(br);
 
             // Read application titles
-            _appTitles = br.ReadMultiple<SmdhApplicationTitle>(0x10);
+            _appTitles = typeReader.ReadMany<SmdhApplicationTitle>(br, 0x10);
 
             // Read application settings
-            _settings = br.ReadType<SmdhAppSettings>();
+            _settings = typeReader.Read<SmdhAppSettings>(br);
             br.BaseStream.Position += 0x8;
 
             // Read image data
-            var result = new List<ImageInfo>();
+            var result = new List<ImageFileInfo>();
 
             var imageData = br.ReadBytes(0x480);
-            result.Add(new ImageInfo(imageData, 0, new Size(24, 24)));
-            result.Last().RemapPixels.With(context => new CtrSwizzle(context));
+            result.Add(new ImageFileInfo
+            {
+                BitDepth = 16,
+                ImageData = imageData,
+                ImageFormat = 0,
+                ImageSize = new Size(24, 24),
+                RemapPixels = context => new CtrSwizzle(context)
+            });
 
             imageData = br.ReadBytes(0x1200);
-            result.Add(new ImageInfo(imageData, 0, new Size(48, 48)));
-            result.Last().RemapPixels.With(context => new CtrSwizzle(context));
+            result.Add(new ImageFileInfo
+            {
+                BitDepth = 16,
+                ImageData = imageData,
+                ImageFormat = 0,
+                ImageSize = new Size(48, 48),
+                RemapPixels = context => new CtrSwizzle(context)
+            });
 
             return result;
         }
 
-        public void Save(Stream output, IList<ImageInfo> imageInfos)
+        public void Save(Stream output, List<ImageFileInfo> imageInfos)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
-            var dataOffset = (HeaderSize + _appTitles.Count * AppTitleSize + AppSettingsSize + 0xF) & ~0xF;
+            var dataOffset = (HeaderSize_ + _appTitles.Count * AppTitleSize_ + AppSettingsSize_ + 0xF) & ~0xF;
 
             // Write image data
             output.Position = dataOffset;
@@ -60,9 +71,9 @@ namespace plugin_nintendo.Images
 
             // Write icon information
             output.Position = 0;
-            bw.WriteType(_header);
-            bw.WriteMultiple(_appTitles);
-            bw.WriteType(_settings);
+            typeWriter.Write(_header, bw);
+            typeWriter.WriteMany(_appTitles, bw);
+            typeWriter.Write(_settings, bw);
         }
     }
 }

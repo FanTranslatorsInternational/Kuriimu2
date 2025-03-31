@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
@@ -16,22 +16,36 @@ namespace plugin_nintendo.Archives
     {
         private GcDiscHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
-            var result = new List<IArchiveFileInfo>();
+
+            var result = new List<IArchiveFile>();
 
             // Read header
-            _header = br.ReadType<GcDiscHeader>();
+            _header = typeReader.Read<GcDiscHeader>(br);
 
             // Special treatment for apploader size
             input.Position = 0x2440;
-            var appLoader = br.ReadType<GcAppLoader>();
+            var appLoader = typeReader.Read<GcAppLoader>(br);
 
             // Collect system files
-            result.Add(new ArchiveFileInfo(new SubStream(input, 0x440, 0x2000), "sys/bi2.bin"));
-            result.Add(new ArchiveFileInfo(new SubStream(input, 0x2440, (appLoader.size + appLoader.trailerSize + 0x1F) & ~0x1F), "sys/appldr.bin"));
-            result.Add(new ArchiveFileInfo(new SubStream(input, _header.execOffset, _header.fstOffset - _header.execOffset), "sys/main.dol"));
+            result.Add(new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = "sys/bi2.bin",
+                FileData = new SubStream(input, 0x440, 0x2000)
+            }));
+            result.Add(new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = "sys/appldr.bin",
+                FileData = new SubStream(input, 0x2440, (appLoader.size + appLoader.trailerSize + 0x1F) & ~0x1F)
+            }));
+            result.Add(new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = "sys/main.dol",
+                FileData = new SubStream(input, _header.execOffset, _header.fstOffset - _header.execOffset)
+            }));
 
             // Collect file system files
             var u8 = new DefaultU8FileSystem(UPath.Root);
@@ -40,8 +54,9 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Get system files
@@ -65,7 +80,7 @@ namespace plugin_nintendo.Archives
             nameStream.Position = 0;
 
             // Write names
-            var nameOffset = output.Position = fstOffset + treeBuilder.Entries.Count * Tools.MeasureType(typeof(U8Entry));
+            var nameOffset = output.Position = fstOffset + treeBuilder.Entries.Count * 0xC;
             nameStream.CopyTo(output);
             bw.WriteAlignment(0x20);
 
@@ -75,7 +90,7 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(0x20);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream);
+                var writtenSize = afi.WriteFileData(bw.BaseStream);
 
                 u8Entry.offset = fileOffset;
                 u8Entry.size = (int)writtenSize;
@@ -83,17 +98,17 @@ namespace plugin_nintendo.Archives
 
             // Write FST
             output.Position = fstOffset;
-            bw.WriteMultiple(entries.Select(x => x.Item1));
+            typeWriter.WriteMany(entries.Select(x => x.Item1), bw);
 
             // Write system files
             output.Position = bi2Offset;
-            (bi2File as ArchiveFileInfo).SaveFileData(output);
+            bi2File.WriteFileData(output);
 
             output.Position = appLoaderOffset;
-            (appLoaderFile as ArchiveFileInfo).SaveFileData(output);
+            appLoaderFile.WriteFileData(output);
 
             output.Position = execOffset;
-            (execFile as ArchiveFileInfo).SaveFileData(output);
+            execFile.WriteFileData(output);
 
             // Write header
             _header.execOffset = (int)execOffset;
@@ -102,7 +117,7 @@ namespace plugin_nintendo.Archives
             _header.fstMaxSize = _header.fstSize;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
         }
     }
 }

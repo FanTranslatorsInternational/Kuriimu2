@@ -1,9 +1,7 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-using Kryptography.Hash.Crc;
-#pragma warning disable 649
+﻿using Komponent.Contract.Aspects;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Checksum.Crc;
 
 namespace plugin_nintendo.Archives
 {
@@ -56,21 +54,20 @@ namespace plugin_nintendo.Archives
         public int zero1;
     }
 
-    class PacArchiveFileInfo : ArchiveFileInfo
+    class PacArchiveFile : ArchiveFile
     {
-        private static Crc32 Crc = Crc32.Default;
+        private static Crc32 Crc = Crc32.Crc32B;
 
         public PacEntry Entry { get; }
 
-        public PacArchiveFileInfo(Stream fileData, string filePath, PacEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
+        public PacArchiveFile(ArchiveFileInfo fileInfo, PacEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
 
         public uint GetHash()
         {
-            var finalStream = GetFinalStream();
+            Stream finalStream = GetFinalStream();
             finalStream.Position = 0;
 
             return Crc.ComputeValue(finalStream);

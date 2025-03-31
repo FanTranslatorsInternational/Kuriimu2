@@ -1,48 +1,35 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
-using plugin_nintendo.Images;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
-namespace plugin_nintendo.CTPK
+namespace plugin_nintendo.Images
 {
-    public class CtpkState : IImageState, ILoadFiles, ISaveFiles
+    public class CtpkState : IImageFilePluginState, ILoadFiles, ISaveFiles
     {
-        private readonly Ctpk _ctpk;
+        private readonly Ctpk _ctpk = new();
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        private List<ImageFileInfo> _imageInfos;
+
+        public IReadOnlyList<IImageFile> Images { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
-        public CtpkState()
-        {
-            _ctpk = new Ctpk();
-
-            EncodingDefinition = CtpkSupport.CtrFormat.ToColorDefinition();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var images = _ctpk.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _imageInfos = _ctpk.Load(fileStream);
 
-            Images = images.Select(x => new KanvasImage(EncodingDefinition, x)).ToArray();
+            Images = _imageInfos.Select(x => new ImageFile(x, CtpkSupport.GetEncodingDefinitions())).ToArray();
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _ctpk.Save(saveStream, Images.Select(x => x.ImageInfo).ToArray());
-
-            return Task.CompletedTask;
+            Stream saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            _ctpk.Save(saveStream, _imageInfos);
         }
 
         private bool IsChanged()

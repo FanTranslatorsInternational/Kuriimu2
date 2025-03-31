@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-#pragma warning disable 649
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
@@ -16,7 +13,7 @@ namespace plugin_nintendo.Archives
         [FixedLength(4)]
         public string magic = "darc";
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ByteOrder byteOrder = ByteOrder.LittleEndian;
+        public ushort byteOrder = (ushort)ByteOrder.LittleEndian;
         public short headerSize = 0x1C;
         public int version = 0x1000000;
         public int fileSize;
@@ -44,13 +41,13 @@ namespace plugin_nintendo.Archives
         }
     }
 
-    class DarcArchiveFileInfo:ArchiveFileInfo
+    class DarcArchiveFile : ArchiveFile
     {
         public string UnescapedPath { get; }
 
-        public DarcArchiveFileInfo(Stream fileData, string filePath) : base(fileData, filePath)
+        public DarcArchiveFile(ArchiveFileInfo fileInfo, string unescapedPath) : base(fileInfo)
         {
-            UnescapedPath = filePath;
+            UnescapedPath = unescapedPath;
         }
     }
 
@@ -59,7 +56,7 @@ namespace plugin_nintendo.Archives
         private Encoding _nameEncoding;
         private BinaryWriterX _nameBw;
 
-        public IList<(DarcEntry, IArchiveFileInfo)> Entries { get; private set; }
+        public IList<(DarcEntry, IArchiveFile)> Entries { get; private set; }
 
         public Stream NameStream { get; private set; }
 
@@ -68,7 +65,7 @@ namespace plugin_nintendo.Archives
             _nameEncoding = nameEncoding;
         }
 
-        public void Build(IList<DarcArchiveFileInfo> files)
+        public void Build(IList<DarcArchiveFile> files)
         {
             // Build directory tree
             var directoryTree = BuildDirectoryTree(files);
@@ -78,11 +75,11 @@ namespace plugin_nintendo.Archives
             _nameBw = new BinaryWriterX(NameStream, true);
 
             // Populate entries
-            Entries = new List<(DarcEntry, IArchiveFileInfo)>();
+            Entries = new List<(DarcEntry, IArchiveFile)>();
             PopulateEntryList(files, directoryTree, 0);
         }
 
-        private IList<(string, int)> BuildDirectoryTree(IList<DarcArchiveFileInfo> files)
+        private IList<(string, int)> BuildDirectoryTree(IList<DarcArchiveFile> files)
         {
             var distinctDirectories = files
                 .OrderBy(x => GetDirectory(x.UnescapedPath))
@@ -109,7 +106,7 @@ namespace plugin_nintendo.Archives
             return directories;
         }
 
-        private void PopulateEntryList(IList<DarcArchiveFileInfo> files,
+        private void PopulateEntryList(IList<DarcArchiveFile> files,
             IList<(string, int)> directories, int parentIndex)
         {
             var directoryIndex = 0;

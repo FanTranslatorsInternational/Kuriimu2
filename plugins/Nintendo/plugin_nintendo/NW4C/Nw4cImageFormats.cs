@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Kanvas.Encoding;
-using Kontract.Kanvas;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Enums;
 
 namespace plugin_nintendo.NW4C
 {

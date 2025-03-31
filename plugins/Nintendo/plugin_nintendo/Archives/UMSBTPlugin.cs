@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Archives
 {
     public class UMSBTPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("2546d1de-7ba9-4a1b-a809-247314c57ab5");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.umsbt" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.umsbt"];
 
-        public UMSBTPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("UMSBT", "IcySon55; onepiecefreak", "The UMSBT resource for Nintendo games.");
-        }
+            Name = "UMSBT",
+            Author = "IcySon55; onepiecefreak",
+            LongDescription = "The UMSBT resource for Nintendo games."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new UMSBTState();
         }

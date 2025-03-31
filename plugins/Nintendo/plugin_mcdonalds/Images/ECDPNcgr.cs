@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Text;
-using Kanvas.Configuration;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_mcdonalds.Images
 {
@@ -16,51 +11,57 @@ namespace plugin_mcdonalds.Images
         private NitroHeader _nclrHeader;
         private NitroCharHeader _charHeader;
         private NitroTtlpHeader _ttlpHeader;
-        private byte[] _palette;
 
-        public ImageInfo Load(Stream ncgrStream, Stream nclrStream)
+        public ImageFileInfo Load(Stream ncgrStream, Stream nclrStream)
         {
+            var typeReader = new BinaryTypeReader();
             using var ncgrBr = new BinaryReaderX(ncgrStream);
             using var nclrBr = new BinaryReaderX(nclrStream);
 
             // Read generic headers
-            _ncgrHeader = ncgrBr.ReadType<NitroHeader>();
-            _nclrHeader = nclrBr.ReadType<NitroHeader>();
+            _ncgrHeader = typeReader.Read<NitroHeader>(ncgrBr);
+            _nclrHeader = typeReader.Read<NitroHeader>(nclrBr);
 
             // Read Char header
-            _charHeader = ncgrBr.ReadType<NitroCharHeader>();
+            _charHeader = typeReader.Read<NitroCharHeader>(ncgrBr);
 
             // Read Ttlp header
-            _ttlpHeader = nclrBr.ReadType<NitroTtlpHeader>();
+            _ttlpHeader = typeReader.Read<NitroTtlpHeader>(nclrBr);
 
             // Read palette data
-            byte[] paletteData;
-            if (GetBitDepth(_charHeader.imageFormat) == 4)
-            {
-                nclrBr.BaseStream.Position += 0xE * 0x20;
-                paletteData = nclrBr.ReadBytes(0x20);
+            int bitDepth = GetBitDepth(_charHeader.imageFormat);
+            byte[] paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
 
-                // Backup complete palette data
-                nclrBr.BaseStream.Position -= 0xF * 20;
-                _palette = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
-            }
-            else
-                paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
+            //byte[] paletteData;
+            //if (bitDepth == 4)
+            //{
+            //    nclrBr.BaseStream.Position += 0xE * 0x20;
+            //    paletteData = nclrBr.ReadBytes(0x20);
+
+            //    // Backup complete palette data
+            //    nclrBr.BaseStream.Position -= 0xF * 20;
+            //    paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
+            //}
+            //else
+            //    paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
 
             // Create image
-            var dataLength = _charHeader.tileCountX < 0 ? _charHeader.tileDataSize : _charHeader.tileCountX * _charHeader.tileCountY;
-            var data = ncgrBr.ReadBytes(dataLength);
+            var data = ncgrBr.ReadBytes(_charHeader.tileDataSize);
             var size = GetImageSize(_charHeader);
 
-            var imageInfo = new ImageInfo(data, _charHeader.imageFormat, size)
+            var imageInfo = new ImageFileInfo
             {
+                BitDepth = bitDepth,
+
+                ImageData = data,
                 ImageFormat = _charHeader.imageFormat,
+                ImageSize = size,
 
                 PaletteData = paletteData,
-                PaletteFormat = 0
-            };
+                PaletteFormat = 0,
 
-            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
+                RemapPixels = context => new NitroSwizzle(context)
+            };
 
             return imageInfo;
         }

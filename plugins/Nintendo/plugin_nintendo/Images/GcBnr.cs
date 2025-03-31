@@ -1,42 +1,47 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using Kanvas.Configuration;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_nintendo.Images
 {
     class GcBnr
     {
-        private static int TitleInfoSize = Tools.MeasureType(typeof(GcBnrTitleInfo));
+        private const int TitleInfoSize_ = 0x140;
 
         private GcBnrHeader _header;
         private IList<GcBnrTitleInfo> _titleInfos;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<GcBnrHeader>();
+            _header = typeReader.Read<GcBnrHeader>(br);
 
             // Read image data
             var imageData = br.ReadBytes(0x1800);
 
             // Read title info
-            var titleInfoCount = (int)(input.Length - input.Position) / TitleInfoSize;
-            _titleInfos = br.ReadMultiple<GcBnrTitleInfo>(titleInfoCount);
+            var titleInfoCount = (int)(input.Length - input.Position) / TitleInfoSize_;
+            _titleInfos = typeReader.ReadMany<GcBnrTitleInfo>(br, titleInfoCount);
 
-            var imageInfo = new ImageInfo(imageData, 0, new Size(96, 32));
-            imageInfo.RemapPixels.With(context => new DolphinSwizzle(context));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = 16,
+                ImageData = imageData,
+                ImageFormat = 0,
+                ImageSize = new Size(96, 32),
+                RemapPixels = context => new DolphinSwizzle(context)
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -45,7 +50,7 @@ namespace plugin_nintendo.Images
 
             // Write title info
             output.Position = titleInfoOffset;
-            bw.WriteMultiple(_titleInfos);
+            typeWriter.WriteMany(_titleInfos, bw);
 
             // Write image data
             output.Position = imageDataOffset;
@@ -53,7 +58,7 @@ namespace plugin_nintendo.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
         }
     }
 }

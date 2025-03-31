@@ -1,79 +1,86 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography.Hash.Fnv;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Kryptography.Checksum.Fnv;
 
 namespace plugin_nintendo.Archives
 {
     class Pac
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(PacHeader));
-        private static readonly int TableInfoSize = Tools.MeasureType(typeof(PacTableInfo));
-        private static readonly int AssetSize = Tools.MeasureType(typeof(PacAsset));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(PacEntry));
+        private const int HeaderSize_ = 0x10;
+        private const int TableInfoSize_ = 0x34;
+        private const int AssetSize_ = 0x10;
+        private const int EntrySize_ = 0x30;
 
         private PacHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
+            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header
-            _header = br.ReadType<PacHeader>();
+            _header = typeReader.Read<PacHeader>(br);
 
             // Read table info
-            var tableInfo = br.ReadType<PacTableInfo>();
+            var tableInfo = typeReader.Read<PacTableInfo>(br);
 
             // Read assets
             input.Position = tableInfo.assetOffset;
-            var assets = br.ReadMultiple<PacAsset>(tableInfo.assetCount);
+            var assets = typeReader.ReadMany<PacAsset>(br, tableInfo.assetCount);
 
             // Read entries
             input.Position = tableInfo.entryOffset;
-            var entries = br.ReadMultiple<PacEntry>(tableInfo.entryCount);
+            var entries = typeReader.ReadMany<PacEntry>(br, tableInfo.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var asset in assets)
             {
                 input.Position = asset.stringOffset;
-                var assetName = br.ReadCStringASCII();
+                var assetName = br.ReadNullTerminatedString();
 
-                var entryStartCount = (asset.entryOffset - tableInfo.entryOffset) / EntrySize;
+                var entryStartCount = (asset.entryOffset - tableInfo.entryOffset) / EntrySize_;
                 foreach (var entry in entries.Skip(entryStartCount).Take(asset.count))
                 {
                     input.Position = entry.stringOffset;
-                    var entryName = br.ReadCStringASCII();
+                    var entryName = br.ReadNullTerminatedString();
 
                     var subStream = new SubStream(input, entry.offset, entry.compSize);
                     var fileName = assetName + "/" + entryName;
 
-                    result.Add(new PacArchiveFileInfo(subStream, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.decompSize));
+                    result.Add(new PacArchiveFile(new CompressedArchiveFileInfo
+                    {
+                        FilePath = fileName,
+                        FileData = subStream,
+                        Compression = Kompression.Compressions.ZLib.Build(),
+                        DecompressedSize = entry.decompSize
+                    }, entry));
                 }
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
+            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
+            
             var hash = Fnv1.Create();
 
             // Get distinct strings
             var stringMap = GetStringMap(files);
 
             // Calculate offsets
-            var tableInfoOffset = HeaderSize;
-            var assetOffset = (tableInfoOffset + TableInfoSize + 0x3F) & ~0x3F;
-            var entryOffset = (assetOffset + files.Select(x => x.FilePath.GetFirstDirectory(out _)).Distinct().Count() * AssetSize + 0x3F) & ~0x3F;
-            var stringOffset = (entryOffset + files.Count * EntrySize + 0x3F) & ~0x3F;
+            var tableInfoOffset = HeaderSize_;
+            var assetOffset = (tableInfoOffset + TableInfoSize_ + 0x3F) & ~0x3F;
+            var entryOffset = (assetOffset + files.Select(x => x.FilePath.GetFirstDirectory(out _)).Distinct().Count() * AssetSize_ + 0x3F) & ~0x3F;
+            var stringOffset = (entryOffset + files.Count * EntrySize_ + 0x3F) & ~0x3F;
             var fileOffset = (stringOffset + stringMap.Sum(x => x.Key.Length + 1) + 0x3F) & ~0x3F;
 
             // Write files
@@ -82,7 +89,7 @@ namespace plugin_nintendo.Archives
             var distinctFileCount = 0;
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<PacArchiveFileInfo>().OrderBy(x => x.FilePath))
+            foreach (var file in files.Cast<PacArchiveFile>().OrderBy(x => x.FilePath))
             {
                 // Update entry data
                 file.FilePath.ToRelative().GetFirstDirectory(out var filePath);
@@ -106,7 +113,7 @@ namespace plugin_nintendo.Archives
 
                 // Write file data
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.offset = filePosition;
                 file.Entry.compSize = file.Entry.compSize2 = (int)writtenSize;
@@ -115,18 +122,18 @@ namespace plugin_nintendo.Archives
                 fileMap[fileHash] = (filePosition, writtenSize);
                 distinctFileCount++;
 
-                filePosition += (int) writtenSize;
+                filePosition += (int)writtenSize;
             }
-            bw.WriteAlignment();
+            bw.WriteAlignment(16);
 
             // Write strings
             output.Position = stringOffset;
             foreach (var pair in stringMap)
-                bw.WriteString(pair.Key, Encoding.ASCII, false);
+                bw.WriteString(pair.Key, Encoding.ASCII);
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            typeWriter.WriteMany(entries, bw);
 
             // Write assets
             var entryPosition = entryOffset;
@@ -136,21 +143,21 @@ namespace plugin_nintendo.Archives
             foreach (var fileGroup in files.OrderBy(x => x.FilePath).GroupBy(x => x.FilePath.GetFirstDirectory(out _)))
             {
                 var fileCount = fileGroup.Count();
-                bw.WriteType(new PacAsset
+                typeWriter.Write(new PacAsset
                 {
                     count = fileCount,
                     entryOffset = entryPosition,
                     stringOffset = (int)stringMap[fileGroup.Key] + stringOffset,
                     fnvHash = hash.ComputeValue(fileGroup.Key)
-                });
+                }, bw);
 
-                entryPosition += fileCount * EntrySize;
+                entryPosition += fileCount * EntrySize_;
                 assetCount++;
             }
 
             // Write table info
             output.Position = tableInfoOffset;
-            bw.WriteType(new PacTableInfo
+            typeWriter.Write(new PacTableInfo
             {
                 fileOffset = fileOffset,
                 entryOffset = entryOffset,
@@ -161,20 +168,20 @@ namespace plugin_nintendo.Archives
                 entryCount = entries.Count,
                 stringCount = stringMap.Count,
                 assetCount = assetCount
-            });
+            }, bw);
 
             // Write header
             output.Position = 0;
 
             _header.dataOffset = fileOffset;
-            bw.WriteType(_header);
+            typeWriter.Write(_header, bw);
 
             // Pad file to 0x1000
             output.Position = output.Length;
             bw.WriteAlignment(0x1000);
         }
 
-        private IDictionary<string, long> GetStringMap(IList<IArchiveFileInfo> files)
+        private IDictionary<string, long> GetStringMap(List<IArchiveFile> files)
         {
             var strings = files.Select(x =>
              {

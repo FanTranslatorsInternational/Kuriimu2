@@ -1,9 +1,11 @@
 ﻿using System.Buffers.Binary;
-using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using plugin_nintendo.Compression;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using plugin_nintendo.Common.Compression;
+
 #pragma warning disable 649
 
 namespace plugin_nintendo.Archives
@@ -81,7 +83,7 @@ namespace plugin_nintendo.Archives
 
     static class GarcSupport
     {
-        public static ArchiveFileInfo CreateAfi(Stream file, string fileName)
+        public static IArchiveFile CreateAfi(Stream file, string fileName)
         {
             var compressionIdent = file.ReadByte();
             var isCompressed = compressionIdent == 0x10 ||
@@ -92,7 +94,11 @@ namespace plugin_nintendo.Archives
 
             file.Position--;
             if (!isCompressed)
-                return new ArchiveFileInfo(file, fileName);
+                return new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file
+                });
 
             var sizeBuffer = new byte[4];
             file.Read(sizeBuffer, 0, 4);
@@ -102,9 +108,20 @@ namespace plugin_nintendo.Archives
             var decompressedSize = BinaryPrimitives.ReadUInt32LittleEndian(sizeBuffer) >> 8;
 
             if (decompressedSize <= file.Length)
-                return new ArchiveFileInfo(file, fileName);
+                return new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file
+                });
 
-            return new ArchiveFileInfo(file, fileName, NintendoCompressor.GetConfiguration(method), decompressedSize);
+
+            return new ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = file,
+                Compression = NintendoCompressor.GetCompression(method),
+                DecompressedSize = (int)decompressedSize
+            });
         }
     }
 }

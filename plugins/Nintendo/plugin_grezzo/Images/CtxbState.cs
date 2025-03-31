@@ -1,46 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_grezzo.Images
 {
-    class CtxbState : IImageState, ILoadFiles, ISaveFiles
+    class CtxbState : IImageFilePluginState, ILoadFiles, ISaveFiles
     {
-        private Ctxb _ctxb;
+        private readonly Ctxb _ctxb = new();
 
-        public EncodingDefinition EncodingDefinition { get; private set; }
-        public IList<IKanvasImage> Images { get; private set; }
+        private List<ImageFileInfo> _infos;
+
+        public IReadOnlyList<IImageFile> Images { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
 
-        public CtxbState()
-        {
-            _ctxb = new Ctxb();
-
-            EncodingDefinition = CtxbSupport.GetEncodingDefinition();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = _ctxb.Load(fileStream).Select(x => new KanvasImage(EncodingDefinition, x)).ToArray();
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+
+            _infos = _ctxb.Load(fileStream);
+            Images = _infos.Select(x => new ImageFile(x, CtxbSupport.GetEncodingDefinition())).ToArray();
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _ctxb.Save(fileStream, Images.Select(x => x.ImageInfo).ToArray());
-
-            return Task.CompletedTask;
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            _ctxb.Save(fileStream, _infos);
         }
 
         private bool IsContentChanged()

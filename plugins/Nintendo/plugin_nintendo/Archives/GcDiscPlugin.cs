@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Archives
 {
     public class GcDiscPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("5f1f5aec-a783-495b-a560-75dbb8dbd7f6");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.iso" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.iso"];
 
-        public GcDiscPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("GcDisc", "onepiecefreak", "The DVD image format for GameCube.");
-        }
+            Name = "GcDisc",
+            Author = "onepiecefreak",
+            LongDescription = "The DVD image format for GameCube."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new GcDiscState();
         }

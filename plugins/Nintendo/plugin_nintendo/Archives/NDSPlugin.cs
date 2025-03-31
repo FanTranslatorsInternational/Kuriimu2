@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Archives
 {
     public class NDSPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("b79501ec-fb56-4a0a-a4ae-018cdf6fecf3");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.nds"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.nds"];
 
-        public NDSPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("NDS", "onepiecefreak", "NDS Cardridge.");
-        }
+            Name = "NDS",
+            Author = "onepiecefreak",
+            LongDescription = "NDS Cardridge."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new NDSState();
         }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Kanvas.Configuration;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Image;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
 using plugin_nintendo.Images.PICA;
 
 namespace plugin_nintendo.Images
@@ -17,15 +13,16 @@ namespace plugin_nintendo.Images
         private BchHeader _header;
         private IList<PICACommandReader> _picaReaders;
 
-        public IList<ImageInfo> Load(Stream input)
+        public List<ImageFileInfo> Load(Stream input)
         {
+            var typReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(_file = input, true);
 
             // Read header
-            _header = br.ReadType<BchHeader>();
+            _header = typReader.Read<BchHeader>(br);
 
             if (_header.dataSize == 0)
-                return Array.Empty<ImageInfo>();
+                return [];
 
             // Read PICA commands
             _picaReaders = new List<PICACommandReader>();
@@ -34,7 +31,7 @@ namespace plugin_nintendo.Images
                 _picaReaders.Add(new PICACommandReader(gpuStream));
 
             // Add images
-            var result = new List<ImageInfo>();
+            var result = new List<ImageFileInfo>();
             foreach (var picaReader in _picaReaders)
             {
                 var size = picaReader.getTexUnit0Size();
@@ -56,16 +53,21 @@ namespace plugin_nintendo.Images
                 for (var i = 1; i <= mipCount; i++)
                     mipMaps[i - 1] = br.ReadBytes((size.Width >> i) * (size.Height >> i) * bitDepth / 8);
 
-                result.Add(mipCount > 0
-                    ? new ImageInfo(imageData, mipMaps, format, size)
-                    : new ImageInfo(imageData, format, size));
-                result[^1].RemapPixels.With(context => new CtrSwizzle(context));
+                result.Add(new ImageFileInfo
+                {
+                    BitDepth = bitDepth,
+                    ImageData = imageData,
+                    ImageFormat = format,
+                    ImageSize = size,
+                    MipMapData = mipCount > 0 ? mipMaps : null,
+                    RemapPixels = context => new CtrSwizzle(context)
+                });
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<ImageInfo> images)
+        public void Save(Stream output, List<ImageFileInfo> images)
         {
             // Copy original file into output
             _file.Position = 0;
