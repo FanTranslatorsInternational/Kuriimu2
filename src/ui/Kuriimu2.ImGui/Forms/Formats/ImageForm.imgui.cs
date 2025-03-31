@@ -58,7 +58,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _imgList = new global::ImGui.Forms.Controls.Lists.List<ImageThumbnail>
             {
-                ItemSpacing = 4
+                ItemSpacing = 4,
+                IsSelectable = true
             };
 
             _saveBtn = new ImageButton { Image = ImageResources.Save, Tooltip = LocalizationResources.MenuFileSave, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
