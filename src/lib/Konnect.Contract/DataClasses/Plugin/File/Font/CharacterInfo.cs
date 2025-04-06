@@ -14,9 +14,14 @@ namespace Konnect.Contract.DataClasses.Plugin.File.Font
         public required char CodePoint { get; init; }
 
         /// <summary>
-        /// The size of the character.
+        /// The bounding box the glyph.
         /// </summary>
-        public Size? CharacterSize { get; set; }
+        public required Size BoundingBox { get; set; }
+
+        /// <summary>
+        /// The position relative to the bounding box to draw the glyph at.
+        /// </summary>
+        public required Point GlyphPosition { get; set; }
 
         /// <summary>
         /// The glyph of the character, if any.

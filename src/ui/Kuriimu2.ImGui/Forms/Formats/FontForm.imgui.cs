@@ -3,7 +3,6 @@ using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Models;
-using ImGui.Forms.Resources;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
@@ -29,7 +28,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private Label _descentLineLbl;
         private Label _descentLineTextLbl;
 
-        private ZoomablePictureBox _glyphBox;
+        private ZoomableCharacterInfo _glyphBox;
 
         private ZLayout _glyphsLayout;
         private GlyphElement? _selectedElement;
@@ -42,7 +41,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _generationDialog = new FontGenerationDialog(fontState);
 
-            _glyphBox = new ZoomablePictureBox
+            _glyphBox = new ZoomableCharacterInfo
             {
                 ShowBorder = true,
                 BackgroundColor = ColorResources.GlyphBackground
@@ -180,10 +179,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _selectedElement = element;
             element.IsSelected = true;
 
-            if (element.CharacterInfo.Glyph != null)
-                _glyphBox.Image = ImageResource.FromImage(element.CharacterInfo.Glyph);
-            else
-                _glyphBox.Image = null;
+            _glyphBox.SetCharacterInfo(element.CharacterInfo);
         }
 
         private void SetFontInformation(IFontFilePluginState state)

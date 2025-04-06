@@ -389,7 +389,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
                 var characterInfo = addState.CreateCharacterInfo(character);
                 characterInfo.Glyph = glyph;
-                characterInfo.CharacterSize = glyphSize;
+                characterInfo.BoundingBox = glyphSize;
                 characterInfo.ContentChanged = true;
 
                 addState.AddCharacter(characterInfo);
