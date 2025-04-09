@@ -10,8 +10,6 @@ namespace plugin_level5.Common.Font
         private const float ChannelScaling_ = 255f / (255f - 123f); // Scales color channel between 0-255 after subtracting 0x7B
         private const float ChannelTranslation_ = -(123f * ChannelScaling_) / 255f; // Subtraction by 0x7B, correctly scaled for scaling between 0-255
 
-        private readonly GraphicsOptions _options = new();
-
         private readonly ColorMatrix[] _colorMatrices0 =
         [
             new(0f, 0f, 0f, ChannelScaling_,
@@ -50,32 +48,11 @@ namespace plugin_level5.Common.Font
                 1f, 1f, 1f, 0f)
         ];
 
-        public Image<Rgba32> GetGlyph(FontImageData fontImageData, FontGlyphData glyphData)
+        public Image<Rgba32>? GetGlyph(FontImageData fontImageData, FontGlyphData glyphData)
         {
-            int glyphWidth, glyphHeight;
-
             if (glyphData.Description.Width <= 0 || glyphData.Description.Height <= 0)
-            {
-                glyphWidth = glyphData.Description.Width <= 0 ? glyphData.Width : glyphData.Description.Width;
-                glyphHeight = glyphData.Description.Height <= 0 ? fontImageData.Font.LargeFont.MaxHeight : glyphData.Description.Height;
+                return null;
 
-                return new Image<Rgba32>(glyphWidth, glyphHeight, Color.Transparent);
-            }
-
-            Image<Rgba32> rawGlyph = GetRawGlyph(fontImageData, glyphData);
-
-            glyphWidth = Math.Max(glyphData.Description.Width, glyphData.Width);
-            glyphHeight = Math.Max(glyphData.Description.Height, fontImageData.Font.LargeFont.MaxHeight);
-
-            var glyph = new Image<Rgba32>(glyphWidth, glyphHeight);
-
-            glyph.Mutate(context => context.DrawImage(rawGlyph, new Point(glyphData.Description.X, glyphData.Description.Y), _options));
-
-            return glyph;
-        }
-
-        private Image<Rgba32> GetRawGlyph(FontImageData fontImageData, FontGlyphData glyphData)
-        {
             var srcRect = new Rectangle(
                 glyphData.Location.X,
                 glyphData.Location.Y,

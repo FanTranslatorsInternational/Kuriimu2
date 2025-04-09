@@ -10,22 +10,30 @@ namespace plugin_level5.Common.Font
 {
     class FontDefaultGenerator : IFontGenerator
     {
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
-
         public FontImageData Generate(FontImageData fontImageData, IList<CharacterInfo> characters)
         {
             // Pack glyphs
             Size canvasSize = fontImageData.Images[0].Image.ImageInfo.ImageSize;
             var textureGenerator = new FontTextureGenerator(canvasSize, 1);
 
-            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(characters.Select(c => new GlyphData
-            {
-                Character = c.CodePoint,
-                Glyph = c.Glyph!,
-                Description = _whitespaceMeasurer.MeasureWhiteSpace(c.Glyph!)
-            }).ToArray(), fontImageData.Images.Length);
+            GlyphData[] glyphData = characters
+                .Where(c => c.Glyph is not null)
+                .Select(c => new GlyphData
+                {
+                    Character = c.CodePoint,
+                    Glyph = c.Glyph!,
+                    Description = new GlyphDescriptionData
+                    {
+                        Position = Point.Empty,
+                        Size = c.Glyph!.Size
+                    }
+                })
+                .ToArray();
+            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphData, fontImageData.Images.Length);
 
             // Set image
+            var characterLookup = characters.ToDictionary(x => x.CodePoint);
+
             var largeGlyphs = new Dictionary<char, FontGlyphData>();
 
             var imageIndex = 0;
@@ -35,7 +43,7 @@ namespace plugin_level5.Common.Font
                     largeGlyphs[glyph.Element.Character] = new FontGlyphData
                     {
                         CodePoint = glyph.Element.Character,
-                        Width = glyph.Element.Glyph.Width,
+                        Width = characterLookup[glyph.Element.Character].BoundingBox.Width,
                         Location = new FontGlyphLocationData
                         {
                             Index = imageIndex,
@@ -44,10 +52,10 @@ namespace plugin_level5.Common.Font
                         },
                         Description = new FontGlyphDescriptionData
                         {
-                            X = (sbyte)glyph.Element.Description.Position.X,
-                            Y = (sbyte)glyph.Element.Description.Position.Y,
-                            Width = (byte)glyph.Element.Description.Size.Width,
-                            Height = (byte)glyph.Element.Description.Size.Height
+                            X = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.X,
+                            Y = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.Y,
+                            Width = (byte)glyph.Element.Glyph.Width,
+                            Height = (byte)glyph.Element.Glyph.Height
                         }
                     };
 
@@ -60,10 +68,31 @@ namespace plugin_level5.Common.Font
                 Glyphs = new Dictionary<char, FontGlyphData>()
             };
 
+            //  Set glyphs without representation on channel 0
+            foreach (CharacterInfo character in characters.Where(c => c.Glyph is null))
+                largeGlyphs[character.CodePoint] = new FontGlyphData
+                {
+                    CodePoint = character.CodePoint,
+                    Width = character.BoundingBox.Width,
+                    Location = new FontGlyphLocationData
+                    {
+                        Index = imageIndex,
+                        X = 0,
+                        Y = 0
+                    },
+                    Description = new FontGlyphDescriptionData
+                    {
+                        X = 0,
+                        Y = 0,
+                        Width = 0,
+                        Height = 0
+                    }
+                };
+
             fontImageData.Font.LargeFont = new FontGlyphsData
             {
                 Glyphs = largeGlyphs,
-                MaxHeight = characters.Max(c => c.CharacterSize!.Value.Height),
+                MaxHeight = characters.Max(c => c.BoundingBox.Height),
                 FallbackCharacter = '?'
             };
 

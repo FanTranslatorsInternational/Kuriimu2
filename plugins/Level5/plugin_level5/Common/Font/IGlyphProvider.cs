@@ -6,6 +6,6 @@ namespace plugin_level5.Common.Font
 {
     public interface IGlyphProvider
     {
-        Image<Rgba32> GetGlyph(FontImageData fontImageData, FontGlyphData glyphData);
+        Image<Rgba32>? GetGlyph(FontImageData fontImageData, FontGlyphData glyphData);
     }
 }

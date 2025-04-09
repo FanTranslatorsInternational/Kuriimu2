@@ -15,8 +15,6 @@ namespace plugin_level5.Common.Font
         private const float ChannelScalingReverse_ = (255f - 123f) / 255f;
         private const float ChannelTranslationReverse_ = 123f / 255f;
 
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
-
         private readonly ColorMatrix[] _inverseColorMatrices0 =
         [
             new(0f, 0f, 0f, 0f,
@@ -61,15 +59,24 @@ namespace plugin_level5.Common.Font
             Size canvasSize = fontImageData.Images[0].Image.ImageInfo.ImageSize;
             var textureGenerator = new FontTextureGenerator(canvasSize, 1);
 
-            var glyphData = characters.Select(c => new GlyphData
-            {
-                Character = c.CodePoint,
-                Glyph = c.Glyph!,
-                Description = _whitespaceMeasurer.MeasureWhiteSpace(c.Glyph!)
-            }).ToArray();
+            GlyphData[] glyphData = characters
+                .Where(c => c.Glyph is not null)
+                .Select(c => new GlyphData
+                {
+                    Character = c.CodePoint,
+                    Glyph = c.Glyph!,
+                    Description = new GlyphDescriptionData
+                    {
+                        Position = Point.Empty,
+                        Size = c.Glyph!.Size
+                    }
+                })
+                .ToArray();
             IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphData, 3);
 
             // Set image
+            var characterLookup = characters.ToDictionary(x => x.CodePoint);
+
             var finalImage = new Image<Rgba32>(canvasSize.Width, canvasSize.Height);
             var largeGlyphs = new Dictionary<char, FontGlyphData>();
 
@@ -80,7 +87,7 @@ namespace plugin_level5.Common.Font
                     largeGlyphs[glyph.Element.Character] = new FontGlyphData
                     {
                         CodePoint = glyph.Element.Character,
-                        Width = glyph.Element.Glyph.Width,
+                        Width = characterLookup[glyph.Element.Character].BoundingBox.Width,
                         Location = new FontGlyphLocationData
                         {
                             Index = imageIndex,
@@ -89,21 +96,23 @@ namespace plugin_level5.Common.Font
                         },
                         Description = new FontGlyphDescriptionData
                         {
-                            X = (sbyte)glyph.Element.Description.Position.X,
-                            Y = (sbyte)glyph.Element.Description.Position.Y,
-                            Width = (byte)glyph.Element.Description.Size.Width,
-                            Height = (byte)glyph.Element.Description.Size.Height
+                            X = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.X,
+                            Y = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.Y,
+                            Width = (byte)glyph.Element.Glyph.Width,
+                            Height = (byte)glyph.Element.Glyph.Height
                         }
                     };
 
                 switch (fontImageData.Font.Version.Version)
                 {
                     case 0:
-                        finalImage.Mutate(context => context.DrawImage(glyphImage.Image, 1f).Filter(_inverseColorMatrices0[imageIndex++]));
+                        glyphImage.Image.Mutate(context => context.Filter(_inverseColorMatrices0[imageIndex++]));
+                        finalImage.Mutate(context => context.DrawImage(glyphImage.Image, PixelColorBlendingMode.Add, 1f));
                         break;
 
                     case 1:
-                        finalImage.Mutate(context => context.DrawImage(glyphImage.Image, 1f).Filter(_inverseColorMatrices1[imageIndex++]));
+                        glyphImage.Image.Mutate(context => context.Filter(_inverseColorMatrices1[imageIndex++]));
+                        finalImage.Mutate(context => context.DrawImage(glyphImage.Image, PixelColorBlendingMode.Add, 1f));
                         break;
 
                     default:
@@ -119,10 +128,31 @@ namespace plugin_level5.Common.Font
                 Glyphs = new Dictionary<char, FontGlyphData>()
             };
 
+            //  Set glyphs without representation on channel 0
+            foreach (CharacterInfo character in characters.Where(c => c.Glyph is null))
+                largeGlyphs[character.CodePoint] = new FontGlyphData
+                {
+                    CodePoint = character.CodePoint,
+                    Width = character.BoundingBox.Width,
+                    Location = new FontGlyphLocationData
+                    {
+                        Index = imageIndex,
+                        X = 0,
+                        Y = 0
+                    },
+                    Description = new FontGlyphDescriptionData
+                    {
+                        X = 0,
+                        Y = 0,
+                        Width = 0,
+                        Height = 0
+                    }
+                };
+
             fontImageData.Font.LargeFont = new FontGlyphsData
             {
                 Glyphs = largeGlyphs,
-                MaxHeight = characters.Max(c => c.CharacterSize!.Value.Height),
+                MaxHeight = characters.Max(c => c.BoundingBox.Height),
                 FallbackCharacter = '?'
             };
 

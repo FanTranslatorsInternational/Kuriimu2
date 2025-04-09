@@ -4,6 +4,7 @@ using ImGui.Forms;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
+using ImGuiNET;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using SixLabors.ImageSharp;
 using Rectangle = Veldrid.Rectangle;
@@ -21,8 +22,9 @@ namespace Kuriimu2.ImGui.Components
         {
             CharacterInfo = characterInfo;
 
-            if (characterInfo.Glyph is not null)
-                _glyphResource = ImageResource.FromImage(characterInfo.Glyph);
+            _glyphResource = characterInfo.Glyph is not null
+                ? ImageResource.FromImage(characterInfo.Glyph)
+                : null;
         }
 
         protected override void DrawInternal(Rectangle contentRect)
@@ -30,12 +32,12 @@ namespace Kuriimu2.ImGui.Components
             if (CharacterInfo == null)
                 return;
 
-            int totalWidth = Math.Max(CharacterInfo.GlyphPosition.X + (CharacterInfo.Glyph?.Width ?? 0), CharacterInfo.BoundingBox.Width);
-            int totalHeight = Math.Max(CharacterInfo.GlyphPosition.Y + (CharacterInfo.Glyph?.Height ?? 0), CharacterInfo.BoundingBox.Height);
-            int boundingX = Math.Min(CharacterInfo.GlyphPosition.X + (CharacterInfo.Glyph?.Width ?? 0), 0);
-            int boundingY = Math.Min(CharacterInfo.GlyphPosition.Y + (CharacterInfo.Glyph?.Height ?? 0), 0);
+            int boundingX = Math.Min(CharacterInfo.GlyphPosition.X, 0);
+            int boundingY = Math.Min(CharacterInfo.GlyphPosition.Y, 0);
+            int boundingWidth = Math.Max(CharacterInfo.GlyphPosition.X + (CharacterInfo.Glyph?.Width ?? 0), CharacterInfo.BoundingBox.Width);
+            int boundingHeight = Math.Max(CharacterInfo.GlyphPosition.Y + (CharacterInfo.Glyph?.Height ?? 0), CharacterInfo.BoundingBox.Height);
 
-            var totalBoundingBox = new Rectangle(boundingX, boundingY, totalWidth, totalHeight);
+            var totalBoundingBox = new Rectangle(boundingX, boundingY, boundingWidth - boundingX, boundingHeight - boundingY);
 
             DrawBackground(contentRect);
             DrawGlyph(contentRect);
@@ -69,7 +71,7 @@ namespace Kuriimu2.ImGui.Components
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, CharacterInfo.BoundingBox.Width, CharacterInfo.BoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.WhiteSmoke.ToUInt32());
+            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.OrangeRed.ToUInt32());
         }
 
         private void DrawTotalBoundingBox(Rectangle contentRect, Rectangle totalBoundingBox)
@@ -81,7 +83,7 @@ namespace Kuriimu2.ImGui.Components
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, totalBoundingBox.Width, totalBoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.White.ToUInt32());
+            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.Gold.ToUInt32());
         }
     }
 }

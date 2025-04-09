@@ -1,6 +1,4 @@
-﻿using Kaligraphy.Contract.DataClasses;
-using Kaligraphy.Generation;
-using Konnect.Contract.DataClasses.FileSystem;
+﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.FileSystem;
@@ -8,9 +6,7 @@ using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Font;
 using plugin_level5.Common.Font;
 using plugin_level5.Common.Font.Models;
-using plugin_level5.Common.Image.Models;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_level5.Common.Plugins
 {
@@ -52,13 +48,12 @@ namespace plugin_level5.Common.Plugins
             FontGlyphsData largeFont = _fontImageData.Font.LargeFont;
             foreach (char codePoint in largeFont.Glyphs.Keys)
             {
-                Image<Rgba32> glyph = glyphProvider.GetGlyph(_fontImageData, largeFont.Glyphs[codePoint]);
-
                 _characters.Add(new CharacterInfo
                 {
                     CodePoint = codePoint,
-                    CharacterSize = glyph.Size,
-                    Glyph = glyph,
+                    BoundingBox = new Size(largeFont.Glyphs[codePoint].Width, largeFont.MaxHeight),
+                    GlyphPosition = new Point(largeFont.Glyphs[codePoint].Description.X, largeFont.Glyphs[codePoint].Description.Y),
+                    Glyph = glyphProvider.GetGlyph(_fontImageData, largeFont.Glyphs[codePoint]),
                     ContentChanged = false
                 });
             }
@@ -86,7 +81,9 @@ namespace plugin_level5.Common.Plugins
         {
             return new CharacterInfo
             {
-                CodePoint = codePoint
+                CodePoint = codePoint,
+                BoundingBox = new Size(_fontImageData!.Font.LargeFont.Glyphs.Values.Max(x => x.Description.Height), _fontImageData!.Font.LargeFont.MaxHeight),
+                GlyphPosition = Point.Empty
             };
         }
 
