@@ -30,6 +30,12 @@ namespace Konnect.Contract.Plugin.File.Image
         bool IsImageLocked { get; }
 
         /// <summary>
+        /// Clones all data of this image to a new instance.
+        /// </summary>
+        /// <returns>The cloned <see cref="IImageFile"/>.</returns>
+        IImageFile Clone();
+
+        /// <summary>
         /// Gets the image of the set <see cref="ImageInfo"/>.
         /// </summary>
         /// <param name="progress">The progress for this action.</param>

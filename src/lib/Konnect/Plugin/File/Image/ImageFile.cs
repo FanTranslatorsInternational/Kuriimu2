@@ -64,6 +64,97 @@ namespace Konnect.Plugin.File.Image
 
         #region Interface
 
+        /// <summary>
+        /// Creates a new image file.
+        /// </summary>
+        /// <param name="imageSize">The size of the new image.</param>
+        /// <param name="encodingDefinition">The encodings to transcode the images into.</param>
+        /// <returns>The new image file.</returns>
+        public ImageFile Create(Size imageSize, IEncodingDefinition encodingDefinition)
+        {
+            var bitDepth = 0;
+            var format = 0;
+
+            int paletteBitDepth = -1;
+            int paletteFormat = -1;
+            byte[]? paletteData = null;
+
+            if (encodingDefinition.ColorEncodings.Count > 0)
+            {
+                bitDepth = encodingDefinition.ColorEncodings.First().Value.BitDepth;
+                format = encodingDefinition.ColorEncodings.First().Key;
+            }
+            else if (encodingDefinition.IndexEncodings.Count > 0)
+            {
+                bitDepth = encodingDefinition.IndexEncodings.First().Value.IndexEncoding.BitDepth;
+                format = encodingDefinition.IndexEncodings.First().Key;
+
+                paletteFormat = encodingDefinition.IndexEncodings.First().Value.PaletteEncodingIndices[0];
+                paletteBitDepth = encodingDefinition.GetPaletteEncoding(paletteFormat)?.BitDepth ?? -1;
+                paletteData = new byte[encodingDefinition.IndexEncodings.First().Value.IndexEncoding.MaxColors * paletteBitDepth];
+            }
+
+            var imageInfo = new ImageFileInfo
+            {
+                Name = string.Empty,
+                BitDepth = bitDepth,
+                ImageSize = imageSize,
+                ImageData = new byte[imageSize.Width * imageSize.Height * bitDepth / 8],
+                ImageFormat = format,
+                PaletteBitDepth = paletteBitDepth,
+                PaletteData = paletteData,
+                PaletteFormat = paletteFormat,
+                ContentChanged = false
+            };
+
+            return new(imageInfo, encodingDefinition);
+        }
+
+        public IImageFile Clone()
+        {
+            var clonedImageData = new byte[ImageInfo.ImageData.Length];
+            Array.Copy(ImageInfo.ImageData, clonedImageData, clonedImageData.Length);
+
+            byte[]? clonedPaletteData = null;
+            if (ImageInfo.PaletteData is not null)
+            {
+                clonedPaletteData = new byte[ImageInfo.PaletteData.Length];
+                Array.Copy(ImageInfo.PaletteData, clonedPaletteData, clonedPaletteData.Length);
+            }
+
+            IList<byte[]>? clonedMipMapData = null;
+            if (ImageInfo.MipMapData is not null)
+            {
+                clonedMipMapData = [];
+                foreach (byte[] mipMapData in ImageInfo.MipMapData)
+                {
+                    var clonedMipMap = new byte[mipMapData.Length];
+                    Array.Copy(mipMapData, clonedMipMap, clonedMipMap.Length);
+
+                    clonedMipMapData.Add(clonedMipMap);
+                }
+            }
+
+            var clonedInfo = new ImageFileInfo
+            {
+                Name = ImageInfo.Name,
+                BitDepth = ImageInfo.BitDepth,
+                PaletteBitDepth = ImageInfo.PaletteBitDepth,
+                ImageSize = ImageInfo.ImageSize,
+                ImageData = clonedImageData,
+                ImageFormat = ImageInfo.ImageFormat,
+                PaletteData = clonedPaletteData,
+                PaletteFormat = ImageInfo.PaletteFormat,
+                MipMapData = clonedMipMapData,
+                IsAnchoredAt = ImageInfo.IsAnchoredAt,
+                PadSize = ImageInfo.PadSize,
+                RemapPixels = ImageInfo.RemapPixels,
+                ContentChanged = true
+            };
+
+            return new ImageFile(clonedInfo, EncodingDefinition);
+        }
+
         #region Image methods
 
         /// <inheritdoc />
