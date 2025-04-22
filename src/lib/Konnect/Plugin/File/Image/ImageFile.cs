@@ -81,17 +81,17 @@ namespace Konnect.Plugin.File.Image
 
             if (encodingDefinition.ColorEncodings.Count > 0)
             {
-                bitDepth = encodingDefinition.ColorEncodings.First().Value.BitDepth;
-                format = encodingDefinition.ColorEncodings.First().Key;
+                (format, IColorEncoding encoding) = encodingDefinition.ColorEncodings.First();
+                bitDepth = encoding.BitDepth;
             }
             else if (encodingDefinition.IndexEncodings.Count > 0)
             {
-                bitDepth = encodingDefinition.IndexEncodings.First().Value.IndexEncoding.BitDepth;
-                format = encodingDefinition.IndexEncodings.First().Key;
+                (format, IndexEncodingDefinition indexDefinition) = encodingDefinition.IndexEncodings.First();
+                bitDepth = indexDefinition.IndexEncoding.BitDepth;
 
-                paletteFormat = encodingDefinition.IndexEncodings.First().Value.PaletteEncodingIndices[0];
+                paletteFormat = indexDefinition.PaletteEncodingIndices[0];
                 paletteBitDepth = encodingDefinition.GetPaletteEncoding(paletteFormat)?.BitDepth ?? -1;
-                paletteData = new byte[encodingDefinition.IndexEncodings.First().Value.IndexEncoding.MaxColors * paletteBitDepth];
+                paletteData = new byte[indexDefinition.IndexEncoding.MaxColors * paletteBitDepth];
             }
 
             var imageInfo = new ImageFileInfo
