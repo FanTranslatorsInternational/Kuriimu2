@@ -62,7 +62,7 @@ namespace Konnect.Plugin.File.Image
 
         #endregion
 
-        #region Interface
+        #region Static
 
         /// <summary>
         /// Creates a new image file.
@@ -70,7 +70,7 @@ namespace Konnect.Plugin.File.Image
         /// <param name="imageSize">The size of the new image.</param>
         /// <param name="encodingDefinition">The encodings to transcode the images into.</param>
         /// <returns>The new image file.</returns>
-        public ImageFile Create(Size imageSize, IEncodingDefinition encodingDefinition)
+        public static ImageFile Create(Size imageSize, IEncodingDefinition encodingDefinition)
         {
             var bitDepth = 0;
             var format = 0;
@@ -109,6 +109,10 @@ namespace Konnect.Plugin.File.Image
 
             return new(imageInfo, encodingDefinition);
         }
+
+        #endregion
+
+        #region Interface
 
         public IImageFile Clone()
         {
