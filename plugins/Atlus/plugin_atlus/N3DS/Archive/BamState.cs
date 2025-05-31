@@ -3,6 +3,7 @@ using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.N3DS.Archive
 {
@@ -10,7 +11,7 @@ namespace plugin_atlus.N3DS.Archive
     {
         private readonly Bam _bam = new();
 
-        private List<BamArchiveFile> _files;
+        private List<ArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => _files.Any(x => x.ContentChanged);

@@ -19,37 +19,37 @@ namespace plugin_atlus.PS2.Archive
 
         public List<IArchiveFile> Load(Stream ddtStream, Stream imgStream)
         {
-            var typeReader = new BinaryTypeReader();
             using var reader = new BinaryReaderX(ddtStream, EucJpEncoding);
 
-            return EnumerateFiles(typeReader, reader, imgStream, UPath.Root).ToList();
+            return EnumerateFiles(reader, imgStream, UPath.Root).ToList();
         }
 
         public void Save(Stream ddtStream, Stream imgStream, IList<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var writer = new BinaryWriterX(ddtStream);
 
             var fileTree = files.ToTree();
 
             // Write entries below root
             writer.BaseStream.Position = EntrySize_;
-            WriteEntries(typeWriter, writer, fileTree, imgStream);
+            WriteEntries(writer, fileTree, imgStream);
 
             // Write root
-            writer.BaseStream.Position = 0;
-            typeWriter.Write(new DdtEntry
+            var root = new DdtEntry
             {
                 nameOffset = 0,
-                entryOffset = (uint)EntrySize_,
+                entryOffset = EntrySize_,
                 entrySize = -(fileTree.Directories.Count + fileTree.Files.Count)
-            }, writer);
+            };
+
+            writer.BaseStream.Position = 0;
+            WriteEntry(root, writer);
         }
 
-        private IEnumerable<IArchiveFile> EnumerateFiles(BinaryTypeReader typeReader, BinaryReaderX reader, Stream imgStream, UPath currentPath)
+        private IEnumerable<IArchiveFile> EnumerateFiles(BinaryReaderX reader, Stream imgStream, UPath currentPath)
         {
             // Read current entry
-            var entry = typeReader.Read<DdtEntry>(reader);
+            var entry = ReadEntry(reader);
 
             // Read name
             var name = reader.ReadNullTerminatedString();
@@ -71,13 +71,13 @@ namespace plugin_atlus.PS2.Archive
                 for (var i = 0; i < -entry.entrySize; i++)
                 {
                     reader.BaseStream.Position = entry.entryOffset + i * EntrySize_;
-                    foreach (IArchiveFile file in EnumerateFiles(typeReader, reader, imgStream, currentPath / name))
+                    foreach (IArchiveFile file in EnumerateFiles(reader, imgStream, currentPath / name))
                         yield return file;
                 }
             }
         }
 
-        private long WriteEntries(BinaryTypeWriter typeWriter, BinaryWriterX writer, DirectoryEntry entry, Stream imgStream)
+        private long WriteEntries(BinaryWriterX writer, DirectoryEntry entry, Stream imgStream)
         {
             // Collect offsets
             var entryOffset = writer.BaseStream.Position;
@@ -112,7 +112,7 @@ namespace plugin_atlus.PS2.Archive
                 directory.Entry.entrySize = -(directory.Directory!.Directories.Count + directory.Directory.Files.Count);
 
                 writer.BaseStream.Position = entryEndOffset;
-                entryEndOffset = (uint)WriteEntries(typeWriter, writer, directory.Directory, imgStream);
+                entryEndOffset = (uint)WriteEntries(writer, directory.Directory, imgStream);
             }
 
             // Write strings
@@ -126,9 +126,26 @@ namespace plugin_atlus.PS2.Archive
             // Write current entries
             writer.BaseStream.Position = entryOffset;
             foreach (var infoHolder in entries)
-                typeWriter.Write(infoHolder.Entry, writer);
+                WriteEntry(infoHolder.Entry, writer);
 
             return entryEndOffset;
+        }
+
+        private DdtEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new DdtEntry
+            {
+                nameOffset = reader.ReadUInt32(),
+                entryOffset = reader.ReadUInt32(),
+                entrySize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntry(DdtEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.entryOffset);
+            writer.Write(entry.entrySize);
         }
     }
 }

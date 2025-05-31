@@ -10,7 +10,6 @@ namespace plugin_atlus.PSP.Archive
     {
         public List<ArchiveFileInfo> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, leaveOpen: true);
 
             var sizeList = new List<int>();

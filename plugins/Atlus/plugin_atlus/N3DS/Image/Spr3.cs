@@ -19,30 +19,26 @@ namespace plugin_atlus.N3DS.Image
 
         public IList<ImageFileInfo> Load(Stream input, IPluginFileManager manager)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header and offsets
-            var header = typeReader.Read<Spr3Header>(br);
-            var ctpkOffsets = ReadOffsets(input, typeReader, header.imgOffset, header.imgCount);
-            var entryOffsets = ReadOffsets(input, typeReader, header.entryOffset, header.entryCount);
+            var header = ReadHeader(br);
+            var ctpkOffsets = ReadOffsets(br, header.imgOffset, header.imgCount);
+            var entryOffsets = ReadOffsets(br, header.entryOffset, header.entryCount);
 
             // Read entries and load CTPKs
-            _entries = ReadEntries(input, br, entryOffsets);
+            _entries = ReadEntries(br, entryOffsets);
             _ctpkStates = new List<IFileState>();
 
             var images = new List<ImageFileInfo>();
-            for (int i = 0; i < ctpkOffsets.Count; i++)
-            {
+            for (var i = 0; i < ctpkOffsets.Length; i++)
                 images.AddRange(LoadCtpk(input, manager, ctpkOffsets, i));
-            }
 
             return images;
         }
 
         public void Save(Stream output, IPluginFileManager manager)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -55,39 +51,81 @@ namespace plugin_atlus.N3DS.Image
             List<int> imgOffsets = WriteCtpkData(output, manager, dataOffset);
 
             // Write entries and capture their offsets
-            List<int> entryDataOffsets = WriteEntries(output, bw, entryOffset);
+            List<int> entryDataOffsets = WriteEntries(bw, entryOffset);
 
             // Write offset tables for entries and CTPKs
-            WriteOffsetTable(output, bw, entryOffsetsOffset, entryDataOffsets);
-            WriteOffsetTable(output, bw, imgOffset, imgOffsets);
+            WriteOffsetTable(bw, entryOffsetsOffset, entryDataOffsets);
+            WriteOffsetTable(bw, imgOffset, imgOffsets);
 
             // Write header at the beginning of the stream
-            var header = new Spr3Header()
+            var header = new Spr3Header
             {
                 entryOffset = entryOffsetsOffset,
                 entryCount = (short)_entries.Count,
                 imgOffset = imgOffset,
                 imgCount = (short)_ctpkStates.Count
             };
+
             output.Position = 0;
-            typeWriter.Write(header, bw);
+            WriteHeader(header, bw);
         }
 
-        #region Private Helpers
-
-        private static IList<Spr3Offset> ReadOffsets(Stream stream, BinaryTypeReader reader, int offset, short count)
+        private Spr3Header ReadHeader(BinaryReaderX reader)
         {
-            stream.Position = offset;
-            return reader.ReadMany<Spr3Offset>(new BinaryReaderX(stream), count);
+            return new Spr3Header
+            {
+                const0 = reader.ReadInt32(),
+                const1 = reader.ReadInt32(),
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                imgCount = reader.ReadInt16(),
+                entryCount = reader.ReadInt16(),
+                imgOffset = reader.ReadInt32(),
+                entryOffset = reader.ReadInt32(),
+            };
         }
 
-        private static IList<byte[]> ReadEntries(Stream input, BinaryReaderX br, IEnumerable<Spr3Offset> entryOffsets)
+        private Spr3Offset[] ReadOffsets(BinaryReaderX reader, int offset, short count)
+        {
+            var result = new Spr3Offset[count];
+
+            reader.BaseStream.Position = offset;
+            for (var i = 0; i < count; i++)
+                result[i] = ReadOffset(reader);
+
+            return result;
+        }
+
+        private Spr3Offset ReadOffset(BinaryReaderX reader)
+        {
+            return new Spr3Offset
+            {
+                zero1 = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(Spr3Header header, BinaryWriterX writer)
+        {
+            writer.Write(header.const0);
+            writer.Write(header.const1);
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.unk1);
+            writer.Write(header.imgCount);
+            writer.Write(header.entryCount);
+            writer.Write(header.imgOffset);
+            writer.Write(header.entryOffset);
+        }
+
+        private static IList<byte[]> ReadEntries(BinaryReaderX reader, IEnumerable<Spr3Offset> entryOffsets)
         {
             var entries = new List<byte[]>();
             foreach (var entryOffset in entryOffsets)
             {
-                input.Position = entryOffset.offset;
-                entries.Add(br.ReadBytes(0x80));
+                reader.BaseStream.Position = entryOffset.offset;
+                entries.Add(reader.ReadBytes(0x80));
             }
             return entries;
         }
@@ -135,41 +173,36 @@ namespace plugin_atlus.N3DS.Image
             {
                 return ctpkState.FileSystem.OpenFile(ctpkState.FilePath);
             }
-            else
+
+            var saveResult = manager.SaveStream(ctpkState).Result;
+            if (!saveResult.IsSuccessful)
             {
-                var saveResult = manager.SaveStream(ctpkState).Result;
-                if (!saveResult.IsSuccessful)
-                {
-                    throw new InvalidOperationException(saveResult.ToString());
-                }
-                return saveResult.SavedStreams[0].Stream;
+                throw new InvalidOperationException(saveResult.ToString());
             }
+            return saveResult.SavedStreams[0].Stream;
         }
 
-        private List<int> WriteEntries(Stream output, BinaryWriterX bw, int entryStartPosition)
+        private List<int> WriteEntries(BinaryWriterX bw, int entryStartPosition)
         {
             var entryOffsets = new List<int>();
-            output.Position = entryStartPosition;
+            bw.BaseStream.Position = entryStartPosition;
 
             foreach (var entry in _entries)
             {
-                entryOffsets.Add((int)output.Position);
+                entryOffsets.Add((int)bw.BaseStream.Position);
                 bw.Write(entry);
             }
             return entryOffsets;
         }
 
-        private static void WriteOffsetTable(Stream output, BinaryWriterX bw, int tableStartPosition, List<int> offsets)
+        private static void WriteOffsetTable(BinaryWriterX bw, int tableStartPosition, List<int> offsets)
         {
-            output.Position = tableStartPosition;
-            foreach (var off in offsets)
+            bw.BaseStream.Position = tableStartPosition;
+            foreach (int offset in offsets)
             {
-                // Write a placeholder zero followed by the actual offset.
                 bw.Write(0);
-                bw.Write(off);
+                bw.Write(offset);
             }
         }
-
-        #endregion
     }
 }

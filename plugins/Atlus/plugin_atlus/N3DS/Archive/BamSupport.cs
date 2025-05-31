@@ -5,11 +5,9 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.N3DS.Archive
 {
-    class BamHeader
+    struct BamHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public int size;
         public int zero0;
         public int zero1;
@@ -17,11 +15,9 @@ namespace plugin_atlus.N3DS.Archive
         public int dataStart;
     }
 
-    class BamSubHeader
+    struct BamSubHeader
     {
-        [FixedLength(8)]
         public string magic;
-
         public int size;
     }
 
@@ -64,11 +60,8 @@ namespace plugin_atlus.N3DS.Archive
 
     public class BamArchiveFile : ArchiveFile
     {
-        public BamFileInfo Entry { get; }
-
-        public BamArchiveFile(ArchiveFileInfo fileInfo, BamFileInfo entry) : base(fileInfo)
+        public BamArchiveFile(ArchiveFileInfo fileInfo) : base(fileInfo)
         {
-            Entry = entry;
         }
     }
 }

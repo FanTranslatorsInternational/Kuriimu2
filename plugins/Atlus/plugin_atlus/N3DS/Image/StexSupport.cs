@@ -1,16 +1,14 @@
 ﻿using Kanvas;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_atlus.N3DS.Image
 {
-    class StexHeader
+    struct StexHeader
     {
-        [FixedLength(4)]
-        public string magic = "STEX";
+        public string magic;
         public uint zero0;
-        public uint const0 = 0xDE1;
+        public uint const0;
         public int width;
         public int height;
         public uint dataType;
@@ -18,7 +16,7 @@ namespace plugin_atlus.N3DS.Image
         public int dataSize;
     }
 
-    class StexEntry
+    struct StexEntry
     {
         public int offset;
         public int unk1;

@@ -1,7 +1,6 @@
 ﻿using Kanvas;
 using Kanvas.Contract;
 using Kanvas.Contract.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
@@ -9,12 +8,11 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_atlus.Image
 {
-    class TmxHeader
+    struct TmxHeader
     {
         public int unk1;
         public int fileSize;
-        [FixedLength(4)]
-        public string magic = "TMX0";
+        public string magic;
         public int unk2;
         public byte unk3;
         public byte paletteFormat;

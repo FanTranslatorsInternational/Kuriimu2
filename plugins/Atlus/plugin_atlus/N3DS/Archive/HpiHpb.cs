@@ -20,17 +20,19 @@ namespace plugin_atlus.N3DS.Archive
 
         public List<IArchiveFile> Load(Stream hpiStream, Stream hpbStream)
         {
-            var typeReader = new BinaryTypeReader();
             using var reader = new BinaryReaderX(hpiStream, _sjis);
 
             // Read header
-            var header = typeReader.Read<HpiHeader>(reader);
+            var header = ReadHeader(reader);
 
             // Read hashes
-            typeReader.ReadMany<HpiHashEntry>(reader, header.hashCount);
+            for (var i = 0; i < header.hashCount; i++)
+                _ = ReadHashEntry(reader);
 
             // Read entries
-            var entries = typeReader.ReadMany<HpiFileEntry>(reader, header.entryCount);
+            var entries = new HpiFileEntry[header.entryCount];
+            for (var i = 0; i < header.entryCount; i++)
+                entries[i] = ReadFileEntry(reader);
 
             // Prepare string table
             var stringStream = new SubStream(hpiStream, hpiStream.Position, hpiStream.Length - hpiStream.Position);
@@ -43,7 +45,7 @@ namespace plugin_atlus.N3DS.Archive
                 var subStream = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize);
 
                 stringStream.Position = entry.stringOffset;
-                var name = stringBr.ReadNullTerminatedString();
+                string name = stringBr.ReadNullTerminatedString();
                 result.Add(CreateFile(subStream, name, entry));
             }
 
@@ -54,7 +56,6 @@ namespace plugin_atlus.N3DS.Archive
         {
             var hash = new Kryptography.Checksum.Simple(0x25);
 
-            var typeWriter = new BinaryTypeWriter();
             using var writer = new BinaryWriterX(hpiStream);
 
             // Calculate offsets
@@ -105,22 +106,84 @@ namespace plugin_atlus.N3DS.Archive
 
                 foreach (IArchiveFile file in fileLookup[i])
                 {
-                    if (entryLookup.TryGetValue(file, out HpiFileEntry? entry))
-                        typeWriter.Write(entry, writer);
+                    if (entryLookup.TryGetValue(file, out HpiFileEntry entry))
+                        WriteFileEntry(entry, writer);
                 }
             }
 
             // Write hash entries
             hpiStream.Position = hashOffset;
-            typeWriter.WriteMany(hashes, writer);
+            foreach (HpiHashEntry hashEntry in hashes)
+                WriteHashEntry(hashEntry, writer);
 
             // Write header
             hpiStream.Position = 0;
-            typeWriter.Write(new HpiHeader
+            WriteHeader(new HpiHeader
             {
+                magic = "HPIH",
+                headerSize = 0x10,
                 hashCount = (short)hashes.Count,
                 entryCount = files.Count
             }, writer);
+        }
+
+        private HpiHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new HpiHeader
+            {
+                magic = reader.ReadString(4),
+                zero0 = reader.ReadInt32(),
+                headerSize = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                zero2 = reader.ReadInt16(),
+                hashCount = reader.ReadInt16(),
+                entryCount = reader.ReadInt32()
+            };
+        }
+
+        private HpiHashEntry ReadHashEntry(BinaryReaderX reader)
+        {
+            return new HpiHashEntry
+            {
+                entryOffset = reader.ReadInt16(),
+                entryCount = reader.ReadInt16(),
+            };
+        }
+
+        private HpiFileEntry ReadFileEntry(BinaryReaderX reader)
+        {
+            return new HpiFileEntry
+            {
+                stringOffset = reader.ReadInt32(),
+                offset = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(HpiHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.zero0);
+            writer.Write(header.headerSize);
+            writer.Write(header.zero1);
+            writer.Write(header.zero2);
+            writer.Write(header.hashCount);
+            writer.Write(header.entryCount);
+        }
+
+        private void WriteHashEntry(HpiHashEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.entryOffset);
+            writer.Write(entry.entryCount);
+        }
+
+        private void WriteFileEntry(HpiFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.stringOffset);
+            writer.Write(entry.offset);
+            writer.Write(entry.compSize);
+            writer.Write(entry.decompSize);
         }
 
         private IArchiveFile CreateFile(Stream file, string name, HpiFileEntry entry)

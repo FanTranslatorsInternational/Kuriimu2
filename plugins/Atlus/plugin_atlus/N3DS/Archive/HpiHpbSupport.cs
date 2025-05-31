@@ -1,28 +1,26 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Konnect.Contract.DataClasses.FileSystem;
 
 namespace plugin_atlus.N3DS.Archive
 {
-    class HpiHeader
+    struct HpiHeader
     {
-        [FixedLength(4)]
-        public string magic = "HPIH";
+        public string magic;
         public int zero0;
-        public int headerSize = 0x10;  //without magic and zero0
+        public int headerSize;  //without magic and zero0
         public int zero1;
         public short zero2;
         public short hashCount;
         public int entryCount;
     }
 
-    class HpiHashEntry
+    struct HpiHashEntry
     {
         public short entryOffset;
         public short entryCount;
     }
 
-    class HpiFileEntry
+    struct HpiFileEntry
     {
         public int stringOffset;
         public int offset;

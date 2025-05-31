@@ -1,16 +1,14 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_atlus.N3DS.Image
 {
-    class Spr3Header
+    struct Spr3Header
     {
         public int const0;
         public int const1;
-        [FixedLength(4)]
         public string magic;
         public int headerSize;
         public int unk1;
@@ -20,7 +18,7 @@ namespace plugin_atlus.N3DS.Image
         public int entryOffset;
     }
 
-    class Spr3Offset
+    struct Spr3Offset
     {
         public int zero1;
         public int offset;

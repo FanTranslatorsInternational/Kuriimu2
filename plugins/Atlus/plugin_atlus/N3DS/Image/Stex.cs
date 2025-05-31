@@ -14,20 +14,19 @@ namespace plugin_atlus.N3DS.Image
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
-            
+
             // Read header
-            var header = typeReader.Read<StexHeader>(br);
+            var header = ReadHeader(br);
 
             // Read entry
-            var entry = typeReader.Read<StexEntry>(br);
+            var entry = ReadEntry(br);
 
             // Quick hack (We will probably replace this in the future)
             unk1 = entry.unk1;
 
             // Read name
-            var name = br.ReadString();
+            var name = br.ReadNullTerminatedString();
 
             // Create image info
             input.Position = entry.offset;
@@ -45,12 +44,11 @@ namespace plugin_atlus.N3DS.Image
                 RemapPixels = context => new CtrSwizzle(context),
             };
 
-            return imageInfo;            
+            return imageInfo;
         }
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -64,19 +62,23 @@ namespace plugin_atlus.N3DS.Image
 
             // Write name
             output.Position = nameOffset;
-            bw.WriteString(imageInfo.Name, Encoding.ASCII, false);
+            bw.WriteString(imageInfo.Name, Encoding.ASCII);
 
             // Write entry
-            output.Position = entryOffset;
-            typeWriter.Write(new StexEntry
+            var entry = new StexEntry
             {
                 offset = dataOffset,
                 unk1 = unk1
-            }, bw);
+            };
+
+            output.Position = entryOffset;
+            WriteEntry(entry, bw);
 
             // Write header
             var header = new StexHeader
             {
+                magic = "STEX",
+                const0 = 0xDE1,
                 width = imageInfo.ImageSize.Width,
                 height = imageInfo.ImageSize.Height,
                 dataSize = (int)(output.Length - dataOffset),
@@ -85,7 +87,49 @@ namespace plugin_atlus.N3DS.Image
             };
 
             output.Position = 0;
-            typeWriter.Write(header, bw);
+            WriteHeader(header, bw);
+        }
+
+        private StexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new StexHeader
+            {
+                magic = reader.ReadString(4),
+                zero0 = reader.ReadUInt32(),
+                const0 = reader.ReadUInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                dataType = reader.ReadUInt32(),
+                imageFormat = reader.ReadUInt32(),
+                dataSize = reader.ReadInt32()
+            };
+        }
+
+        private StexEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new StexEntry
+            {
+                offset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(StexHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.zero0);
+            writer.Write(header.const0);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.dataType);
+            writer.Write(header.imageFormat);
+            writer.Write(header.dataSize);
+        }
+
+        private void WriteEntry(StexEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.unk1);
         }
     }
 }
