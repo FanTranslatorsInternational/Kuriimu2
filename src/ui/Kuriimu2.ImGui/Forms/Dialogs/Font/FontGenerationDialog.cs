@@ -18,22 +18,23 @@ using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Models;
+using Kaligraphy.Contract.DataClasses;
 using Kaligraphy.Generation;
 using Konnect.Contract.DataClasses.Management.Font;
+using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Management.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using Kuriimu2.ImGui.Resources;
-using SixLabors.Fonts;
-using SixLabors.Fonts.Unicode;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using HorizontalAlignment = ImGui.Forms.Controls.Layouts.HorizontalAlignment;
 using Image = SixLabors.ImageSharp.Image;
+using Point = SixLabors.ImageSharp.Point;
 using PointF = System.Drawing.PointF;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 using SolidBrush = System.Drawing.SolidBrush;
 
@@ -56,7 +57,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         private PaddedGlyphPictureBox _glyphBox;
         private TextBox _paddingLeftBox;
         private TextBox _paddingRightBox;
-        private ComboBox<System.Drawing.FontFamily> _fontFamilyBox;
+        private ComboBox<FontFamily> _fontFamilyBox;
         private CheckBox _boldCheckBox;
         private CheckBox _italicCheckBox;
         private TextBox _fontSizeBox;
@@ -133,7 +134,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             _glyphBox = new PaddedGlyphPictureBox { ShowBorder = true };
             _paddingLeftBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
             _paddingRightBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _fontFamilyBox = new ComboBox<System.Drawing.FontFamily>();
+            _fontFamilyBox = new ComboBox<FontFamily>();
             _boldCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleBold);
             _italicCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleItalic);
             _fontSizeBox = new TextBox { Text = $"{DefaultFontSize_}", AllowedCharacters = CharacterRestriction.Decimal };
@@ -297,8 +298,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         {
             _fontFamilyBox.Items.Clear();
 
-            foreach (System.Drawing.FontFamily fontFamily in System.Drawing.FontFamily.Families)
-                _fontFamilyBox.Items.Add(new DropDownItem<System.Drawing.FontFamily>(fontFamily, fontFamily.Name));
+            foreach (FontFamily fontFamily in FontFamily.Families)
+                _fontFamilyBox.Items.Add(new DropDownItem<FontFamily>(fontFamily, fontFamily.Name));
 
             if (_fontFamilyBox.Items.Count > 0)
                 _fontFamilyBox.SelectedItem = _fontFamilyBox.Items[0];
@@ -363,34 +364,29 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
             removeState.RemoveAll();
 
-            var font = GetFont();
+            System.Drawing.Font font = GetFont();
             foreach (char character in _characterEditor.GetText().Distinct().Order())
             {
-                Image<Rgba32> glyph;
-                SixLabors.ImageSharp.Size glyphSize;
+                if (char.IsWhiteSpace(character) && _profile.SpaceWidth <= 0)
+                    continue;
+
+                CharacterInfo characterInfo = addState.CreateCharacterInfo(character);
+                characterInfo.ContentChanged = true;
 
                 if (char.IsWhiteSpace(character))
                 {
-                    if (_profile.SpaceWidth <= 0)
-                        continue;
-
-                    glyph = new Image<Rgba32>(_profile.SpaceWidth, _profile.GlyphHeight);
-                    glyphSize = glyph.Size;
+                    characterInfo.BoundingBox = new SixLabors.ImageSharp.Size(_profile.SpaceWidth, _profile.GlyphHeight);
+                    characterInfo.GlyphPosition = Point.Empty;
+                    characterInfo.Glyph = null;
                 }
                 else
                 {
-                    var paddedGlyph = GetPaddedGlyph(character, font);
-                    if (paddedGlyph == null)
-                        continue;
+                    PaddedGlyph paddedGlyph = GetPaddedGlyph(character, font);
 
-                    glyph = paddedGlyph.Glyph;
-                    glyphSize = paddedGlyph.Glyph.Size;
+                    characterInfo.BoundingBox = paddedGlyph.BoundingBox;
+                    characterInfo.GlyphPosition = paddedGlyph.GlyphPosition;
+                    characterInfo.Glyph = paddedGlyph.Glyph;
                 }
-
-                var characterInfo = addState.CreateCharacterInfo(character);
-                characterInfo.Glyph = glyph;
-                characterInfo.BoundingBox = glyphSize;
-                characterInfo.ContentChanged = true;
 
                 addState.AddCharacter(characterInfo);
             }
@@ -455,7 +451,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         {
             _fontFamilyBox.SelectedItemChanged -= _fontFamilyBox_SelectedItemChanged;
 
-            DropDownItem<System.Drawing.FontFamily> fontFamily = _fontFamilyBox.Items.FirstOrDefault(x => x.Name == fontName);
+            DropDownItem<FontFamily> fontFamily = _fontFamilyBox.Items.FirstOrDefault(x => x.Name == fontName);
             if (fontFamily != null)
                 _fontFamilyBox.SelectedItem = fontFamily;
 
@@ -600,46 +596,58 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
         private System.Drawing.Font GetFont()
         {
-            var fontStyle = System.Drawing.FontStyle.Regular;
+            var fontStyle = FontStyle.Regular;
             if (_profile.IsBold)
-                fontStyle |= System.Drawing.FontStyle.Bold;
+                fontStyle |= FontStyle.Bold;
             if (_profile.IsItalic)
-                fontStyle |= System.Drawing.FontStyle.Italic;
+                fontStyle |= FontStyle.Italic;
 
             return new System.Drawing.Font(_fontFamilyBox.SelectedItem.Content, _profile.FontSize, fontStyle);
         }
 
-        private PaddedGlyph? GetPaddedGlyph(char character, System.Drawing.Font font)
+        private PaddedGlyph GetPaddedGlyph(char character, System.Drawing.Font font)
         {
-            System.Drawing.Image glyphImage = GetGlyph(character, font);
-
             if (!_profile.Paddings.TryGetValue(character, out (int, int) padding))
                 padding = (DefaultPaddingLeft_, DefaultPaddingRight_);
 
-            var paddedGlyphImage = new Bitmap(glyphImage.Size.Width + padding.Item1 + padding.Item2, _profile.GlyphHeight);
-            using Graphics gfx = Graphics.FromImage(paddedGlyphImage);
+            Image<Rgba32> glyph = GetGlyph(character, font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition);
 
-            float baselineOffsetPixels = _profile.Baseline - gfx.DpiY / 72f *
-                (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
-                 font.FontFamily.GetCellAscent(font.Style));
-            var point = new System.Drawing.PointF(0, baselineOffsetPixels + 0.475f);
-
-            gfx.DrawImage(glyphImage, point);
-
-            var ms = new MemoryStream();
-            paddedGlyphImage.Save(ms, ImageFormat.Png);
-
-            ms.Position = 0;
             return new PaddedGlyph
             {
-                Glyph = Image.Load<Rgba32>(ms),
-                Baseline = _profile.Baseline,
-                PaddingLeft = padding.Item1,
-                PaddingRight = padding.Item2
+                Glyph = glyph,
+                BoundingBox = new SixLabors.ImageSharp.Size(boundingBox.Width + padding.Item1 + padding.Item2, boundingBox.Height),
+                GlyphPosition = new Point(glyphPosition.X + padding.Item1, glyphPosition.Y),
+                Baseline = _profile.Baseline
             };
         }
 
-        private System.Drawing.Image GetGlyph(char character, System.Drawing.Font font)
+        private Image<Rgba32> GetGlyph(char character, System.Drawing.Font font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition)
+        {
+            System.Drawing.Image glyphImage = GetNativeGlyph(character, font);
+
+            using Graphics gfx = Graphics.FromImage(glyphImage);
+            float glyphY = _profile.Baseline - gfx.DpiY / 72f *
+                (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
+                 font.FontFamily.GetCellAscent(font.Style)) + 0.475f;
+
+            var ms = new MemoryStream();
+            glyphImage.Save(ms, ImageFormat.Png);
+
+            ms.Position = 0;
+            Image<Rgba32> glyph = Image.Load<Rgba32>(ms);
+
+            GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(glyph);
+
+            boundingBox = new SixLabors.ImageSharp.Size(glyphImage.Width, glyphImage.Height);
+            glyphPosition = glyphDescription.Position with { Y = (int)(glyphDescription.Position.Y + glyphY) };
+
+            if (glyphDescription.Size is { Width: > 0, Height: > 0 })
+                glyph = glyph.Clone(context => context.Crop(new Rectangle(glyphDescription.Position, glyphDescription.Size)));
+
+            return glyph;
+        }
+
+        private System.Drawing.Image GetNativeGlyph(char character, System.Drawing.Font font)
         {
             int measuredWidth = _profile.SpaceWidth;
             if (!char.IsWhiteSpace(character))
@@ -661,7 +669,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         private System.Drawing.SizeF MeasureCharacter(char character, System.Drawing.Font font)
         {
             var gfx = Graphics.FromHwnd(IntPtr.Zero);
-            return gfx.MeasureString($"{character}", font, System.Drawing.PointF.Empty, StringFormat.GenericTypographic);
+            return gfx.MeasureString($"{character}", font, PointF.Empty, StringFormat.GenericTypographic);
         }
 
         private void ToggleForm(bool toggle)

@@ -1,9 +1,8 @@
-﻿using System.Numerics;
-using ImGui.Forms;
+﻿using System;
+using System.Numerics;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
-using ImGuiNET;
 using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using SixLabors.ImageSharp;
 using Rectangle = Veldrid.Rectangle;
@@ -26,41 +25,63 @@ namespace Kuriimu2.ImGui.Components
             if (_paddedGlyph == null)
                 return;
 
+            int boundingX = Math.Min(_paddedGlyph.GlyphPosition.X, 0);
+            int boundingY = Math.Min(_paddedGlyph.GlyphPosition.Y, 0);
+            int boundingWidth = Math.Max(_paddedGlyph.GlyphPosition.X + _paddedGlyph.Glyph.Width, _paddedGlyph.BoundingBox.Width);
+            int boundingHeight = Math.Max(_paddedGlyph.GlyphPosition.Y + _paddedGlyph.Glyph.Height, _paddedGlyph.BoundingBox.Height);
+
+            var totalBoundingBox = new Rectangle(boundingX, boundingY, boundingWidth - boundingX, boundingHeight - boundingY);
+
             DrawGlyph(contentRect);
-            DrawUnpaddedBox(contentRect);
-            DrawBaseline(contentRect);
+            DrawBoundingBox(contentRect);
+            DrawTotalBoundingBox(contentRect, totalBoundingBox);
+            DrawBaseline(contentRect, totalBoundingBox);
         }
 
         private void DrawGlyph(Rectangle contentRect)
         {
-            if (_paddedGlyphResource == null)
+            if (_paddedGlyph == null || _paddedGlyphResource == null)
                 return;
 
-            var imageStartPosition = -(_paddedGlyphResource.Size / 2);
-            var imageRect = new Rectangle((int)imageStartPosition.X, (int)imageStartPosition.Y, _paddedGlyphResource.Width, _paddedGlyphResource.Height);
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + _paddedGlyph.GlyphPosition;
+            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyphResource.Width, _paddedGlyphResource.Height);
             imageRect = Transform(contentRect, imageRect);
 
             ImGuiNET.ImGui.GetWindowDrawList().AddImage((nint)_paddedGlyphResource, imageRect.Position, imageRect.Position + imageRect.Size);
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.Gold.ToUInt32());
         }
 
-        private void DrawUnpaddedBox(Rectangle contentRect)
+        private void DrawBoundingBox(Rectangle contentRect)
         {
-            var unpaddedWidth = _paddedGlyphResource.Width - _paddedGlyph!.PaddingLeft - _paddedGlyph!.PaddingRight;
-            var imageStartPosition = -(_paddedGlyphResource.Size / 2 - new Vector2(_paddedGlyph!.PaddingLeft, 0));
-            var imageRect = new Rectangle((int)imageStartPosition.X, (int)imageStartPosition.Y, unpaddedWidth, _paddedGlyphResource.Height);
+            if (_paddedGlyph == null)
+                return;
+
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2);
+            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32(), 0, ImDrawFlags.None, 3f);
+            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.OrangeRed.ToUInt32(), 5f);
         }
 
-        private void DrawBaseline(Rectangle contentRect)
+        private void DrawTotalBoundingBox(Rectangle contentRect, Rectangle totalBoundingBox)
         {
-            var baseLineRect = new Rectangle(-(_paddedGlyph!.Glyph.Width / 2), _paddedGlyph!.Baseline - _paddedGlyphResource.Height / 2, _paddedGlyphResource.Width, 0);
+            if (_paddedGlyph == null)
+                return;
+
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + totalBoundingBox.Position;
+            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, totalBoundingBox.Width, totalBoundingBox.Height);
+            imageRect = Transform(contentRect, imageRect);
+
+            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.Gold.ToUInt32(), 5f);
+        }
+
+        private void DrawBaseline(Rectangle contentRect, Rectangle totalBoundingBox)
+        {
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + totalBoundingBox.Position;
+            var baseLineRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y + _paddedGlyph.Baseline, totalBoundingBox.Width, 0);
             var baseLineRectTransformed = Transform(contentRect, baseLineRect);
 
             ImGuiNET.ImGui.GetWindowDrawList().AddLine(baseLineRectTransformed.Position, baseLineRectTransformed.Position + baseLineRectTransformed.Size,
-                Color.OrangeRed.ToUInt32(), 3f);
+                Color.Red.ToUInt32(), 3f);
         }
     }
 }
