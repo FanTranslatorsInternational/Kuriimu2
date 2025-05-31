@@ -57,17 +57,17 @@ namespace Konnect.Contract.DataClasses.Plugin.File.Image
         /// <summary>
         /// Defines where the image with its real size is anchored in the padded size.
         /// </summary>
-        public ImageAnchor IsAnchoredAt { get; init; } = ImageAnchor.TopLeft;
+        public ImageAnchor IsAnchoredAt { get; set; } = ImageAnchor.TopLeft;
 
         /// <summary>
         /// The configuration to define a padding of the image size.
         /// </summary>
-        public CreatePaddedSizeDelegate? PadSize { get; init; } = null;
+        public CreatePaddedSizeDelegate? PadSize { get; set; } = null;
 
         /// <summary>
         /// The delegate to define a remapping of the pixels in the image, also known as swizzling.
         /// </summary>
-        public CreatePixelRemapperDelegate? RemapPixels { get; init; } = null;
+        public CreatePixelRemapperDelegate? RemapPixels { get; set; } = null;
 
         /// <summary>
         /// Determines of the content of this instance changed.
