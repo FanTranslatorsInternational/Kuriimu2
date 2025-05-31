@@ -20,7 +20,7 @@ namespace plugin_nintendo.Font
         public float Baseline { get; set; }
         public float DescentLine { get; set; }
 
-        public bool ContentChanged => IsContentChanged() || true;
+        public bool ContentChanged => IsContentChanged();
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
