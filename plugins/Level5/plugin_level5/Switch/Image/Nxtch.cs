@@ -14,14 +14,13 @@ namespace plugin_level5.Switch.Image
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = typeReader.Read<NxtchHeader>(br);
+            _header = ReadHeader(br);
 
             // Read mip offsets
-            var mipOffsets = typeReader.ReadMany<int>(br, _header.mipMapCount);
+            var mipOffsets = ReadMipOffsets(br, _header.mipMapCount);
 
             // Read unknown data
             _unkData = br.ReadBytes(0x100 - (int)input.Position);
@@ -33,7 +32,7 @@ namespace plugin_level5.Switch.Image
             var baseOffset = 0x100;
 
             input.Position = baseOffset + mipOffsets[0];
-            var dataSize = mipOffsets.Count > 1 ? mipOffsets[1] - mipOffsets[0] : input.Length - baseOffset;
+            var dataSize = mipOffsets.Length > 1 ? mipOffsets[1] - mipOffsets[0] : input.Length - baseOffset;
             var imageData = br.ReadBytes((int)dataSize);
 
             // Read mip data
@@ -61,7 +60,6 @@ namespace plugin_level5.Switch.Image
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             var mipOffset = HeaderSize_;
@@ -79,7 +77,7 @@ namespace plugin_level5.Switch.Image
             {
                 foreach (byte[] mipData in imageInfo.MipMapData)
                 {
-                    mipOffsets.Add(dataPosition);
+                    mipOffsets.Add(dataPosition - dataOffset);
                     bw.Write(mipData);
                     dataPosition += mipData.Length;
                 }
@@ -87,7 +85,7 @@ namespace plugin_level5.Switch.Image
 
             // Write mip offsets
             output.Position = mipOffset;
-            typeWriter.WriteMany(mipOffsets.Select(x => x - dataOffset), bw);
+            WriteMipOffsets(mipOffsets, bw);
 
             // Write unknown data
             bw.Write(_unkData);
@@ -101,7 +99,56 @@ namespace plugin_level5.Switch.Image
             _header.textureDataSize2 = (int)(output.Length - dataOffset);
 
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private NxtchHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new NxtchHeader
+            {
+                magic = reader.ReadString(8),
+                textureDataSize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                unk3 = reader.ReadInt32(),
+                unk4 = reader.ReadInt32(),
+                format = reader.ReadInt32(),
+                mipMapCount = reader.ReadInt32(),
+                textureDataSize2 = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadMipOffsets(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(NxtchHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.textureDataSize);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk3);
+            writer.Write(header.unk4);
+            writer.Write(header.format);
+            writer.Write(header.mipMapCount);
+            writer.Write(header.textureDataSize2);
+        }
+
+        private void WriteMipOffsets(IList<int> offsets, BinaryWriterX writer)
+        {
+            foreach (int offset in offsets)
+                writer.Write(offset);
         }
     }
 }

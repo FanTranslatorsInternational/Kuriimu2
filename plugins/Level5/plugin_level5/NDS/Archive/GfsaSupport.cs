@@ -1,12 +1,10 @@
-﻿using Komponent.Contract.Aspects;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.NDS.Archive
 {
-    class GfsaHeader
+    struct GfsaHeader
     {
-        [FixedLength(4)]
         public string magic;
 
         public int directoryOffset;
@@ -21,7 +19,7 @@ namespace plugin_level5.NDS.Archive
         public int unk4;
     }
 
-    class GfsaDirectoryEntry
+    struct GfsaDirectoryEntry
     {
         public ushort hash;
         public short fileCount;

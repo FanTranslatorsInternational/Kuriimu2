@@ -14,15 +14,14 @@ namespace plugin_level5.N3DS.Image
         private const int UnkEntrySize_ = 8;
 
         private ZtexHeader _header;
-        private IList<ZtexUnkEnrty> _unkEntries;
+        private IList<ZtexUnkEntry> _unkEntries;
 
         public IList<ImageFileInfo> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = typeReader.Read<ZtexHeader>(br);
+            _header = ReadHeader(br);
 
             var unkCount = 0;
             if (_header.HasUnknownEntries)
@@ -34,12 +33,12 @@ namespace plugin_level5.N3DS.Image
             {
                 if (_header.HasExtendedEntries)
                     input.Position += 4;
-                entries[i] = typeReader.Read<ZtexEntry>(br);
+                entries[i] = ReadEntry(br);
             }
 
             // Read unknown entries
             if (_header.HasUnknownEntries)
-                _unkEntries = typeReader.ReadMany<ZtexUnkEnrty>(br, unkCount);
+                _unkEntries = ReadUnknownEntries(br, unkCount);
 
             // Add images
             var result = new List<ImageFileInfo>();
@@ -77,7 +76,6 @@ namespace plugin_level5.N3DS.Image
         {
             var crc32 = Crc32.Crc32B;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -101,14 +99,15 @@ namespace plugin_level5.N3DS.Image
                 // Create entry
                 entries.Add(new ZtexEntry
                 {
-                    name = imageInfo.Name,
+                    name = imageInfo.Name?.PadRight(0x40, '\0'),
                     crc32 = crc32.ComputeValue(imageInfo.Name),
                     offset = dataPosition,
                     dataSize = (int)(output.Position - dataPosition),
                     width = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Width),
                     height = (short)SizePadding.PowerOfTwo(imageInfo.ImageSize.Height),
                     mipCount = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1),
-                    format = (byte)imageInfo.ImageFormat
+                    format = (byte)imageInfo.ImageFormat,
+                    unk3 = 0xFF
                 });
 
                 dataPosition = (int)((output.Position + 0x7F) & ~0x7F);
@@ -120,20 +119,99 @@ namespace plugin_level5.N3DS.Image
             {
                 if (_header.HasExtendedEntries)
                     bw.Write(0);
-                typeWriter.Write(entry, bw);
+                WriteEntry(entry, bw);
             }
 
             if (_header.HasUnknownEntries)
-                typeWriter.WriteMany(_unkEntries, bw);
+                WriteUnknownEntries(_unkEntries, bw);
 
             // Write header
             _header.imageCount = (short)imageInfos.Count;
 
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
 
             if (_header.HasUnknownEntries)
                 bw.Write(_unkEntries.Count);
+        }
+
+        private ZtexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new ZtexHeader
+            {
+                magic = reader.ReadString(4),
+                imageCount = reader.ReadInt16(),
+                flags = reader.ReadInt16()
+            };
+        }
+
+        private ZtexEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new ZtexEntry
+            {
+                name = reader.ReadString(0x40),
+                crc32 = reader.ReadUInt32(),
+                offset = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                dataSize = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                mipCount = reader.ReadByte(),
+                format = reader.ReadByte(),
+                unk3 = reader.ReadByte()
+            };
+        }
+
+        private ZtexUnkEntry[] ReadUnknownEntries(BinaryReaderX reader, int count)
+        {
+            var result = new ZtexUnkEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadUnknownEntry(reader);
+
+            return result;
+        }
+
+        private ZtexUnkEntry ReadUnknownEntry(BinaryReaderX reader)
+        {
+            return new ZtexUnkEntry
+            {
+                unk0 = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(ZtexHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.imageCount);
+            writer.Write(header.flags);
+        }
+
+        private void WriteEntry(ZtexEntry entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.name, writeNullTerminator: false);
+            writer.Write(entry.crc32);
+            writer.Write(entry.offset);
+            writer.Write(entry.zero1);
+            writer.Write(entry.dataSize);
+            writer.Write(entry.width);
+            writer.Write(entry.height);
+            writer.Write(entry.mipCount);
+            writer.Write(entry.format);
+            writer.Write(entry.unk3);
+        }
+
+        private void WriteUnknownEntries(IList<ZtexUnkEntry> entries, BinaryWriterX writer)
+        {
+            foreach (ZtexUnkEntry entry in entries)
+                WriteUnknownEntry(entry, writer);
+        }
+
+        private void WriteUnknownEntry(ZtexUnkEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.unk0);
+            writer.Write(entry.zero0);
         }
     }
 }

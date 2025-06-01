@@ -22,23 +22,18 @@ namespace plugin_level5.N3DS.Archive
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, Encoding.GetEncoding("Shift-JIS"), true);
 
             // Read header
-            var header = typeReader.Read<B123Header>(br);
-            if (header == null)
-                return new List<B123ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Read directory entries
             br.BaseStream.Position = _header.directoryEntriesOffset;
-            var directoryEntries = typeReader.ReadMany<B123DirectoryEntry>(br, _header.directoryEntriesCount);
+            var directoryEntries = ReadDirectoryEntries(br, _header.directoryEntriesCount);
 
             // Read file entry table
             br.BaseStream.Position = _header.fileEntriesOffset;
-            var entries = typeReader.ReadMany<B123FileEntry>(br, _header.fileEntriesCount);
+            var entries = ReadFileEntries(br, _header.fileEntriesCount);
 
             // Add Files
             var result = new List<B123ArchiveFile>();
@@ -71,7 +66,6 @@ namespace plugin_level5.N3DS.Archive
 
             // -- Write file --
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
             bw.BaseStream.Position = HeaderSize_;
 
@@ -90,7 +84,7 @@ namespace plugin_level5.N3DS.Archive
                 var writtenSize = fileEntry.WriteFileData(bw.BaseStream, true);
 
                 bw.WriteAlignment(4);
-                
+
                 fileEntry.Entry.fileOffset = fileOffset;
                 fileEntry.Entry.fileSize = (uint)writtenSize;
 
@@ -104,32 +98,32 @@ namespace plugin_level5.N3DS.Archive
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = HeaderSize_;
 
-            typeWriter.WriteMany(directoryEntries, bw);
+            WriteDirectoryEntries(directoryEntries, bw);
 
             // Write directory hashes
             _header.directoryHashCount = (short)directoryHashes.Count;
             _header.directoryHashOffset = (int)bw.BaseStream.Position;
 
-            typeWriter.WriteMany(directoryHashes, bw);
+            WriteDirectoryHashes(directoryHashes, bw);
 
             // Write file entry hashes
             _header.fileCount = fileEntries.Count;
             _header.fileEntriesCount = fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
-            typeWriter.WriteMany(fileEntries.Select(x => x.Entry), bw);
+            WriteFileEntries(fileEntries, bw);
 
             // Write name table
             _header.nameOffset = (int)bw.BaseStream.Position;
             _header.tableChunkSize = (int)((_header.nameOffset + nameStream.Length + 3) & ~3) - HeaderSize_;
-            
+
             nameStream.Position = 0;
             nameStream.CopyTo(bw.BaseStream);
             bw.WriteAlignment(4);
 
             // Write header
             bw.BaseStream.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
         }
 
         private B123ArchiveFile CreateAfi(Stream input, string filePath, B123FileEntry entry)
@@ -221,7 +215,7 @@ namespace plugin_level5.N3DS.Archive
                 }
 
                 // Add file entries in order of ascending hash
-                fileInfos.AddRange(fileGroupEntries.Cast<B123ArchiveFile>().OrderBy(x => x.Entry.crc32));
+                fileInfos.AddRange(fileGroupEntries.OrderBy(x => x.Entry.crc32));
             }
 
             fileEntries = fileInfos;
@@ -234,6 +228,137 @@ namespace plugin_level5.N3DS.Archive
                 directoryIndex += x.directoryCount;
                 return x;
             }).ToList();
+        }
+
+        private B123Header ReadHeader(BinaryReaderX reader)
+        {
+            return new B123Header
+            {
+                magic = reader.ReadString(4),
+                directoryEntriesOffset = reader.ReadInt32(),
+                directoryHashOffset = reader.ReadInt32(),
+                fileEntriesOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                directoryEntriesCount = reader.ReadInt16(),
+                directoryHashCount = reader.ReadInt16(),
+                fileEntriesCount = reader.ReadInt32(),
+                tableChunkSize = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                unk2 = reader.ReadUInt32(),
+                unk3 = reader.ReadUInt32(),
+                unk4 = reader.ReadUInt32(),
+                unk5 = reader.ReadUInt32(),
+                directoryCount = reader.ReadInt32(),
+                fileCount = reader.ReadInt32(),
+                unk7 = reader.ReadUInt32(),
+                zero2 = reader.ReadInt32()
+            };
+        }
+
+        private B123DirectoryEntry[] ReadDirectoryEntries(BinaryReaderX reader, int count)
+        {
+            var result = new B123DirectoryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadDirectoryEntry(reader);
+
+            return result;
+        }
+
+        private B123DirectoryEntry ReadDirectoryEntry(BinaryReaderX reader)
+        {
+            return new B123DirectoryEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                fileCount = reader.ReadInt16(),
+                directoryCount = reader.ReadInt16(),
+                fileNameStartOffset = reader.ReadInt32(),
+                firstFileIndex = reader.ReadInt32(),
+                firstDirectoryIndex = reader.ReadInt32(),
+                directoryNameStartOffset = reader.ReadInt32()
+            };
+        }
+
+        private B123FileEntry[] ReadFileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new B123FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFileEntry(reader);
+
+            return result;
+        }
+
+        private B123FileEntry ReadFileEntry(BinaryReaderX reader)
+        {
+            return new B123FileEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                nameOffsetInFolder = reader.ReadUInt32(),
+                fileOffset = reader.ReadUInt32(),
+                fileSize = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(B123Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.directoryEntriesOffset);
+            writer.Write(header.directoryHashOffset);
+            writer.Write(header.fileEntriesOffset);
+            writer.Write(header.nameOffset);
+            writer.Write(header.dataOffset);
+            writer.Write(header.directoryEntriesCount);
+            writer.Write(header.directoryHashCount);
+            writer.Write(header.fileEntriesCount);
+            writer.Write(header.tableChunkSize);
+            writer.Write(header.zero1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.unk4);
+            writer.Write(header.unk5);
+            writer.Write(header.directoryCount);
+            writer.Write(header.fileCount);
+            writer.Write(header.unk7);
+            writer.Write(header.zero2);
+        }
+
+        private void WriteDirectoryEntries(IList<B123DirectoryEntry> entries, BinaryWriterX writer)
+        {
+            foreach (B123DirectoryEntry entry in entries)
+                WriteDirectoryEntry(entry, writer);
+        }
+
+        private void WriteDirectoryEntry(B123DirectoryEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.fileCount);
+            writer.Write(entry.directoryCount);
+            writer.Write(entry.fileNameStartOffset);
+            writer.Write(entry.firstFileIndex);
+            writer.Write(entry.firstDirectoryIndex);
+            writer.Write(entry.directoryNameStartOffset);
+        }
+
+        private void WriteDirectoryHashes(IList<uint> entries, BinaryWriterX writer)
+        {
+            foreach (uint entry in entries)
+                writer.Write(entry);
+        }
+
+        private void WriteFileEntries(IList<B123ArchiveFile> entries, BinaryWriterX writer)
+        {
+            foreach (B123ArchiveFile entry in entries)
+                WriteFileEntry(entry.Entry, writer);
+        }
+
+        private void WriteFileEntry(B123FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.nameOffsetInFolder);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileSize);
         }
     }
 }

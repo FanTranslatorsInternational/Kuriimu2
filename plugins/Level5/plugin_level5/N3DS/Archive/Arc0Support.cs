@@ -7,10 +7,9 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.N3DS.Archive
 {
-    class Arc0Header
+    struct Arc0Header
     {
-        [FixedLength(4)]
-        public string magic = "ARC0";
+        public string magic; // ARC0
         public int directoryEntriesOffset;
         public int directoryHashOffset;
         public int fileEntriesOffset;
@@ -42,7 +41,7 @@ namespace plugin_level5.N3DS.Archive
         public uint fileSize;
     }
 
-    class Arc0DirectoryEntry
+    struct Arc0DirectoryEntry
     {
         public uint crc32;   // directoryName
         public ushort firstDirectoryIndex;
@@ -75,17 +74,17 @@ namespace plugin_level5.N3DS.Archive
             switch (extension)
             {
                 case ".xi":
-                    return new[] { Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c") };
+                    return [Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c")];
 
                 case ".xf":
-                    return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };
+                    return [Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a")];
 
                 case ".xr":
                 case ".xc":
                 case ".xa":
                 case ".xk":
                     if (magic == "XPCK")
-                        return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
+                        return [Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f")];
 
                     goto default;
 

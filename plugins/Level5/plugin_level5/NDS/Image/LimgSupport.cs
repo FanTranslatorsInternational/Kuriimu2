@@ -1,6 +1,5 @@
 ﻿using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
@@ -8,9 +7,8 @@ using Konnect.Plugin.File.Image;
 
 namespace plugin_level5.NDS.Image
 {
-    class LimgHeader
+    struct LimgHeader
     {
-        [FixedLength(4)]
         public string magic;
 
         public uint paletteOffset;

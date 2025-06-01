@@ -1,13 +1,11 @@
-﻿using Komponent.Contract.Aspects;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.N3DS.Archive
 {
-    class ArcvHeader
+    struct ArcvHeader
     {
-        [FixedLength(4)]
-        public string magic = "ARCV";
+        public string magic; // ARCV
         public int fileCount;
         public int fileSize;
     }

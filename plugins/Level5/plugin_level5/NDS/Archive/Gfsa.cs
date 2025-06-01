@@ -19,24 +19,19 @@ namespace plugin_level5.NDS.Archive
 
         public List<GfsaArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<GfsaHeader>(br);
-            if (header == null)
-                return new List<GfsaArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Read tables
-            var directoryEntries = XfsaSupport.ReadCompressedTableEntries<GfsaDirectoryEntry>(input,
-                _header.directoryOffset, _header.fileOffset - _header.directoryOffset,
-                _header.directoryCount);
+            var directoryEntriesReader = XfsaSupport.GetDecompressedTableEntries(input,
+                _header.directoryOffset, _header.fileOffset - _header.directoryOffset);
+            var directoryEntries = ReadDirectoryEntries(directoryEntriesReader, _header.directoryCount);
 
-            var fileEntries = XfsaSupport.ReadCompressedTableEntries<GfsaFileEntry>(input,
-                _header.fileOffset, _header.unkOffset - _header.fileOffset,
-                _header.fileCount);
+            var entriesReader = XfsaSupport.GetDecompressedTableEntries(input,
+                _header.fileOffset, _header.unkOffset - _header.fileOffset);
+            var entries = ReadFileEntries(entriesReader, _header.fileCount);
 
             input.Position = _header.unkOffset;
             _unkTable = br.ReadBytes(_header.stringOffset - _header.unkOffset);
@@ -55,7 +50,7 @@ namespace plugin_level5.NDS.Archive
 
                 for (var fileIndex = dirEntry.fileIndex; fileIndex < dirEntry.fileIndex + dirEntry.fileCount; fileIndex++)
                 {
-                    var fileEntry = fileEntries[fileIndex];
+                    var fileEntry = entries[fileIndex];
                     var fileName = files.Skip(dirEntry.fileIndex).Take(dirEntry.fileCount).FirstOrDefault(x => x.Hash == fileEntry.hash)?.Value;
 
                     var fileData = new SubStream(input, _header.fileDataOffset + fileEntry.Offset, fileEntry.Size);
@@ -68,8 +63,6 @@ namespace plugin_level5.NDS.Archive
 
         public void Save(Stream output, List<GfsaArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
-
             output.Position = HeaderSize_;
 
             // Write directory table
@@ -99,10 +92,69 @@ namespace plugin_level5.NDS.Archive
             output.Position = 0;
 
             using var bw = new BinaryWriterX(output);
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
         }
 
         #region Load
+
+        private GfsaHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new GfsaHeader
+            {
+                magic = reader.ReadString(4),
+                directoryOffset = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+                unkOffset = reader.ReadInt32(),
+                stringOffset = reader.ReadInt32(),
+                fileDataOffset = reader.ReadInt32(),
+                directoryCount = reader.ReadInt32(),
+                fileCount = reader.ReadInt32(),
+                decompressedTableSize = reader.ReadInt32(),
+                unk4 = reader.ReadInt32()
+            };
+        }
+
+        private GfsaDirectoryEntry[] ReadDirectoryEntries(BinaryReaderX reader, int count)
+        {
+            var result = new GfsaDirectoryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadDirectoryEntry(reader);
+
+            return result;
+        }
+
+        private GfsaDirectoryEntry ReadDirectoryEntry(BinaryReaderX reader)
+        {
+            return new GfsaDirectoryEntry
+            {
+                hash = reader.ReadUInt16(),
+                fileCount = reader.ReadInt16(),
+                fileIndex = reader.ReadInt32()
+            };
+        }
+
+        private GfsaFileEntry[] ReadFileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new GfsaFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFileEntry(reader);
+
+            return result;
+        }
+
+        private GfsaFileEntry ReadFileEntry(BinaryReaderX reader)
+        {
+            return new GfsaFileEntry
+            {
+                hash = reader.ReadUInt16(),
+                offLow = reader.ReadUInt16(),
+                sizeLow = reader.ReadUInt16(),
+                offHigh = reader.ReadByte(),
+                sizeHigh = reader.ReadByte()
+            };
+        }
 
         private (GfsaString[], GfsaString[]) ReadStrings(Stream stringStream)
         {
@@ -161,9 +213,62 @@ namespace plugin_level5.NDS.Archive
 
         #region Save
 
+        private void WriteHeader(GfsaHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.directoryOffset);
+            writer.Write(header.fileOffset);
+            writer.Write(header.unkOffset);
+            writer.Write(header.stringOffset);
+            writer.Write(header.fileDataOffset);
+            writer.Write(header.directoryCount);
+            writer.Write(header.fileCount);
+            writer.Write(header.decompressedTableSize);
+            writer.Write(header.unk4);
+        }
+
+        private Stream WriteDirectoryEntries(IList<GfsaDirectoryEntry> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (GfsaDirectoryEntry entry in entries)
+                WriteDirectoryEntry(entry, writer);
+
+            return stream;
+        }
+
+        private void WriteDirectoryEntry(GfsaDirectoryEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.fileCount);
+            writer.Write(entry.fileIndex);
+        }
+
+        private Stream WriteFileEntries(IList<GfsaFileEntry> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (GfsaFileEntry entry in entries)
+                WriteFileEntry(entry, writer);
+
+            return stream;
+        }
+
+        private void WriteFileEntry(GfsaFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.offLow);
+            writer.Write(entry.sizeLow);
+            writer.Write(entry.offHigh);
+            writer.Write(entry.sizeHigh);
+        }
+
         private void WriteDirectoryTable(Stream output, IList<GfsaArchiveFile> files)
         {
             var crc16 = Crc16.X25;
+
             var directoryEntries = new List<GfsaDirectoryEntry>();
 
             var fileIndex = 0;
@@ -179,14 +284,17 @@ namespace plugin_level5.NDS.Archive
                 fileIndex += directoryEntries.Last().fileCount;
             }
 
-            XfsaSupport.WriteCompressedTableEntries(output, directoryEntries.OrderBy(x => x.hash));
+            var directoryEntriesStream = WriteDirectoryEntries(directoryEntries.OrderBy(x => x.hash).ToArray());
+            XfsaSupport.WriteCompressedStream(output, directoryEntriesStream);
 
-            while (output.Position % 4 > 0) output.WriteByte(0);
+            while (output.Position % 4 > 0)
+                output.WriteByte(0);
         }
 
         private void WriteFileTable(Stream output, IList<GfsaArchiveFile> files)
         {
             var crc16 = Crc16.X25;
+
             var fileEntries = new List<GfsaFileEntry>();
 
             var fileOffset = 0;
@@ -209,7 +317,8 @@ namespace plugin_level5.NDS.Archive
                 fileEntries.AddRange(localGroup.OrderBy(x => x.hash));
             }
 
-            XfsaSupport.WriteCompressedTableEntries(output, fileEntries);
+            var fileEntriesStream = WriteFileEntries(fileEntries);
+            XfsaSupport.WriteCompressedStream(output, fileEntriesStream);
 
             while (output.Position % 4 > 0) output.WriteByte(0);
         }

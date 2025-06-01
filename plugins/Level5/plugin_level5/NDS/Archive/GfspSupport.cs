@@ -1,11 +1,8 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_level5.NDS.Archive
+﻿namespace plugin_level5.NDS.Archive
 {
-    class GfspHeader
+    struct GfspHeader
     {
-        [FixedLength(4)]
-        public string magic = "GFSP";
+        public string magic; // GFSP
 
         public byte fc1;
         public byte fc2;
@@ -64,7 +61,7 @@ namespace plugin_level5.NDS.Archive
         }
     }
 
-    class GfspFileInfo
+    struct GfspFileInfo
     {
         public ushort hash;
         public ushort tmp;

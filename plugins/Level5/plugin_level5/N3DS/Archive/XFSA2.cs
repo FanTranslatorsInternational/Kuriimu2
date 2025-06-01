@@ -19,30 +19,25 @@ namespace plugin_level5.N3DS.Archive
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, Encoding.GetEncoding("Shift-JIS"), true);
 
             // Header
-            var header = typeReader.Read<XfsaHeader>(br);
-            if (header == null)
-                return new List<ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Read directory entries
-            var directoryEntries = XfsaSupport.ReadCompressedTableEntries<Xfsa2DirectoryEntry>(input,
-                _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset,
-                _header.directoryEntriesCount);
+            var directoryEntriesReader = XfsaSupport.GetDecompressedTableEntries(input,
+                _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset);
+            var directoryEntries = ReadDirectoryEntries(directoryEntriesReader, _header.directoryEntriesCount);
 
             // Read directory hashes
-            var directoryHashes = XfsaSupport.ReadCompressedTableEntries<uint>(input,
-                _header.directoryHashOffset, _header.fileEntriesOffset - _header.directoryHashOffset,
-                _header.directoryHashCount);
+            var hashEntriesReader = XfsaSupport.GetDecompressedTableEntries(input,
+                _header.directoryHashOffset, _header.fileEntriesOffset - _header.directoryHashOffset);
+            _ = ReadDirectoryHashes(hashEntriesReader, _header.directoryHashCount);
 
             // Read file entry table
-            var entries = XfsaSupport.ReadCompressedTableEntries<Xfsa2FileEntry>(input,
-                _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset,
-                _header.fileEntriesCount);
+            var entriesReader = XfsaSupport.GetDecompressedTableEntries(input,
+                _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset);
+            var entries = ReadFileEntries(entriesReader, _header.fileEntriesCount);
 
             // Read nameTable
             var nameComp = new SubStream(input, _header.nameOffset, _header.dataOffset - _header.nameOffset);
@@ -86,7 +81,6 @@ namespace plugin_level5.N3DS.Archive
 
             // -- Write file --
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
             bw.BaseStream.Position = HeaderSize_;
 
@@ -94,21 +88,24 @@ namespace plugin_level5.N3DS.Archive
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = HeaderSize_;
 
-            XfsaSupport.WriteCompressedTableEntries(bw.BaseStream, directoryEntries);
+            var directoryEntriesStream = WriteDirectoryEntries(directoryEntries);
+            XfsaSupport.WriteCompressedStream(bw.BaseStream, directoryEntriesStream);
             bw.WriteAlignment(4);
 
             // Write directory hashes
             _header.directoryHashCount = (short)directoryHashes.Count;
             _header.directoryHashOffset = (int)bw.BaseStream.Position;
 
-            XfsaSupport.WriteCompressedTableEntries(bw.BaseStream, directoryHashes);
+            var directoryHashesStream = WriteDirectoryHashes(directoryHashes);
+            XfsaSupport.WriteCompressedStream(bw.BaseStream, directoryHashesStream);
             bw.WriteAlignment(4);
 
             // Write file entry hashes
             _header.fileEntriesCount = fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
-            XfsaSupport.WriteCompressedTableEntries(bw.BaseStream, fileEntries.Select(x => ((XfsaArchiveFile<Xfsa2FileEntry>)x).Entry));
+            var fileEntriesStream = WriteFileEntries(fileEntries);
+            XfsaSupport.WriteCompressedStream(bw.BaseStream, fileEntriesStream);
             bw.WriteAlignment(4);
 
             // Write name table
@@ -134,12 +131,12 @@ namespace plugin_level5.N3DS.Archive
 
             // Write header
             bw.BaseStream.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
         }
 
         private void BuildTables(IEnumerable<ArchiveFile> files,
             out IList<Xfsa2DirectoryEntry> directoryEntries, out IList<uint> directoryHashes,
-            out IList<ArchiveFile> fileEntries, out Stream nameStream)
+            out IList<XfsaArchiveFile<Xfsa2FileEntry>> fileEntries, out Stream nameStream)
         {
             var groupedFiles = files.OrderBy(x => x.FilePath.GetDirectory())
                 .GroupBy(x => x.FilePath.GetDirectory())
@@ -202,7 +199,7 @@ namespace plugin_level5.N3DS.Archive
                 fileInfos.AddRange(fileGroupEntries.OrderBy(x => ((XfsaArchiveFile<Xfsa2FileEntry>)x).Entry.crc32));
             }
 
-            fileEntries = fileInfos;
+            fileEntries = fileInfos.Cast<XfsaArchiveFile<Xfsa2FileEntry>>().ToArray();
 
             // Order directory entries by hash and set directoryIndex accordingly
             var directoryIndex = 0;
@@ -212,6 +209,140 @@ namespace plugin_level5.N3DS.Archive
                 directoryIndex += x.directoryCount;
                 return x;
             }).ToList();
+        }
+
+        private XfsaHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new XfsaHeader
+            {
+                magic = reader.ReadString(4),
+                directoryEntriesOffset = reader.ReadInt32(),
+                directoryHashOffset = reader.ReadInt32(),
+                fileEntriesOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                directoryEntriesCount = reader.ReadInt16(),
+                directoryHashCount = reader.ReadInt16(),
+                fileEntriesCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private Xfsa2DirectoryEntry[] ReadDirectoryEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Xfsa2DirectoryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadDirectoryEntry(reader);
+
+            return result;
+        }
+
+        private Xfsa2DirectoryEntry ReadDirectoryEntry(BinaryReaderX reader)
+        {
+            return new Xfsa2DirectoryEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                fileCount = reader.ReadInt32(),
+                fileNameStartOffset = reader.ReadInt32(),
+                tmp1 = reader.ReadUInt32(),
+                directoryCount = reader.ReadInt32(),
+                directoryNameOffset = reader.ReadInt32()
+            };
+        }
+
+        private uint[] ReadDirectoryHashes(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private Xfsa2FileEntry[] ReadFileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Xfsa2FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFileEntry(reader);
+
+            return result;
+        }
+
+        private Xfsa2FileEntry ReadFileEntry(BinaryReaderX reader)
+        {
+            return new Xfsa2FileEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                tmp1 = reader.ReadUInt32(),
+                tmp2 = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(XfsaHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.directoryEntriesOffset);
+            writer.Write(header.directoryHashOffset);
+            writer.Write(header.fileEntriesOffset);
+            writer.Write(header.nameOffset);
+            writer.Write(header.dataOffset);
+            writer.Write(header.directoryEntriesCount);
+            writer.Write(header.directoryHashCount);
+            writer.Write(header.fileEntriesCount);
+            writer.Write(header.unk1);
+        }
+
+        private Stream WriteDirectoryEntries(IList<Xfsa2DirectoryEntry> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (Xfsa2DirectoryEntry entry in entries)
+                WriteDirectoryEntry(entry, writer);
+
+            return stream;
+        }
+
+        private void WriteDirectoryEntry(Xfsa2DirectoryEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.fileCount);
+            writer.Write(entry.fileNameStartOffset);
+            writer.Write(entry.tmp1);
+            writer.Write(entry.directoryCount);
+            writer.Write(entry.directoryNameOffset);
+        }
+
+        private Stream WriteDirectoryHashes(IList<uint> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (uint entry in entries)
+                writer.Write(entry);
+
+            return stream;
+        }
+
+        private Stream WriteFileEntries(IList<XfsaArchiveFile<Xfsa2FileEntry>> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (XfsaArchiveFile<Xfsa2FileEntry> entry in entries)
+                WriteFileEntry(entry.Entry, writer);
+
+            return stream;
+        }
+
+        private void WriteFileEntry(Xfsa2FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.tmp1);
+            writer.Write(entry.tmp2);
         }
     }
 }

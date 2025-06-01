@@ -24,11 +24,10 @@ namespace plugin_level5.NDS.Image
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Header
-            _header = typeReader.Read<LimgHeader>(br);
+            _header = ReadHeader(br);
             _unkHeader = br.ReadBytes(0xC);
 
             // Palette data
@@ -42,7 +41,7 @@ namespace plugin_level5.NDS.Image
 
             // Get tiles
             br.BaseStream.Position = _header.tileDataOffset;
-            var tileIndices = typeReader.ReadMany<short>(br, _header.tileEntryCount);
+            var tileIndices = ReadShorts(br, _header.tileEntryCount);
 
             // Inflate imageInfo
             var encoding = LimgSupport.LimgFormats[_header.imgFormat];
@@ -65,7 +64,6 @@ namespace plugin_level5.NDS.Image
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
             var encoding = LimgSupport.LimgFormats[imageInfo.ImageFormat];
 
@@ -94,7 +92,7 @@ namespace plugin_level5.NDS.Image
             // Write tiles
             _header.tileDataOffset = (short)bw.BaseStream.Position;
             _header.tileEntryCount = (short)tileIndices.Count;
-            typeWriter.WriteMany(tileIndices, bw);
+            WriteShorts(tileIndices, bw);
             bw.WriteAlignment(4);
 
             // Write imageInfo data
@@ -114,7 +112,7 @@ namespace plugin_level5.NDS.Image
             _header.paddedHeight = (short)((_header.height + 0xFF) & ~0xFF);
             _header.imgFormat = (short)imageInfo.ImageFormat;
 
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
             bw.Write(_unkHeader);
         }
 
@@ -165,6 +163,65 @@ namespace plugin_level5.NDS.Image
             }
 
             return (tiles, result);
+        }
+
+        private LimgHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new LimgHeader
+            {
+                magic = reader.ReadString(4),
+                paletteOffset = reader.ReadUInt32(),
+                unkOffset1 = reader.ReadInt16(),
+                unkCount1 = reader.ReadInt16(),
+                unkOffset2 = reader.ReadInt16(),
+                unkCount2 = reader.ReadInt16(),
+                tileDataOffset = reader.ReadInt16(),
+                tileEntryCount = reader.ReadInt16(),
+                imageDataOffset = reader.ReadInt16(),
+                imageTileCount = reader.ReadInt16(),
+                imgFormat = reader.ReadInt16(),
+                colorCount = reader.ReadInt16(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                paddedWidth = reader.ReadInt16(),
+                paddedHeight = reader.ReadInt16()
+            };
+        }
+
+        private short[] ReadShorts(BinaryReaderX reader, int count)
+        {
+            var result = new short[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt16();
+
+            return result;
+        }
+
+        private void WriteHeader(LimgHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.paletteOffset);
+            writer.Write(header.unkOffset1);
+            writer.Write(header.unkCount1);
+            writer.Write(header.unkOffset2);
+            writer.Write(header.unkCount2);
+            writer.Write(header.tileDataOffset);
+            writer.Write(header.tileEntryCount);
+            writer.Write(header.imageDataOffset);
+            writer.Write(header.imageTileCount);
+            writer.Write(header.imgFormat);
+            writer.Write(header.colorCount);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.paddedWidth);
+            writer.Write(header.paddedHeight);
+        }
+
+        private void WriteShorts(IList<short> entries, BinaryWriterX writer)
+        {
+            foreach (short entry in entries)
+                writer.Write(entry);
         }
     }
 }

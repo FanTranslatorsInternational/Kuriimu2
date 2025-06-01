@@ -15,18 +15,13 @@ namespace plugin_level5.Mobile.Archive
 
         public List<Hp10ArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<Hp10Header>(br);
-            if (header == null)
-                return new List<Hp10ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Read entries
-            var entries = typeReader.ReadMany<Hp10FileEntry>(br, _header.fileCount);
+            var entries = ReadEntries(br, _header.fileCount);
 
             // Add files
             var result = new List<Hp10ArchiveFile>();
@@ -52,7 +47,6 @@ namespace plugin_level5.Mobile.Archive
             var crc32b = Crc32.Crc32B;
             var crc32c = Crc32.Crc32C;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -97,7 +91,7 @@ namespace plugin_level5.Mobile.Archive
 
             // Write entries
             output.Position = entryOffset;
-            typeWriter.WriteMany(entries, bw);
+            WriteEntries(entries, bw);
 
             // Write header
             _header.dataOffset = dataOffset;
@@ -107,7 +101,79 @@ namespace plugin_level5.Mobile.Archive
             _header.stringEnd = (int)stringEndOffset;
 
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private Hp10Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Hp10Header
+            {
+                magic = reader.ReadString(4),
+                fileCount = reader.ReadInt32(),
+                fileSize = reader.ReadUInt32(),
+                stringEnd = reader.ReadInt32(),
+                stringOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt16(),
+                unk2 = reader.ReadInt16(),
+                zero1 = reader.ReadInt32()
+            };
+        }
+
+        private Hp10FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Hp10FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Hp10FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new Hp10FileEntry
+            {
+                crc32bFileNameHash = reader.ReadUInt32(),
+                crc32cFileNameHash = reader.ReadUInt32(),
+                crc32bFilePathHash = reader.ReadUInt32(),
+                crc32cFilePathHash = reader.ReadUInt32(),
+                fileOffset = reader.ReadUInt32(),
+                fileSize = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                timestamp = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(Hp10Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileCount);
+            writer.Write(header.fileSize);
+            writer.Write(header.stringEnd);
+            writer.Write(header.stringOffset);
+            writer.Write(header.dataOffset);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.zero1);
+        }
+
+        private void WriteEntries(IList<Hp10FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (Hp10FileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(Hp10FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32bFileNameHash);
+            writer.Write(entry.crc32cFileNameHash);
+            writer.Write(entry.crc32bFilePathHash);
+            writer.Write(entry.crc32cFilePathHash);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileSize);
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.timestamp);
         }
     }
 }

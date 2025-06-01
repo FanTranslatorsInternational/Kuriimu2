@@ -12,16 +12,13 @@ namespace plugin_level5.N3DS.Archive
 
         public List<ArcvArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<ArcvHeader>(br);
-            if (header == null)
-                return new List<ArcvArchiveFile>();
+            var header = ReadHeader(br);
 
             // Read entries
-            IList<ArcvFileInfo?> entries = typeReader.ReadMany<ArcvFileInfo>(br, header.fileCount);
+            IList<ArcvFileInfo?> entries = ReadEntries(br, header.fileCount);
 
             var files = new List<ArcvArchiveFile>();
             foreach (ArcvFileInfo? entry in entries)
@@ -44,7 +41,6 @@ namespace plugin_level5.N3DS.Archive
 
         public void Save(Stream output, List<ArcvArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             bw.BaseStream.Position = (HeaderSize_ + files.Count * EntrySize_ + 0x7F) & ~0x7F;
@@ -61,19 +57,71 @@ namespace plugin_level5.N3DS.Archive
             }
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new ArcvHeader
+            var header = new ArcvHeader
             {
+                magic = "ARCV",
                 fileSize = (int)output.Length,
                 fileCount = files.Count
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
 
             // Write file entries
-            foreach (ArcvArchiveFile file in files)
-                typeWriter.Write(file.Entry, bw);
+            WriteEntries(files, bw);
 
             // Pad with 0xAC to first file
             bw.WriteAlignment(0x80, 0xAC);
+        }
+
+        private ArcvHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new ArcvHeader
+            {
+                magic = reader.ReadString(4),
+                fileCount = reader.ReadInt32(),
+                fileSize = reader.ReadInt32()
+            };
+        }
+
+        private ArcvFileInfo[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new ArcvFileInfo[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private ArcvFileInfo ReadEntry(BinaryReaderX reader)
+        {
+            return new ArcvFileInfo
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                hash = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(ArcvHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileCount);
+            writer.Write(header.fileSize);
+        }
+
+        private void WriteEntries(IList<ArcvArchiveFile> entries, BinaryWriterX writer)
+        {
+            foreach (ArcvArchiveFile entry in entries)
+                WriteEntry(entry.Entry, writer);
+        }
+
+        private void WriteEntry(ArcvFileInfo entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
+            writer.Write(entry.hash);
         }
     }
 }

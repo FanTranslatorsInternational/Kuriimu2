@@ -1,20 +1,18 @@
-﻿using Komponent.Contract.Aspects;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.Mobile.Archive
 {
-    class Arc1Header
+    struct Arc1Header
     {
-        [FixedLength(4)]
-        public string magic = "ARC1";
+        public string magic; // ARC1
         public int fileSize;
         public int entryOffset;
         public int entrySize;
         public int unk1;
     }
 
-    class Arc1FileEntry
+    struct Arc1FileEntry
     {
         public int nameOffset;
         public int offset;

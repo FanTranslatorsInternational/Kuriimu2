@@ -4,20 +4,18 @@
 
 namespace plugin_level5.NDS.Archive
 {
-    class Lpc2Header
+    struct Lpc2Header
     {
-        [FixedLength(4)]
-        public string magic = "LPC2";
+        public string magic; // LPC2
         public int fileCount;
         public int headerSize;
         public int fileSize;
-
         public int fileEntryOffset;
         public int nameOffset;
         public int dataOffset;
     }
 
-    class Lpc2FileEntry
+    struct Lpc2FileEntry
     {
         public int nameOffset;
         public int fileOffset;

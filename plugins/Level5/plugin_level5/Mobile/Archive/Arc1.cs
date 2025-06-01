@@ -14,15 +14,10 @@ namespace plugin_level5.Mobile.Archive
 
         public List<Arc1ArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var headerBr = new BinaryReaderX(new Arc1CryptoStream(input, 0), true);
 
             // Read header
-            var header = typeReader.Read<Arc1Header>(headerBr);
-            if (header == null)
-                return new List<Arc1ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(headerBr);
 
             // Prepare file info stream
             var infoStream = new Arc1CryptoStream(new SubStream(input, _header.entryOffset, _header.entrySize), (uint)_header.entryOffset);
@@ -30,7 +25,7 @@ namespace plugin_level5.Mobile.Archive
 
             // Read entries
             var entryCount = infoBr.ReadInt32();
-            var entries = typeReader.ReadMany<Arc1FileEntry>(infoBr, entryCount);
+            var entries = ReadEntries(infoBr, entryCount);
 
             // Add files
             var result = new List<Arc1ArchiveFile>();
@@ -92,11 +87,10 @@ namespace plugin_level5.Mobile.Archive
             // Write entry information
             var infoStream = new Arc1CryptoStream(new SubStream(output, entryOffset, totalSize - entryOffset), (uint)entryOffset);
 
-            var typeWriter = new BinaryTypeWriter();
             using var infoBw = new BinaryWriterX(infoStream);
 
             infoBw.Write(files.Count);
-            typeWriter.WriteMany(entries, infoBw);
+            WriteEntries(entries, infoBw);
 
             foreach (var name in files.Select(x => x.FilePath.ToRelative().FullName))
                 infoBw.WriteString(name);
@@ -109,7 +103,61 @@ namespace plugin_level5.Mobile.Archive
             _header.entrySize = (int)(totalSize - entryOffset);
             _header.fileSize = (int)totalSize;
 
-            typeWriter.Write(_header, headerBw);
+            WriteHeader(_header, headerBw);
+        }
+
+        private Arc1Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Arc1Header
+            {
+                magic = reader.ReadString(4),
+                fileSize = reader.ReadInt32(),
+                entryOffset = reader.ReadInt32(),
+                entrySize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private Arc1FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Arc1FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Arc1FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new Arc1FileEntry
+            {
+                nameOffset = reader.ReadInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(Arc1Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileSize);
+            writer.Write(header.entryOffset);
+            writer.Write(header.entrySize);
+            writer.Write(header.unk1);
+        }
+
+        private void WriteEntries(IList<Arc1FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (Arc1FileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(Arc1FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

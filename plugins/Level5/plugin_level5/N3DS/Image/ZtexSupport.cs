@@ -1,15 +1,12 @@
 ﻿using Kanvas;
-using Kanvas.Contract.Encoding;
 using Komponent.Contract.Aspects;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_level5.N3DS.Image
 {
-    class ZtexHeader
+    struct ZtexHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public short imageCount;
         public short flags;
 
@@ -18,9 +15,8 @@ namespace plugin_level5.N3DS.Image
         public bool HasUnknownEntries => (flags & 2) != 0;
     }
 
-    class ZtexEntry
+    struct ZtexEntry
     {
-        [FixedLength(0x40)]
         public string name;
         public uint crc32;
         public int offset;
@@ -30,10 +26,10 @@ namespace plugin_level5.N3DS.Image
         public short height;
         public byte mipCount;
         public byte format;
-        public short unk3 = 0xFF;
+        public short unk3; // 0xFF
     }
 
-    class ZtexUnkEnrty
+    struct ZtexUnkEntry
     {
         public int unk0;
         public int zero0;

@@ -1,13 +1,11 @@
-﻿using Komponent.Contract.Aspects;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.Mobile.Archive
 {
-    class Hp10Header
+    struct Hp10Header
     {
-        [FixedLength(4)]
-        public string magic = "HP10";
+        public string magic; // HP10
         public int fileCount;
         public uint fileSize;
 
@@ -15,8 +13,8 @@ namespace plugin_level5.Mobile.Archive
         public int stringOffset;
         public int dataOffset;
 
-        public short unk1 = 0x800;
-        public short unk2 = 0x800;
+        public short unk1; // 0x800
+        public short unk2; // 0x800
         public int zero1;
     }
 

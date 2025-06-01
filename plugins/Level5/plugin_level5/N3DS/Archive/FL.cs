@@ -12,7 +12,6 @@ namespace plugin_level5.N3DS.Archive
 
         public List<FLArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read file count
@@ -20,16 +19,16 @@ namespace plugin_level5.N3DS.Archive
             input.Position += 4;
 
             // Read offsets
-            var offsets = typeReader.ReadMany<int>(br, _fileCount);
+            var offsets = ReadIntegers(br, _fileCount);
 
             // Read uncompressed sizes
-            var uncompSizes = typeReader.ReadMany<int>(br, _fileCount);
+            var uncompSizes = ReadIntegers(br, _fileCount);
 
             // Read compressed sizes
-            var compSizes = typeReader.ReadMany<int>(br, _fileCount);
+            var compSizes = ReadIntegers(br, _fileCount);
 
             // Read compression flags
-            var flags = typeReader.ReadMany<bool>(br, _fileCount);
+            var flags = ReadBooleans(br, _fileCount);
 
             // Add files
             var index = 0;
@@ -75,7 +74,6 @@ namespace plugin_level5.N3DS.Archive
 
         public void Save(Stream output, List<FLArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -119,14 +117,46 @@ namespace plugin_level5.N3DS.Archive
 
             // Write tables
             output.Position = offsetsOffset;
-            typeWriter.WriteMany(offsets, bw);
-            typeWriter.WriteMany(uncompSizes, bw);
-            typeWriter.WriteMany(compSizes, bw);
-            typeWriter.WriteMany(compFlags, bw);
+            WriteIntegers(offsets, bw);
+            WriteIntegers(uncompSizes, bw);
+            WriteIntegers(compSizes, bw);
+            WriteBooleans(compFlags, bw);
 
             // Write header
             output.Position = 0;
             bw.Write(_fileCount);
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private bool[] ReadBooleans(BinaryReaderX reader, int count)
+        {
+            var result = new bool[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadBoolean();
+
+            return result;
+        }
+
+        private void WriteIntegers(int[] entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
+        }
+
+        private void WriteBooleans(bool[] entries, BinaryWriterX writer)
+        {
+            foreach (bool entry in entries)
+                writer.Write(entry);
         }
     }
 }

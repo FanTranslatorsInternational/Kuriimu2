@@ -3,7 +3,6 @@ using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Extensions;
-using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
 using plugin_level5.Common.Compression;
 
@@ -24,24 +23,19 @@ namespace plugin_level5.N3DS.Archive
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             using var br = new BinaryReaderX(input, Encoding.GetEncoding("Shift-JIS"), true);
-            var typeReader = new BinaryTypeReader();
 
             // Read header
-            var header = typeReader.Read<Arc0Header>(br);
-            if (header == null)
-                return new List<Arc0ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Read directory entries
-            var directoryEntries = ReadCompressedTableEntries<Arc0DirectoryEntry>(input,
-                _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset,
-                _header.directoryEntriesCount);
+            var directoryEntriesReader = GetDecompressedTableEntries(input,
+                _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset);
+            var directoryEntries = ReadDirectoryEntries(directoryEntriesReader, _header.directoryEntriesCount);
 
             // Read file entry table
-            var entries = ReadCompressedTableEntries<Arc0FileEntry>(input,
-                _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset,
-                _header.fileEntriesCount);
+            var entriesReader = GetDecompressedTableEntries(input,
+                _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset);
+            var entries = ReadEntries(entriesReader, _header.fileEntriesCount);
 
             // Read nameTable
             var nameComp = new SubStream(input, _header.nameOffset, _header.dataOffset - _header.nameOffset);
@@ -88,7 +82,6 @@ namespace plugin_level5.N3DS.Archive
 
             // -- Write file --
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             bw.BaseStream.Position = HeaderSize_;
@@ -98,14 +91,16 @@ namespace plugin_level5.N3DS.Archive
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = HeaderSize_;
 
-            WriteCompressedTableEntries(bw.BaseStream, directoryEntries);
+            var directoryEntriesStream = WriteDirectoryEntries(directoryEntries);
+            WriteCompressedStream(bw.BaseStream, directoryEntriesStream);
             bw.WriteAlignment(4);
 
             // Write directory hashes
             _header.directoryHashCount = (short)directoryHashes.Count;
             _header.directoryHashOffset = (int)bw.BaseStream.Position;
 
-            WriteCompressedTableEntries(bw.BaseStream, directoryHashes);
+            var directoryHashesStream = WriteDirectoryHashes(directoryHashes);
+            WriteCompressedStream(bw.BaseStream, directoryHashesStream);
             bw.WriteAlignment(4);
 
             // Write file entries
@@ -113,7 +108,8 @@ namespace plugin_level5.N3DS.Archive
             _header.fileEntriesCount = fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
-            WriteCompressedTableEntries(bw.BaseStream, fileEntries);
+            var fileEntriesStream = WriteFileEntries(fileEntries);
+            WriteCompressedStream(bw.BaseStream, fileEntriesStream);
             bw.WriteAlignment(4);
 
             // Write name table
@@ -126,12 +122,10 @@ namespace plugin_level5.N3DS.Archive
 
             // Write file data
             _header.dataOffset = (int)bw.BaseStream.Position;
-            foreach (ArchiveFile archiveFile in fileEntries)
+            foreach (Arc0ArchiveFile archiveFile in fileEntries)
             {
-                var fileEntry = (Arc0ArchiveFile)archiveFile;
-
-                bw.BaseStream.Position = _header.dataOffset + fileEntry.Entry.fileOffset;
-                fileEntry.WriteFileData(bw.BaseStream, false, null);
+                bw.BaseStream.Position = _header.dataOffset + archiveFile.Entry.fileOffset;
+                archiveFile.WriteFileData(bw.BaseStream, false);
 
                 bw.WriteAlignment(4);
             }
@@ -143,21 +137,17 @@ namespace plugin_level5.N3DS.Archive
                                     nameStream.Length + 0x20 + 3) & ~3;
 
             bw.BaseStream.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
         }
 
-        private IList<TTable?> ReadCompressedTableEntries<TTable>(Stream input, int offset, int length, int count)
+        private BinaryReaderX GetDecompressedTableEntries(Stream input, int offset, int length)
         {
-            var typeReader = new BinaryTypeReader();
-
             var streamComp = new SubStream(input, offset, length);
             var stream = new MemoryStream();
             Level5Compressor.Decompress(streamComp, stream);
 
             stream.Position = 0;
-            using var br = new BinaryReaderX(stream);
-
-            return typeReader.ReadMany<TTable>(br, count);
+            return new BinaryReaderX(stream);
         }
 
         private void BuildTables(List<Arc0ArchiveFile> files,
@@ -236,21 +226,15 @@ namespace plugin_level5.N3DS.Archive
             }).ToList();
         }
 
-        private void WriteCompressedTableEntries<TTable>(Stream output, IEnumerable<TTable> table)
+        private void WriteCompressedStream(Stream output, Stream decompressedData)
         {
-            var decompressedStream = new MemoryStream();
-            using var decompressedBw = new BinaryWriterX(decompressedStream, true);
-
-            var typeWriter = new BinaryTypeWriter();
-            typeWriter.WriteMany(table, decompressedBw);
-
             var optimalCompressedStream = new MemoryStream();
-            Compress(decompressedStream, optimalCompressedStream, Level5CompressionMethod.NoCompression);
+            Compress(decompressedData, optimalCompressedStream, Level5CompressionMethod.NoCompression);
 
             for (var i = 1; i < 5; i++)
             {
                 var compressedStream = new MemoryStream();
-                Compress(decompressedStream, compressedStream, (Level5CompressionMethod)i);
+                Compress(decompressedData, compressedStream, (Level5CompressionMethod)i);
 
                 if (compressedStream.Length < optimalCompressedStream.Length)
                     optimalCompressedStream = compressedStream;
@@ -268,6 +252,152 @@ namespace plugin_level5.N3DS.Archive
 
             output.Position = 0;
             input.Position = 0;
+        }
+
+        private Arc0Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Arc0Header
+            {
+                magic = reader.ReadString(4),
+                directoryEntriesOffset = reader.ReadInt32(),
+                directoryHashOffset = reader.ReadInt32(),
+                fileEntriesOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                directoryEntriesCount = reader.ReadInt16(),
+                directoryHashCount = reader.ReadInt16(),
+                fileEntriesCount = reader.ReadInt32(),
+                tableChunkSize = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                unk2 = reader.ReadUInt32(),
+                unk3 = reader.ReadUInt32(),
+                unk4 = reader.ReadUInt32(),
+                unk5 = reader.ReadUInt32(),
+                directoryCount = reader.ReadInt32(),
+                fileCount = reader.ReadInt32(),
+                unk7 = reader.ReadUInt32(),
+                zero2 = reader.ReadInt32()
+            };
+        }
+
+        private Arc0DirectoryEntry[] ReadDirectoryEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Arc0DirectoryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadDirectoryEntry(reader);
+
+            return result;
+        }
+
+        private Arc0DirectoryEntry ReadDirectoryEntry(BinaryReaderX reader)
+        {
+            return new Arc0DirectoryEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                firstDirectoryIndex = reader.ReadUInt16(),
+                directoryCount = reader.ReadInt16(),
+                firstFileIndex = reader.ReadUInt16(),
+                fileCount = reader.ReadInt16(),
+                fileNameStartOffset = reader.ReadInt32(),
+                directoryNameStartOffset = reader.ReadInt32()
+            };
+        }
+
+        private Arc0FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Arc0FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Arc0FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new Arc0FileEntry
+            {
+                crc32 = reader.ReadUInt32(),
+                nameOffsetInFolder = reader.ReadUInt32(),
+                fileOffset = reader.ReadUInt32(),
+                fileSize = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(Arc0Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.directoryEntriesOffset);
+            writer.Write(header.directoryHashOffset);
+            writer.Write(header.fileEntriesOffset);
+            writer.Write(header.nameOffset);
+            writer.Write(header.dataOffset);
+            writer.Write(header.directoryEntriesCount);
+            writer.Write(header.directoryHashCount);
+            writer.Write(header.fileEntriesCount);
+            writer.Write(header.tableChunkSize);
+            writer.Write(header.zero1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.unk4);
+            writer.Write(header.unk5);
+            writer.Write(header.directoryCount);
+            writer.Write(header.fileCount);
+            writer.Write(header.unk7);
+            writer.Write(header.zero2);
+        }
+
+        private Stream WriteDirectoryEntries(IList<Arc0DirectoryEntry> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (Arc0DirectoryEntry entry in entries)
+                WriteDirectoryEntry(entry, writer);
+
+            return stream;
+        }
+
+        private void WriteDirectoryEntry(Arc0DirectoryEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.firstDirectoryIndex);
+            writer.Write(entry.directoryCount);
+            writer.Write(entry.firstFileIndex);
+            writer.Write(entry.fileCount);
+            writer.Write(entry.fileNameStartOffset);
+            writer.Write(entry.directoryNameStartOffset);
+        }
+
+        private Stream WriteDirectoryHashes(IList<uint> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (uint entry in entries)
+                writer.Write(entry);
+
+            return stream;
+        }
+
+        private Stream WriteFileEntries(IList<Arc0ArchiveFile> entries)
+        {
+            var stream = new MemoryStream();
+            using var writer = new BinaryWriterX(stream, true);
+
+            foreach (Arc0ArchiveFile entry in entries)
+                WriteFileEntry(entry.Entry, writer);
+
+            return stream;
+        }
+
+        private void WriteFileEntry(Arc0FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.crc32);
+            writer.Write(entry.nameOffsetInFolder);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileSize);
         }
     }
 }

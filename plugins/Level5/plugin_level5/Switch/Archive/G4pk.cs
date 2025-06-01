@@ -22,29 +22,24 @@ namespace plugin_level5.Switch.Archive
 
         public List<ArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Header
-            var header = typeReader.Read<G4pkHeader>(br);
-            if (header == null)
-                return new List<ArchiveFile>();
-
-            _header = header;
+            _header = ReadHeader(br);
 
             // Entry information
             br.BaseStream.Position = _header.headerSize;
-            var fileOffsets = typeReader.ReadMany<int>(br, _header.fileCount);
-            var fileSizes = typeReader.ReadMany<int>(br, _header.fileCount);
-            var hashes = typeReader.ReadMany<uint>(br, _header.table2EntryCount);
+            var fileOffsets = ReadIntegers(br, _header.fileCount);
+            var fileSizes = ReadIntegers(br, _header.fileCount);
+            var hashes = ReadUnsignedIntegers(br, _header.table2EntryCount);
 
             // Unknown information
-            _unkIds = typeReader.ReadMany<short>(br, _header.table3EntryCount / 2);
+            _unkIds = ReadShorts(br, _header.table3EntryCount / 2);
 
             // Strings
             br.BaseStream.Position = (br.BaseStream.Position + 3) & ~3;
             var stringOffset = br.BaseStream.Position;
-            var stringOffsets = typeReader.ReadMany<short>(br, _header.table3EntryCount / 2);
+            var stringOffsets = ReadShorts(br, _header.table3EntryCount / 2);
 
             //Files
             var result = new List<ArchiveFile>();
@@ -68,7 +63,6 @@ namespace plugin_level5.Switch.Archive
 
         public void Save(Stream output, List<ArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             var fileOffsetsPosition = HeaderSize_;
@@ -117,12 +111,12 @@ namespace plugin_level5.Switch.Archive
 
             // Write file information
             bw.BaseStream.Position = fileOffsetsPosition;
-            typeWriter.WriteMany(fileOffset, bw);
-            typeWriter.WriteMany(fileSizes, bw);
-            typeWriter.WriteMany(fileHashes, bw);
+            WriteIntegers(fileOffset, bw);
+            WriteIntegers(fileSizes, bw);
+            WriteUnsignedIntegers(fileHashes, bw);
 
             // Write unknown information
-            typeWriter.WriteMany(_unkIds, bw);
+            WriteShorts(_unkIds, bw);
 
             // Write header
             bw.BaseStream.Position = 0;
@@ -131,7 +125,90 @@ namespace plugin_level5.Switch.Archive
             _header.contentSize = (int)(bw.BaseStream.Length - HeaderSize_);
             _header.table2EntryCount = (short)fileHashes.Count;
 
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private G4pkHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new G4pkHeader
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadInt16(),
+                fileType = reader.ReadInt16(),
+                version = reader.ReadInt32(),
+                contentSize = reader.ReadInt32(),
+                zeroes1 = reader.ReadBytes(0x10),
+                fileCount = reader.ReadInt32(),
+                table2EntryCount = reader.ReadInt16(),
+                table3EntryCount = reader.ReadInt16(),
+                unk2 = reader.ReadInt16(),
+                unk3 = reader.ReadInt16(),
+                zeroes2 = reader.ReadBytes(0x14)
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private uint[] ReadUnsignedIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private short[] ReadShorts(BinaryReaderX reader, int count)
+        {
+            var result = new short[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt16();
+
+            return result;
+        }
+
+        private void WriteHeader(G4pkHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.fileType);
+            writer.Write(header.version);
+            writer.Write(header.contentSize);
+            writer.Write(header.zeroes1);
+            writer.Write(header.fileCount);
+            writer.Write(header.table2EntryCount);
+            writer.Write(header.table3EntryCount);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.zeroes2);
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
+        }
+
+        private void WriteUnsignedIntegers(IList<uint> entries, BinaryWriterX writer)
+        {
+            foreach (uint entry in entries)
+                writer.Write(entry);
+        }
+
+        private void WriteShorts(IList<short> entries, BinaryWriterX writer)
+        {
+            foreach (short entry in entries)
+                writer.Write(entry);
         }
     }
 }

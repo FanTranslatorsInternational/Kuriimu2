@@ -1,13 +1,11 @@
 ﻿using Kanvas;
-using Komponent.Contract.Aspects;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_level5.Switch.Image
 {
-    class NxtchHeader
+    struct NxtchHeader
     {
-        [FixedLength(8)]
-        public string magic = "NXTCH000";
+        public string magic; // NXTCH000
         public int textureDataSize;
         public int unk1;
         public int unk2;

@@ -20,13 +20,12 @@ namespace plugin_level5.NDS.Image
 
         public ImageFileInfo Load(Stream ltInput, Stream lpInput)
         {
-            var typeReader = new BinaryTypeReader();
             using var ltBr = new BinaryReaderX(ltInput);
             using var lpBr = new BinaryReaderX(lpInput);
 
             // Read headers
-            _ltHeader = typeReader.Read<GtxtLtHeader>(ltBr);
-            _lpHeader = typeReader.Read<GtxtLpHeader>(lpBr);
+            _ltHeader = ReadTileHeader(ltBr);
+            _lpHeader = ReadPaletteHeader(lpBr);
 
             // Read unknown regions
             _unkRegion1 = ltBr.ReadBytes(_ltHeader.unkCount1 * 8);
@@ -67,7 +66,6 @@ namespace plugin_level5.NDS.Image
 
         private void WritePaletteFile(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Update header
@@ -76,7 +74,7 @@ namespace plugin_level5.NDS.Image
                                            (GtxtSupport.PaletteFormats[imageInfo.PaletteFormat].BitDepth / 8));
 
             // Write palette header
-            typeWriter.Write(_lpHeader, bw);
+            WritePaletteHeader(_lpHeader, bw);
 
             // Write palette data
             bw.Write(imageInfo.PaletteData);
@@ -84,7 +82,6 @@ namespace plugin_level5.NDS.Image
 
         private void WriteImageFile(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -131,7 +128,7 @@ namespace plugin_level5.NDS.Image
 
             // Write header
             output.Position = 0;
-            typeWriter.Write(_ltHeader, bw);
+            WriteTileHeader(_ltHeader, bw);
         }
 
         private byte[] CombineTiles(Stream tileTableStream, Stream imageDataStream, int bitDepth)
@@ -199,6 +196,70 @@ namespace plugin_level5.NDS.Image
 
             imageData.Position = tileTable.Position = 0;
             return (imageData, tileTable);
+        }
+
+        private GtxtLtHeader ReadTileHeader(BinaryReaderX reader)
+        {
+            return new GtxtLtHeader
+            {
+                magic = reader.ReadString(4),
+                indexFormat = reader.ReadByte(),
+                unk1 = reader.ReadByte(),
+                unk2 = reader.ReadByte(),
+                unk3 = reader.ReadByte(),
+                paddedWidth = reader.ReadInt16(),
+                paddedHeight = reader.ReadInt16(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unkOffset1 = reader.ReadInt16(),
+                unkCount1 = reader.ReadInt16(),
+                unkOffset2 = reader.ReadInt16(),
+                unkCount2 = reader.ReadInt16(),
+                indexOffset = reader.ReadInt16(),
+                indexCount = reader.ReadInt16(),
+                dataOffset = reader.ReadInt32(),
+                tileCount = reader.ReadInt16(),
+                unk4 = reader.ReadInt16()
+            };
+        }
+
+        private GtxtLpHeader ReadPaletteHeader(BinaryReaderX reader)
+        {
+            return new GtxtLpHeader
+            {
+                magic = reader.ReadString(4),
+                colorCount = reader.ReadInt16(),
+                paletteFormat = reader.ReadInt16()
+            };
+        }
+
+        private void WriteTileHeader(GtxtLtHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.indexFormat);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.paddedWidth);
+            writer.Write(header.paddedHeight);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unkOffset1);
+            writer.Write(header.unkCount1);
+            writer.Write(header.unkOffset2);
+            writer.Write(header.unkCount2);
+            writer.Write(header.indexOffset);
+            writer.Write(header.indexCount);
+            writer.Write(header.dataOffset);
+            writer.Write(header.tileCount);
+            writer.Write(header.unk4);
+        }
+
+        private void WritePaletteHeader(GtxtLpHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.colorCount);
+            writer.Write(header.paletteFormat);
         }
     }
 }

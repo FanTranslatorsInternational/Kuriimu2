@@ -15,15 +15,14 @@ namespace plugin_level5.NDS.Archive
 
         public List<ArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<Lpc2Header>(br);
+            var header = ReadHeader(br);
 
             // Read file entries
             br.BaseStream.Position = header.fileEntryOffset;
-            var entries = typeReader.ReadMany<Lpc2FileEntry>(br, header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Add files
             var result = new List<ArchiveFile>();
@@ -48,7 +47,6 @@ namespace plugin_level5.NDS.Archive
 
         public void Save(Stream output, IList<ArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             var fileEntryStartOffset = HeaderSize_;
@@ -68,7 +66,7 @@ namespace plugin_level5.NDS.Archive
                 });
 
                 bw.BaseStream.Position = nameStartOffset + nameOffset;
-                bw.WriteString(file.FilePath.FullName, Encoding.ASCII, false);
+                bw.WriteString(file.FilePath.FullName, Encoding.ASCII);
                 nameOffset = (int)bw.BaseStream.Position - nameStartOffset;
 
                 fileOffset += (int)file.FileSize;
@@ -81,13 +79,13 @@ namespace plugin_level5.NDS.Archive
 
             // Write file entries
             bw.BaseStream.Position = fileEntryStartOffset;
-            foreach (var fileEntry in fileEntries)
-                typeWriter.Write(fileEntry, bw);
+            WriteEntries(fileEntries, bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new Lpc2Header
+            var header = new Lpc2Header
             {
+                magic = "LPC2",
+
                 fileEntryOffset = fileEntryStartOffset,
                 nameOffset = nameStartOffset,
                 dataOffset = dataOffset,
@@ -96,7 +94,68 @@ namespace plugin_level5.NDS.Archive
 
                 headerSize = HeaderSize_,
                 fileSize = (int)bw.BaseStream.Length
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private Lpc2Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Lpc2Header
+            {
+                magic = reader.ReadString(4),
+                fileCount = reader.ReadInt32(),
+                headerSize = reader.ReadInt32(),
+                fileSize = reader.ReadInt32(),
+                fileEntryOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32()
+            };
+        }
+
+        private Lpc2FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Lpc2FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Lpc2FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new Lpc2FileEntry
+            {
+                nameOffset = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+                fileSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(Lpc2Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileCount);
+            writer.Write(header.headerSize);
+            writer.Write(header.fileSize);
+            writer.Write(header.fileEntryOffset);
+            writer.Write(header.nameOffset);
+            writer.Write(header.dataOffset);
+        }
+
+        private void WriteEntries(IList<Lpc2FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach(Lpc2FileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(Lpc2FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileSize);
         }
     }
 }

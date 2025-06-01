@@ -1,16 +1,14 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_level5.NDS.Image
 {
-    class GtxtLtHeader
+    struct GtxtLtHeader
     {
-        [FixedLength(4)]
-        public string magic = "GTXT";
+        public string magic; // GTXT
         public byte indexFormat;
         public byte unk1;
         public byte unk2;
@@ -35,10 +33,9 @@ namespace plugin_level5.NDS.Image
         public short unk4;
     }
 
-    class GtxtLpHeader
+    struct GtxtLpHeader
     {
-        [FixedLength(4)]
-        public string magic = "GPLT";
+        public string magic; // GPLT
         public short colorCount;
         public short paletteFormat;
     }

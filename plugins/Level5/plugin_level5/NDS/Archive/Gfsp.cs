@@ -14,15 +14,14 @@ namespace plugin_level5.NDS.Archive
 
         public List<ArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<GfspHeader>(br);
+            var header = ReadHeader(br);
 
             // Read entries
             input.Position = header.FileInfoOffset;
-            var entries = typeReader.ReadMany<GfspFileInfo>(br, header.FileCount);
+            var entries = ReadEntries(br, header.FileCount);
 
             // Get name stream
             var nameStream = new SubStream(input, header.FilenameTableOffset, header.FilenameTableSize);
@@ -52,7 +51,7 @@ namespace plugin_level5.NDS.Archive
         public void Save(Stream output, List<ArchiveFile> files)
         {
             var crc16 = Crc16.X25;
-            var typeWriter = new BinaryTypeWriter();
+
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -91,11 +90,13 @@ namespace plugin_level5.NDS.Archive
 
             // Write entries
             output.Position = fileInfoOffset;
-            typeWriter.WriteMany(fileInfos, bw);
+            WriteEntries(fileInfos, bw);
 
             // Write header
             var header = new GfspHeader
             {
+                magic = "GFSP",
+
                 FileCount = (ushort)files.Count,
 
                 FileInfoOffset = (ushort)fileInfoOffset,
@@ -108,7 +109,71 @@ namespace plugin_level5.NDS.Archive
             };
 
             output.Position = 0;
-            typeWriter.Write(header, bw);
+            WriteHeader(header, bw);
+        }
+
+        private GfspHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new GfspHeader
+            {
+                magic = reader.ReadString(4),
+                fc1 = reader.ReadByte(),
+                fc2 = reader.ReadByte(),
+                infoOffsetUnshifted = reader.ReadByte(),
+                nameTableOffsetUnshifted = reader.ReadByte(),
+                dataOffsetUnshifted = reader.ReadByte(),
+                infoSizeUnshifted = reader.ReadByte(),
+                nameTableSizeUnshifted = reader.ReadByte(),
+                dataSizeUnshifted = reader.ReadByte()
+            };
+        }
+
+        private GfspFileInfo[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new GfspFileInfo[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private GfspFileInfo ReadEntry(BinaryReaderX reader)
+        {
+            return new GfspFileInfo
+            {
+                hash = reader.ReadUInt16(),
+                tmp = reader.ReadUInt16(),
+                size = reader.ReadUInt16(),
+                tmp2 = reader.ReadUInt16()
+            };
+        }
+
+        private void WriteHeader(GfspHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fc1);
+            writer.Write(header.fc2);
+            writer.Write(header.infoOffsetUnshifted);
+            writer.Write(header.nameTableOffsetUnshifted);
+            writer.Write(header.dataOffsetUnshifted);
+            writer.Write(header.infoSizeUnshifted);
+            writer.Write(header.nameTableSizeUnshifted);
+            writer.Write(header.dataSizeUnshifted);
+        }
+
+        private void WriteEntries(IList<GfspFileInfo> entries, BinaryWriterX writer)
+        {
+            foreach (GfspFileInfo entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(GfspFileInfo entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.tmp);
+            writer.Write(entry.size);
+            writer.Write(entry.tmp2);
         }
     }
 }

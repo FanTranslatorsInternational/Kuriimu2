@@ -1,8 +1,6 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Contract.Progress;
 using Konnect.Plugin.File.Archive;
 using plugin_level5.Common.Compression;
 
@@ -18,10 +16,9 @@ namespace plugin_level5.N3DS.Archive
     }
 
     // TODO: Research unk1
-    class XfsaHeader
+    struct XfsaHeader
     {
-        [FixedLength(4)]
-        public string magic = "XFSA";
+        public string magic; // XFSA
 
         public int directoryEntriesOffset;
         public int directoryHashOffset;
@@ -93,7 +90,7 @@ namespace plugin_level5.N3DS.Archive
         }
     }
 
-    class Xfsa1DirectoryEntry
+    struct Xfsa1DirectoryEntry
     {
         public uint crc32;  // directoryName.ToLower()
         public uint tmp1;
@@ -126,7 +123,7 @@ namespace plugin_level5.N3DS.Archive
         }
     }
 
-    class Xfsa2DirectoryEntry
+    struct Xfsa2DirectoryEntry
     {
         public uint crc32;
         public int fileCount;
@@ -192,35 +189,26 @@ namespace plugin_level5.N3DS.Archive
             }
         }
 
-        public static IList<TTable> ReadCompressedTableEntries<TTable>(Stream input, int offset, int length, int count)
+        public static BinaryReaderX GetDecompressedTableEntries(Stream input, int offset, int length)
         {
             var streamComp = new SubStream(input, offset, length);
             var stream = new MemoryStream();
             Level5Compressor.Decompress(streamComp, stream);
 
-            var typeReader = new BinaryTypeReader();
-            using var br = new BinaryReaderX(stream);
-
             stream.Position = 0;
-            return typeReader.ReadMany<TTable>(br, count);
+            return new BinaryReaderX(stream);
         }
 
-        public static void WriteCompressedTableEntries<TTable>(Stream output, IEnumerable<TTable> table)
+        public static void WriteCompressedStream(Stream output, Stream decompressedData)
         {
-            var decompressedStream = new MemoryStream();
-
-            var typeWriter = new BinaryTypeWriter();
-            using var decompressedBw = new BinaryWriterX(decompressedStream, true);
-            typeWriter.WriteMany(table, decompressedBw);
-
             var optimalCompressedStream = new MemoryStream();
-            Compress(decompressedStream, optimalCompressedStream, Level5CompressionMethod.NoCompression);
+            Compress(decompressedData, optimalCompressedStream, Level5CompressionMethod.NoCompression);
 
             // Do not test RLE for optimality, since this is probably never the case for tables
             for (var i = 1; i < 4; i++)
             {
                 var compressedStream = new MemoryStream();
-                Compress(decompressedStream, compressedStream, (Level5CompressionMethod)i);
+                Compress(decompressedData, compressedStream, (Level5CompressionMethod)i);
 
                 if (compressedStream.Length < optimalCompressedStream.Length)
                     optimalCompressedStream = compressedStream;

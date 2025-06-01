@@ -1,17 +1,14 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Contract.Progress;
 using Konnect.Plugin.File.Archive;
 
 #pragma warning disable 649
 
 namespace plugin_level5.N3DS.Archive
 {
-    class B123Header
+    struct B123Header
     {
-        [FixedLength(4)]
-        public string magic = "B123";
+        public string magic; // B123
         public int directoryEntriesOffset;
         public int directoryHashOffset;
         public int fileEntriesOffset;
@@ -44,7 +41,7 @@ namespace plugin_level5.N3DS.Archive
         public uint fileSize;
     }
 
-    class B123DirectoryEntry
+    struct B123DirectoryEntry
     {
         // TODO: Hashes of files to lower?
         public uint crc32;  // directoryName.ToLower()

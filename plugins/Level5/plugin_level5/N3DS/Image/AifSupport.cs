@@ -1,5 +1,4 @@
 ﻿using Kanvas;
-using Komponent.Contract.Aspects;
 using Komponent.IO;
 using Konnect.Plugin.File.Image;
 
@@ -9,9 +8,7 @@ namespace plugin_level5.N3DS.Image
 
     class SectionHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public int sectionSize;
         public int zero0;
         public int nextSectionOffset;
@@ -19,9 +16,6 @@ namespace plugin_level5.N3DS.Image
 
     class MainSection
     {
-        private static readonly BinaryTypeReader _typeReader = new();
-        private static readonly BinaryTypeWriter _typeWriter = new();
-
         public SectionHeader Header { get; }
 
         public IReadOnlyList<Section> Sections { get; }
@@ -38,7 +32,7 @@ namespace plugin_level5.N3DS.Image
         public static MainSection Read(BinaryReaderX br)
         {
             var startPosition = br.BaseStream.Position;
-            var header = _typeReader.Read<SectionHeader>(br);
+            var header = ReadSectionHeader(br);
 
             var sections = new List<Section>();
             do
@@ -93,18 +87,34 @@ namespace plugin_level5.N3DS.Image
             Header.sectionSize = (int)(endPosition - startPosition);
 
             bw.BaseStream.Position = startPosition;
-            _typeWriter.Write(Header, bw);
+            WriteSectionHeader(Header, bw);
 
             // Skip section
             bw.BaseStream.Position = endPosition;
+        }
+
+        private static SectionHeader ReadSectionHeader(BinaryReaderX reader)
+        {
+            return new SectionHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                zero0 = reader.ReadInt32(),
+                nextSectionOffset = reader.ReadInt32()
+            };
+        }
+
+        private static void WriteSectionHeader(SectionHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.sectionSize);
+            writer.Write(header.zero0);
+            writer.Write(header.nextSectionOffset);
         }
     }
 
     class Section
     {
-        private static readonly BinaryTypeReader _typeReader = new();
-        private static readonly BinaryTypeWriter _typeWriter = new();
-
         public SectionHeader Header { get; }
 
         public byte[] Data { get; }
@@ -117,7 +127,7 @@ namespace plugin_level5.N3DS.Image
 
         public static Section Read(BinaryReaderX br)
         {
-            var header = _typeReader.Read<SectionHeader>(br);
+            var header = ReadSectionHeader(br);
             var data = br.ReadBytes(header.sectionSize - 0x10);
 
             return new Section(header, data);
@@ -142,10 +152,29 @@ namespace plugin_level5.N3DS.Image
             Header.sectionSize = (int)(endPosition - startPosition);
 
             bw.BaseStream.Position = startPosition;
-            _typeWriter.Write(Header, bw);
+            WriteSectionHeader(Header, bw);
 
             // Skip section
             bw.BaseStream.Position = endPosition;
+        }
+
+        private static SectionHeader ReadSectionHeader(BinaryReaderX reader)
+        {
+            return new SectionHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                zero0 = reader.ReadInt32(),
+                nextSectionOffset = reader.ReadInt32()
+            };
+        }
+
+        private static void WriteSectionHeader(SectionHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.sectionSize);
+            writer.Write(header.zero0);
+            writer.Write(header.nextSectionOffset);
         }
     }
 

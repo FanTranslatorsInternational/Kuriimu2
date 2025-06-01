@@ -12,12 +12,11 @@ namespace plugin_level5.N3DS.Archive
 
         public List<PckArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read file infos
             var fileCount = br.ReadInt32();
-            var entries = typeReader.ReadMany<PckFileInfo>(br, fileCount);
+            var entries = ReadEntries(br, fileCount);
 
             // Add files
             var result = new List<PckArchiveFile>();
@@ -32,7 +31,7 @@ namespace plugin_level5.N3DS.Archive
                 if (hashIdent == 0x64)
                 {
                     var hashCount = br.ReadInt16();
-                    entryHashes = typeReader.ReadMany<uint>(br, hashCount);
+                    entryHashes = ReadHashes(br, hashCount);
 
                     blockOffset = (hashCount + 1) * 4;
                 }
@@ -55,7 +54,6 @@ namespace plugin_level5.N3DS.Archive
 
         public void Save(Stream output, List<PckArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write file count
@@ -69,12 +67,13 @@ namespace plugin_level5.N3DS.Archive
                 if (file.Hashes != null)
                     fileSize += (file.Hashes.Count + 1) * 4;
 
-                typeWriter.Write(new PckFileInfo
+                var entry = new PckFileInfo
                 {
                     hash = file.Entry.hash,
                     fileOffset = dataOffset,
                     fileLength = fileSize
-                }, bw);
+                };
+                WriteEntry(entry, bw);
 
                 dataOffset += fileSize;
             }
@@ -86,11 +85,54 @@ namespace plugin_level5.N3DS.Archive
                 {
                     bw.Write((short)0x64);
                     bw.Write((short)file.Hashes.Count);
-                    typeWriter.WriteMany(file.Hashes, bw);
+                    WriteHashes(file.Hashes, bw);
                 }
 
                 file.WriteFileData(bw.BaseStream, false);
             }
+        }
+
+        private PckFileInfo[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PckFileInfo[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PckFileInfo ReadEntry(BinaryReaderX reader)
+        {
+            return new PckFileInfo
+            {
+                hash = reader.ReadUInt32(),
+                fileOffset = reader.ReadInt32(),
+                fileLength = reader.ReadInt32(),
+            };
+        }
+
+        private uint[] ReadHashes(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private void WriteEntry(PckFileInfo entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileLength);
+        }
+
+        private void WriteHashes(IList<uint> entries, BinaryWriterX writer)
+        {
+            foreach (uint entry in entries)
+                writer.Write(entry);
         }
     }
 }
