@@ -27,11 +27,10 @@ namespace plugin_grezzo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read Header
-            var header = typeReader.Read<GarHeader>(br);
+            var header = ReadHeader(br);
 
             // Parse rest of the file
             _headerVersion = header.version;
@@ -39,10 +38,10 @@ namespace plugin_grezzo.Archives
             switch (_headerVersion)
             {
                 case 2:
-                    return ParseGar2(typeReader, br, header);
+                    return ParseGar2(br, header);
 
                 case 5:
-                    return ParseGar5(typeReader, br, header);
+                    return ParseGar5(br, header);
 
                 default:
                     throw new InvalidOperationException($"GAR with version {_headerVersion} is not supported.");
@@ -66,10 +65,10 @@ namespace plugin_grezzo.Archives
             }
         }
 
-        private List<IArchiveFile> ParseGar2(BinaryTypeReader typeReader, BinaryReaderX br, GarHeader header)
+        private List<IArchiveFile> ParseGar2(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
-            var fileTypeEntries = typeReader.ReadMany<Gar2FileTypeEntry>(br, header.fileTypeCount);
+            var fileTypeEntries = ReadGar2Entries(br, header.fileTypeCount);
 
             var result = new List<IArchiveFile>();
             foreach (var fileTypeEntry in fileTypeEntries)
@@ -79,15 +78,15 @@ namespace plugin_grezzo.Archives
 
                 // Read file entry indices
                 br.BaseStream.Position = fileTypeEntry.fileIndexOffset;
-                var fileIndices = typeReader.ReadMany<int>(br, fileTypeEntry.fileCount);
+                var fileIndices = ReadIntegers(br, fileTypeEntry.fileCount);
 
                 // Read file entries
                 br.BaseStream.Position = header.fileEntryOffset;
-                var fileEntries = typeReader.ReadMany<Gar2FileEntry>(br, header.fileCount);
+                var fileEntries = ReadGar2FileEntries(br, header.fileCount);
 
                 // Read file offsets
                 br.BaseStream.Position = header.fileOffsetsOffset;
-                var fileOffsets = typeReader.ReadMany<int>(br, header.fileCount);
+                var fileOffsets = ReadIntegers(br, header.fileCount);
 
                 // Add files
                 foreach (var fileIndex in fileIndices)
@@ -108,17 +107,17 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        private List<IArchiveFile> ParseGar5(BinaryTypeReader typeReader, BinaryReaderX br, GarHeader header)
+        private List<IArchiveFile> ParseGar5(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
             _fileTypeEntries = new List<(Gar5FileTypeEntry, string)>();
-            var fileTypeEntries = typeReader.ReadMany<Gar5FileTypeEntry>(br, header.fileTypeCount);
+            var fileTypeEntries = ReadGar5FileTypeEntries(br, header.fileTypeCount);
 
             // Read directory infos
             var fileTypeInfoPosition = fileTypeEntries.Where(x => x.fileTypeInfoOffset > 0).Min(x => x.fileTypeInfoOffset);
             var fileTypeInfoLength = header.fileEntryOffset - fileTypeInfoPosition;
             br.BaseStream.Position = fileTypeInfoPosition;
-            _fileTypeInfos = typeReader.ReadMany<Gar5FileTypeInfo>(br, fileTypeInfoLength / Gar5FileTypeInfoSize_);
+            _fileTypeInfos = ReadGar5FileTypeInfos(br, fileTypeInfoLength / Gar5FileTypeInfoSize_);
 
             var result = new List<IArchiveFile>();
             foreach (var fileTypeEntry in fileTypeEntries)
@@ -130,7 +129,7 @@ namespace plugin_grezzo.Archives
 
                 // Read file entries
                 br.BaseStream.Position = header.fileEntryOffset;
-                var fileEntries = typeReader.ReadMany<Gar5FileEntry>(br, header.fileCount);
+                var fileEntries = ReadGar5FileEntries(br, header.fileCount);
 
                 // Add files
                 if (fileTypeEntry.fileEntryIndex >= 0)
@@ -157,7 +156,6 @@ namespace plugin_grezzo.Archives
 
         private void SaveGar2(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             var fileTypes = files.Select(x => x.FilePath.GetExtensionWithDot()).Distinct().ToArray();
@@ -184,19 +182,22 @@ namespace plugin_grezzo.Archives
 
                 // Write file indices
                 var fileIndexOffset = (int)bw.BaseStream.Position;
-                typeWriter.WriteMany(Enumerable.Range(fileIndex, relevantFiles.Length), bw);
+                WriteIntegers(Enumerable.Range(fileIndex, relevantFiles.Length).ToArray(), bw);
                 fileIndex += relevantFiles.Length;
 
                 var newDirectoryNameOffset = (int)bw.BaseStream.Position;
 
                 // Write directory entry
-                bw.BaseStream.Position = fileTypeEntryOffset;
-                typeWriter.Write(new Gar2FileTypeEntry
+                var entry = new Gar2FileTypeEntry
                 {
                     fileCount = relevantFiles.Length,
                     fileTypeNameOffset = fileTypeNameOffset,
-                    fileIndexOffset = fileIndexOffset
-                }, bw);
+                    fileIndexOffset = fileIndexOffset,
+                    unk1 = -1
+                };
+
+                bw.BaseStream.Position = fileTypeEntryOffset;
+                WriteGar2Entry(entry, bw);
 
                 fileTypeNameOffset = newDirectoryNameOffset;
                 fileTypeEntryOffset += Gar2FileTypeEntrySize_;
@@ -222,13 +223,15 @@ namespace plugin_grezzo.Archives
                 var newFileNameOffset = (int)bw.BaseStream.Position;
 
                 // Write file entry
-                bw.BaseStream.Position = fileEntryOffset;
-                typeWriter.Write(new Gar2FileEntry
+                var entry = new Gar2FileEntry
                 {
                     fileSize = (uint)fileInfo.FileSize,
                     nameOffset = nameOffset,
                     fileNameOffset = fileNameOffset
-                }, bw);
+                };
+
+                bw.BaseStream.Position = fileEntryOffset;
+                WriteGar2FileEntry(entry, bw);
 
                 fileNameOffset = newFileNameOffset;
                 fileEntryOffset += Gar2FileEntrySize_;
@@ -253,9 +256,10 @@ namespace plugin_grezzo.Archives
             }
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new GarHeader
+            var header = new GarHeader
             {
+                magic = "GAR",
+
                 fileTypeCount = (short)fileTypes.Length,
                 fileCount = (short)fileInfos.Count,
 
@@ -267,7 +271,10 @@ namespace plugin_grezzo.Archives
 
                 version = _headerVersion,
                 hold0 = _headerString
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
         }
 
         private void SaveGar5(Stream output, List<IArchiveFile> files)
@@ -275,7 +282,6 @@ namespace plugin_grezzo.Archives
             var fileTypeEntryPosition = HeaderSize_;
             var fileTypeNamePosition = fileTypeEntryPosition + _fileTypeEntries.Count * Gar5FileTypeEntrySize_;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write file type entries
@@ -292,7 +298,7 @@ namespace plugin_grezzo.Archives
                 // Write file type name
                 bw.BaseStream.Position = fileTypeNameOffset;
                 var fileTypeName = fileTypeEntry.Item2.Substring(1, fileTypeEntry.Item2.Length - 1);
-                bw.WriteString(fileTypeName, Encoding.ASCII, false);
+                bw.WriteString(fileTypeName, Encoding.ASCII);
 
                 // Update entry information
                 fileTypeEntry.Item1.fileCount = relevantFiles.Length;
@@ -304,7 +310,7 @@ namespace plugin_grezzo.Archives
 
                 // Write file type entry
                 bw.BaseStream.Position = fileTypeEntryOffset;
-                typeWriter.Write(fileTypeEntry, bw);
+                WriteGar5FileTypeEntry(fileTypeEntry.Item1, bw);
 
                 fileTypeEntryOffset = (int)bw.BaseStream.Position;
             }
@@ -313,7 +319,7 @@ namespace plugin_grezzo.Archives
 
             // Write file type infos
             bw.BaseStream.Position = fileTypeInfoPosition;
-            typeWriter.WriteMany(_fileTypeInfos, bw);
+            WriteGar5FileTypeInfos(_fileTypeInfos, bw);
 
             var fileEntryPosition = (int)bw.BaseStream.Position;
             var fileNamePosition = fileEntryPosition + fileInfos.Count * Gar5FileEntrySize_;
@@ -331,7 +337,8 @@ namespace plugin_grezzo.Archives
                 fileEntries.Add(new Gar5FileEntry
                 {
                     fileSize = (int)fileInfo.FileSize,
-                    fileNameOffset = fileNameOffset
+                    fileNameOffset = fileNameOffset,
+                    unk1 = -1
                 });
 
                 fileNameOffset = (int)bw.BaseStream.Position;
@@ -351,12 +358,13 @@ namespace plugin_grezzo.Archives
 
             // Write file entries
             bw.BaseStream.Position = fileEntryPosition;
-            typeWriter.WriteMany(fileEntries, bw);
+            WriteGar5FileEntries(fileEntries, bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new GarHeader
+            var header = new GarHeader
             {
+                magic = "GAR",
+
                 fileTypeCount = (short)_fileTypeEntries.Count,
                 fileCount = (short)fileInfos.Count,
 
@@ -368,7 +376,218 @@ namespace plugin_grezzo.Archives
 
                 version = _headerVersion,
                 hold0 = _headerString
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private GarHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new GarHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadByte(),
+                fileSize = reader.ReadUInt32(),
+                fileTypeCount = reader.ReadInt16(),
+                fileCount = reader.ReadInt16(),
+                fileTypeEntryOffset = reader.ReadInt32(),
+                fileEntryOffset = reader.ReadInt32(),
+                fileOffsetsOffset = reader.ReadInt32(),
+                hold0 = reader.ReadString(8)
+            };
+        }
+
+        private Gar2FileTypeEntry[] ReadGar2Entries(BinaryReaderX reader, int count)
+        {
+            var result = new Gar2FileTypeEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadGar2Entry(reader);
+
+            return result;
+        }
+
+        private Gar2FileTypeEntry ReadGar2Entry(BinaryReaderX reader)
+        {
+            return new Gar2FileTypeEntry
+            {
+                fileCount = reader.ReadInt32(),
+                fileIndexOffset = reader.ReadInt32(),
+                fileTypeNameOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private Gar2FileEntry[] ReadGar2FileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Gar2FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadGar2FileEntry(reader);
+
+            return result;
+        }
+
+        private Gar2FileEntry ReadGar2FileEntry(BinaryReaderX reader)
+        {
+            return new Gar2FileEntry
+            {
+                fileSize = reader.ReadUInt32(),
+                nameOffset = reader.ReadInt32(),
+                fileNameOffset = reader.ReadInt32()
+            };
+        }
+
+        private Gar5FileTypeEntry[] ReadGar5FileTypeEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Gar5FileTypeEntry[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                result[i] = ReadGar5FileTypeEntry(reader);
+                reader.SeekAlignment(0x20);
+            }
+
+            return result;
+        }
+
+        private Gar5FileTypeEntry ReadGar5FileTypeEntry(BinaryReaderX reader)
+        {
+            return new Gar5FileTypeEntry
+            {
+                fileCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                fileEntryIndex = reader.ReadInt32(),
+                fileTypeNameOffset = reader.ReadInt32(),
+                fileTypeInfoOffset = reader.ReadInt32()
+            };
+        }
+
+        private Gar5FileEntry[] ReadGar5FileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Gar5FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                result[i] = ReadGar5FileEntry(reader);
+                reader.SeekAlignment(0x20);
+            }
+
+            return result;
+        }
+
+        private Gar5FileEntry ReadGar5FileEntry(BinaryReaderX reader)
+        {
+            return new Gar5FileEntry
+            {
+                fileSize = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+                fileNameOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private Gar5FileTypeInfo[] ReadGar5FileTypeInfos(BinaryReaderX reader, int count)
+        {
+            var result = new Gar5FileTypeInfo[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadGar5FileTypeInfo(reader);
+
+            return result;
+        }
+
+        private Gar5FileTypeInfo ReadGar5FileTypeInfo(BinaryReaderX reader)
+        {
+            return new Gar5FileTypeInfo
+            {
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadInt16(),
+                unk4 = reader.ReadInt16()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(GarHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.fileSize);
+            writer.Write(header.fileTypeCount);
+            writer.Write(header.fileCount);
+            writer.Write(header.fileTypeEntryOffset);
+            writer.Write(header.fileEntryOffset);
+            writer.Write(header.fileOffsetsOffset);
+            writer.WriteString(header.hold0, writeNullTerminator: false);
+        }
+
+        private void WriteGar2Entry(Gar2FileTypeEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileCount);
+            writer.Write(entry.fileIndexOffset);
+            writer.Write(entry.fileTypeNameOffset);
+            writer.Write(entry.unk1);
+        }
+
+        private void WriteGar2FileEntry(Gar2FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileSize);
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.fileNameOffset);
+        }
+
+        private void WriteGar5FileTypeEntry(Gar5FileTypeEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileCount);
+            writer.Write(entry.unk1);
+            writer.Write(entry.fileEntryIndex);
+            writer.Write(entry.fileTypeNameOffset);
+            writer.Write(entry.fileTypeInfoOffset);
+        }
+
+        private void WriteGar5FileTypeInfos(IList<Gar5FileTypeInfo> entries, BinaryWriterX writer)
+        {
+            foreach (Gar5FileTypeInfo entry in entries)
+                WriteGar5FileTypeInfo(entry, writer);
+        }
+
+        private void WriteGar5FileTypeInfo(Gar5FileTypeInfo entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.unk1);
+            writer.Write(entry.unk2);
+            writer.Write(entry.unk3);
+            writer.Write(entry.unk4);
+        }
+
+        private void WriteGar5FileEntries(IList<Gar5FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (Gar5FileEntry entry in entries)
+                WriteGar5FileEntry(entry, writer);
+        }
+
+        private void WriteGar5FileEntry(Gar5FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileSize);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileNameOffset);
+            writer.Write(entry.unk1);
+        }
+
+        private void WriteIntegers(int[] entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

@@ -2,10 +2,9 @@
 
 namespace plugin_grezzo.Archives
 {
-    class GarHeader
+    struct GarHeader
     {
-        [FixedLength(3)] 
-        public string magic = "GAR";
+        public string magic; // GAR
         public byte version;
         public uint fileSize;
 
@@ -16,19 +15,17 @@ namespace plugin_grezzo.Archives
         public int fileEntryOffset;
         public int fileOffsetsOffset;
 
-        [FixedLength(8)]
-        public string hold0; //jenkins
+        public string hold0; // jenkins
     }
 
-    class Gar2FileTypeEntry
+    struct Gar2FileTypeEntry
     {
         public int fileCount;
         public int fileIndexOffset;
         public int fileTypeNameOffset;
-        public int unk1 = -1;
+        public int unk1; // -1
     }
 
-    [Alignment(0x20)]
     class Gar5FileTypeEntry
     {
         public int fileCount;
@@ -38,7 +35,7 @@ namespace plugin_grezzo.Archives
         public int fileTypeInfoOffset;
     }
 
-    class Gar5FileTypeInfo
+    struct Gar5FileTypeInfo
     {
         public int unk1;
         public int unk2;
@@ -46,7 +43,7 @@ namespace plugin_grezzo.Archives
         public short unk4;
     }
 
-    class Gar2FileEntry
+    struct Gar2FileEntry
     {
         public uint fileSize;
         public int nameOffset;
@@ -58,6 +55,6 @@ namespace plugin_grezzo.Archives
         public int fileSize;
         public int fileOffset;
         public int fileNameOffset;
-        public int unk1 = -1;
+        public int unk1; // -1
     }
 }

@@ -15,19 +15,18 @@ namespace plugin_grezzo.Images
 
         public List<ImageFileInfo> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            var header = typeReader.Read<CtxbHeader>(br);
+            var header = ReadHeader(br);
 
             // Read chunks
             input.Position = header.chunkOffset;
-            var chunks = typeReader.ReadMany<CtxbChunk>(br, (int)header.chunkCount);
+            var chunks = ReadChunks(br, header.chunkCount);
 
             // Read images
             var infos = new List<ImageFileInfo>();
-            for (var i = 0; i < chunks.Count; i++)
+            for (var i = 0; i < chunks.Length; i++)
             {
                 foreach (var texture in chunks[i].textures)
                 {
@@ -65,7 +64,6 @@ namespace plugin_grezzo.Images
 
         public void Save(Stream output, List<ImageFileInfo> images)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -104,9 +102,9 @@ namespace plugin_grezzo.Images
                     dataType = (ushort)(imageInfo.ImageFormat >> 16),
                     imageFormat = (ushort)imageInfo.ImageFormat,
                     mipLvl = imageInfo.Entry.mipLvl,
-                    isETC1 = ((imageInfo.ImageFormat & 0xFFFF) == 0x675A || (imageInfo.ImageFormat & 0xFFFF) == 0x675B) ? true : false,
+                    isETC1 = (imageInfo.ImageFormat & 0xFFFF) == 0x675A || (imageInfo.ImageFormat & 0xFFFF) == 0x675B,
                     isCubemap = imageInfo.Entry.isCubemap,
-                    name = imageInfo.Entry.name.PadRight(0x10).Substring(0, 0x10)
+                    name = imageInfo.Entry.name.PadRight(0x10)[..0x10]
                 }));
             }
 
@@ -118,17 +116,19 @@ namespace plugin_grezzo.Images
             {
                 var chunkEntry = new CtxbChunk
                 {
+                    magic = "tex ",
                     texCount = chunk.Count(),
-                    textures = chunk.Select(x => x.Item2).ToArray(),
-                    chunkSize = 0xC + chunk.Count() * EntrySize_
+                    chunkSize = 0xC + chunk.Count() * EntrySize_,
+                    textures = chunk.Select(x => x.Item2).ToArray()
                 };
 
-                typeWriter.Write(chunkEntry, bw);
+                WriteChunk(chunkEntry, bw);
             }
 
             // Write header
             var header = new CtxbHeader
             {
+                magic = "ctxb",
                 fileSize = (int)output.Length,
                 chunkOffset = chunkOffset,
                 chunkCount = chunks.Length,
@@ -136,7 +136,108 @@ namespace plugin_grezzo.Images
             };
 
             output.Position = 0;
-            typeWriter.Write(header, bw);
+            WriteHeader(header, bw);
+        }
+
+        private CtxbHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new CtxbHeader
+            {
+                magic = reader.ReadString(4),
+                fileSize = reader.ReadInt32(),
+                chunkCount = reader.ReadInt32(),
+                chunkOffset = reader.ReadInt32(),
+                texDataOffset = reader.ReadInt32()
+            };
+        }
+
+        private CtxbChunk[] ReadChunks(BinaryReaderX reader, long count)
+        {
+            var result = new CtxbChunk[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadChunk(reader);
+
+            return result;
+        }
+
+        private CtxbChunk ReadChunk(BinaryReaderX reader)
+        {
+            var chunk = new CtxbChunk
+            {
+                magic = reader.ReadString(4),
+                chunkSize = reader.ReadInt32(),
+                texCount = reader.ReadInt32()
+            };
+
+            chunk.textures = ReadChunkEntries(reader, chunk.texCount);
+
+            return chunk;
+        }
+
+        private CtxbEntry[] ReadChunkEntries(BinaryReaderX reader, int count)
+        {
+            var result = new CtxbEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadChunkEntry(reader);
+
+            return result;
+        }
+
+        private CtxbEntry ReadChunkEntry(BinaryReaderX reader)
+        {
+            return new CtxbEntry
+            {
+                dataLength = reader.ReadInt32(),
+                mipLvl = reader.ReadInt16(),
+                isETC1 = reader.ReadBoolean(),
+                isCubemap = reader.ReadBoolean(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                imageFormat = reader.ReadUInt16(),
+                dataType = reader.ReadUInt16(),
+                dataOffset = reader.ReadInt32(),
+                name = reader.ReadString(16)
+            };
+        }
+
+        private void WriteHeader(CtxbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileSize);
+            writer.Write(header.chunkCount);
+            writer.Write(header.chunkOffset);
+            writer.Write(header.texDataOffset);
+        }
+
+        private void WriteChunk(CtxbChunk chunk, BinaryWriterX writer)
+        {
+            writer.WriteString(chunk.magic, writeNullTerminator: false);
+            writer.Write(chunk.chunkSize);
+            writer.Write(chunk.texCount);
+
+            WriteChunkEntries(chunk.textures, writer);
+        }
+
+        private void WriteChunkEntries(CtxbEntry[] entries, BinaryWriterX writer)
+        {
+            foreach (CtxbEntry entry in entries)
+                WriteChunkEntry(entry, writer);
+        }
+
+        private void WriteChunkEntry(CtxbEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.dataLength);
+            writer.Write(entry.mipLvl);
+            writer.Write(entry.isETC1);
+            writer.Write(entry.isCubemap);
+            writer.Write(entry.width);
+            writer.Write(entry.height);
+            writer.Write(entry.imageFormat);
+            writer.Write(entry.dataType);
+            writer.Write(entry.dataOffset);
+            writer.WriteString(entry.name, writeNullTerminator: false);
         }
     }
 }

@@ -1,10 +1,7 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_mcdonalds.Images
+﻿namespace plugin_mcdonalds.Images
 {
-    class NitroCharHeader
+    struct NitroCharHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public short tileCountX;
@@ -17,9 +14,8 @@ namespace plugin_mcdonalds.Images
         public int unk3;
     }
 
-    class NitroTtlpHeader
+    struct NitroTtlpHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public int colorDepth;
@@ -28,9 +24,8 @@ namespace plugin_mcdonalds.Images
         public int colorsPerPalette;
     }
 
-    class NitroHeader
+    struct NitroHeader
     {
-        [FixedLength(4)]
         public string magic;
         public ushort byteOrder;
         public short unk1;

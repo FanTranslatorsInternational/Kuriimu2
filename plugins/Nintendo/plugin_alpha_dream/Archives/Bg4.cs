@@ -18,14 +18,13 @@ namespace plugin_alpha_dream.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<Bg4Header>(br);
+            var header = ReadHeader(br);
 
             // Read entries
-            var entries = typeReader.ReadMany<Bg4Entry>(br, header.fileEntryCount);
+            var entries = ReadEntries(br, header.fileEntryCount);
 
             // Prepare string stream
             var stringStream = new SubStream(input, br.BaseStream.Position, header.metaSecSize - br.BaseStream.Position);
@@ -51,7 +50,6 @@ namespace plugin_alpha_dream.Archives
         {
             var hash = new Simple(HashSeed_);
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Create string dictionary
@@ -100,17 +98,21 @@ namespace plugin_alpha_dream.Archives
 
             // Write entries
             output.Position = entryOffset;
-            typeWriter.WriteMany(entries, bw);
+            WriteEntries(entries, bw);
 
             // Write header
-            output.Position = 0;
-            typeWriter.Write(new Bg4Header
+            var header = new Bg4Header
             {
+                magic = "BG4\0",
+                version = 0x105,
                 fileEntryCount = (short)files.Count,
                 metaSecSize = fileOffset,
                 fileEntryCountMultiplier = 1,
                 fileEntryCountDerived = (short)files.Count
-            }, bw);
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
         }
 
         private IArchiveFile CreateAfi(Stream fileStream, string fileName, Bg4Entry entry)
@@ -134,6 +136,64 @@ namespace plugin_alpha_dream.Archives
         private string ReverseString(string value)
         {
             return value.Reverse().Aggregate("", (a, b) => a + b);
+        }
+
+        private Bg4Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Bg4Header
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt16(),
+                fileEntryCount = reader.ReadInt16(),
+                metaSecSize = reader.ReadInt32(),
+                fileEntryCountDerived = reader.ReadInt16(),
+                fileEntryCountMultiplier = reader.ReadInt16()
+            };
+        }
+
+        private Bg4Entry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Bg4Entry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Bg4Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new Bg4Entry
+            {
+                fileOffset = reader.ReadUInt32(),
+                fileSize = reader.ReadUInt32(),
+                nameHash = reader.ReadUInt32(),
+                nameOffset = reader.ReadInt16()
+            };
+        }
+
+        private void WriteHeader(Bg4Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.fileEntryCount);
+            writer.Write(header.metaSecSize);
+            writer.Write(header.fileEntryCountDerived);
+            writer.Write(header.fileEntryCountMultiplier);
+        }
+
+        private void WriteEntries(IList<Bg4Entry> entries, BinaryWriterX writer)
+        {
+            foreach (Bg4Entry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(Bg4Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.fileSize);
+            writer.Write(entry.nameHash);
+            writer.Write(entry.nameOffset);
         }
     }
 }

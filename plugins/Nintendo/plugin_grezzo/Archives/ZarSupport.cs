@@ -2,11 +2,11 @@
 
 namespace plugin_grezzo.Archives
 {
-    class ZarHeader
+    struct ZarHeader
     {
         [FixedLength(3)] 
-        public string magic = "ZAR";
-        public byte version = 1;
+        public string magic; // ZAR
+        public byte version; // 1
 
         public int fileSize;
         public short fileTypeCount;
@@ -20,15 +20,15 @@ namespace plugin_grezzo.Archives
         public string headerString;
     }
 
-    class ZarFileTypeEntry
+    struct ZarFileTypeEntry
     {
         public int fileCount;
         public int fileIndexOffset;
         public int fileTypeNameOffset;
-        public int unk1 = -1;
+        public int unk1; // -1
     }
 
-    class ZarFileEntry
+    struct ZarFileEntry
     {
         public int fileSize;
         public int fileNameOffset;

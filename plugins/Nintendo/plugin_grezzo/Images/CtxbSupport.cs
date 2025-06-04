@@ -1,30 +1,25 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
-using SixLabors.ImageSharp;
 
 namespace plugin_grezzo.Images
 {
-    class CtxbHeader
+    struct CtxbHeader
     {
-        [FixedLength(4)]
-        public string magic = "ctxb";
+        public string magic; // ctxb
         public int fileSize;
         public long chunkCount;
         public int chunkOffset;
         public int texDataOffset;
     }
 
-    class CtxbChunk
+    struct CtxbChunk
     {
-        [FixedLength(4)]
-        public string magic = "tex ";
+        public string magic; // 'tex '
         public int chunkSize;
         public int texCount;
-        [VariableLength("texCount")]
         public CtxbEntry[] textures;
     }
 
@@ -39,7 +34,6 @@ namespace plugin_grezzo.Images
         public ushort imageFormat;
         public ushort dataType;
         public int dataOffset;
-        [FixedLength(16)]
         public string name;
     }
 

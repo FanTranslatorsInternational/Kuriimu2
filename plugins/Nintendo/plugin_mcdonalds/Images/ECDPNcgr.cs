@@ -14,19 +14,18 @@ namespace plugin_mcdonalds.Images
 
         public ImageFileInfo Load(Stream ncgrStream, Stream nclrStream)
         {
-            var typeReader = new BinaryTypeReader();
             using var ncgrBr = new BinaryReaderX(ncgrStream);
             using var nclrBr = new BinaryReaderX(nclrStream);
 
             // Read generic headers
-            _ncgrHeader = typeReader.Read<NitroHeader>(ncgrBr);
-            _nclrHeader = typeReader.Read<NitroHeader>(nclrBr);
+            _ncgrHeader = ReadNitroHeader(ncgrBr);
+            _nclrHeader = ReadNitroHeader(nclrBr);
 
             // Read Char header
-            _charHeader = typeReader.Read<NitroCharHeader>(ncgrBr);
+            _charHeader = ReadCharHeader(ncgrBr);
 
             // Read Ttlp header
-            _ttlpHeader = typeReader.Read<NitroTtlpHeader>(nclrBr);
+            _ttlpHeader = ReadTtlpHeader(nclrBr);
 
             // Read palette data
             int bitDepth = GetBitDepth(_charHeader.imageFormat);
@@ -102,6 +101,49 @@ namespace plugin_mcdonalds.Images
                 default:
                     throw new InvalidOperationException($"Unsupported image format '{format}'.");
             }
+        }
+
+        private NitroHeader ReadNitroHeader(BinaryReaderX reader)
+        {
+            return new NitroHeader
+            {
+                magic = reader.ReadString(4),
+                byteOrder = reader.ReadUInt16(),
+                unk1 = reader.ReadInt16(),
+                sectionSize = reader.ReadInt32(),
+                headerSize = reader.ReadInt16(),
+                sectionCount = reader.ReadInt16()
+            };
+        }
+
+        private NitroCharHeader ReadCharHeader(BinaryReaderX reader)
+        {
+            return new NitroCharHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                tileCountX = reader.ReadInt16(),
+                tileCountY = reader.ReadInt16(),
+                imageFormat = reader.ReadInt32(),
+                unk1 = reader.ReadInt16(),
+                unk2 = reader.ReadInt16(),
+                tiledFlag = reader.ReadInt32(),
+                tileDataSize = reader.ReadInt32(),
+                unk3 = reader.ReadInt32()
+            };
+        }
+
+        private NitroTtlpHeader ReadTtlpHeader(BinaryReaderX reader)
+        {
+            return new NitroTtlpHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                colorDepth = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                paletteSize = reader.ReadInt32(),
+                colorsPerPalette = reader.ReadInt32()
+            };
         }
     }
 }

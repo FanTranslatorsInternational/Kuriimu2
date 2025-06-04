@@ -18,24 +18,23 @@ namespace plugin_grezzo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<ZarHeader>(br);
+            var header = ReadHeader(br);
             _headerString = header.headerString;
 
             // Read file type entries
             br.BaseStream.Position = header.fileTypeEntryOffset;
-            var fileTypeEntries = typeReader.ReadMany<ZarFileTypeEntry>(br, header.fileTypeCount);
+            var fileTypeEntries = ReadFileTypeEntries(br, header.fileTypeCount);
 
             // Read file entries
             br.BaseStream.Position = header.fileEntryOffset;
-            var fileEntries = typeReader.ReadMany<ZarFileEntry>(br, header.fileCount);
+            var fileEntries = ReadFileEntries(br, header.fileCount);
 
             // Read file offsets
             br.BaseStream.Position = header.fileOffsetsOffset;
-            var fileOffsets = typeReader.ReadMany<int>(br, header.fileCount);
+            var fileOffsets = ReadIntegers(br, header.fileCount);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -46,7 +45,7 @@ namespace plugin_grezzo.Archives
 
                 // Read file indices
                 br.BaseStream.Position = fileTypeEntry.fileIndexOffset;
-                var fileIndexes = typeReader.ReadMany<int>(br, fileTypeEntry.fileCount);
+                var fileIndexes = ReadIntegers(br, fileTypeEntry.fileCount);
 
                 foreach (var fileIndex in fileIndexes)
                 {
@@ -74,7 +73,6 @@ namespace plugin_grezzo.Archives
             var fileTypeEntriesPosition = HeaderSize_;
             var fileTypeNamesPosition = fileTypeEntriesPosition + fileTypes.Length * FileTypeEntrySize_;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write file types
@@ -90,24 +88,27 @@ namespace plugin_grezzo.Archives
 
                 // Write file indices
                 var fileIndexOffset = bw.BaseStream.Position = fileTypeNameOffset;
-                typeWriter.WriteMany(Enumerable.Range(fileIndex, relevantFiles.Length), bw);
+                WriteIntegers(Enumerable.Range(fileIndex, relevantFiles.Length).ToArray(), bw);
                 fileIndex += relevantFiles.Length;
 
                 // Write file type name
                 var newFileTypeNameOffset = (int)bw.BaseStream.Position;
-                bw.WriteString(fileType.Substring(1, fileType.Length - 1), Encoding.ASCII, false);
+                bw.WriteString(fileType.Substring(1, fileType.Length - 1), Encoding.ASCII);
                 bw.WriteAlignment(4);
 
                 fileTypeNameOffset = (int)bw.BaseStream.Position;
 
                 // Write file type
-                bw.BaseStream.Position = fileTypeEntryOffset;
-                typeWriter.Write(new ZarFileTypeEntry
+                var fileTypeEntry = new ZarFileTypeEntry
                 {
                     fileCount = relevantFiles.Length,
                     fileTypeNameOffset = newFileTypeNameOffset,
-                    fileIndexOffset = (int)fileIndexOffset
-                }, bw);
+                    fileIndexOffset = (int)fileIndexOffset,
+                    unk1 = -1
+                };
+
+                bw.BaseStream.Position = fileTypeEntryOffset;
+                WriteFileTypeEntry(fileTypeEntry, bw);
 
                 fileTypeEntryOffset += FileTypeEntrySize_;
             }
@@ -122,7 +123,7 @@ namespace plugin_grezzo.Archives
             foreach (var fileInfo in fileInfos)
             {
                 var fileName = fileInfo.FilePath.ToRelative().FullName
-                    .Replace('/','\\')
+                    .Replace('/', '\\')
                     .Replace("dd\\", "..\\")
                     .Replace("d\\", ".\\");
 
@@ -133,12 +134,14 @@ namespace plugin_grezzo.Archives
                 var newFileEntryNameOffset = bw.BaseStream.Position;
 
                 // Write file entry
-                bw.BaseStream.Position = fileEntryOffset;
-                typeWriter.Write(new ZarFileEntry
+                var fileEntry = new ZarFileEntry
                 {
                     fileSize = (int)fileInfo.FileSize,
                     fileNameOffset = fileEntryNameOffset
-                }, bw);
+                };
+
+                bw.BaseStream.Position = fileEntryOffset;
+                WriteFileEntry(fileEntry, bw);
 
                 fileEntryNameOffset = (int)newFileEntryNameOffset;
                 fileEntryOffset += FileEntrySize_;
@@ -165,9 +168,11 @@ namespace plugin_grezzo.Archives
             }
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new ZarHeader
+            var header = new ZarHeader
             {
+                magic = "ZAR",
+                version = 1,
+
                 fileTypeCount = (short)fileTypes.Length,
                 fileCount = (short)fileInfos.Count,
 
@@ -178,7 +183,109 @@ namespace plugin_grezzo.Archives
                 fileSize = (int)bw.BaseStream.Length,
 
                 headerString = _headerString
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private ZarHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new ZarHeader
+            {
+                magic = reader.ReadString(3),
+                version = reader.ReadByte(),
+                fileSize = reader.ReadInt32(),
+                fileTypeCount = reader.ReadInt16(),
+                fileCount = reader.ReadInt16(),
+                fileTypeEntryOffset = reader.ReadInt32(),
+                fileEntryOffset = reader.ReadInt32(),
+                fileOffsetsOffset = reader.ReadInt32(),
+                headerString = reader.ReadString(8)
+            };
+        }
+
+        private ZarFileTypeEntry[] ReadFileTypeEntries(BinaryReaderX reader, int count)
+        {
+            var result = new ZarFileTypeEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFileTypeEntry(reader);
+
+            return result;
+        }
+
+        private ZarFileTypeEntry ReadFileTypeEntry(BinaryReaderX reader)
+        {
+            return new ZarFileTypeEntry
+            {
+                fileCount = reader.ReadInt32(),
+                fileIndexOffset = reader.ReadInt32(),
+                fileTypeNameOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private ZarFileEntry[] ReadFileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new ZarFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFileEntry(reader);
+
+            return result;
+        }
+
+        private ZarFileEntry ReadFileEntry(BinaryReaderX reader)
+        {
+            return new ZarFileEntry
+            {
+                fileSize = reader.ReadInt32(),
+                fileNameOffset = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(ZarHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.fileSize);
+            writer.Write(header.fileTypeCount);
+            writer.Write(header.fileCount);
+            writer.Write(header.fileTypeEntryOffset);
+            writer.Write(header.fileEntryOffset);
+            writer.Write(header.fileOffsetsOffset);
+            writer.Write(header.headerString);
+        }
+
+        private void WriteFileTypeEntry(ZarFileTypeEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileCount);
+            writer.Write(entry.fileIndexOffset);
+            writer.Write(entry.fileTypeNameOffset);
+            writer.Write(entry.unk1);
+        }
+
+        private void WriteFileEntry(ZarFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.fileSize);
+            writer.Write(entry.fileNameOffset);
+        }
+
+        private void WriteIntegers(int[] entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

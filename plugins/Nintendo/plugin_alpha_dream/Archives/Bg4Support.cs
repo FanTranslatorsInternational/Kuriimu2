@@ -1,20 +1,18 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
+﻿using Komponent.IO;
 
 namespace plugin_alpha_dream.Archives
 {
-    class Bg4Header
+    struct Bg4Header
     {
-        [FixedLength(4)]
-        public string magic = "BG4\0";
-        public short version = 0x105;
+        public string magic; // BG4\0
+        public short version; // 0x105
         public short fileEntryCount;
         public int metaSecSize;
         public short fileEntryCountDerived;
         public short fileEntryCountMultiplier;  // fileEntryCountDerived * fileEntryCountMultiplier = fileEntryCount
     }
 
-    class Bg4Entry
+    struct Bg4Entry
     {
         public uint fileOffset;
         public uint fileSize;    // MSB is set if file is compressed
