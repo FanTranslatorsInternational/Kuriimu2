@@ -31,7 +31,7 @@ namespace plugin_arc_system_works.Images
                 ImageSize = new Size(_header.width, _header.height),
                 IsAnchoredAt = ImageAnchor.BottomLeft,
                 RemapPixels = context => new CtrSwizzle(context),
-                PadSize = builder => builder.Width.To(_header.paddedWidth).Height.To(_header.paddedHeight)
+                PadSize = builder => builder.ToPowerOfTwo()
             };
 
             return imageInfo;
