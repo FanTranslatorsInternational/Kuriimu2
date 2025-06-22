@@ -1,8 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_arc_system_works.Images
 {
@@ -10,27 +9,31 @@ namespace plugin_arc_system_works.Images
     {
         private CvtHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<CvtHeader>();
+            _header = ReadHeader(br);
 
             // Create image info
             input.Position = 0x50;
             var imageData = br.ReadBytes((int)input.Length - 0x50);
 
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height))
+            var imageInfo = new ImageFileInfo
             {
-                Name = _header.name.Trim('\0')
+                Name = _header.name.Trim('\0'),
+                BitDepth = CvtSupport.GetEncodingDefinition().GetColorEncoding(_header.format)?.BitDepth ?? 0,
+                ImageData = imageData,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height),
+                RemapPixels = context => new CtrSwizzle(context)
             };
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -45,7 +48,34 @@ namespace plugin_arc_system_works.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private CvtHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new CvtHeader
+            {
+                magic = reader.ReadString(2),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                format = reader.ReadInt16(),
+                unk1 = reader.ReadInt32(),
+                name = reader.ReadString(0x20),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(CvtHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.format);
+            writer.Write(header.unk1);
+            writer.WriteString(header.name, writeNullTerminator: false);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
         }
     }
 }

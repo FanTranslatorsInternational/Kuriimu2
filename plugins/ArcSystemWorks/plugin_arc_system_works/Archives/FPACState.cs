@@ -1,50 +1,42 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_arc_system_works.Archives
 {
-    class FPACState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class FPACState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private FPAC _arc;
+        private FPAC _arc = new();
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        private List<IArchiveFile> _files;
+
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public FPACState()
-        {
-            _arc = new FPAC();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc.Load(fileStream);
+            _files = _arc.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _arc.Save(fileStream, Files);
+            _arc.Save(fileStream, _files);
 
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

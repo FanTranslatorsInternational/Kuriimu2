@@ -1,24 +1,17 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_arc_system_works.Images
 {
     class CvtHeader
     {
-        [FixedLength(2)]
-        public string magic="n\0";
-
+        public string magic = "n\0";
         public short width;
         public short height;
         public short format;
         public int unk1;
-        [FixedLength(0x20)]
         public string name;
-
         public int unk2;
         public int unk3;
     }

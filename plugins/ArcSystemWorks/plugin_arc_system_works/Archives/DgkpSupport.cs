@@ -1,16 +1,11 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_arc_system_works.Archives
 {
     class DgkpHeader
     {
-        [FixedLength(4)] 
         public string magic = "DGKP";
-
         public int unk1;
         public int unk2;
         public int fileCount;
@@ -19,27 +14,20 @@ namespace plugin_arc_system_works.Archives
 
     class DgkpFileEntry
     {
-        [FixedLength(4)]
         public string magic;
-
         public int entrySize = 0x90;
         public int size;
         public int offset;
-        [FixedLength(0x80)]
         public string name;
     }
 
-    class DgkpArchiveFileInfo:ArchiveFileInfo
+    class DgkpArchiveFile : ArchiveFile
     {
         public DgkpFileEntry Entry { get; }
 
-        public DgkpArchiveFileInfo(Stream fileData, string filePath,DgkpFileEntry entry) : base(fileData, filePath)
+        public DgkpArchiveFile(ArchiveFileInfo fileInfo, DgkpFileEntry entry) : base(fileInfo)
         {
             Entry = entry;
-        }
-
-        public DgkpArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
-        {
         }
     }
 }

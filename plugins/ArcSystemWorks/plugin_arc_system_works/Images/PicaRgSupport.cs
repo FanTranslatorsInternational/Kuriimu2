@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_arc_system_works.Images
 {
     class PicaRgHeader
     {
-        [FixedLength(6)] 
         public string magic = "picaRg";
         public ushort format;
         public short width;
