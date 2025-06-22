@@ -1,6 +1,4 @@
 ﻿using System.Text;
-using Komponent.Contract.Aspects;
-using Komponent.Contract.Enums;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
@@ -8,16 +6,14 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class DarcHeader
+    struct DarcHeader
     {
-        [FixedLength(4)]
-        public string magic = "darc";
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ushort byteOrder = (ushort)ByteOrder.LittleEndian;
-        public short headerSize = 0x1C;
-        public int version = 0x1000000;
+        public string magic; // darc
+        public ushort byteOrder;
+        public short headerSize; // 0x1C
+        public int version; // 0x1000000
         public int fileSize;
-        public int tableOffset = 0x1C;
+        public int tableOffset; // 0x1C
         public int tableLength;
         public int dataOffset;
     }

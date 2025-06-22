@@ -16,14 +16,13 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = typeReader.Read<MMBinHeader>(br);
+            _header = ReadHeader(br);
 
             // Read entries
-            var entries = typeReader.ReadMany<MMBinResourceEntry>(br, _header.resourceCount);
+            var entries = ReadEntries(br, _header.resourceCount);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -55,7 +54,6 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -82,7 +80,8 @@ namespace plugin_nintendo.Archives
                     resourceName = fileGroup.Key.FullName.PadRight(0x24, '\0'),
                     offset = filePosition,
                     metaSize = (int)metaSize,
-                    ctpkSize = (int)ctpkSize
+                    ctpkSize = (int)ctpkSize,
+                    padding = new byte[0xC]
                 };
                 entries.Add(entry);
 
@@ -91,14 +90,70 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             output.Position = entryOffset;
-            typeWriter.WriteMany(entries, bw);
+            WriteEntries(entries, bw);
 
             // Write header
             output.Position = 0;
 
             _header.tableSize = fileOffset;
             _header.resourceCount = (short)(files.Count / 2);
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private MMBinHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new MMBinHeader
+            {
+                tableSize = reader.ReadInt32(),
+                resourceCount = reader.ReadInt16(),
+                unk1 = reader.ReadInt16(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private MMBinResourceEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new MMBinResourceEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private MMBinResourceEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new MMBinResourceEntry
+            {
+                resourceName = reader.ReadString(0x24),
+                offset = reader.ReadInt32(),
+                metaSize = reader.ReadInt32(),
+                ctpkSize = reader.ReadInt32(),
+                padding = reader.ReadBytes(0xC)
+            };
+        }
+
+        private void WriteHeader(MMBinHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.tableSize);
+            writer.Write(header.resourceCount);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+        }
+
+        private void WriteEntries(IList<MMBinResourceEntry> entries, BinaryWriterX writer)
+        {
+            foreach (MMBinResourceEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(MMBinResourceEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.resourceName);
+            writer.Write(entry.offset);
+            writer.Write(entry.metaSize);
+            writer.Write(entry.ctpkSize);
+            writer.Write(entry.padding);
         }
     }
 }

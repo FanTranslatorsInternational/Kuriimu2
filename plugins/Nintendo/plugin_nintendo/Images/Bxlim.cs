@@ -4,6 +4,7 @@ using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using plugin_nintendo.NW4C;
 using SixLabors.ImageSharp;
+using static System.Collections.Specialized.BitVector32;
 using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_nintendo.Images
@@ -15,6 +16,7 @@ namespace plugin_nintendo.Images
         private const int BflimHeaderSize_ = 0xC;
 
         private NW4CHeader _header;
+        private ByteOrder _byteOrder;
 
         private BclimHeader _bclimHeader;
         private BflimHeader _bflimHeader;
@@ -23,27 +25,26 @@ namespace plugin_nintendo.Images
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, ByteOrder.BigEndian);
 
             // Read byte order
             input.Position = input.Length - 0x24;
-            var byteOrder = (ByteOrder)br.ReadUInt16();
-            br.ByteOrder = byteOrder;
+            _byteOrder = (ByteOrder)br.ReadUInt16();
+            br.ByteOrder = _byteOrder;
 
             // Read common header
             input.Position = input.Length - 0x28;
-            _header = typeReader.Read<NW4CHeader>(br);
+            _header = ReadNw4cHeader(br);
 
             switch (_header.magic)
             {
                 case "CLIM":
                     IsCtr = true;
-                    return LoadBclim(typeReader, br);
+                    return LoadBclim(br);
 
                 case "FLIM":
-                    IsCtr = byteOrder == ByteOrder.LittleEndian;
-                    return LoadBflim(typeReader, br);
+                    IsCtr = _byteOrder == ByteOrder.LittleEndian;
+                    return LoadBflim(br);
 
                 default:
                     throw new InvalidOperationException($"{_header.magic} is not supported.");
@@ -52,11 +53,10 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, ImageFileInfo image)
         {
-            var typeWriter = new BinaryTypeWriter();
-            using var bw = new BinaryWriterX(output, (ByteOrder)_header.byteOrder);
+            using var bw = new BinaryWriterX(output, _byteOrder);
 
             // Calculate offsets
-            var nw4COffset = ((image.ImageData.Length + 0xF) & ~0xF);
+            var nw4COffset = (image.ImageData.Length + 0xF) & ~0xF;
             var headerOffset = nw4COffset + Nw4CHeaderSize_;
 
             // Write image data
@@ -66,7 +66,7 @@ namespace plugin_nintendo.Images
             _header.fileSize = headerOffset + 0x8 + (_bclimHeader == null ? BflimHeaderSize_ : BclimHeaderSize_);
 
             output.Position = nw4COffset;
-            typeWriter.Write(_header, bw);
+            WriteNw4cHeader(_header, bw);
 
             // Write img header
             if (_bclimHeader != null)
@@ -84,7 +84,7 @@ namespace plugin_nintendo.Images
                 };
 
                 output.Position = headerOffset;
-                typeWriter.Write(section, bw);
+                WriteNw4cSection(section, bw);
             }
             else
             {
@@ -93,22 +93,22 @@ namespace plugin_nintendo.Images
                 _bflimHeader.width = (short)image.ImageSize.Width;
                 _bflimHeader.height = (short)image.ImageSize.Height;
 
-                var section = new NW4CSection<BclimHeader>
+                var section = new NW4CSection<BflimHeader>
                 {
                     magic = "imag",
-                    sectionSize = 0x4 + BclimHeaderSize_,
-                    sectionData = _bclimHeader
+                    sectionSize = 0x4 + BflimHeaderSize_,
+                    sectionData = _bflimHeader
                 };
 
                 output.Position = headerOffset;
-                typeWriter.Write(section, bw);
+                WriteNw4cSection(section, bw);
             }
         }
 
-        private ImageFileInfo LoadBclim(BinaryTypeReader typeReader, BinaryReaderX br)
+        private ImageFileInfo LoadBclim(BinaryReaderX br)
         {
             // Read section
-            var imageSection = typeReader.Read<NW4CSection<BclimHeader>>(br);
+            var imageSection = ReadBclimSection(br);
             _bclimHeader = imageSection.sectionData;
 
             // Read image data
@@ -132,10 +132,10 @@ namespace plugin_nintendo.Images
             return imageInfo;
         }
 
-        private ImageFileInfo LoadBflim(BinaryTypeReader typeReader, BinaryReaderX br)
+        private ImageFileInfo LoadBflim(BinaryReaderX br)
         {
             // Read section
-            var imageSection = typeReader.Read<NW4CSection<BflimHeader>>(br);
+            var imageSection = ReadBflimSection(br);
             _bflimHeader = imageSection.sectionData;
 
             // Read image data
@@ -159,6 +159,93 @@ namespace plugin_nintendo.Images
             };
 
             return imageInfo;
+        }
+
+        private NW4CHeader ReadNw4cHeader(BinaryReaderX reader)
+        {
+            return new NW4CHeader
+            {
+                magic = reader.ReadString(4),
+                byteOrder = reader.ReadUInt16(),
+                headerSize = reader.ReadInt16(),
+                version = reader.ReadInt32(),
+                fileSize = reader.ReadInt32(),
+                sectionCount = reader.ReadInt16(),
+                padding = reader.ReadInt16()
+            };
+        }
+
+        private NW4CSection<BclimHeader> ReadBclimSection(BinaryReaderX reader)
+        {
+            return new NW4CSection<BclimHeader>
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                sectionData = new BclimHeader
+                {
+                    width = reader.ReadInt16(),
+                    height = reader.ReadInt16(),
+                    format = reader.ReadByte(),
+                    transformation = reader.ReadByte(),
+                    alignment = reader.ReadInt16(),
+                    dataSize = reader.ReadInt32()
+                }
+            };
+        }
+
+        private NW4CSection<BflimHeader> ReadBflimSection(BinaryReaderX reader)
+        {
+            return new NW4CSection<BflimHeader>
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                sectionData = new BflimHeader
+                {
+                    width = reader.ReadInt16(),
+                    height = reader.ReadInt16(),
+                    alignment = reader.ReadInt16(),
+                    format = reader.ReadByte(),
+                    swizzleTileMode = reader.ReadByte(),
+                    dataSize = reader.ReadInt32()
+                }
+            };
+        }
+
+        private void WriteNw4cHeader(NW4CHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.byteOrder);
+            writer.Write(header.headerSize);
+            writer.Write(header.version);
+            writer.Write(header.fileSize);
+            writer.Write(header.sectionCount);
+            writer.Write(header.padding);
+        }
+
+        private void WriteNw4cSection(NW4CSection<BclimHeader> section, BinaryWriterX writer)
+        {
+            writer.WriteString(section.magic, writeNullTerminator: false);
+            writer.Write(section.sectionSize);
+
+            writer.Write(section.sectionData.width);
+            writer.Write(section.sectionData.height);
+            writer.Write(section.sectionData.format);
+            writer.Write(section.sectionData.transformation);
+            writer.Write(section.sectionData.alignment);
+            writer.Write(section.sectionData.dataSize);
+        }
+
+        private void WriteNw4cSection(NW4CSection<BflimHeader> section, BinaryWriterX writer)
+        {
+            writer.WriteString(section.magic, writeNullTerminator: false);
+            writer.Write(section.sectionSize);
+
+            writer.Write(section.sectionData.width);
+            writer.Write(section.sectionData.height);
+            writer.Write(section.sectionData.alignment);
+            writer.Write(section.sectionData.format);
+            writer.Write(section.sectionData.swizzleTileMode);
+            writer.Write(section.sectionData.dataSize);
         }
     }
 }

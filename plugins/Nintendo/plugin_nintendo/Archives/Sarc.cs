@@ -19,11 +19,10 @@ namespace plugin_nintendo.Archives
         private ByteOrder _byteOrder;
         private SarcHeader _header;
         private SfatHeader _sfatHeader;
-        private SfntHeader _sfntHeader;
+        private SfntHeader? _sfntHeader;
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Determine byte order
@@ -32,17 +31,17 @@ namespace plugin_nintendo.Archives
 
             // Read header
             input.Position = 0;
-            _header = typeReader.Read<SarcHeader>(br);
+            _header = ReadHeader(br);
 
             // Read entries
-            _sfatHeader = typeReader.Read<SfatHeader>(br);
-            var entries = typeReader.ReadMany<SfatEntry>(br, _sfatHeader.entryCount);
+            _sfatHeader = ReadSfatHeader(br);
+            var entries = ReadEntries(br, _sfatHeader.entryCount);
 
             // Read names
             BinaryReaderX nameBr = null;
             if (entries.Any(x => (x.Flags & 0x100) > 0))
             {
-                _sfntHeader = typeReader.Read<SfntHeader>(br);
+                _sfntHeader = ReadSfntHeader(br);
                 var nameStream = new SubStream(input, input.Position, _header.dataOffset - input.Position);
                 nameBr = new BinaryReaderX(nameStream);
             }
@@ -75,7 +74,6 @@ namespace plugin_nintendo.Archives
         {
             var simpleHash = new Simple(_sfatHeader.hashMultiplier);
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true, _byteOrder);
 
             var sortedFiles = files.Cast<SarcArchiveFile>().OrderBy(x => _sfntHeader == null ? x.Entry.nameHash : simpleHash.ComputeValue(x.FilePath.ToRelative().FullName)).ToArray();
@@ -123,11 +121,11 @@ namespace plugin_nintendo.Archives
             }
 
             // Write SFNT
-            output.Position = sfntOffset;
-            typeWriter.Write(new SfntHeader(), bw);
-
-            if (_sfntHeader != null)
+            if (_sfntHeader.HasValue)
             {
+                output.Position = sfntOffset;
+                WriteSfntHeader(_sfntHeader.Value, bw);
+
                 foreach (var s in strings)
                 {
                     bw.WriteString(s, Encoding.ASCII);
@@ -136,13 +134,125 @@ namespace plugin_nintendo.Archives
             }
 
             // Write SFAT
+            var sfatHeader = new SfatHeader
+            {
+                magic = "SFAT",
+                headerSize = 0xC,
+                entryCount = (short)files.Count,
+                hashMultiplier = _sfatHeader.hashMultiplier
+            };
+
             output.Position = sfatOffset;
-            typeWriter.Write(new SfatHeader { entryCount = (short)files.Count, hashMultiplier = _sfatHeader.hashMultiplier }, bw);
-            typeWriter.WriteMany(entries, bw);
+            WriteSfatHeader(sfatHeader, bw);
+            WriteEntries(entries, bw);
 
             // Write header
+            var header = new SarcHeader
+            {
+                magic = "SARC",
+                headerSize = 0x14,
+                byteOrder = (ushort)_byteOrder,
+                dataOffset = alignedDataOffset,
+                fileSize = (int)output.Length,
+                unk1 = _header.unk1
+            };
+
             output.Position = 0;
-            typeWriter.Write(new SarcHeader { byteOrder = (ushort)_byteOrder, dataOffset = alignedDataOffset, fileSize = (int)output.Length, unk1 = _header.unk1 }, bw);
+            WriteHeader(header, bw);
+        }
+
+        private SarcHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new SarcHeader
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadInt16(),
+                byteOrder = reader.ReadUInt16(),
+                fileSize = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private SfatHeader ReadSfatHeader(BinaryReaderX reader)
+        {
+            return new SfatHeader
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadInt16(),
+                entryCount = reader.ReadInt16(),
+                hashMultiplier = reader.ReadUInt16()
+            };
+        }
+
+        private SfatEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new SfatEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private SfatEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new SfatEntry
+            {
+                nameHash = reader.ReadUInt32(),
+                fntFlagOffset = reader.ReadUInt32(),
+                startOffset = reader.ReadInt32(),
+                endOffset = reader.ReadInt32(),
+            };
+        }
+
+        private SfntHeader ReadSfntHeader(BinaryReaderX reader)
+        {
+            return new SfntHeader
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadInt16(),
+                zero0 = reader.ReadInt16()
+            };
+        }
+
+        private void WriteHeader(SarcHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.byteOrder);
+            writer.Write(header.fileSize);
+            writer.Write(header.dataOffset);
+            writer.Write(header.unk1);
+        }
+
+        private void WriteSfatHeader(SfatHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.entryCount);
+            writer.Write(header.hashMultiplier);
+        }
+
+        private void WriteEntries(IList<SfatEntry> entries, BinaryWriterX writer)
+        {
+            foreach (SfatEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(SfatEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.nameHash);
+            writer.Write(entry.fntFlagOffset);
+            writer.Write(entry.startOffset);
+            writer.Write(entry.endOffset);
+        }
+
+        private void WriteSfntHeader(SfntHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.zero0);
         }
     }
 }

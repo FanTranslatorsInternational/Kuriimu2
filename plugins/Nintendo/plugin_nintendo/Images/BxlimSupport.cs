@@ -1,5 +1,4 @@
-﻿using Kanvas.Contract.Enums.Swizzle;
-using Konnect.Plugin.File.Image;
+﻿using Konnect.Plugin.File.Image;
 using plugin_nintendo.NW4C;
 
 namespace plugin_nintendo.Images

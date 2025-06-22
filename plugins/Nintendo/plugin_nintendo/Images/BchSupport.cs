@@ -1,14 +1,12 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    class BchHeader
+    struct BchHeader
     {
-        [FixedLength(4)]
         public string magic;
         public byte backwardComp;
         public byte forwardComp;
@@ -18,24 +16,20 @@ namespace plugin_nintendo.Images
         public uint nameTableOffset;
         public uint gpuCommandsOffset;
         public uint dataOffset;
-        [Condition("backwardComp", ConditionComparer.Greater, 0x20)]
-        public uint dataExtOffset = 0;
+        public uint dataExtOffset;
         public uint relocTableOffset;
 
         public uint mainHeaderSize;
         public uint nameTableSize;
         public uint gpuCommandsSize;
         public uint dataSize;
-        [Condition("backwardComp", ConditionComparer.Greater, 0x20)]
-        public uint dataExtSize = 0;
+        public uint dataExtSize;
         public uint relocTableSize;
 
         public uint uninitDataSectionSize;
         public uint uninitDescSectionSize;
 
-        [Condition("backwardComp", ConditionComparer.Greater, 7)]
         public ushort flags;
-        [Condition("backwardComp", ConditionComparer.Greater, 7)]
         public ushort addressCount;
     }
 

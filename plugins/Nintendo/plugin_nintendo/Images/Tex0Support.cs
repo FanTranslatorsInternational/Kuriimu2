@@ -45,7 +45,6 @@ namespace plugin_nintendo.Images
 
         public Tex0File(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Determine byte order
@@ -57,7 +56,7 @@ namespace plugin_nintendo.Images
             CommonHeader = ReadNw4rCommonHeader(br);
 
             // Read tex header
-            Header = typeReader.Read<Tex0Header>(br);
+            Header = ReadTexHeader(br);
 
             // Read main image data
             BitDepth = Tex0Support.ColorFormats.TryGetValue(Header.format, out var format) ?
@@ -83,7 +82,6 @@ namespace plugin_nintendo.Images
 
         public void Write(Stream input)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(input, _byteOrder);
 
             // Calculate offsets
@@ -91,7 +89,7 @@ namespace plugin_nintendo.Images
 
             // Write tex header
             input.Position = texHeaderOffset;
-            typeWriter.Write(Header, bw);
+            WriteHeader(Header, bw);
 
             // Write image data
             input.Position = CommonHeader.sectionOffsets[0];
@@ -132,6 +130,21 @@ namespace plugin_nintendo.Images
             };
         }
 
+        private Tex0Header ReadTexHeader(BinaryReaderX reader)
+        {
+            return new Tex0Header
+            {
+                unk1 = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                format = reader.ReadInt32(),
+                imgCount = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                mipLevels = reader.ReadInt32(),
+                unk3 = reader.ReadInt32()
+            };
+        }
+
         private void WriteNw4rCommonHeader(Nw4rCommonHeader header, BinaryWriterX bw)
         {
             bw.WriteString(header.magic, writeNullTerminator: false);
@@ -162,6 +175,18 @@ namespace plugin_nintendo.Images
                     return 0;
             }
         }
+
+        private void WriteHeader(Tex0Header header, BinaryWriterX writer)
+        {
+            writer.Write(header.unk1);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.format);
+            writer.Write(header.imgCount);
+            writer.Write(header.unk2);
+            writer.Write(header.mipLevels);
+            writer.Write(header.unk3);
+        }
     }
 
     class Plt0File
@@ -182,7 +207,6 @@ namespace plugin_nintendo.Images
 
         public Plt0File(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Determine byte order
@@ -194,7 +218,7 @@ namespace plugin_nintendo.Images
             CommonHeader = ReadNw4rCommonHeader(br);
 
             // Read plt header
-            Header = typeReader.Read<Plt0Header>(br);
+            Header = ReadPltHeader(br);
 
             // Read main image data
             var bitDepth = Tex0Support.PaletteFormats[Header.format].BitDepth;
@@ -206,7 +230,6 @@ namespace plugin_nintendo.Images
 
         public void Write(Stream input)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(input, _byteOrder);
 
             // Calculate offsets
@@ -214,7 +237,7 @@ namespace plugin_nintendo.Images
 
             // Write PLT header
             input.Position = pltHeaderOffset;
-            typeWriter.Write(Header, bw);
+            WritePltHeader(Header, bw);
 
             // Write image data
             input.Position = CommonHeader.sectionOffsets[0];
@@ -253,6 +276,16 @@ namespace plugin_nintendo.Images
             };
         }
 
+        private Plt0Header ReadPltHeader(BinaryReaderX reader)
+        {
+            return new Plt0Header
+            {
+                format = reader.ReadInt32(),
+                colorCount = reader.ReadInt16(),
+                zero0 = reader.ReadInt16()
+            };
+        }
+
         private void WriteNw4rCommonHeader(Nw4rCommonHeader header, BinaryWriterX bw)
         {
             bw.WriteString(header.magic, writeNullTerminator: false);
@@ -264,6 +297,13 @@ namespace plugin_nintendo.Images
                 bw.Write(sectionOffset);
 
             bw.Write(header.nameOffset);
+        }
+
+        private void WritePltHeader(Plt0Header header, BinaryWriterX writer)
+        {
+            writer.Write(header.format);
+            writer.Write(header.colorCount);
+            writer.Write(header.zero0);
         }
 
         private int GetSectionOffsetCount(string magic, int version)

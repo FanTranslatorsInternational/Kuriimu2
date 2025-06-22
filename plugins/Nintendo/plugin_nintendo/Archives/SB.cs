@@ -12,20 +12,19 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<SbHeader>(br);
+            var header = ReadHeader(br);
 
             // Read offsets
-            var offsets = typeReader.ReadMany<uint>(br, header.entryCount);
+            var offsets = ReadUnsignedIntegers(br, header.entryCount);
 
             // Add files
             var result = new List<IArchiveFile>();
-            for (var i = 0; i < offsets.Count; i++)
+            for (var i = 0; i < offsets.Length; i++)
             {
-                var endOffset = i + 1 < offsets.Count ? offsets[i + 1] : input.Length;
+                var endOffset = i + 1 < offsets.Length ? offsets[i + 1] : input.Length;
                 var fileStream = new SubStream(input, offsets[i], endOffset - offsets[i]);
 
                 result.Add(new ArchiveFile(new ArchiveFileInfo
@@ -42,7 +41,6 @@ namespace plugin_nintendo.Archives
         {
             var dataPosition = (HeaderSize_ + (files.Count + 1) * 4 + 0x7F) & ~0x7F;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write files
@@ -59,15 +57,49 @@ namespace plugin_nintendo.Archives
 
             // Write offsets
             bw.BaseStream.Position = HeaderSize_;
-            typeWriter.WriteMany(offsets, bw);
+            WriteUnsignedIntegers(offsets, bw);
             bw.Write(bw.BaseStream.Length);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new SbHeader
+            var header = new SbHeader
             {
+                magic = "SB",
                 entryCount = (short)files.Count
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private SbHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new SbHeader
+            {
+                magic = reader.ReadString(2),
+                entryCount = reader.ReadInt16()
+            };
+        }
+
+        private uint[] ReadUnsignedIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(SbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.entryCount);
+        }
+
+        private void WriteUnsignedIntegers(IList<uint> entries, BinaryWriterX writer)
+        {
+            foreach (uint entry in entries)
+                writer.Write(entry);
         }
     }
 }

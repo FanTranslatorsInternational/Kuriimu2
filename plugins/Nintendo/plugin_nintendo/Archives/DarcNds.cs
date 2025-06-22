@@ -12,14 +12,13 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<DarcNdsHeader>(br);
+            var header = ReadHeader(br);
 
             // Read offsets
-            var offsets = typeReader.ReadMany<int>(br, header.fileCount);
+            var offsets = ReadIntegers(br, header.fileCount);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -47,7 +46,6 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -73,16 +71,48 @@ namespace plugin_nintendo.Archives
 
             // Write offsets
             output.Position = offsetsOffset;
-            typeWriter.WriteMany(offsets, bw);
+            WriteIntegers(offsets, bw);
 
             // Write header
             var header = new DarcNdsHeader
             {
+                magic = "DARC",
                 fileCount = files.Count
             };
 
             output.Position = 0;
-            typeWriter.Write(header, bw);
+            WriteHeader(header, bw);
+        }
+
+        private DarcNdsHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DarcNdsHeader
+            {
+                magic = reader.ReadString(4),
+                fileCount = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(DarcNdsHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic,writeNullTerminator:false);
+            writer.Write(header.fileCount);
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

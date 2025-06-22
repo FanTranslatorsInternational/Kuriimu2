@@ -1,8 +1,6 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_nintendo.Archives
+﻿namespace plugin_nintendo.Archives
 {
-    class MMBinHeader
+    struct MMBinHeader
     {
         public int tableSize;
         public short resourceCount;
@@ -10,14 +8,12 @@ namespace plugin_nintendo.Archives
         public int unk2;
     }
 
-    class MMBinResourceEntry
+    struct MMBinResourceEntry
     {
-        [FixedLength(0x24)]
         public string resourceName;
         public int offset;
         public int metaSize;
         public int ctpkSize;
-        [FixedLength(0xC)]
-        public byte[] padding = new byte[0xC];
+        public byte[] padding;
     }
 }

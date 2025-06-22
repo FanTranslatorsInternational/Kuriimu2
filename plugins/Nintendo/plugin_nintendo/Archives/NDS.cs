@@ -12,27 +12,26 @@ namespace plugin_nintendo.Archives
         private const int OverlayEntrySize_ = 0x20;
         private const int FatEntrySize_ = 0x8;
 
-        private NDSHeader _ndsHeader;
-        private DSiHeader _dsiHeader;
+        private NdsHeader _ndsHeader;
+        private DsiHeader _dsiHeader;
         private Arm9Footer _arm9Footer;
 
         public List<IArchiveFile> Load(Stream input)
         {
             var result = new List<IArchiveFile>();
 
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read unit code
             input.Position = 0x12;
-            var unitCode = typeReader.Read<UnitCode>(br);
+            var unitCode = (UnitCode)br.ReadByte();
 
             // Read header
             input.Position = 0;
             if (unitCode == UnitCode.NDS)
-                _ndsHeader = typeReader.Read<NDSHeader>(br);
+                _ndsHeader = ReadNdsHeader(br);
             else
-                _dsiHeader = typeReader.Read<DSiHeader>(br);
+                _dsiHeader = ReadDsiHeader(br);
 
             // Read ARM9
             var arm9Offset = _ndsHeader?.arm9Offset ?? _dsiHeader.arm9Offset;
@@ -45,7 +44,7 @@ namespace plugin_nintendo.Archives
             if (nitroCode == 0xDEC00621)
             {
                 input.Position -= 4;
-                _arm9Footer = typeReader.Read<Arm9Footer>(br);
+                _arm9Footer = ReadArm9Footer(br);
             }
 
             // Read ARM9 Overlays
@@ -56,7 +55,7 @@ namespace plugin_nintendo.Archives
             input.Position = arm9OvlOffset;
             IList<OverlayEntry> arm9OverlayEntries = Array.Empty<OverlayEntry>();
             if (arm9OvlOffset != 0)
-                arm9OverlayEntries = typeReader.ReadMany<OverlayEntry>(br, arm9OvlEntryCount);
+                arm9OverlayEntries = ReadOverlayEntries(br, arm9OvlEntryCount);
 
             // Read ARM7
             var arm7Offset = _ndsHeader?.arm7Offset ?? _dsiHeader.arm7Offset;
@@ -71,7 +70,7 @@ namespace plugin_nintendo.Archives
             input.Position = arm7OvlOffset;
             IList<OverlayEntry> arm7OverlayEntries = Array.Empty<OverlayEntry>();
             if (arm7OvlOffset != 0)
-                arm7OverlayEntries = typeReader.ReadMany<OverlayEntry>(br, arm7OvlEntryCount);
+                arm7OverlayEntries = ReadOverlayEntries(br, arm7OvlEntryCount);
 
             // Read FAT
             var fatOffset = _ndsHeader?.fatOffset ?? _dsiHeader.fatOffset;
@@ -79,11 +78,11 @@ namespace plugin_nintendo.Archives
             var fatCount = fatSize / FatEntrySize_;
 
             input.Position = fatOffset;
-            var fileEntries = typeReader.ReadMany<FatEntry>(br, fatCount);
+            var fileEntries = ReadFatEntries(br, fatCount);
 
             // Read FNT
             var fntOffset = _ndsHeader?.fntOffset ?? _dsiHeader.fntOffset;
-            foreach (var file in NdsSupport.ReadFnt(typeReader, br, fntOffset, 0, fileEntries))
+            foreach (var file in NdsSupport.ReadFnt(br, fntOffset, 0, fileEntries))
                 result.Add(file);
 
             // Add banner
@@ -103,9 +102,9 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var arm9File = (IArchiveFile)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm9.bin"));
-            var arm7File = (IArchiveFile)files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm7.bin"));
-            var iconFile = (IArchiveFile)files.FirstOrDefault(x => x.FilePath.ToRelative() == Path.Combine("sys", "banner.bin"));
+            var arm9File = files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm9.bin"));
+            var arm7File = files.First(x => x.FilePath.ToRelative() == Path.Combine("sys", "arm7.bin"));
+            var iconFile = files.FirstOrDefault(x => x.FilePath.ToRelative() == Path.Combine("sys", "banner.bin"));
 
             var arm9Overlays = files.Where(x => x.FilePath.ToRelative().IsInDirectory(Path.Combine("sys", "ovl"), false) &&
                                                 x.FilePath.GetName().StartsWith("overlay9"))
@@ -118,14 +117,13 @@ namespace plugin_nintendo.Archives
             var arm7OverlayEntries = new List<OverlayEntry>();
             var fatEntries = new List<FatEntry>();
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             // Write ARM9
             var arm9Offset = output.Position = 0x4000;
             var arm9Size = arm9File.WriteFileData(output);
             if (_arm9Footer != null)
-                typeWriter.Write(_arm9Footer, bw);
+                WriteArm9Footer(_arm9Footer, bw);
             bw.WriteAlignment(0x200, 0xFF);
 
             // Write ARM9 Overlays
@@ -151,7 +149,7 @@ namespace plugin_nintendo.Archives
             }
 
             output.Position = arm9OverlayOffset;
-            typeWriter.WriteMany(arm9OverlayEntries, bw);
+            WriteOverlayEntries(arm9OverlayEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
             output.Position = arm9OverlayPosition;
 
@@ -182,7 +180,7 @@ namespace plugin_nintendo.Archives
             }
 
             output.Position = arm7OverlayOffset;
-            typeWriter.WriteMany(arm7OverlayEntries, bw);
+            WriteOverlayEntries(arm7OverlayEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
             output.Position = arm7OverlayPosition;
 
@@ -191,7 +189,7 @@ namespace plugin_nintendo.Archives
 
             // Write FNT
             var fntOffset = arm7OverlayPosition;
-            NdsSupport.WriteFnt(typeWriter, bw, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
+            NdsSupport.WriteFnt(bw, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
 
             var fntSize = bw.BaseStream.Position - fntOffset;
             bw.WriteAlignment(0x200, 0xFF);
@@ -229,7 +227,7 @@ namespace plugin_nintendo.Archives
 
             // Write FAT
             bw.BaseStream.Position = fatOffset;
-            typeWriter.WriteMany(fatEntries, bw);
+            WriteFatEntries(fatEntries, bw);
             bw.WriteAlignment(0x200, 0xFF);
 
             // Write header
@@ -252,7 +250,7 @@ namespace plugin_nintendo.Archives
                 _ndsHeader.fntSize = (int)fntSize;
                 _ndsHeader.fatSize = (int)fatSize;
 
-                typeWriter.Write(_ndsHeader, bw);
+                WriteNdsHeader(_ndsHeader, bw);
             }
             else
             {
@@ -272,7 +270,7 @@ namespace plugin_nintendo.Archives
                 _dsiHeader.fatSize = (int)fatSize;
                 _dsiHeader.extendedEntries.iconSize = iconSize;
 
-                typeWriter.Write(_dsiHeader, bw);
+                WriteDsiHeader(_dsiHeader, bw);
             }
         }
 
@@ -313,5 +311,510 @@ namespace plugin_nintendo.Archives
                 FileData = new SubStream(br.BaseStream, iconOffset, iconSize)
             });
         }
+
+        #region Reading
+
+        private NdsHeader ReadNdsHeader(BinaryReaderX reader)
+        {
+            return new NdsHeader
+            {
+                gameTitle = reader.ReadString(0xC),
+                gameCode = reader.ReadString(4),
+                makerCode = reader.ReadString(2),
+                unitCode = (UnitCode)reader.ReadByte(),
+                encryptionSeed = reader.ReadByte(),
+                deviceCapacity = reader.ReadByte(),
+                reserved1 = reader.ReadBytes(7),
+                reserved2 = reader.ReadByte(),
+                consoleRegion = reader.ReadByte(),
+                romVer = reader.ReadByte(),
+                internalFlag = reader.ReadByte(),
+                arm9Offset = reader.ReadInt32(),
+                arm9EntryAddress = reader.ReadInt32(),
+                arm9LoadAddress = reader.ReadInt32(),
+                arm9Size = reader.ReadInt32(),
+                arm7Offset = reader.ReadInt32(),
+                arm7EntryAddress = reader.ReadInt32(),
+                arm7LoadAddress = reader.ReadInt32(),
+                arm7Size = reader.ReadInt32(),
+                fntOffset = reader.ReadInt32(),
+                fntSize = reader.ReadInt32(),
+                fatOffset = reader.ReadInt32(),
+                fatSize = reader.ReadInt32(),
+                arm9OverlayOffset = reader.ReadInt32(),
+                arm9OverlaySize = reader.ReadInt32(),
+                arm7OverlayOffset = reader.ReadInt32(),
+                arm7OverlaySize = reader.ReadInt32(),
+                normalRegisterSettings = reader.ReadInt32(),
+                secureRegisterSettings = reader.ReadInt32(),
+                iconOffset = reader.ReadInt32(),
+                secureAreaCrc = reader.ReadInt16(),
+                secureTransferTimeout = reader.ReadInt16(),
+                arm9AutoLoad = reader.ReadInt32(),
+                arm7AutoLoad = reader.ReadInt32(),
+                secureDisable = reader.ReadInt64(),
+                ntrRegionSize = reader.ReadInt32(),
+                headerSize = reader.ReadInt32(),
+                reserved3 = reader.ReadBytes(0x38),
+                nintendoLogo = reader.ReadBytes(0x9C),
+                nintendoLogoCrc = reader.ReadInt16(),
+                headerCrc = reader.ReadInt16(),
+                dbgRomOffset = reader.ReadInt32(),
+                dbgSize = reader.ReadInt32(),
+                dbgLoadAddress = reader.ReadInt32(),
+                reserved4 = reader.ReadInt32(),
+                reservedDbg = reader.ReadBytes(0x90)
+            };
+        }
+
+        private DsiHeader ReadDsiHeader(BinaryReaderX reader)
+        {
+            return new DsiHeader
+            {
+                gameTitle = reader.ReadString(0xC),
+                gameCode = reader.ReadString(4),
+                makerCode = reader.ReadString(2),
+                unitCode = (UnitCode)reader.ReadByte(),
+                encryptionSeed = reader.ReadByte(),
+                deviceCapacity = reader.ReadByte(),
+                reserved1 = reader.ReadBytes(7),
+                systemFlags = reader.ReadByte(),
+                permitJump = reader.ReadByte(),
+                romVer = reader.ReadByte(),
+                internalFlag = reader.ReadByte(),
+                arm9Offset = reader.ReadInt32(),
+                arm9EntryAddress = reader.ReadInt32(),
+                arm9LoadAddress = reader.ReadInt32(),
+                arm9Size = reader.ReadInt32(),
+                arm7Offset = reader.ReadInt32(),
+                arm7EntryAddress = reader.ReadInt32(),
+                arm7LoadAddress = reader.ReadInt32(),
+                arm7Size = reader.ReadInt32(),
+                fntOffset = reader.ReadInt32(),
+                fntSize = reader.ReadInt32(),
+                fatOffset = reader.ReadInt32(),
+                fatSize = reader.ReadInt32(),
+                arm9OverlayOffset = reader.ReadInt32(),
+                arm9OverlaySize = reader.ReadInt32(),
+                arm7OverlayOffset = reader.ReadInt32(),
+                arm7OverlaySize = reader.ReadInt32(),
+                normalRegisterSettings = reader.ReadInt32(),
+                secureRegisterSettings = reader.ReadInt32(),
+                iconOffset = reader.ReadInt32(),
+                secureAreaCrc = reader.ReadInt16(),
+                secureTransferTimeout = reader.ReadInt16(),
+                arm9AutoLoad = reader.ReadInt32(),
+                arm7AutoLoad = reader.ReadInt32(),
+                secureDisable = reader.ReadInt64(),
+                ntrRegionSize = reader.ReadInt32(),
+                headerSize = reader.ReadInt32(),
+                arm9ParametersOffset = reader.ReadInt32(),
+                arm7ParametersOffset = reader.ReadInt32(),
+                ntrRegionEnd = reader.ReadInt16(),
+                twlRegionStart = reader.ReadInt16(),
+                reserved3 = reader.ReadBytes(0x2C),
+                nintendoLogo = reader.ReadBytes(0x9C),
+                nintendoLogoCrc = reader.ReadInt16(),
+                headerCrc = reader.ReadInt16(),
+                dbgRomOffset = reader.ReadInt32(),
+                dbgSize = reader.ReadInt32(),
+                dbgLoadAddress = reader.ReadInt32(),
+                reserved4 = reader.ReadInt32(),
+                reservedDbg = reader.ReadBytes(0x90),
+                extendedEntries = ReadExtendedEntries(reader)
+            };
+        }
+
+        private DsiExtendedEntries ReadExtendedEntries(BinaryReaderX reader)
+        {
+            return new DsiExtendedEntries
+            {
+                mbkSettings = reader.ReadBytes(0x14),
+                arm9MbkSettings = reader.ReadBytes(0xC),
+                arm7MbkSettings = reader.ReadBytes(0xC),
+                mbk9Setting = reader.ReadBytes(0x3),
+                wramNctSettings = reader.ReadByte(),
+                regionFlags = reader.ReadInt32(),
+                accessControl = reader.ReadInt32(),
+                arm7ScfgSetting = reader.ReadInt32(),
+                reserved1 = reader.ReadBytes(0x3),
+                flags = reader.ReadByte(),
+                arm9iOffset = reader.ReadInt32(),
+                reserved2 = reader.ReadInt32(),
+                arm9iLoadAddress = reader.ReadInt32(),
+                arm9iSize = reader.ReadInt32(),
+                arm7iOffset = reader.ReadInt32(),
+                reserved3 = reader.ReadInt32(),
+                arm7iLoadAddress = reader.ReadInt32(),
+                arm7iSize = reader.ReadInt32(),
+                digestNtrOffset = reader.ReadInt32(),
+                digestNtrSize = reader.ReadInt32(),
+                digestTwlOffset = reader.ReadInt32(),
+                digestTwlSize = reader.ReadInt32(),
+                digestSectorHashtableOffset = reader.ReadInt32(),
+                digestSectorHashtableSize = reader.ReadInt32(),
+                digestBlockHashtableOffset = reader.ReadInt32(),
+                digestBlockHashtableSize = reader.ReadInt32(),
+                digestSectorSize = reader.ReadInt32(),
+                digestBlockSectorCount = reader.ReadInt32(),
+                iconSize = reader.ReadInt32(),
+                sdmmcSize1 = reader.ReadByte(),
+                sdmmcSize2 = reader.ReadByte(),
+                eulaVersion = reader.ReadByte(),
+                useRatings = reader.ReadBoolean(),
+                totalRomSize = reader.ReadInt32(),
+                sdmmcSize3 = reader.ReadByte(),
+                sdmmcSize4 = reader.ReadByte(),
+                sdmmcSize5 = reader.ReadByte(),
+                sdmmcSize6 = reader.ReadByte(),
+                arm9iParametersOffset = reader.ReadInt32(),
+                arm7iParametersOffset = reader.ReadInt32(),
+                modCryptArea1Offset = reader.ReadInt32(),
+                modCryptArea1Size = reader.ReadInt32(),
+                modCryptArea2Offset = reader.ReadInt32(),
+                modCryptArea2Size = reader.ReadInt32(),
+                gameCode = reader.ReadInt32(),
+                fileType = reader.ReadByte(),
+                titleIdZero0 = reader.ReadByte(),
+                titleIdZeroThree = reader.ReadByte(),
+                titleIdZero1 = reader.ReadByte(),
+                sdmmcPublicSaveSize = reader.ReadInt32(),
+                sdmmcPrivateSaveSize = reader.ReadInt32(),
+                reserved4 = reader.ReadBytes(0xB0),
+                parentalControl = ReadParentalControl(reader),
+                sha1Section = ReadSha1Section(reader)
+            };
+        }
+
+        private DsiParentalControl ReadParentalControl(BinaryReaderX reader)
+        {
+            return new DsiParentalControl
+            {
+                ageRatings = reader.ReadBytes(0x10),
+                cero = reader.ReadByte(),
+                esrb = reader.ReadByte(),
+                reserved1 = reader.ReadByte(),
+                usk = reader.ReadByte(),
+                pegiEur = reader.ReadByte(),
+                reserved2 = reader.ReadByte(),
+                pegiPrt = reader.ReadByte(),
+                bbfc = reader.ReadByte(),
+                agcb = reader.ReadByte(),
+                grb = reader.ReadByte(),
+                reserved3 = reader.ReadBytes(0x6)
+            };
+        }
+
+        private Sha1Section ReadSha1Section(BinaryReaderX reader)
+        {
+            return new Sha1Section
+            {
+                arm9HmacHash = reader.ReadBytes(0x14),
+                arm7HmacHash = reader.ReadBytes(0x14),
+                digestMasterHmacHash = reader.ReadBytes(0x14),
+                iconHmacHash = reader.ReadBytes(0x14),
+                arm9iHmacHash = reader.ReadBytes(0x14),
+                arm7iHmacHash = reader.ReadBytes(0x14),
+                reserved1 = reader.ReadBytes(0x14),
+                reserved2 = reader.ReadBytes(0x14),
+                arm9HmacHashWithoutSecureArea = reader.ReadBytes(0x14),
+                reserved3 = reader.ReadBytes(0xA4C),
+                dbgVariableStorage = reader.ReadBytes(0x180),
+                headerSectionRsa = reader.ReadBytes(0x80)
+            };
+        }
+
+        private Arm9Footer ReadArm9Footer(BinaryReaderX reader)
+        {
+            return new Arm9Footer
+            {
+                nitroCode = reader.ReadUInt32(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private OverlayEntry[] ReadOverlayEntries(BinaryReaderX reader, int count)
+        {
+            var result = new OverlayEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadOverlayEntry(reader);
+
+            return result;
+        }
+
+        private OverlayEntry ReadOverlayEntry(BinaryReaderX reader)
+        {
+            return new OverlayEntry
+            {
+                id = reader.ReadInt32(),
+                ramAddress = reader.ReadInt32(),
+                ramSize = reader.ReadInt32(),
+                bssSize = reader.ReadInt32(),
+                staticInitStartAddress = reader.ReadInt32(),
+                staticInitEndAddress = reader.ReadInt32(),
+                fileId = reader.ReadInt32(),
+                reserved1 = reader.ReadInt32(),
+            };
+        }
+
+        private FatEntry[] ReadFatEntries(BinaryReaderX reader, int count)
+        {
+            var result = new FatEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFatEntry(reader);
+
+            return result;
+        }
+
+        private FatEntry ReadFatEntry(BinaryReaderX reader)
+        {
+            return new FatEntry
+            {
+                offset = reader.ReadInt32(),
+                endOffset = reader.ReadInt32()
+            };
+        }
+
+        #endregion
+
+        #region Writing
+
+        private void WriteNdsHeader(NdsHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.gameTitle, writeNullTerminator: false);
+            writer.WriteString(header.gameCode, writeNullTerminator: false);
+            writer.WriteString(header.makerCode, writeNullTerminator: false);
+            writer.Write((byte)header.unitCode);
+            writer.Write(header.encryptionSeed);
+            writer.Write(header.deviceCapacity);
+            writer.Write(header.reserved1);
+            writer.Write(header.reserved2);
+            writer.Write(header.consoleRegion);
+            writer.Write(header.romVer);
+            writer.Write(header.internalFlag);
+            writer.Write(header.arm9Offset);
+            writer.Write(header.arm9EntryAddress);
+            writer.Write(header.arm9LoadAddress);
+            writer.Write(header.arm9Size);
+            writer.Write(header.arm7Offset);
+            writer.Write(header.arm7EntryAddress);
+            writer.Write(header.arm7LoadAddress);
+            writer.Write(header.arm7Size);
+            writer.Write(header.fntOffset);
+            writer.Write(header.fntSize);
+            writer.Write(header.fatOffset);
+            writer.Write(header.fatSize);
+            writer.Write(header.arm9OverlayOffset);
+            writer.Write(header.arm9OverlaySize);
+            writer.Write(header.arm7OverlayOffset);
+            writer.Write(header.arm7OverlaySize);
+            writer.Write(header.normalRegisterSettings);
+            writer.Write(header.iconOffset);
+            writer.Write(header.secureAreaCrc);
+            writer.Write(header.secureTransferTimeout);
+            writer.Write(header.arm9AutoLoad);
+            writer.Write(header.arm7AutoLoad);
+            writer.Write(header.secureDisable);
+            writer.Write(header.ntrRegionSize);
+            writer.Write(header.headerSize);
+            writer.Write(header.reserved3);
+            writer.Write(header.nintendoLogo);
+            writer.Write(header.nintendoLogoCrc);
+            writer.Write(header.headerCrc);
+            writer.Write(header.dbgRomOffset);
+            writer.Write(header.dbgSize);
+            writer.Write(header.dbgLoadAddress);
+            writer.Write(header.reserved4);
+            writer.Write(header.reservedDbg);
+        }
+
+        private void WriteDsiHeader(DsiHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.gameTitle, writeNullTerminator: false);
+            writer.WriteString(header.gameCode, writeNullTerminator: false);
+            writer.WriteString(header.makerCode, writeNullTerminator: false);
+            writer.Write((byte)header.unitCode);
+            writer.Write(header.encryptionSeed);
+            writer.Write(header.deviceCapacity);
+            writer.Write(header.reserved1);
+            writer.Write(header.systemFlags);
+            writer.Write(header.permitJump);
+            writer.Write(header.romVer);
+            writer.Write(header.internalFlag);
+            writer.Write(header.arm9Offset);
+            writer.Write(header.arm9EntryAddress);
+            writer.Write(header.arm9LoadAddress);
+            writer.Write(header.arm9Size);
+            writer.Write(header.arm7Offset);
+            writer.Write(header.arm7EntryAddress);
+            writer.Write(header.arm7LoadAddress);
+            writer.Write(header.arm7Size);
+            writer.Write(header.fntOffset);
+            writer.Write(header.fntSize);
+            writer.Write(header.fatOffset);
+            writer.Write(header.fatSize);
+            writer.Write(header.arm9OverlayOffset);
+            writer.Write(header.arm9OverlaySize);
+            writer.Write(header.arm7OverlayOffset);
+            writer.Write(header.arm7OverlaySize);
+            writer.Write(header.normalRegisterSettings);
+            writer.Write(header.secureRegisterSettings);
+            writer.Write(header.iconOffset);
+            writer.Write(header.secureAreaCrc);
+            writer.Write(header.secureTransferTimeout);
+            writer.Write(header.arm9AutoLoad);
+            writer.Write(header.arm7AutoLoad);
+            writer.Write(header.secureDisable);
+            writer.Write(header.ntrRegionSize);
+            writer.Write(header.headerSize);
+            writer.Write(header.arm9ParametersOffset);
+            writer.Write(header.arm7ParametersOffset);
+            writer.Write(header.ntrRegionEnd);
+            writer.Write(header.twlRegionStart);
+            writer.Write(header.reserved3);
+            writer.Write(header.nintendoLogo);
+            writer.Write(header.nintendoLogoCrc);
+            writer.Write(header.headerCrc);
+            writer.Write(header.dbgRomOffset);
+            writer.Write(header.dbgSize);
+            writer.Write(header.dbgLoadAddress);
+            writer.Write(header.reserved4);
+            writer.Write(header.reservedDbg);
+
+            WriteExtendedEntries(header.extendedEntries, writer);
+        }
+
+        private void WriteExtendedEntries(DsiExtendedEntries entries, BinaryWriterX writer)
+        {
+            writer.Write(entries.mbkSettings);
+            writer.Write(entries.arm9MbkSettings);
+            writer.Write(entries.arm7MbkSettings);
+            writer.Write(entries.mbk9Setting);
+            writer.Write(entries.wramNctSettings);
+            writer.Write(entries.regionFlags);
+            writer.Write(entries.accessControl);
+            writer.Write(entries.arm7ScfgSetting);
+            writer.Write(entries.reserved1);
+            writer.Write(entries.flags);
+            writer.Write(entries.arm9iOffset);
+            writer.Write(entries.reserved2);
+            writer.Write(entries.arm9iLoadAddress);
+            writer.Write(entries.arm9iSize);
+            writer.Write(entries.arm7iOffset);
+            writer.Write(entries.reserved3);
+            writer.Write(entries.arm7iLoadAddress);
+            writer.Write(entries.arm7iSize);
+            writer.Write(entries.digestNtrOffset);
+            writer.Write(entries.digestNtrSize);
+            writer.Write(entries.digestTwlOffset);
+            writer.Write(entries.digestTwlSize);
+            writer.Write(entries.digestSectorHashtableOffset);
+            writer.Write(entries.digestSectorHashtableSize);
+            writer.Write(entries.digestBlockHashtableOffset);
+            writer.Write(entries.digestBlockHashtableSize);
+            writer.Write(entries.digestSectorSize);
+            writer.Write(entries.digestBlockSectorCount);
+            writer.Write(entries.iconSize);
+            writer.Write(entries.sdmmcSize1);
+            writer.Write(entries.sdmmcSize2);
+            writer.Write(entries.eulaVersion);
+            writer.Write(entries.useRatings);
+            writer.Write(entries.totalRomSize);
+            writer.Write(entries.sdmmcSize3);
+            writer.Write(entries.sdmmcSize4);
+            writer.Write(entries.sdmmcSize5);
+            writer.Write(entries.sdmmcSize6);
+            writer.Write(entries.arm9iParametersOffset);
+            writer.Write(entries.arm7iParametersOffset);
+            writer.Write(entries.modCryptArea1Offset);
+            writer.Write(entries.modCryptArea1Size);
+            writer.Write(entries.modCryptArea2Offset);
+            writer.Write(entries.modCryptArea2Size);
+            writer.Write(entries.gameCode);
+            writer.Write(entries.fileType);
+            writer.Write(entries.titleIdZero0);
+            writer.Write(entries.titleIdZeroThree);
+            writer.Write(entries.titleIdZero1);
+            writer.Write(entries.sdmmcPublicSaveSize);
+            writer.Write(entries.sdmmcPrivateSaveSize);
+            writer.Write(entries.reserved4);
+
+            WriteParentalControl(entries.parentalControl, writer);
+            WriteSha1Section(entries.sha1Section, writer);
+        }
+
+        private void WriteParentalControl(DsiParentalControl parentalControl, BinaryWriterX writer)
+        {
+            writer.Write(parentalControl.ageRatings);
+            writer.Write(parentalControl.cero);
+            writer.Write(parentalControl.esrb);
+            writer.Write(parentalControl.reserved1);
+            writer.Write(parentalControl.usk);
+            writer.Write(parentalControl.pegiEur);
+            writer.Write(parentalControl.reserved2);
+            writer.Write(parentalControl.pegiPrt);
+            writer.Write(parentalControl.bbfc);
+            writer.Write(parentalControl.agcb);
+            writer.Write(parentalControl.grb);
+            writer.Write(parentalControl.reserved3);
+        }
+
+        private void WriteSha1Section(Sha1Section sha1, BinaryWriterX writer)
+        {
+            writer.Write(sha1.arm9HmacHash);
+            writer.Write(sha1.arm7HmacHash);
+            writer.Write(sha1.digestMasterHmacHash);
+            writer.Write(sha1.iconHmacHash);
+            writer.Write(sha1.arm9iHmacHash);
+            writer.Write(sha1.arm7iHmacHash);
+            writer.Write(sha1.reserved1);
+            writer.Write(sha1.reserved2);
+            writer.Write(sha1.arm9HmacHashWithoutSecureArea);
+            writer.Write(sha1.reserved3);
+            writer.Write(sha1.dbgVariableStorage);
+            writer.Write(sha1.headerSectionRsa);
+        }
+
+        private void WriteArm9Footer(Arm9Footer footer, BinaryWriterX writer)
+        {
+            writer.Write(footer.nitroCode);
+            writer.Write(footer.unk1);
+            writer.Write(footer.unk2);
+        }
+
+        private void WriteOverlayEntries(IList<OverlayEntry> entries, BinaryWriterX writer)
+        {
+            foreach (OverlayEntry entry in entries)
+                WriteOverlayEntry(entry, writer);
+        }
+
+        private void WriteOverlayEntry(OverlayEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.id);
+            writer.Write(entry.ramAddress);
+            writer.Write(entry.ramSize);
+            writer.Write(entry.bssSize);
+            writer.Write(entry.staticInitStartAddress);
+            writer.Write(entry.staticInitEndAddress);
+            writer.Write(entry.fileId);
+            writer.Write(entry.reserved1);
+        }
+
+        private void WriteFatEntries(IList<FatEntry> entries, BinaryWriterX writer)
+        {
+            foreach (FatEntry entry in entries)
+                WriteFatEntry(entry, writer);
+        }
+
+        private void WriteFatEntry(FatEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.endOffset);
+        }
+
+        #endregion
     }
 }

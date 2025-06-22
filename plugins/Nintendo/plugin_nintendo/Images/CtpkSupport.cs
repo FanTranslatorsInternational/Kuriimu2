@@ -1,16 +1,14 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    public class CtpkHeader
+    public struct CtpkHeader
     {
-        [FixedLength(4)]
-        public string magic = "CTPK";
+        public string magic; // CTPK
         public short version;
         public short texCount;
         public int texSecOffset;
@@ -34,7 +32,7 @@ namespace plugin_nintendo.Images
         public uint timeStamp;
     }
 
-    public class HashEntry
+    public struct HashEntry
     {
         public uint crc32;
         public int id;

@@ -6,25 +6,21 @@ using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    class SmdhHeader
+    struct SmdhHeader
     {
-        [FixedLength(4)]
         public string magic;
         public short version;
         public short reserved;
     }
 
-    class SmdhApplicationTitle
+    struct SmdhApplicationTitle
     {
-        [FixedLength(0x80, StringEncoding = StringEncoding.Unicode)]
         public string shortDesc;
-        [FixedLength(0x100, StringEncoding = StringEncoding.Unicode)]
         public string longDesc;
-        [FixedLength(0x80, StringEncoding = StringEncoding.Unicode)]
         public string publisher;
     }
 
-    class SmdhAppSettings
+    struct SmdhAppSettings
     {
         [FixedLength(0x10)]
         public byte[] gameRating;

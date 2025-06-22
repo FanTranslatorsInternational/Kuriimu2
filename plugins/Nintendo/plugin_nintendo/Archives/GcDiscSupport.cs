@@ -1,8 +1,6 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_nintendo.Archives
+﻿namespace plugin_nintendo.Archives
 {
-    class GcDiscHeader
+    struct GcDiscHeader
     {
         public GcDiscGameCode gameCode;
         public short makerCode;
@@ -10,14 +8,11 @@ namespace plugin_nintendo.Archives
         public byte version;
         public bool audioStreamingEnabled;
         public byte streamBufferSize;
-        [FixedLength(0x12)] 
         public byte[] padding;
-        public uint magic = 0xc2339f3d;
-        [FixedLength(0x3e0)] 
+        public uint magic; // 0xc2339f3d
         public string gameName;
         public int dhOffset;
         public int dbgLoadAddress;
-        [FixedLength(0x18)]
         public byte[] unused1;
         public int execOffset;
         public int fstOffset;
@@ -29,18 +24,16 @@ namespace plugin_nintendo.Archives
         public int unused2;
     }
 
-    class GcDiscGameCode
+    struct GcDiscGameCode
     {
         public byte consoleId;
         public short gameCode;
         public byte countryCode;
     }
 
-    class GcAppLoader
+    struct GcAppLoader
     {
-        [FixedLength(0xA)] 
         public string date;
-        [FixedLength(6)]
         public byte[] padding;
         public int entryPoint;
         public int size;

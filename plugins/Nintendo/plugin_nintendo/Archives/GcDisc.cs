@@ -18,17 +18,16 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             var result = new List<IArchiveFile>();
 
             // Read header
-            _header = typeReader.Read<GcDiscHeader>(br);
+            _header = ReadHeader(br);
 
             // Special treatment for apploader size
             input.Position = 0x2440;
-            var appLoader = typeReader.Read<GcAppLoader>(br);
+            var appLoader = ReadAppLoader(br);
 
             // Collect system files
             result.Add(new ArchiveFile(new ArchiveFileInfo
@@ -56,7 +55,6 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Get system files
@@ -98,7 +96,7 @@ namespace plugin_nintendo.Archives
 
             // Write FST
             output.Position = fstOffset;
-            typeWriter.WriteMany(entries.Select(x => x.Item1), bw);
+            WriteEntries(entries.Select(x => x.Item1).ToArray(), bw);
 
             // Write system files
             output.Position = bi2Offset;
@@ -117,7 +115,91 @@ namespace plugin_nintendo.Archives
             _header.fstMaxSize = _header.fstSize;
 
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private GcDiscHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new GcDiscHeader
+            {
+                gameCode = new GcDiscGameCode
+                {
+                    consoleId = reader.ReadByte(),
+                    gameCode = reader.ReadInt16(),
+                    countryCode = reader.ReadByte()
+                },
+                makerCode = reader.ReadInt16(),
+                discId = reader.ReadByte(),
+                version = reader.ReadByte(),
+                audioStreamingEnabled = reader.ReadBoolean(),
+                streamBufferSize = reader.ReadByte(),
+                padding = reader.ReadBytes(0x12),
+                magic = reader.ReadUInt32(),
+                gameName = reader.ReadString(0x3e0),
+                dhOffset = reader.ReadInt32(),
+                dbgLoadAddress = reader.ReadInt32(),
+                unused1 = reader.ReadBytes(0x18),
+                execOffset = reader.ReadInt32(),
+                fstOffset = reader.ReadInt32(),
+                fstSize = reader.ReadInt32(),
+                fstMaxSize = reader.ReadInt32(),
+                userPosition = reader.ReadInt32(),
+                userLength = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                unused2 = reader.ReadInt32()
+            };
+        }
+
+        private GcAppLoader ReadAppLoader(BinaryReaderX reader)
+        {
+            return new GcAppLoader
+            {
+                date = reader.ReadString(0xA),
+                padding = reader.ReadBytes(6),
+                entryPoint = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                trailerSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(GcDiscHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.gameCode.consoleId);
+            writer.Write(header.gameCode.gameCode);
+            writer.Write(header.gameCode.countryCode);
+
+            writer.Write(header.makerCode);
+            writer.Write(header.discId);
+            writer.Write(header.version);
+            writer.Write(header.audioStreamingEnabled);
+            writer.Write(header.streamBufferSize);
+            writer.Write(header.padding);
+            writer.Write(header.magic);
+            writer.Write(header.gameName);
+            writer.Write(header.dhOffset);
+            writer.Write(header.dbgLoadAddress);
+            writer.Write(header.unused1);
+            writer.Write(header.execOffset);
+            writer.Write(header.fstOffset);
+            writer.Write(header.fstSize);
+            writer.Write(header.fstMaxSize);
+            writer.Write(header.userPosition);
+            writer.Write(header.userLength);
+            writer.Write(header.unk1);
+            writer.Write(header.unused2);
+        }
+
+        private void WriteEntries(U8Entry[] entries, BinaryWriterX writer)
+        {
+            foreach (U8Entry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(U8Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.tmp1);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

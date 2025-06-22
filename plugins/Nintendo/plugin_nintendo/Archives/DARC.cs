@@ -22,7 +22,6 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Determine byte order
@@ -31,14 +30,14 @@ namespace plugin_nintendo.Archives
 
             // Read header
             br.BaseStream.Position = 0;
-            var header = typeReader.Read<DarcHeader>(br);
+            var header = ReadHeader(br);
 
             // Read entries
             br.BaseStream.Position = header.tableOffset;
-            var rootEntry = typeReader.Read<DarcEntry>(br);
+            var rootEntry = ReadEntry(br);
 
             br.BaseStream.Position = header.tableOffset;
-            var entries = typeReader.ReadMany<DarcEntry>(br, rootEntry.size);
+            var entries = ReadEntries(br, rootEntry.size);
 
             // Read names
             var nameStream = new SubStream(input, br.BaseStream.Position, header.dataOffset - br.BaseStream.Position);
@@ -98,7 +97,6 @@ namespace plugin_nintendo.Archives
 
             var namePosition = HeaderSize_ + entries.Count * EntrySize_;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true, _byteOrder);
 
             // Write names
@@ -125,17 +123,83 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             bw.BaseStream.Position = HeaderSize_;
-            typeWriter.WriteMany(entries.Select(x => x.Item1), bw);
+            WriteEntries(entries.Select(x => x.Item1).ToArray(), bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new DarcHeader
+            var header = new DarcHeader
             {
+                magic = "darc",
                 byteOrder = (ushort)_byteOrder,
+                headerSize = 0x1C,
+                version = 0x1000000,
+                tableOffset = 0x1C,
                 dataOffset = entries.Where(x => x.Item2 != null).Select(x => x.Item1.offset).Min(),
                 fileSize = (int)bw.BaseStream.Length,
                 tableLength = entries.Count * EntrySize_ + (int)nameStream.Length
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private DarcHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DarcHeader
+            {
+                magic = reader.ReadString(4),
+                byteOrder = reader.ReadUInt16(),
+                headerSize = reader.ReadInt16(),
+                version = reader.ReadInt32(),
+                fileSize = reader.ReadInt32(),
+                tableOffset = reader.ReadInt32(),
+                tableLength = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32()
+            };
+        }
+
+        private DarcEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new DarcEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private DarcEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new DarcEntry
+            {
+                tmp1 = reader.ReadInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(DarcHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.byteOrder);
+            writer.Write(header.headerSize);
+            writer.Write(header.version);
+            writer.Write(header.fileSize);
+            writer.Write(header.tableOffset);
+            writer.Write(header.tableLength);
+            writer.Write(header.dataOffset);
+        }
+
+        private void WriteEntries(DarcEntry[] entries, BinaryWriterX writer)
+        {
+            foreach (DarcEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(DarcEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.tmp1);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

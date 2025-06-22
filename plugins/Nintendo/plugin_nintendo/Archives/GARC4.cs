@@ -17,7 +17,6 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Select byte order
@@ -29,25 +28,25 @@ namespace plugin_nintendo.Archives
 
             // Read header
             br.BaseStream.Position = 0;
-            var header = typeReader.Read<Garc4Header>(br);
+            var header = ReadHeader(br);
 
             // Read Fat Offsets
-            var fatoHeader = typeReader.Read<GarcFatoHeader>(br);
-            var offsets = typeReader.ReadMany<int>(br, fatoHeader.entryCount);
+            var fatoHeader = ReadFatoHeader(br);
+            var offsets = ReadIntegers(br, fatoHeader.entryCount);
 
             // Read FATB
-            var fatbHeader = typeReader.Read<GarcFatbHeader>(br);
+            var fatbHeader = ReadFatbHeader(br);
             var fatbOffset = br.BaseStream.Position;
 
             var fatbEntries = new Garc4FatbEntry[fatoHeader.entryCount];
             for (var i = 0; i < fatoHeader.entryCount; i++)
             {
                 br.BaseStream.Position = fatbOffset + offsets[i];
-                fatbEntries[i] = typeReader.Read<Garc4FatbEntry>(br);
+                fatbEntries[i] = ReadFatbEntry(br);
             }
 
             // Read FIMB
-            typeReader.Read<GarcFimbHeader>(br);
+            _ = ReadFimbHeader(br);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -68,7 +67,6 @@ namespace plugin_nintendo.Archives
             var fimbPosition = fatbPosition + FatbHeaderSize_ + files.Count * FatbEntrySize_;
             var dataPosition = fimbPosition + FimbHeaderSize_;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, _byteOrder);
 
             // Write file data
@@ -87,6 +85,7 @@ namespace plugin_nintendo.Archives
 
                 fileEntries.Add(new Garc4FatbEntry
                 {
+                    unk1 = 1,
                     offset = (uint)fileOffset,
                     nextFileOffset = (uint)(bw.BaseStream.Position - dataPosition),
                     size = (uint)writtenSize
@@ -95,51 +94,184 @@ namespace plugin_nintendo.Archives
                 fileOffset = (int)(bw.BaseStream.Position - dataPosition);
             }
 
-            bw.BaseStream.Position = fimbPosition;
-            typeWriter.Write(new GarcFimbHeader
+            var fimbHeader = new GarcFimbHeader
             {
+                magic = "BMIF",
+                headerSize = 0xC,
                 dataSize = (uint)(bw.BaseStream.Length - dataPosition)
-            }, bw);
+            };
+
+            bw.BaseStream.Position = fimbPosition;
+            WriteFimbHeader(fimbHeader, bw);
 
             // Write file entries
             bw.BaseStream.Position = fatbPosition + FatbHeaderSize_;
 
-            var fatOffsets = new List<uint>();
-            var fatbOffset = 0u;
+            var fatOffsets = new List<int>();
+            var fatbOffset = 0;
             foreach (var entry in fileEntries)
             {
-                typeWriter.Write(entry, bw);
+                WriteFatbEntry(entry, bw);
                 fatOffsets.Add(fatbOffset);
 
-                fatbOffset += (uint)FatbEntrySize_;
+                fatbOffset += FatbEntrySize_;
             }
 
-            bw.BaseStream.Position = fatbPosition;
-            typeWriter.Write(new GarcFatbHeader
+            var fatbHeader = new GarcFatbHeader
             {
+                magic = "BTAF",
                 sectionSize = FatbHeaderSize_ + fileEntries.Count * FatbEntrySize_,
                 entryCount = fileEntries.Count
-            }, bw);
+            };
+
+            bw.BaseStream.Position = fatbPosition;
+            WriteFatbHeader(fatbHeader, bw);
 
             // Write FAT Offsets
-            bw.BaseStream.Position = fatOffsetPosition;
-            typeWriter.Write(new GarcFatoHeader
+            var fatoHeader = new GarcFatoHeader
             {
+                magic = "OTAF",
                 sectionSize = FatoHeaderSize_ + fatOffsets.Count * 4,
-                entryCount = (short)fatOffsets.Count
-            }, bw);
-            typeWriter.WriteMany(fatOffsets, bw);
+                entryCount = (short)fatOffsets.Count,
+                unk1 = 0xFFFF
+            };
+
+            bw.BaseStream.Position = fatOffsetPosition;
+            WriteFatoHeader(fatoHeader, bw);
+            WriteIntegers(fatOffsets, bw);
 
             // Write GARC Header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new Garc4Header
+            var header = new Garc4Header
             {
+                magic = "CRAG",
                 byteOrder = (ushort)_byteOrder,
                 dataOffset = (uint)dataPosition,
                 fileSize = (uint)bw.BaseStream.Length,
-                headerSize = (uint)HeaderSize_,
-                largestFileSize = (uint)largestFileSize
-            }, bw);
+                headerSize = HeaderSize_,
+                largestFileSize = (uint)largestFileSize,
+                major = 4,
+                secCount = 4
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private Garc4Header ReadHeader(BinaryReaderX reader)
+        {
+            return new Garc4Header
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadUInt32(),
+                byteOrder = reader.ReadUInt16(),
+                minor = reader.ReadByte(),
+                major = reader.ReadByte(),
+                secCount = reader.ReadUInt32(),
+                dataOffset = reader.ReadUInt32(),
+                fileSize = reader.ReadUInt32(),
+                largestFileSize = reader.ReadUInt32()
+            };
+        }
+
+        private GarcFatoHeader ReadFatoHeader(BinaryReaderX reader)
+        {
+            return new GarcFatoHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                entryCount = reader.ReadInt16(),
+                unk1 = reader.ReadUInt16()
+            };
+        }
+
+        private GarcFatbHeader ReadFatbHeader(BinaryReaderX reader)
+        {
+            return new GarcFatbHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                entryCount = reader.ReadInt32()
+            };
+        }
+
+        private Garc4FatbEntry ReadFatbEntry(BinaryReaderX reader)
+        {
+            return new Garc4FatbEntry
+            {
+                unk1 = reader.ReadInt32(),
+                offset = reader.ReadUInt32(),
+                nextFileOffset = reader.ReadUInt32(),
+                size = reader.ReadUInt32()
+            };
+        }
+
+        private GarcFimbHeader ReadFimbHeader(BinaryReaderX reader)
+        {
+            return new GarcFimbHeader
+            {
+                magic = reader.ReadString(4),
+                headerSize = reader.ReadUInt32(),
+                dataSize = reader.ReadUInt32()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(Garc4Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.byteOrder);
+            writer.Write(header.minor);
+            writer.Write(header.major);
+            writer.Write(header.secCount);
+            writer.Write(header.dataOffset);
+            writer.Write(header.fileSize);
+            writer.Write(header.largestFileSize);
+        }
+
+        private void WriteFatoHeader(GarcFatoHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.sectionSize);
+            writer.Write(header.entryCount);
+            writer.Write(header.unk1);
+        }
+
+        private void WriteFatbHeader(GarcFatbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.sectionSize);
+            writer.Write(header.entryCount);
+        }
+
+        private void WriteFatbEntry(Garc4FatbEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.unk1);
+            writer.Write(entry.offset);
+            writer.Write(entry.nextFileOffset);
+            writer.Write(entry.size);
+        }
+
+        private void WriteFimbHeader(GarcFimbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.headerSize);
+            writer.Write(header.dataSize);
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

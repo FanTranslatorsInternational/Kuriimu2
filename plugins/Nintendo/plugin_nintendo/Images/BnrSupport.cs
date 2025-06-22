@@ -6,7 +6,7 @@ using Komponent.Contract.Enums;
 namespace plugin_nintendo.Images
 {
     [Alignment(0x20)]
-    class BnrHeader
+    struct BnrHeader
     {
         public short version;
         public ushort crc16_v1;

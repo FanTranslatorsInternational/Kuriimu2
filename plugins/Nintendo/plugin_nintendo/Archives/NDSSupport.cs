@@ -12,19 +12,14 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class NDSHeader
+    class NdsHeader
     {
-        [FixedLength(0xC)]
         public string gameTitle;
-        [FixedLength(4)]
         public string gameCode;
-        [FixedLength(2)]
         public string makerCode;
-
         public UnitCode unitCode;
         public byte encryptionSeed;
         public byte deviceCapacity;
-        [FixedLength(7)]
         public byte[] reserved1;
 
         public byte reserved2;
@@ -70,36 +65,29 @@ namespace plugin_nintendo.Archives
         public int ntrRegionSize;
         public int headerSize;
 
-        [FixedLength(0x38)]
         public byte[] reserved3;
 
-        [FixedLength(0x9C)]
         public byte[] nintendoLogo;
         public short nintendoLogoCrc;
 
         public short headerCrc;
 
         public int dbgRomOffset;
-        public int DbgSize;
-        public int DbgLoadAddress;  // 0x168
+        public int dbgSize;
+        public int dbgLoadAddress;  // 0x168
         public int reserved4;
-        [FixedLength(0x90)]
         public byte[] reservedDbg;
     }
 
-    class DSiHeader
+    class DsiHeader
     {
-        [FixedLength(0xC)]
         public string gameTitle;
-        [FixedLength(4)]
         public string gameCode;
-        [FixedLength(2)]
         public string makerCode;
 
         public UnitCode unitCode;
         public byte encryptionSeed;
         public byte deviceCapacity;
-        [FixedLength(7)]
         public byte[] reserved1;
 
         public byte systemFlags;
@@ -150,41 +138,33 @@ namespace plugin_nintendo.Archives
         public short ntrRegionEnd;
         public short twlRegionStart;
 
-        [FixedLength(0x2C)]
         public byte[] reserved3;
 
-        [FixedLength(0x9C)]
         public byte[] nintendoLogo;
         public short nintendoLogoCrc;
 
         public short headerCrc;
 
         public int dbgRomOffset;
-        public int DbgSize;
-        public int DbgLoadAddress;  // 0x168
+        public int dbgSize;
+        public int dbgLoadAddress;  // 0x168
         public int reserved4;
-        [FixedLength(0x90)]
         public byte[] reservedDbg;
 
         public DsiExtendedEntries extendedEntries;
     }
 
-    public class DsiExtendedEntries
+    public struct DsiExtendedEntries
     {
-        [FixedLength(0x14)]
         public byte[] mbkSettings;
-        [FixedLength(0xC)]
         public byte[] arm9MbkSettings;
-        [FixedLength(0xC)]
         public byte[] arm7MbkSettings;
-        [FixedLength(0x3)]
         public byte[] mbk9Setting;
         public byte wramNctSettings;
 
         public int regionFlags;
         public int accessControl;
         public int arm7ScfgSetting;
-        [FixedLength(0x3)]
         public byte[] reserved1;
         public byte flags;
 
@@ -243,7 +223,6 @@ namespace plugin_nintendo.Archives
 
         public int sdmmcPublicSaveSize;
         public int sdmmcPrivateSaveSize;
-        [FixedLength(0xB0)]
         public byte[] reserved4;
 
         public DsiParentalControl parentalControl;
@@ -251,9 +230,8 @@ namespace plugin_nintendo.Archives
         public Sha1Section sha1Section;
     }
 
-    public class DsiParentalControl
+    public struct DsiParentalControl
     {
-        [FixedLength(0x10)]
         public byte[] ageRatings;
 
         public byte cero;
@@ -266,11 +244,10 @@ namespace plugin_nintendo.Archives
         public byte bbfc;
         public byte agcb;
         public byte grb;
-        [FixedLength(0x6)]
         public byte[] reserved3;
     }
 
-    public class Sha1Section
+    public struct Sha1Section
     {
         [FixedLength(0x14)]
         public byte[] arm9HmacHash;
@@ -317,7 +294,7 @@ namespace plugin_nintendo.Archives
         public int reserved1;
     }
 
-    class FatEntry
+    struct FatEntry
     {
         public int offset;
         public int endOffset;
@@ -325,7 +302,7 @@ namespace plugin_nintendo.Archives
         public int Length => endOffset - offset;
     }
 
-    class MainFntEntry
+    struct MainFntEntry
     {
         public int subTableOffset;
         public short firstFileId;
@@ -366,19 +343,19 @@ namespace plugin_nintendo.Archives
 
     static class NdsSupport
     {
-        public static IEnumerable<IArchiveFile> ReadFnt(BinaryTypeReader typeReader, BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
+        public static IEnumerable<IArchiveFile> ReadFnt(BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
         {
             br.BaseStream.Position = fntOffset;
-            var mainEntry = typeReader.Read<MainFntEntry>(br);
+            var mainEntry = ReadFntEntry(br);
 
             br.BaseStream.Position = fntOffset;
-            var mainEntries = typeReader.ReadMany<MainFntEntry>(br, mainEntry.parentDirectory);
+            var mainEntries = ReadFntEntries(br, mainEntry.parentDirectory);
 
-            foreach (var file in ReadSubFnt(typeReader, br, mainEntries[0], fntOffset, contentOffset, "/", mainEntries, fileEntries))
+            foreach (var file in ReadSubFnt(br, mainEntries[0], fntOffset, contentOffset, "/", mainEntries, fileEntries))
                 yield return file;
         }
 
-        public static void WriteFnt(BinaryTypeWriter typeWriter, BinaryWriterX bw, int fntOffset, IList<IArchiveFile> files, int startFileId = 0)
+        public static void WriteFnt(BinaryWriterX bw, int fntOffset, IList<IArchiveFile> files, int startFileId = 0)
         {
             var fileTree = files.ToTree();
             var totalDirectories = CountTotalDirectories(fileTree);
@@ -387,12 +364,32 @@ namespace plugin_nintendo.Archives
             var baseOffset = fntOffset;
             var fileId = startFileId;
             var dirId = 0;
-            WriteFnt(typeWriter, bw, baseOffset, ref fntOffset, ref contentOffset, ref fileId, ref dirId, 0, fileTree);
+            WriteFnt(bw, baseOffset, ref fntOffset, ref contentOffset, ref fileId, ref dirId, 0, fileTree);
 
             // Write total directories
             bw.BaseStream.Position = baseOffset + 6;
             bw.Write((short)totalDirectories);
             bw.BaseStream.Position = contentOffset;
+        }
+
+        private static MainFntEntry[] ReadFntEntries(BinaryReaderX reader, int count)
+        {
+            var result = new MainFntEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFntEntry(reader);
+
+            return result;
+        }
+
+        private static MainFntEntry ReadFntEntry(BinaryReaderX reader)
+        {
+            return new MainFntEntry
+            {
+                subTableOffset = reader.ReadInt32(),
+                firstFileId = reader.ReadInt16(),
+                parentDirectory = reader.ReadUInt16()
+            };
         }
 
         private static int CountTotalDirectories(DirectoryEntry dirEntry)
@@ -404,11 +401,11 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        private static void WriteFnt(BinaryTypeWriter typeWriter, BinaryWriterX bw, int baseOffset, ref int fntOffset, ref int contentOffset, ref int fileId, ref int dirId, int parentDirId, DirectoryEntry entry)
+        private static void WriteFnt(BinaryWriterX bw, int baseOffset, ref int fntOffset, ref int contentOffset, ref int fileId, ref int dirId, int parentDirId, DirectoryEntry entry)
         {
             // Write dir entry
             bw.BaseStream.Position = fntOffset;
-            typeWriter.Write(new MainFntEntry
+            WriteFntEntry(new MainFntEntry
             {
                 subTableOffset = contentOffset - baseOffset,
                 firstFileId = (short)fileId,
@@ -438,13 +435,20 @@ namespace plugin_nintendo.Archives
 
                 contentOffset = (int)bw.BaseStream.Position;
 
-                WriteFnt(typeWriter, bw, baseOffset, ref fntOffset, ref nextContentOffset, ref fileId, ref dirId, currentDirId, dir);
+                WriteFnt(bw, baseOffset, ref fntOffset, ref nextContentOffset, ref fileId, ref dirId, currentDirId, dir);
             }
 
             contentOffset = nextContentOffset;
         }
 
-        private static IEnumerable<IArchiveFile> ReadSubFnt(BinaryTypeReader typeReader, BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, int contentOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
+        private static void WriteFntEntry(MainFntEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.subTableOffset);
+            writer.Write(entry.firstFileId);
+            writer.Write(entry.parentDirectory);
+        }
+
+        private static IEnumerable<IArchiveFile> ReadSubFnt(BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, int contentOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
         {
             var tableOffset = fntOffset + dirEntry.subTableOffset;
             var firstFileId = dirEntry.firstFileId;
@@ -475,7 +479,7 @@ namespace plugin_nintendo.Archives
                     tableOffset = (int)br.BaseStream.Position;
 
                     var subDirEntry = directoryEntries[dirEntryId & 0x0FFF];
-                    foreach (var file in ReadSubFnt(typeReader, br, subDirEntry, fntOffset, contentOffset, Path.Combine(path, name), directoryEntries, fileEntries))
+                    foreach (var file in ReadSubFnt(br, subDirEntry, fntOffset, contentOffset, Path.Combine(path, name), directoryEntries, fileEntries))
                         yield return file;
                 }
 

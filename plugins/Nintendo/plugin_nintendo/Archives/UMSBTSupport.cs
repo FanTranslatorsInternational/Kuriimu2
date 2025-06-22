@@ -1,6 +1,6 @@
 ﻿namespace plugin_nintendo.Archives
 {
-    class UMSBTEntry
+    struct UMSBTEntry
     {
         public int offset;
         public int size;

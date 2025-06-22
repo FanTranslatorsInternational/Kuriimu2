@@ -1,20 +1,18 @@
-﻿using Komponent.Contract.Aspects;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
 
 namespace plugin_nintendo.Archives
 {
-    class PacHeader
+    struct PacHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int unk1;
         public int unk2;
         public int dataOffset;
     }
 
-    class PacTableInfo
+    struct PacTableInfo
     {
         public int unpaddedFileSize;
         public int assetCount;
@@ -29,7 +27,7 @@ namespace plugin_nintendo.Archives
         public int fileOffset;
     }
 
-    class PacAsset
+    struct PacAsset
     {
         public int stringOffset;
         public uint fnvHash;

@@ -4,7 +4,7 @@ using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    class RawJtexHeader
+    struct RawJtexHeader
     {
         public int format;
         public int width;

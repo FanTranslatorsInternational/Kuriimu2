@@ -13,11 +13,10 @@ namespace plugin_nintendo.Images
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = typeReader.Read<BimgHeader>(br);
+            _header = ReadHeader(br);
 
             // Read image data
             var imgData = br.ReadBytes(_header.dataSize);
@@ -37,7 +36,6 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -55,7 +53,36 @@ namespace plugin_nintendo.Images
 
             // Write header
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+        }
+
+        private BimgHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new BimgHeader
+            {
+                zero1 = reader.ReadInt32(),
+                dataSize = reader.ReadInt32(),
+                zero2 = reader.ReadInt32(),
+                format = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(BimgHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.zero1);
+            writer.Write(header.dataSize);
+            writer.Write(header.zero2);
+            writer.Write(header.format);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
         }
     }
 }

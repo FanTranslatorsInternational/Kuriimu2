@@ -20,22 +20,21 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header
-            _header = typeReader.Read<PacHeader>(br);
+            _header = ReadHeader(br);
 
             // Read table info
-            var tableInfo = typeReader.Read<PacTableInfo>(br);
+            var tableInfo = ReadTableInfo(br);
 
             // Read assets
             input.Position = tableInfo.assetOffset;
-            var assets = typeReader.ReadMany<PacAsset>(br, tableInfo.assetCount);
+            var assets = ReadAssets(br, tableInfo.assetCount);
 
             // Read entries
             input.Position = tableInfo.entryOffset;
-            var entries = typeReader.ReadMany<PacEntry>(br, tableInfo.entryCount);
+            var entries = ReadEntries(br, tableInfo.entryCount);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -68,9 +67,8 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
-            
+
             var hash = Fnv1.Create();
 
             // Get distinct strings
@@ -133,7 +131,7 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             output.Position = entryOffset;
-            typeWriter.WriteMany(entries, bw);
+            WriteEntries(entries, bw);
 
             // Write assets
             var entryPosition = entryOffset;
@@ -143,21 +141,22 @@ namespace plugin_nintendo.Archives
             foreach (var fileGroup in files.OrderBy(x => x.FilePath).GroupBy(x => x.FilePath.GetFirstDirectory(out _)))
             {
                 var fileCount = fileGroup.Count();
-                typeWriter.Write(new PacAsset
+                var asset = new PacAsset
                 {
                     count = fileCount,
                     entryOffset = entryPosition,
                     stringOffset = (int)stringMap[fileGroup.Key] + stringOffset,
                     fnvHash = hash.ComputeValue(fileGroup.Key)
-                }, bw);
+                };
+
+                WriteAsset(asset, bw);
 
                 entryPosition += fileCount * EntrySize_;
                 assetCount++;
             }
 
             // Write table info
-            output.Position = tableInfoOffset;
-            typeWriter.Write(new PacTableInfo
+            var tableInfo = new PacTableInfo
             {
                 fileOffset = fileOffset,
                 entryOffset = entryOffset,
@@ -168,13 +167,16 @@ namespace plugin_nintendo.Archives
                 entryCount = entries.Count,
                 stringCount = stringMap.Count,
                 assetCount = assetCount
-            }, bw);
+            };
+
+            output.Position = tableInfoOffset;
+            WriteTableInfo(tableInfo, bw);
 
             // Write header
             output.Position = 0;
 
             _header.dataOffset = fileOffset;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
 
             // Pad file to 0x1000
             output.Position = output.Length;
@@ -200,6 +202,136 @@ namespace plugin_nintendo.Archives
             }
 
             return stringMap;
+        }
+
+        private PacHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new PacHeader
+            {
+                magic = reader.ReadString(4),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32()
+            };
+        }
+
+        private PacTableInfo ReadTableInfo(BinaryReaderX reader)
+        {
+            return new PacTableInfo
+            {
+                unpaddedFileSize = reader.ReadInt32(),
+                assetCount = reader.ReadInt32(),
+                entryCount = reader.ReadInt32(),
+                stringCount = reader.ReadInt32(),
+                fileCount = reader.ReadInt32(),
+                zero0 = reader.ReadInt64(),
+                zero1 = reader.ReadInt64(),
+                assetOffset = reader.ReadInt32(),
+                entryOffset = reader.ReadInt32(),
+                stringOffset = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+            };
+        }
+
+        private PacAsset[] ReadAssets(BinaryReaderX reader, int count)
+        {
+            var result = new PacAsset[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadAsset(reader);
+
+            return result;
+        }
+
+        private PacAsset ReadAsset(BinaryReaderX reader)
+        {
+            return new PacAsset
+            {
+                stringOffset = reader.ReadInt32(),
+                fnvHash = reader.ReadUInt32(),
+                count = reader.ReadInt32(),
+                entryOffset = reader.ReadInt32()
+            };
+        }
+
+        private PacEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PacEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PacEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new PacEntry
+            {
+                stringOffset = reader.ReadInt32(),
+                fnvHash = reader.ReadUInt32(),
+                extensionOffset = reader.ReadInt32(),
+                extensionFnvHash = reader.ReadUInt32(),
+                offset = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                compSize2 = reader.ReadInt32(),
+                zero0 = reader.ReadInt64(),
+                unk1 = reader.ReadInt32(),
+                zero1 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(PacHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.dataOffset);
+        }
+
+        private void WriteTableInfo(PacTableInfo tableInfo, BinaryWriterX writer)
+        {
+            writer.Write(tableInfo.unpaddedFileSize);
+            writer.Write(tableInfo.assetCount);
+            writer.Write(tableInfo.entryCount);
+            writer.Write(tableInfo.stringCount);
+            writer.Write(tableInfo.fileCount);
+            writer.Write(tableInfo.zero0);
+            writer.Write(tableInfo.zero1);
+            writer.Write(tableInfo.assetOffset);
+            writer.Write(tableInfo.entryOffset);
+            writer.Write(tableInfo.stringOffset);
+            writer.Write(tableInfo.fileOffset);
+        }
+
+        private void WriteAsset(PacAsset asset, BinaryWriterX writer)
+        {
+            writer.Write(asset.stringOffset);
+            writer.Write(asset.fnvHash);
+            writer.Write(asset.count);
+            writer.Write(asset.entryOffset);
+        }
+
+        private void WriteEntries(IList<PacEntry> entries, BinaryWriterX writer)
+        {
+            foreach (PacEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(PacEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.stringOffset);
+            writer.Write(entry.fnvHash);
+            writer.Write(entry.extensionOffset);
+            writer.Write(entry.extensionFnvHash);
+            writer.Write(entry.offset);
+            writer.Write(entry.decompSize);
+            writer.Write(entry.compSize);
+            writer.Write(entry.compSize2);
+            writer.Write(entry.zero0);
+            writer.Write(entry.unk1);
+            writer.Write(entry.zero1);
         }
     }
 }

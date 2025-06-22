@@ -15,7 +15,6 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Determine byte order
@@ -24,28 +23,27 @@ namespace plugin_nintendo.Archives
 
             // Read header
             br.BaseStream.Position = 0;
-            var header = typeReader.Read<NarcHeader>(br);
+            var header = ReadHeader(br);
 
             // Read file entries
-            var fatHeader = typeReader.Read<NarcFatHeader>(br);
-            var entries = typeReader.ReadMany<FatEntry>(br, fatHeader.fileCount);
+            var fatHeader = ReadFatHeader(br);
+            var entries = ReadFatEntries(br, fatHeader.fileCount);
 
             // Read FNT
             var fntOffset = (int)br.BaseStream.Position;
-            var fntHeader = typeReader.Read<NarcFntHeader>(br);
+            var fntHeader = ReadFntHeader(br);
 
             var gmifOffset = fntOffset + fntHeader.chunkSize;
 
             _hasNames = br.ReadInt32() >= 8;
             if (_hasNames)
-                return NdsSupport.ReadFnt(typeReader, br, fntOffset + 8, gmifOffset + 8, entries).ToList();
+                return NdsSupport.ReadFnt(br, fntOffset + 8, gmifOffset + 8, entries).ToList();
 
             return entries.Select((x, i) => NdsSupport.CreateAfi(br.BaseStream, x.offset + gmifOffset + 8, x.Length, $"{i:00000000}.bin", i)).ToList();
         }
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -63,15 +61,18 @@ namespace plugin_nintendo.Archives
             }
             else
             {
-                NdsSupport.WriteFnt(typeWriter, bw, fntOffset + 8, files);
+                NdsSupport.WriteFnt(bw, fntOffset + 8, files);
                 fntSize = (int)(bw.BaseStream.Position - fntOffset);
             }
 
-            output.Position = fntOffset;
-            typeWriter.Write(new NarcFntHeader
+            var fntHeader = new NarcFntHeader
             {
+                magic = "BTNF",
                 chunkSize = fntSize
-            }, bw);
+            };
+
+            output.Position = fntOffset;
+            WriteFntHeader(fntHeader, bw);
 
             // Write GMIF
             var fatEntries = new List<FatEntry>();
@@ -95,20 +96,117 @@ namespace plugin_nintendo.Archives
             bw.Write((int)(output.Length - gmifOffset));
 
             // Write FAT
-            output.Position = fatOffset;
-            typeWriter.Write(new NarcFatHeader
+            var fatHeader = new NarcFatHeader
             {
+                magic = "BTAF",
                 chunkSize = FatHeaderSize_ + files.Count * FatEntrySize_,
                 fileCount = (short)files.Count
-            }, bw);
-            typeWriter.WriteMany(fatEntries, bw);
+            };
+
+            output.Position = fatOffset;
+            WriteFatHeader(fatHeader, bw);
+            WriteFatEntries(fatEntries, bw);
 
             // Write header
-            output.Position = 0;
-            typeWriter.Write(new NarcHeader
+            var header = new NarcHeader
             {
-                fileSize = (int)output.Length
-            }, bw);
+                fileSize = (int)output.Length,
+                bom = 0xFFFE,
+                version = 0x100,
+                chunkSize = 0x10,
+                chunkCount = 0x3
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private NarcHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new NarcHeader
+            {
+                magic = reader.ReadString(4),
+                bom = reader.ReadUInt16(),
+                version = reader.ReadInt16(),
+                fileSize = reader.ReadInt32(),
+                chunkSize = reader.ReadInt16(),
+                chunkCount = reader.ReadInt16()
+            };
+        }
+
+        private NarcFatHeader ReadFatHeader(BinaryReaderX reader)
+        {
+            return new NarcFatHeader
+            {
+                magic = reader.ReadString(4),
+                chunkSize = reader.ReadInt32(),
+                fileCount = reader.ReadInt16(),
+                reserved1 = reader.ReadInt16()
+            };
+        }
+
+        private FatEntry[] ReadFatEntries(BinaryReaderX reader, int count)
+        {
+            var result = new FatEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadFatEntry(reader);
+
+            return result;
+        }
+
+        private FatEntry ReadFatEntry(BinaryReaderX reader)
+        {
+            return new FatEntry
+            {
+                offset = reader.ReadInt32(),
+                endOffset = reader.ReadInt32()
+            };
+        }
+
+        private NarcFntHeader ReadFntHeader(BinaryReaderX reader)
+        {
+            return new NarcFntHeader
+            {
+                magic = reader.ReadString(4),
+                chunkSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(NarcHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.bom);
+            writer.Write(header.version);
+            writer.Write(header.fileSize);
+            writer.Write(header.chunkSize);
+            writer.Write(header.chunkCount);
+        }
+
+        private void WriteFatHeader(NarcFatHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.chunkSize);
+            writer.Write(header.fileCount);
+            writer.Write(header.reserved1);
+        }
+
+        private void WriteFatEntries(IList<FatEntry> entries, BinaryWriterX writer)
+        {
+            foreach (FatEntry entry in entries)
+                WriteFatEntry(entry, writer);
+        }
+
+        private void WriteFatEntry(FatEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.endOffset);
+        }
+
+        private void WriteFntHeader(NarcFntHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.chunkSize);
         }
     }
 }

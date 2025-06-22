@@ -7,7 +7,6 @@ using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
-using plugin_nintendo.NW4C;
 
 namespace plugin_nintendo.Images
 {
@@ -29,7 +28,6 @@ namespace plugin_nintendo.Images
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(fileStream, ByteOrder.BigEndian);
 
             // Read byte order
@@ -39,9 +37,13 @@ namespace plugin_nintendo.Images
             // Read header
             br.ByteOrder = byteOrder;
             fileStream.Position = fileStream.Length - 0x28;
-            var header = typeReader.Read<NW4CHeader>(br);
 
-            return (header.magic == "CLIM" || header.magic == "FLIM") && header.fileSize == fileStream.Length;
+            var magic = br.ReadString(4);
+            br.BaseStream.Position += 8;
+
+            var fileSize = br.ReadInt32();
+
+            return magic is "CLIM" or "FLIM" && fileSize == fileStream.Length;
         }
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)

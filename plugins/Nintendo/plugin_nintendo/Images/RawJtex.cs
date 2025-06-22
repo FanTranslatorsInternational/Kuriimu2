@@ -13,7 +13,6 @@ namespace plugin_nintendo.Images
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read data offset
@@ -27,7 +26,7 @@ namespace plugin_nintendo.Images
             }
 
             // Read header
-            var header = typeReader.Read<RawJtexHeader>(br);
+            var header = ReadHeader(br);
 
             // Read images
             input.Position = dataOffset;
@@ -46,7 +45,6 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, true);
 
             // Calculate offsets
@@ -69,8 +67,32 @@ namespace plugin_nintendo.Images
 
             // Write header
             output.Position = 0;
-            if (_shouldAlign) bw.Write(texDataOffset);
-            typeWriter.Write(header, bw);
+
+            if (_shouldAlign)
+                bw.Write(texDataOffset);
+
+            WriteHeader(header, bw);
+        }
+
+        private RawJtexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new RawJtexHeader
+            {
+                format = reader.ReadInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                paddedWidth = reader.ReadInt32(),
+                paddedHeight = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(RawJtexHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.format);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.paddedWidth);
+            writer.Write(header.paddedHeight);
         }
     }
 }

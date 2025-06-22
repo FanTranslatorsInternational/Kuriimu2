@@ -1,32 +1,26 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.Contract.Enums;
-
-namespace plugin_nintendo.Archives
+﻿namespace plugin_nintendo.Archives
 {
-    class NarcHeader
+    struct NarcHeader
     {
-        [FixedLength(4)]
-        public string magic = "NARC";
-        public ushort bom = (ushort)ByteOrder.LittleEndian;
-        public short version = 0x100;
-        public int fileSize;
-        public short chunkSize = 0x10;
-        public short chunkCount = 0x3;
+        public string magic; // NARC
+        public ushort bom;
+        public short version; // 0x100
+        public int fileSize; 
+        public short chunkSize; // 0x10
+        public short chunkCount; // 0x3
     }
 
-    class NarcFatHeader
+    struct NarcFatHeader
     {
-        [FixedLength(4)]
-        public string magic = "BTAF";
+        public string magic; // BTAF
         public int chunkSize;
         public short fileCount;
         public short reserved1;
     }
 
-    class NarcFntHeader
+    struct NarcFntHeader
     {
-        [FixedLength(4)]
-        public string magic = "BTNF";
+        public string magic; // BTNF
         public int chunkSize;
     }
 }

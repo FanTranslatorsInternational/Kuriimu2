@@ -9,9 +9,9 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class U8Header
+    struct U8Header
     {
-        public uint tag = 0x55aa382d;
+        public uint tag; // 0x55aa382d
         public int entryDataOffset;
         public int entryDataSize;
         public int dataOffset;
@@ -64,13 +64,12 @@ namespace plugin_nintendo.Archives
 
         public IEnumerable<IArchiveFile> Parse(Stream input, long fileSystemOffset, int fileSystemSize, int fileOffsetStart)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             br.BaseStream.Position = fileSystemOffset;
 
             // Get root entry
-            var root = typeReader.Read<U8Entry>(br);
+            var root = ReadEntry(br);
 
             // Get name stream
             var entriesSize = root.size * 0xC;
@@ -80,8 +79,28 @@ namespace plugin_nintendo.Archives
             // Parse entries
             FileOffsetStart = fileOffsetStart;
             br.BaseStream.Position = fileSystemOffset;
-            var entries = typeReader.ReadMany<U8Entry>(br, root.size);
+            var entries = ReadEntries(br, root.size);
             return ParseDirectory(input, entries);
+        }
+
+        private U8Entry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new U8Entry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private U8Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new U8Entry
+            {
+                tmp1 = reader.ReadInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
         }
 
         private IEnumerable<IArchiveFile> ParseDirectory(Stream input, IList<U8Entry> entries)

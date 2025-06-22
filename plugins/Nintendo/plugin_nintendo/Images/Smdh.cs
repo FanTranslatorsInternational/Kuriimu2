@@ -1,3 +1,4 @@
+using System.Text;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
@@ -17,17 +18,16 @@ namespace plugin_nintendo.Images
 
         public List<ImageFileInfo> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
-            using var br = new BinaryReaderX(input);
+            using var br = new BinaryReaderX(input, Encoding.Unicode);
 
             // Read header
-            _header = typeReader.Read<SmdhHeader>(br);
+            _header = ReadHeader(br);
 
             // Read application titles
-            _appTitles = typeReader.ReadMany<SmdhApplicationTitle>(br, 0x10);
+            _appTitles = ReadTitles(br, 0x10);
 
             // Read application settings
-            _settings = typeReader.Read<SmdhAppSettings>(br);
+            _settings = ReadSettings(br);
             br.BaseStream.Position += 0x8;
 
             // Read image data
@@ -58,7 +58,6 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, List<ImageFileInfo> imageInfos)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -71,9 +70,90 @@ namespace plugin_nintendo.Images
 
             // Write icon information
             output.Position = 0;
-            typeWriter.Write(_header, bw);
-            typeWriter.WriteMany(_appTitles, bw);
-            typeWriter.Write(_settings, bw);
+            WriteHeader(_header, bw);
+            WriteTitles(_appTitles, bw);
+            WriteSettings(_settings, bw);
+        }
+
+        private SmdhHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new SmdhHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt16(),
+                reserved = reader.ReadInt16()
+            };
+        }
+
+        private SmdhApplicationTitle[] ReadTitles(BinaryReaderX reader, int count)
+        {
+            var result = new SmdhApplicationTitle[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadTitle(reader);
+
+            return result;
+        }
+
+        private SmdhApplicationTitle ReadTitle(BinaryReaderX reader)
+        {
+            return new SmdhApplicationTitle
+            {
+                shortDesc = reader.ReadString(0x80),
+                longDesc = reader.ReadString(0x100),
+                publisher = reader.ReadString(0x80)
+            };
+        }
+
+        private SmdhAppSettings ReadSettings(BinaryReaderX reader)
+        {
+            return new SmdhAppSettings
+            {
+                gameRating = reader.ReadBytes(0x10),
+                regionLockout = reader.ReadInt32(),
+                makerID = reader.ReadInt32(),
+                makerBITID = reader.ReadInt64(),
+                flags = reader.ReadInt32(),
+                eulaVerMinor = reader.ReadByte(),
+                eulaVerMajor = reader.ReadByte(),
+                reserved = reader.ReadInt16(),
+                animDefaultFrame = reader.ReadInt32(),
+                streetPassID = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(SmdhHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.reserved);
+        }
+
+        private void WriteTitles(IList<SmdhApplicationTitle> entries, BinaryWriterX writer)
+        {
+            foreach (SmdhApplicationTitle entry in entries)
+                WriteTitle(entry, writer);
+        }
+
+        private void WriteTitle(SmdhApplicationTitle entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.shortDesc, writeNullTerminator: false);
+            writer.WriteString(entry.longDesc, writeNullTerminator: false);
+            writer.WriteString(entry.publisher, writeNullTerminator: false);
+        }
+
+        private void WriteSettings(SmdhAppSettings settings, BinaryWriterX writer)
+        {
+            writer.Write(settings.gameRating);
+            writer.Write(settings.regionLockout);
+            writer.Write(settings.makerID);
+            writer.Write(settings.makerBITID);
+            writer.Write(settings.flags);
+            writer.Write(settings.eulaVerMinor);
+            writer.Write(settings.eulaVerMajor);
+            writer.Write(settings.reserved);
+            writer.Write(settings.animDefaultFrame);
+            writer.Write(settings.streetPassID);
         }
     }
 }

@@ -1,14 +1,12 @@
 ﻿using Kanvas;
 using Kanvas.Encoding;
-using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    class NitroCharHeader
+    struct NitroCharHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public short tileCountX;
@@ -21,9 +19,8 @@ namespace plugin_nintendo.Images
         public int unk3;
     }
 
-    class NitroTtlpHeader
+    struct NitroTtlpHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public int colorDepth;  // Not depth of the palette colors; Colors are BGR555 always

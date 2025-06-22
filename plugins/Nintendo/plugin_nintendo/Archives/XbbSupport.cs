@@ -3,15 +3,14 @@
 namespace plugin_nintendo.Archives
 {
     [Alignment(0x20)]
-    class XbbHeader
+    struct XbbHeader
     {
-        [FixedLength(3)]
-        public string magic = "XBB";
-        public byte version = 1;
+        public string magic; // XBB
+        public byte version; // 1
         public int entryCount;
     }
 
-    class XbbFileEntry
+    struct XbbFileEntry
     {
         public int offset;
         public int size;
@@ -19,7 +18,7 @@ namespace plugin_nintendo.Archives
         public uint hash;
     }
 
-    class XbbHashEntry
+    struct XbbHashEntry
     {
         public uint hash;
         public int index;

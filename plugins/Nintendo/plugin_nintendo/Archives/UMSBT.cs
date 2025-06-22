@@ -12,7 +12,6 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read first offset
@@ -20,20 +19,11 @@ namespace plugin_nintendo.Archives
 
             // Read entries
             input.Position = 0;
-
-            var entries = new List<UMSBTEntry>();
-            while (input.Position < firstOffset)
-            {
-                var entry = typeReader.Read<UMSBTEntry>(br);
-                if (entry.size <= 0)
-                    break;
-
-                entries.Add(entry);
-            }
+            var entries = ReadEntries(br, firstOffset);
 
             // Add files
             var result = new List<IArchiveFile>();
-            for (var i = 0; i < entries.Count; i++)
+            for (var i = 0; i < entries.Length; i++)
             {
                 var entry = entries[i];
 
@@ -52,7 +42,6 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, List<IArchiveFile> files)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -67,18 +56,57 @@ namespace plugin_nintendo.Archives
                 output.Position = filePosition;
                 var writtenSize = file.WriteFileData(output);
 
-                entries.Add(new UMSBTEntry
+                var entry = new UMSBTEntry
                 {
                     offset = filePosition,
                     size = (int)writtenSize
-                });
+                };
+                entries.Add(entry);
 
                 filePosition += (int)writtenSize;
             }
 
             // Write entries
             output.Position = 0;
-            typeWriter.WriteMany(entries, bw);
+            WriteEntries(entries,bw);
+        }
+
+        private UMSBTEntry[] ReadEntries(BinaryReaderX reader, int endOffset)
+        {
+            int count = (endOffset - (int)reader.BaseStream.Position) / 8;
+            var result = new List<UMSBTEntry>(count);
+
+            while (reader.BaseStream.Position < endOffset)
+            {
+                UMSBTEntry entry = ReadEntry(reader);
+                if (entry.size <= 0)
+                    continue;
+
+                result.Add(entry);
+            }
+
+            return [.. result];
+        }
+
+        private UMSBTEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new UMSBTEntry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntries(IList<UMSBTEntry> entries, BinaryWriterX writer)
+        {
+            foreach (UMSBTEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(UMSBTEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

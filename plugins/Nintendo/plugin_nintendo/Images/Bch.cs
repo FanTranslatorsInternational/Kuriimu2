@@ -15,11 +15,10 @@ namespace plugin_nintendo.Images
 
         public List<ImageFileInfo> Load(Stream input)
         {
-            var typReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(_file = input, true);
 
             // Read header
-            _header = typReader.Read<BchHeader>(br);
+            _header = ReadHeader(br);
 
             if (_header.dataSize == 0)
                 return [];
@@ -93,6 +92,45 @@ namespace plugin_nintendo.Images
 
                 imageIndex++;
             }
+        }
+
+        private BchHeader ReadHeader(BinaryReaderX reader)
+        {
+            var header = new BchHeader
+            {
+                magic = reader.ReadString(4),
+                backwardComp = reader.ReadByte(),
+                forwardComp = reader.ReadByte(),
+                version = reader.ReadUInt16(),
+                mainHeaderOffset = reader.ReadUInt32(),
+                nameTableOffset = reader.ReadUInt32(),
+                gpuCommandsOffset = reader.ReadUInt32(),
+                dataOffset = reader.ReadUInt32()
+            };
+
+            if (header.backwardComp > 0x20)
+                header.dataExtOffset = reader.ReadUInt32();
+
+            header.relocTableOffset = reader.ReadUInt32();
+            header.mainHeaderSize = reader.ReadUInt32();
+            header.nameTableSize = reader.ReadUInt32();
+            header.gpuCommandsSize = reader.ReadUInt32();
+            header.dataSize = reader.ReadUInt32();
+
+            if (header.backwardComp > 0x20)
+                header.dataExtSize = reader.ReadUInt32();
+
+            header.relocTableSize = reader.ReadUInt32();
+            header.uninitDataSectionSize = reader.ReadUInt32();
+            header.uninitDescSectionSize = reader.ReadUInt32();
+
+            if (header.backwardComp > 7)
+                header.flags = reader.ReadUInt16();
+
+            if (header.backwardComp > 7)
+                header.addressCount = reader.ReadUInt16();
+
+            return header;
         }
     }
 }

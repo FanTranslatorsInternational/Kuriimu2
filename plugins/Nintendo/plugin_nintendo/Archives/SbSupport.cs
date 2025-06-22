@@ -1,11 +1,8 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_nintendo.Archives
+﻿namespace plugin_nintendo.Archives
 {
-    class SbHeader
+    struct SbHeader
     {
-        [FixedLength(2)] 
-        public string magic = "SB";
+        public string magic; // SB
         public short entryCount;
     }
 }

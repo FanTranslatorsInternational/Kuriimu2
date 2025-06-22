@@ -10,74 +10,67 @@ using plugin_nintendo.Common.Compression;
 
 namespace plugin_nintendo.Archives
 {
-    class Garc2Header
+    struct Garc2Header
     {
-        [FixedLength(4)]
-        public string magic = "CRAG";
+        public string magic; // CRAG
         public uint headerSize;
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
         public ushort byteOrder;
         public byte minor;
-        public byte major = 2;
-        public uint secCount = 4;
+        public byte major; // 2
+        public uint secCount; // 4
         public uint dataOffset;
         public uint fileSize;
         // misses largest file size from GARC4
     }
 
-    class Garc4Header
+    struct Garc4Header
     {
-        [FixedLength(4)]
-        public string magic = "CRAG";
+        public string magic;// CRAG
         public uint headerSize;
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
         public ushort byteOrder;
         public byte minor;
-        public byte major = 4;
-        public uint secCount = 4;
+        public byte major; // 4
+        public uint secCount; // 4
         public uint dataOffset;
         public uint fileSize;
         public uint largestFileSize;
     }
 
-    class GarcFatoHeader
+    struct GarcFatoHeader
     {
-        [FixedLength(4)]
-        public string magic = "OTAF";
+        public string magic; // OTAF
         public int sectionSize;
         public short entryCount;
-        public ushort unk1 = 0xFFFF;
+        public ushort unk1; // 0xFFFF
     }
 
-    class GarcFatbHeader
+    struct GarcFatbHeader
     {
-        [FixedLength(4)]
-        public string magic = "BTAF";
+        public string magic; // BTAF
         public int sectionSize;
         public int entryCount;
     }
 
-    class Garc2FatbEntry
+    struct Garc2FatbEntry
     {
-        public int unk1 = 1;
+        public int unk1; // 1
         public uint offset;
         public uint nextFileOffset;
         // misses size from GARC4
     }
 
-    class Garc4FatbEntry
+    struct Garc4FatbEntry
     {
-        public int unk1 = 1;
+        public int unk1; // 1
         public uint offset;
         public uint nextFileOffset;
         public uint size;
     }
 
-    class GarcFimbHeader
+    struct GarcFimbHeader
     {
-        [FixedLength(4)]
-        public string magic = "BMIF";
-        public uint headerSize = 0xC;
+        public string magic; // BMIF
+        public uint headerSize; // 0xC
         public uint dataSize;
     }
 

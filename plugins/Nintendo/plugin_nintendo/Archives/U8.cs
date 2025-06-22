@@ -2,7 +2,6 @@
 using Komponent.Contract.Enums;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.FileSystem;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
@@ -14,11 +13,10 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header
-            var header = typeReader.Read<U8Header>(br);
+            var header = ReadHeader(br);
 
             // Parse file system
             var fileSystemParser = new DefaultU8FileSystem(UPath.Root);
@@ -36,7 +34,6 @@ namespace plugin_nintendo.Archives
             var namePosition = HeaderSize_ + entries.Count * EntrySize_;
             var dataOffset = (namePosition + (int)nameStream.Length + 0x1F) & ~0x1F;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Write names
@@ -59,17 +56,52 @@ namespace plugin_nintendo.Archives
 
             // Write entries
             bw.BaseStream.Position = HeaderSize_;
-            typeWriter.WriteMany(entries.Select(x => x.Item1), bw);
+            WriteEntries(entries, bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new U8Header
+            var header = new U8Header
             {
+                tag = 0x55aa382d,
                 entryDataOffset = HeaderSize_,
                 entryDataSize = entries.Count * EntrySize_ + (int)nameStream.Length,
                 dataOffset = dataOffset
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
             bw.WritePadding(0x10, 0xCC);
+        }
+
+        private U8Header ReadHeader(BinaryReaderX reader)
+        {
+            return new U8Header
+            {
+                tag = reader.ReadUInt32(),
+                entryDataOffset = reader.ReadInt32(),
+                entryDataSize = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(U8Header header, BinaryWriterX writer)
+        {
+            writer.Write(header.tag);
+            writer.Write(header.entryDataOffset);
+            writer.Write(header.entryDataSize);
+            writer.Write(header.dataOffset);
+        }
+
+        private void WriteEntries(IList<(U8Entry, IArchiveFile)> entries, BinaryWriterX writer)
+        {
+            foreach ((U8Entry entry, IArchiveFile) entry in entries)
+                WriteEntry(entry.entry, writer);
+        }
+
+        private void WriteEntry(U8Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.tmp1);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

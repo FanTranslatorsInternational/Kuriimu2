@@ -1,18 +1,14 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
-using Konnect.Plugin.File.Archive;
+﻿using Komponent.IO;
 
 namespace plugin_nintendo.Archives
 {
-    class ViwEntry
+    struct ViwEntry
     {
         public int id;
-        [FixedLength(0x14)]
         public string name;
     }
 
-    class ViwInfHeader
+    struct ViwInfHeader
     {
         public int fileCount;
         public int metaCount;
@@ -20,13 +16,13 @@ namespace plugin_nintendo.Archives
         public int metaOffset;
     }
 
-    class ViwInfEntry
+    struct ViwInfEntry
     {
         public int offset;
         public int compSize;
     }
 
-    class ViwInfMetaEntry
+    struct ViwInfMetaEntry
     {
         public short unk1;
         public short unk2;

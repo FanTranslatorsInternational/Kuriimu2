@@ -1,11 +1,8 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_nintendo.Archives
+﻿namespace plugin_nintendo.Archives
 {
-    class DarcNdsHeader
+    struct DarcNdsHeader
     {
-        [FixedLength(4)] 
-        public string magic = "DARC";
+        public string magic; // DARC
         public int fileCount;
     }
 }

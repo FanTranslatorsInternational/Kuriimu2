@@ -6,25 +6,22 @@ using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class SarcHeader
+    struct SarcHeader
     {
-        [FixedLength(4)]
-        public string magic = "SARC";
-        public short headerSize = 0x14;
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
+        public string magic; // SARC
+        public short headerSize; // 0x14
         public ushort byteOrder;
         public int fileSize;
         public int dataOffset;
         public int unk1;
     }
 
-    class SfatHeader
+    struct SfatHeader
     {
-        [FixedLength(4)]
-        public string magic = "SFAT";
-        public short headerSize = 0xC;
+        public string magic; // SFAT
+        public short headerSize; // 0xC
         public short entryCount;
-        public uint hashMultiplier = 0x65;
+        public uint hashMultiplier; // 0x65
     }
 
     class SfatEntry
@@ -47,11 +44,10 @@ namespace plugin_nintendo.Archives
         }
     }
 
-    class SfntHeader
+    struct SfntHeader
     {
-        [FixedLength(4)]
-        public string magic = "SFNT";
-        public short headerSize = 0x8;
+        public string magic; // SFNT
+        public short headerSize; // 0x8
         public short zero0;
     }
 

@@ -25,11 +25,10 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _ncchHeader = typeReader.Read<NcchHeader>(br);
+            _ncchHeader = ReadHeader(br);
 
             var result = new List<IArchiveFile>();
 
@@ -73,7 +72,7 @@ namespace plugin_nintendo.Archives
             {
                 // Read and resolve ExeFS data
                 br.BaseStream.Position = _ncchHeader.exeFsOffset * MediaSize_;
-                var exeFs = typeReader.Read<NcchExeFsHeader>(br);
+                var exeFs = ReadExeFsHeader(br);
                 var exeFsFilePosition = br.BaseStream.Position;
 
                 // Add Files from ExeFS
@@ -118,7 +117,6 @@ namespace plugin_nintendo.Archives
         {
             var hash = new Sha256();
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             bw.BaseStream.Position = NcchHeaderSize_;
@@ -128,7 +126,7 @@ namespace plugin_nintendo.Archives
             if (exHeaderFile != null)
             {
                 var exHeaderPosition = bw.BaseStream.Position;
-                var writtenSize = exHeaderFile.WriteFileData(output);
+                _ = exHeaderFile.WriteFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -240,7 +238,124 @@ namespace plugin_nintendo.Archives
             _ncchHeader.ncchSize = (int)(output.Length / MediaSize_);
 
             bw.BaseStream.Position = 0;
-            typeWriter.Write(_ncchHeader, bw);
+            WriteHeader(_ncchHeader, bw);
+        }
+
+        private NcchHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new NcchHeader
+            {
+                rsa2048 = reader.ReadBytes(0x100),
+                magic = reader.ReadString(4),
+                ncchSize = reader.ReadInt32(),
+                partitionId = reader.ReadUInt64(),
+                makerCode = reader.ReadInt16(),
+                version = reader.ReadInt16(),
+                seedHashVerifier = reader.ReadUInt32(),
+                programID = reader.ReadUInt64(),
+                reserved1 = reader.ReadBytes(0x10),
+                logoRegionHash = reader.ReadBytes(0x20),
+                productCode = reader.ReadBytes(0x10),
+                exHeaderHash = reader.ReadBytes(0x20),
+                exHeaderSize = reader.ReadInt32(),
+                reserved2 = reader.ReadInt32(),
+                ncchFlags = reader.ReadBytes(0x8),
+                plainRegionOffset = reader.ReadInt32(),
+                plainRegionSize = reader.ReadInt32(),
+                logoRegionOffset = reader.ReadInt32(),
+                logoRegionSize = reader.ReadInt32(),
+                exeFsOffset = reader.ReadInt32(),
+                exeFsSize = reader.ReadInt32(),
+                exeFsHashRegionSize = reader.ReadInt32(),
+                reserved3 = reader.ReadInt32(),
+                romFsOffset = reader.ReadInt32(),
+                romFsSize = reader.ReadInt32(),
+                romFsHashRegionSize = reader.ReadInt32(),
+                reserved4 = reader.ReadInt32(),
+                exeFsSuperBlockHash = reader.ReadBytes(0x20),
+                romFsSuperBlockHash = reader.ReadBytes(0x20),
+            };
+        }
+
+        private NcchExeFsHeader ReadExeFsHeader(BinaryReaderX reader)
+        {
+            return new NcchExeFsHeader
+            {
+                fileEntries = ReadExeFsEntries(reader, 0xA),
+                reserved1 = reader.ReadBytes(0x20),
+                fileEntryHashes = ReadExeFsEntryHashes(reader, 0xA)
+            };
+        }
+
+        private NcchExeFsFileEntry[] ReadExeFsEntries(BinaryReaderX reader, int count)
+        {
+            var result = new NcchExeFsFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadExeFsEntry(reader);
+
+            return result;
+        }
+
+        private NcchExeFsFileEntry ReadExeFsEntry(BinaryReaderX reader)
+        {
+            return new NcchExeFsFileEntry
+            {
+                name = reader.ReadString(8),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private NcchExeFsFileEntryHash[] ReadExeFsEntryHashes(BinaryReaderX reader, int count)
+        {
+            var result = new NcchExeFsFileEntryHash[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadExeFsEntryHash(reader);
+
+            return result;
+        }
+
+        private NcchExeFsFileEntryHash ReadExeFsEntryHash(BinaryReaderX reader)
+        {
+            return new NcchExeFsFileEntryHash
+            {
+                hash = reader.ReadBytes(0x20)
+            };
+        }
+
+        private void WriteHeader(NcchHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.rsa2048);
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.ncchSize);
+            writer.Write(header.partitionId);
+            writer.Write(header.makerCode);
+            writer.Write(header.version);
+            writer.Write(header.seedHashVerifier);
+            writer.Write(header.programID);
+            writer.Write(header.reserved1);
+            writer.Write(header.logoRegionHash);
+            writer.Write(header.productCode);
+            writer.Write(header.exHeaderHash);
+            writer.Write(header.exHeaderSize);
+            writer.Write(header.reserved2);
+            writer.Write(header.ncchFlags);
+            writer.Write(header.plainRegionOffset);
+            writer.Write(header.plainRegionSize);
+            writer.Write(header.logoRegionOffset);
+            writer.Write(header.logoRegionSize);
+            writer.Write(header.exeFsOffset);
+            writer.Write(header.exeFsSize);
+            writer.Write(header.exeFsHashRegionSize);
+            writer.Write(header.reserved3);
+            writer.Write(header.romFsOffset);
+            writer.Write(header.romFsSize);
+            writer.Write(header.romFsHashRegionSize);
+            writer.Write(header.reserved4);
+            writer.Write(header.exeFsSuperBlockHash);
+            writer.Write(header.romFsSuperBlockHash);
         }
     }
 }

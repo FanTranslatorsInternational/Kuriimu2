@@ -4,7 +4,7 @@ using Konnect.Plugin.File.Image;
 
 namespace plugin_nintendo.Images
 {
-    class BimgHeader
+    struct BimgHeader
     {
         public int zero1;
         public int dataSize;

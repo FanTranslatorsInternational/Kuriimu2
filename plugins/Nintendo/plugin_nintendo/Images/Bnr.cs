@@ -15,11 +15,11 @@ namespace plugin_nintendo.Images
 
         public ImageFileInfo Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = typeReader.Read<BnrHeader>(br);
+            _header = ReadHeader(br);
+            br.SeekAlignment(0x20);
 
             // Read indices
             var indexData = br.ReadBytes(0x200);
@@ -51,7 +51,6 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -88,7 +87,9 @@ namespace plugin_nintendo.Images
 
             // Write header
             output.Position = 0;
-            typeWriter.Write(_header, bw);
+            WriteHeader(_header, bw);
+
+            bw.WriteAlignment(0x20);
         }
 
         private int GetTitleInfoSize(short version)
@@ -133,6 +134,27 @@ namespace plugin_nintendo.Images
                 hashRegion = new SubStream(output, 0x1240, 0x1180);
                 _header.crc16_v103 = crc16.ComputeValue(hashRegion);
             }
+        }
+
+        private BnrHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new BnrHeader
+            {
+                version = reader.ReadInt16(),
+                crc16_v1 = reader.ReadUInt16(),
+                crc16_v2 = reader.ReadUInt16(),
+                crc16_v3 = reader.ReadUInt16(),
+                crc16_v103 = reader.ReadUInt16()
+            };
+        }
+
+        private void WriteHeader(BnrHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.version);
+            writer.Write(header.crc16_v1);
+            writer.Write(header.crc16_v2);
+            writer.Write(header.crc16_v3);
+            writer.Write(header.crc16_v103);
         }
     }
 }

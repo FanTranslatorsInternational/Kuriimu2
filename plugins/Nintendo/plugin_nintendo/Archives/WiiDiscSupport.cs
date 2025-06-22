@@ -3,7 +3,7 @@ using Konnect.Contract.DataClasses.FileSystem;
 
 namespace plugin_nintendo.Archives
 {
-    class WiiDiscHeader
+    struct WiiDiscHeader
     {
         public byte wiiDiscId;
         public short gameCode;
@@ -14,20 +14,18 @@ namespace plugin_nintendo.Archives
         public bool enableAudioStreaming;
         public byte streamBufferSize;
 
-        [FixedLength(0xE)]
         public byte[] zero0;
 
         public uint wiiMagicWord;       // 0x5D1C9EA3
         public uint gameCubeMagicWord;  // 0xC2339F3D
 
-        [FixedLength(0x40)]
         public string gameTitle;
 
         public bool disableHashVerification;
         public bool disableDecryption;
     }
 
-    class WiiDiscPartitionInformation
+    struct WiiDiscPartitionInformation
     {
         public int partitionCount1;
         public int partitionOffset1;
@@ -39,17 +37,16 @@ namespace plugin_nintendo.Archives
         public int partitionOffset4;
     }
 
-    class WiiDiscPartitionEntry
+    struct WiiDiscPartitionEntry
     {
         public int offset;
         public int type;
     }
 
-    class WiiDiscRegionSettings
+    struct WiiDiscRegionSettings
     {
         public int region;
 
-        [FixedLength(0xC)]
         public byte[] zero0;
 
         public byte japanAgeRating;
@@ -65,11 +62,10 @@ namespace plugin_nintendo.Archives
         public byte australiaAgeRating;
         public byte koreaAgeRating;
 
-        [FixedLength(0x6)]
         public byte[] zero2;
     }
 
-    class WiiDiscPartitionHeader
+    struct WiiDiscPartitionHeader
     {
         public WiiDiscPartitionTicket ticket;
         public int tmdOffset;
@@ -82,26 +78,18 @@ namespace plugin_nintendo.Archives
         public WiiDiscPartitionTmd tmd;
     }
 
-    class WiiDiscPartitionTicket
+    struct WiiDiscPartitionTicket
     {
         public int signatureType;
-        [FixedLength(0x100)]
         public byte[] signature;
-        [FixedLength(0x3C)]
         public byte[] padding;
-        [FixedLength(0x40)]
         public string issuer;
-        [FixedLength(0x3C)]
         public byte[] ecdhData;
-        [FixedLength(0x3)]
         public byte[] zero0;
-        [FixedLength(0x10)]
         public byte[] encryptedTitleKey;
         public byte unk0;
-        [FixedLength(0x8)]
         public byte[] ticketId;
         public int consoleId;
-        [FixedLength(0x8)]
         public byte[] titleId;
         public short unk1;
         public short ticketTitleVersion;
@@ -109,59 +97,47 @@ namespace plugin_nintendo.Archives
         public uint permitMask;
         public bool isTitleExportAllowed;
         public byte commonKeyIndex;
-        [FixedLength(0x30)]
         public byte[] unk2;
-        [FixedLength(0x40)]
         public byte[] contentAccessPermissions;
         public short zero1;
-        [FixedLength(0x8)]
         public WiiDiscPartitionTimeLimit[] timeLimits;
     }
 
-    class WiiDiscPartitionTimeLimit
+    struct WiiDiscPartitionTimeLimit
     {
         public int enableTimeLimit;
         public int limitSeconds;
     }
 
-    class WiiDiscPartitionTmd
+    struct WiiDiscPartitionTmd
     {
         public int signatureType;
-        [FixedLength(0x100)]
         public byte[] signature;
-        [FixedLength(0x3C)]
         public byte[] padding;
-        [FixedLength(0x40)]
         public string issuer;
         public byte version;
         public byte caCrlVersion;
         public byte signerCrlVersion;
         public bool isVWii;
         public long iosVersion;
-        [FixedLength(0x8)]
         public byte[] titleId;
         public int titleType;
         public short groupId;
         public short zero0;
         public short region;
-        [FixedLength(0x10)]
         public byte[] ratings;
-        [FixedLength(0xC)]
         public byte[] zero1;
-        [FixedLength(0xC)]
         public byte[] ipcMask;
-        [FixedLength(0x12)]
         public byte[] zero2;
         public uint accessRights;
         public short titleVersion;
         public short contentCount;
         public short bootIndex;
         public short zero3;
-        [VariableLength(nameof(contentCount))]
         public WiiDiscPartitionTmdContent[] contents;
     }
 
-    class WiiDiscPartitionTmdContent
+    struct WiiDiscPartitionTmdContent
     {
         public int contentId;
         public short index;

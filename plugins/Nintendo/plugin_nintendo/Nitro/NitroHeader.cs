@@ -1,10 +1,7 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_nintendo.Nitro
+﻿namespace plugin_nintendo.Nitro
 {
-    class NitroHeader
+    struct NitroHeader
     {
-        [FixedLength(4)]
         public string magic;
         public ushort byteOrder;
         public short unk1;

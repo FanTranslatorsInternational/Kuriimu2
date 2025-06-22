@@ -17,17 +17,17 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
-            var typeReader = new BinaryTypeReader();
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = typeReader.Read<XbbHeader>(br);
+            var header = ReadHeader(br);
+            br.SeekAlignment(0x20);
 
             // Read entries
-            var entries = typeReader.ReadMany<XbbFileEntry>(br, header.entryCount);
+            var entries = ReadFileEntries(br, header.entryCount);
 
             // Read hash entries
-            var hashEntries = typeReader.ReadMany<XbbHashEntry>(br, header.entryCount);
+            _ = ReadHashEntries(br, header.entryCount);
 
             // Add files
             var result = new List<IArchiveFile>();
@@ -54,7 +54,6 @@ namespace plugin_nintendo.Archives
             var hashEntryPosition = entryPosition + files.Count * EntrySize_;
             var namePosition = hashEntryPosition + files.Count * HashEntrySize_;
 
-            var typeWriter = new BinaryTypeWriter();
             using var bw = new BinaryWriterX(output);
 
             // Write names
@@ -101,18 +100,107 @@ namespace plugin_nintendo.Archives
 
             // Write file entries
             bw.BaseStream.Position = entryPosition;
-            typeWriter.WriteMany(fileEntries, bw);
+            WriteFileEntries(fileEntries, bw);
 
             // Write hash entries
             bw.BaseStream.Position = hashEntryPosition;
-            typeWriter.WriteMany(hashEntries.OrderBy(x => x.hash), bw);
+            WriteHashEntries(hashEntries.OrderBy(x => x.hash).ToArray(), bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            typeWriter.Write(new XbbHeader
+            var header = new XbbHeader
             {
+                magic = "XBB",
+                version = 1,
                 entryCount = files.Count
-            }, bw);
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+
+            bw.WriteAlignment(0x20);
+        }
+
+        private XbbHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new XbbHeader
+            {
+                magic = reader.ReadString(3),
+                version = reader.ReadByte(),
+                entryCount = reader.ReadInt32()
+            };
+        }
+
+        private XbbFileEntry[] ReadFileEntries(BinaryReaderX reader, int count)
+        {
+            var result = new XbbFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private XbbFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new XbbFileEntry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                hash = reader.ReadUInt32()
+            };
+        }
+
+        private XbbHashEntry[] ReadHashEntries(BinaryReaderX reader, int count)
+        {
+            var result = new XbbHashEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadHashEntry(reader);
+
+            return result;
+        }
+
+        private XbbHashEntry ReadHashEntry(BinaryReaderX reader)
+        {
+            return new XbbHashEntry
+            {
+                hash = reader.ReadUInt32(),
+                index = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(XbbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.entryCount);
+        }
+
+        private void WriteFileEntries(IList<XbbFileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (XbbFileEntry entry in entries)
+                WriteFileEntry(entry, writer);
+        }
+
+        private void WriteFileEntry(XbbFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
+            writer.Write(entry.nameOffset);
+            writer.Write(entry.hash);
+        }
+
+        private void WriteHashEntries(IList<XbbHashEntry> entries, BinaryWriterX writer)
+        {
+            foreach (XbbHashEntry entry in entries)
+                WriteHashEntry(entry, writer);
+        }
+
+        private void WriteHashEntry(XbbHashEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.index);
         }
     }
 }
