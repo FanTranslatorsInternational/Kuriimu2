@@ -136,10 +136,10 @@ namespace plugin_level5.Common.Image
 
             // Otherwise the heuristic could not determine a definite mapping
             // Show a dialog to the user, selecting the game
-            return await RequestEncodingDefinition();
+            return await RequestCtrEncodingDefinition();
         }
 
-        private async Task<EncodingDefinition> RequestEncodingDefinition()
+        private async Task<EncodingDefinition> RequestCtrEncodingDefinition()
         {
             var gameMapping = new Dictionary<string, int>
             {
@@ -232,8 +232,10 @@ namespace plugin_level5.Common.Image
             result.AddPaletteEncoding(0x02, new Rgba(5, 5, 5, 1, "ABGR"));
 
             result.AddColorEncoding(0x00, ImageFormats.Rgba8888(ByteOrder.BigEndian));
+            result.AddIndexEncoding(0x10, ImageFormats.I8(), [0, 1, 2]);
             result.AddIndexEncoding(0x11, ImageFormats.I8(), [0, 1, 2]);
             result.AddIndexEncoding(0x13, ImageFormats.I8(), [0, 1, 2]);
+            result.AddIndexEncoding(0x15, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), [0, 1, 2]);
             result.AddIndexEncoding(0x17, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), [0, 1, 2]);
 
             return result;
