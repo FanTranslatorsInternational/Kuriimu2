@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Komponent.Streams;
+using Kompression;
+using Kompression.Contract;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Checksum.Crc;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
-using Kontract.Kompression;
-using Kontract.Models.Archive;
-using Kryptography.Hash.Crc;
-#pragma warning disable 649
 
 namespace plugin_bandai_namco.Archives
 {
     class L7cHeader
     {
-        [FixedLength(4)]
         public string magic = "L7CA";
         public int unk = 0x00010000; // Version? Must be 0x00010000
         public int archiveSize;
@@ -60,28 +52,33 @@ namespace plugin_bandai_namco.Archives
         public ushort chunkId;
     }
 
-    class L7cArchiveFileInfo : ArchiveFileInfo
+    class L7cArchiveFile : ArchiveFile
     {
+        private static readonly Crc32 Crc32 = Crc32.Crc32B;
+
+        private readonly ArchiveFileInfo _fileInfo;
         private readonly Stream _origStream;
         private readonly bool _usesCompression;
-
-        private static readonly Crc32 Crc32 = Crc32.Default;
 
         public IList<L7cChunkEntry> Chunks { get; private set; }
 
         public L7cFileEntry Entry { get; }
 
-        public L7cArchiveFileInfo(Stream fileData, string filePath, IList<L7cChunkEntry> chunks, L7cFileEntry entry) :
-            base(new ChunkStream(fileData, entry.decompSize, ChunkInfo.ParseEntries(chunks)), filePath)
+        public L7cArchiveFile(ArchiveFileInfo fileInfo, IList<L7cChunkEntry> chunks, L7cFileEntry entry) : base(fileInfo)
         {
-            _origStream = fileData;
-            _usesCompression = ((ChunkStream)FileData).UsesCompression;
-
             Chunks = chunks;
             Entry = entry;
+
+            _fileInfo = fileInfo;
+            _origStream = fileInfo.FileData;
+
+            var chunkStream = new ChunkStream(_origStream, entry.decompSize, ChunkInfo.ParseEntries(chunks));
+
+            _fileInfo.FileData = chunkStream;
+            _usesCompression = chunkStream.UsesCompression;
         }
 
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
+        public long WriteFileData(Stream output)
         {
             // Write unchanged file
             if (!ContentChanged)
@@ -89,20 +86,21 @@ namespace plugin_bandai_namco.Archives
                 _origStream.Position = 0;
                 _origStream.CopyTo(output);
 
-                ContentChanged = false;
+                _fileInfo.ContentChanged = false;
                 return _origStream.Length;
             }
 
             // Write newly chunked file
-            FileData.Position = 0;
-            var chunkedStreamData = ChunkStream.CreateChunked(FileData, _usesCompression, out var newChunks);
+            _fileInfo.FileData.Position = 0;
+            var chunkedStreamData = ChunkStream.CreateChunked(_fileInfo.FileData, _usesCompression, out var newChunks);
             chunkedStreamData.CopyTo(output);
+
             Chunks = newChunks;
 
-            FileData.Position = 0;
-            Entry.crc32 = Crc32.ComputeValue(FileData);
+            _fileInfo.FileData.Position = 0;
+            Entry.crc32 = Crc32.ComputeValue(_fileInfo.FileData);
 
-            ContentChanged = false;
+            _fileInfo.ContentChanged = false;
             return chunkedStreamData.Length;
         }
     }

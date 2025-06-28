@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_ganbarion.Images
 {
     class JtexHeader
     {
-        [FixedLength(4)]
         public string magic = "jIMG";
         public int fileSize;
         public short width;
@@ -19,7 +16,6 @@ namespace plugin_ganbarion.Images
         public byte unk1;
         public byte unk2;
 
-        [VariableLength(nameof(unkCount))]
         public int[] unkList;
 
         public short unk3;

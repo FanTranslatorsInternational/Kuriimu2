@@ -1,37 +1,37 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_bandai_namco.Archives
 {
-    public class AmbPlugin : IFilePlugin, IIdentifyFiles
+    public class AmbPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("f701c40e-d7e8-4413-b3de-91eafbca450a");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.amb", "*.AMB" };
-        public PluginMetadata Metadata { get; }
 
-        public AmbPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.amb", "*.AMB"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("AMB", "onepiecefreak", "The resource archive used in Dragon Ball Heroes games.");
-        }
+            Author = "onepiecefreak",
+            Name = "AMB",
+            LongDescription = "The resource archive used in Dragon Ball Heroes games."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
             return br.ReadString(4) == "#AMB";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new AmbState();
         }

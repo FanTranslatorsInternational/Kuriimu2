@@ -1,16 +1,16 @@
 ﻿using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_bandai_namco.Archives
 {
     class Bin
     {
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -29,7 +29,7 @@ namespace plugin_bandai_namco.Archives
             }
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < offsets.Count - 1; i++)
             {
                 var subStream = new SubStream(input, offsets[i], offsets[i + 1] - offsets[i]);
@@ -41,7 +41,7 @@ namespace plugin_bandai_namco.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -52,10 +52,10 @@ namespace plugin_bandai_namco.Archives
             var filePosition = fileOffset;
 
             var offsets = new List<int>();
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 offsets.Add(filePosition);
 
@@ -65,26 +65,42 @@ namespace plugin_bandai_namco.Archives
 
             // Write offsets
             output.Position = 0;
-            bw.WriteMultiple(offsets);
+            WriteIntegers(offsets, bw);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream file, string fileName)
+        private IArchiveFile CreateAfi(Stream file, string fileName)
         {
             var buffer = new byte[4];
 
             file.Position = 0;
-            file.Read(buffer, 0, 4);
+            _ = file.Read(buffer, 0, 4);
 
             if (buffer.SequenceEqual(new byte[] { 0x45, 0x43, 0x44, 0x01 }))
             {
                 file.Position = 0xC;
-                file.Read(buffer, 0, 4);
+                _ = file.Read(buffer, 0, 4);
 
                 var decompressedSize = BinaryPrimitives.ReadInt32BigEndian(buffer);
-                return new ArchiveFileInfo(file, fileName, Kompression.Implementations.Compressions.LzEcd, decompressedSize);
+                return new ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file,
+                    Compression = Compressions.LzEcd.Build(),
+                    DecompressedSize = decompressedSize
+                });
             }
 
-            return new ArchiveFileInfo(file, fileName);
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = file
+            });
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach(int entry in entries)
+                writer.Write(entry);
         }
     }
 }

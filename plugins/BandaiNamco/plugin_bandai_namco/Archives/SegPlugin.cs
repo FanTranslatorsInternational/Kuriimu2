@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_bandai_namco.Archives
 {
-    public class SegPlugin:IFilePlugin
+    public class SegPlugin : IFilePlugin
     {
-        public Guid PluginId { get; }
-        public PluginType PluginType { get; }
-        public string[] FileExtensions { get; }
-        public PluginMetadata Metadata { get; }
+        public Guid PluginId => Guid.Parse("d80be35b-1c9f-4afd-b5a7-9c7e4fade16c");
 
-        public SegPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.BIN"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("SEG","onepiecefreak","The SEG format in Super Robot Taisen Z.");
-        }
+            Author = "onepiecefreak",
+            Name = "SEG",
+            LongDescription = "The SEG format in Super Robot Taisen Z."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new SegState();
         }

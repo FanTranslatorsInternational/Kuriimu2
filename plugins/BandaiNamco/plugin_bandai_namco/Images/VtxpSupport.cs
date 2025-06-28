@@ -1,24 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_bandai_namco.Images
 {
     class VtxpHeader
     {
-        [FixedLength(4)]
         public string magic = "VTXP";
         public int version = 0x00010000;
         public int imgCount;
         public int hashOffset;  // Hashes are CRC32B
-
-        [FixedLength(0x10)]
-        public byte[] padding = new byte[0x10];
     }
 
     class VtxpImageEntry
@@ -38,11 +32,16 @@ namespace plugin_bandai_namco.Images
         public int unk2;
     }
 
-    class VtxpImageInfo : ImageInfo
+    class VtxpImageFile : ImageFile
     {
         public VtxpImageEntry Entry { get; }
 
-        public VtxpImageInfo(byte[] imageData, int imageFormat, Size imageSize, VtxpImageEntry entry) : base(imageData, imageFormat, imageSize)
+        public VtxpImageFile(ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition, VtxpImageEntry entry) : base(imageInfo, encodingDefinition)
+        {
+            Entry = entry;
+        }
+
+        public VtxpImageFile(ImageFileInfo imageInfo, bool lockImage, IEncodingDefinition encodingDefinition, VtxpImageEntry entry) : base(imageInfo, lockImage, encodingDefinition)
         {
             Entry = entry;
         }
@@ -79,7 +78,11 @@ namespace plugin_bandai_namco.Images
             definition.AddColorEncodings(ColorFormats.Select(x => ((int)x.Key, x.Value)).ToArray());
 
             definition.AddPaletteEncodings(PaletteFormats.Select(x => ((int)x.Key, x.Value)).ToArray());
-            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition(x.Value, PaletteFormats.Keys.Select(x => (int)x).ToArray()))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition
+            {
+                IndexEncoding = x.Value,
+                PaletteEncodingIndices = PaletteFormats.Keys.Select(x => (int)x).ToArray()
+            })).ToArray());
 
             return definition;
         }

@@ -1,11 +1,8 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Configuration;
+﻿using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_bandai_namco.Images
 {
@@ -16,12 +13,12 @@ namespace plugin_bandai_namco.Images
     {
         private MtexHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<MtexHeader>();
+            _header = ReadHeader(br);
 
             // Ignore padding
             br.BaseStream.Position = 0x80;
@@ -29,15 +26,20 @@ namespace plugin_bandai_namco.Images
             // Read texture
             var texture = br.ReadBytes((int)input.Length - 0x80);
 
-            var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height));
-
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context,CtrTransformation.YFlip));
-            imageInfo.PadSize.ToPowerOfTwo();
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = MtexSupport.GetEncodingDefinition().GetColorEncoding(_header.format)?.BitDepth ?? 0,
+                ImageData = texture,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height),
+                RemapPixels = context => new CtrSwizzle(context, CtrTransformation.YFlip),
+                PadSize = builder => builder.ToPowerOfTwo()
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, IKanvasImage image)
+        public void Save(Stream output, ImageFileInfo image)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -47,9 +49,37 @@ namespace plugin_bandai_namco.Images
             _header.format = (byte)image.ImageFormat;
 
             // Writing
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+
             bw.BaseStream.Position = 0x80;
-            bw.Write(image.ImageInfo.ImageData);
+            bw.Write(image.ImageData);
+        }
+
+        private MtexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new MtexHeader
+            {
+                magic = reader.ReadString(4),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadInt16(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unk4 = reader.ReadInt16(),
+                format = reader.ReadInt16()
+            };
+        }
+
+        private void WriteHeader(MtexHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk4);
+            writer.Write(header.format);
         }
     }
 }

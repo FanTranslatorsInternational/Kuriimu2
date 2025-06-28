@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.Extensions;
-using Komponent.IO;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.DataClasses.FileSystem;
+using Konnect.Extensions;
 
 namespace plugin_bandai_namco.Archives
 {
@@ -17,15 +14,15 @@ namespace plugin_bandai_namco.Archives
 
         public UPath[] ApkPaths => _apkHeaders.Select(x => (UPath)_strings[x.stringIndex]).ToArray();
 
-        public IList<IArchiveFileInfo> Load(Stream input, IList<Stream> apkStreams)
+        public List<IArchiveFile> Load(Stream input, IList<Stream> apkStreams)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Validate APK streams
-            var tempApkStreams=new List<Stream>();
+            var tempApkStreams = new List<Stream>();
             foreach (var apkStream in apkStreams)
             {
-                using var apkBr=new BinaryReaderX(apkStream,true);
+                using var apkBr = new BinaryReaderX(apkStream, true);
                 if (apkBr.ReadString(8) == ApkSection.StartSection)
                 {
                     apkStream.Position = 0;
@@ -41,14 +38,14 @@ namespace plugin_bandai_namco.Archives
             // Read pack headers
             _apkHeaders = sections
                 .Where(x => x.Type == ApkSection.PackHeader)
-                .Select(x => x.As<ApkPackHeader>())
+                .Select(x => x.ReadPackHeader())
                 .ToArray();
 
             // Order streams to pack headers
             var combinedHeaderStreams = new List<(ApkPackHeader, Stream)>();
             foreach (var apkStream in apkStreams)
             {
-                var apkHeader = ApkSection.ReadAll(apkStream).FirstOrDefault(x => x.Type == ApkSection.PackHeader).As<ApkPackHeader>();
+                var apkHeader = ApkSection.ReadAll(apkStream).FirstOrDefault(x => x.Type == ApkSection.PackHeader).ReadPackHeader();
                 combinedHeaderStreams.Add((apkHeader, apkStream));
             }
 
@@ -57,27 +54,27 @@ namespace plugin_bandai_namco.Archives
                 apkStreams.Add(combinedHeaderStreams.FirstOrDefault(x => x.Item1.headerIdent.SequenceEqual(apkHeader.headerIdent)).Item2);
 
             // Read entries
-            _entries = sections.FirstOrDefault(x => x.Type == ApkSection.PackToc).As<ApkToc>().entries;
+            _entries = sections.FirstOrDefault(x => x.Type == ApkSection.PackToc).ReadToc().entries;
 
             // Read strings
             using var stringBr = new BinaryReaderX(sections.FirstOrDefault(x => x.Type == ApkSection.StringTable).Data, true);
 
-            var stringHeader = stringBr.ReadType<ApkStringHeader>();
+            var stringHeader = ApkSupport.ReadStringHeader(stringBr);
 
             stringBr.BaseStream.Position = stringHeader.tableOffset;
-            var stringOffsets = stringBr.ReadMultiple<int>(stringHeader.stringCount);
+            var stringOffsets = ReadIntegers(stringBr, stringHeader.stringCount);
 
             _strings = new List<string>();
             foreach (var stringOffset in stringOffsets)
             {
                 stringBr.BaseStream.Position = stringHeader.dataOffset + stringOffset;
-                _strings.Add(stringBr.ReadCStringASCII());
+                _strings.Add(stringBr.ReadNullTerminatedString());
             }
 
-            return ApkSupport.EnumerateFiles(apkStreams, _entries[0], UPath.Root, _apkHeaders, _strings, _entries).ToArray();
+            return ApkSupport.EnumerateFiles(apkStreams, _entries[0], UPath.Root, _apkHeaders, _strings, _entries).ToList();
         }
 
-        public void Save(Stream output, IList<(UPath, Stream)> apkStreams, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<(UPath, Stream)> apkStreams, IList<IArchiveFile> files)
         {
             // Save APKs
             var changedFiles = files.Where(x => x.ContentChanged).ToArray();
@@ -95,7 +92,7 @@ namespace plugin_bandai_namco.Archives
             SaveInternal(output, files);
         }
 
-        private void SaveInternal(Stream output, IList<IArchiveFileInfo> files)
+        private void SaveInternal(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output, true);
 
@@ -131,12 +128,12 @@ namespace plugin_bandai_namco.Archives
             var dataOffset = (endSectionOffset + 0x10 + 0x7FF) & ~0x7FF;
 
             // Write end section
-            bw.WriteType(new ApkSectionHeader { magic = ApkSection.EndSection });
+            ApkSupport.WriteSectionHeader(new ApkSectionHeader { magic = ApkSection.EndSection }, bw);
 
             // Write pack file section
             output.Position = packFslsOffset;
-            bw.WriteType(new ApkSectionHeader { magic = ApkSection.PackFiles, sectionSize = 0x10 });
-            bw.WriteType(new ApkPackFilesHeader());
+            ApkSupport.WriteSectionHeader(new ApkSectionHeader { magic = ApkSection.PackFiles, sectionSize = 0x10 }, bw);
+            ApkSupport.WritePackFilesHeader(new ApkPackFilesHeader(), bw);
 
             // Write entries
             output.Position = entryOffset;
@@ -144,13 +141,13 @@ namespace plugin_bandai_namco.Archives
 
             // Write start section
             output.Position = 0;
-            bw.WriteType(new ApkSectionHeader { magic = ApkSection.StartSection });
+            ApkSupport.WriteSectionHeader(new ApkSectionHeader { magic = ApkSection.StartSection }, bw);
 
             // Write pack headers
             foreach (var apkHeader in _apkHeaders)
             {
-                bw.WriteType(new ApkSectionHeader { magic = ApkSection.PackHeader, sectionSize = 0x20 });
-                bw.WriteType(new ApkPackHeader { dataOffset = apkHeader.dataOffset, stringIndex = apkHeader.stringIndex, headerIdent = apkHeader.headerIdent });
+                ApkSupport.WriteSectionHeader(new ApkSectionHeader { magic = ApkSection.PackHeader, sectionSize = 0x20 }, bw);
+                ApkSupport.WritePackHeader(new ApkPackHeader { dataOffset = apkHeader.dataOffset, stringIndex = apkHeader.stringIndex, headerIdent = apkHeader.headerIdent }, bw);
             }
         }
 
@@ -165,6 +162,16 @@ namespace plugin_bandai_namco.Archives
 
             foreach (var file in entry.Files)
                 yield return file.FilePath.GetName();
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
         }
     }
 }

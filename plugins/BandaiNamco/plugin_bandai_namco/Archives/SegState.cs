@@ -1,28 +1,19 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_bandai_namco.Archives
 {
-    class SegState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class SegState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Seg _arc;
+        private readonly Seg _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public SegState()
-        {
-            _arc = new Seg();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -32,30 +23,28 @@ namespace plugin_bandai_namco.Archives
             var sizeName = filePath.GetDirectory() / filePath.GetNameWithoutExtension() + "SIZE.BIN";
             var sizeStream = fileSystem.FileExists(sizeName) ? await fileSystem.OpenFileAsync(sizeName) : null;
 
-            Files = _arc.Load(segStream, binStream, sizeStream);
+            _files = _arc.Load(segStream, binStream, sizeStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var segStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            var binStream = fileSystem.OpenFile(savePath.ChangeExtension(".BIN"), FileMode.Create, FileAccess.Write);
+            var segStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            var binStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".BIN"), FileMode.Create, FileAccess.Write);
 
             var sizeName = savePath.GetDirectory() / savePath.GetNameWithoutExtension() + "SIZE.BIN";
-            var sizeStream = Files.Any(x => x.UsesCompression) ? fileSystem.OpenFile(sizeName, FileMode.Create, FileAccess.Write) : null;
+            var sizeStream = Files.Any(x => x.UsesCompression) ? await fileSystem.OpenFileAsync(sizeName, FileMode.Create, FileAccess.Write) : null;
 
-            _arc.Save(segStream, binStream, sizeStream, Files);
-
-            return Task.CompletedTask;
+            _arc.Save(segStream, binStream, sizeStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_bandai_namco.Archives
 {
     public class BinPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("0476ea75-73e2-4e2f-995d-874093a3fc23");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.bin" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bin"];
 
-        public BinPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("SRTUX", "onepiecefreak", "The main resource in Kanken Training 2 and SRTUX.");
-        }
+            Author = "onepiecefreak",
+            Name = "SRTUX",
+            LongDescription = "The main resource in Kanken Training 2 and SRTUX."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new BinState();
         }

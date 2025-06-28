@@ -1,23 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_bandai_namco.Images
 {
     class NstpHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int version = 0x00010000;
         public int imgCount;
         public int hashOffset;  // Hashes are CRC32B
-
-        [FixedLength(0x10)] 
-        public byte[] padding = new byte[0x10];
     }
 
     class NstpImageEntry
@@ -36,11 +31,16 @@ namespace plugin_bandai_namco.Images
         public int unk4;
     }
 
-    class NstpImageInfo : ImageInfo
+    class NstpImageFile : ImageFile
     {
         public NstpImageEntry Entry { get; }
 
-        public NstpImageInfo(byte[] imageData, int imageFormat, Size imageSize, NstpImageEntry entry) : base(imageData, imageFormat, imageSize)
+        public NstpImageFile(ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition, NstpImageEntry entry) : base(imageInfo, encodingDefinition)
+        {
+            Entry = entry;
+        }
+
+        public NstpImageFile(ImageFileInfo imageInfo, bool lockImage, IEncodingDefinition encodingDefinition, NstpImageEntry entry) : base(imageInfo, lockImage, encodingDefinition)
         {
             Entry = entry;
         }
@@ -51,7 +51,6 @@ namespace plugin_bandai_namco.Images
         private static readonly IDictionary<int, IColorEncoding> NstpFormats = new Dictionary<int, IColorEncoding>
         {
             [0x01] = ImageFormats.L8(),
-
             [0x04] = new Rgba(5, 5, 5, 1, "ARGB"),
             [0x05] = new Rgba(4, 4, 4, 4, "ARGB"),
             [0x06] = new Rgba(8, 8, 8, 8, "ARGB"),

@@ -1,39 +1,39 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_ganbarion.Archives
 {
-    public class JarcPlugin : IFilePlugin, IIdentifyFiles
+    public class JarcPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("26dad045-388d-42f3-a625-ec44dbf2060d");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.jarc" };
-        public PluginMetadata Metadata { get; }
 
-        public JarcPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.jarc"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("JARC", "onepiecefreak", "The main archive resource in Ganbarion games on 3DS.");
-        }
+            Author = "onepiecefreak",
+            Name = "JARC",
+            LongDescription = "The main archive resource in Ganbarion games on 3DS."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadString(4);
+            string magic = br.ReadString(4);
 
-            return magic == "jARC" || magic == "jCMP";
+            return magic is "jARC" or "jCMP";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new JarcState();
         }

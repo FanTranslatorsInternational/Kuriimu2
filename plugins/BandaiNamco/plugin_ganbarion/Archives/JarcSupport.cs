@@ -1,15 +1,11 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_ganbarion.Archives
 {
     class JcmpHeader
     {
-        [FixedLength(4)]
         public string magic="jCMP";
-
         public int fileSize;
         public int unk1;
         public int compSize;
@@ -18,7 +14,6 @@ namespace plugin_ganbarion.Archives
 
     class JarcHeader
     {
-        [FixedLength(4)]
         public string magic = "jARC";
         public int fileSize;
         public int unk1;
@@ -34,16 +29,11 @@ namespace plugin_ganbarion.Archives
         public int unk1;
     }
 
-    class JarcArchiveFileInfo : ArchiveFileInfo
+    class JarcArchiveFile : ArchiveFile
     {
         public JarcEntry Entry { get; }
 
-        public JarcArchiveFileInfo(Stream fileData, string filePath,JarcEntry entry) : base(fileData, filePath)
-        {
-            Entry = entry;
-        }
-
-        public JarcArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize, JarcEntry entry) : base(fileData, filePath, configuration, decompressedSize)
+        public JarcArchiveFile(ArchiveFileInfo fileInfo, JarcEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }

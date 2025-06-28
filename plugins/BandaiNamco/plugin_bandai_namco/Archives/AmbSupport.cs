@@ -1,18 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Progress;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_bandai_namco.Archives
 {
     class AmbHeader
     {
-        [FixedLength(4)]
         public string magic = "#AMB";
         public int headerLength = 0x20;
         public int zero0;
@@ -31,29 +25,13 @@ namespace plugin_bandai_namco.Archives
         public int zero0;
     }
 
-    class AmbArchiveFileInfo : ArchiveFileInfo
+    class AmbArchiveFile : ArchiveFile
     {
         public AmbFileEntry Entry { get; }
 
-        public AmbArchiveFileInfo(Stream fileData, string filePath, AmbFileEntry entry) :
-            base(fileData, filePath)
+        public AmbArchiveFile(ArchiveFileInfo fileInfo, AmbFileEntry entry) : base(fileInfo)
         {
             Entry = entry;
-        }
-
-        public AmbArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-        }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize = base.SaveFileData(output, compress, progress);
-
-            while (output.Position % 0x80 > 0)
-                output.WriteByte(0);
-
-            return writtenSize;
         }
     }
 
@@ -107,7 +85,7 @@ namespace plugin_bandai_namco.Archives
             input.Position = bkPos + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

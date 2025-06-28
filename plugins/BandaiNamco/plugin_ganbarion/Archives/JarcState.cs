@@ -1,70 +1,58 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_ganbarion.Archives
 {
-    class JarcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class JarcState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private string _magic;
-        private Jarc _jarc;
-        private Jcmp _jcmp;
+        private Jarc _jarc = new();
+        private Jcmp _jcmp = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public JarcState()
-        {
-            _jarc = new Jarc();
-            _jcmp = new Jcmp();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream, true);
-            _magic = br.PeekString();
+            _magic = br.PeekString(4);
 
             switch (_magic)
             {
                 case "jARC":
-                    Files = _jarc.Load(fileStream);
+                    _files = _jarc.Load(fileStream);
                     break;
 
                 case "jCMP":
-                    Files = _jcmp.Load(fileStream);
+                    _files = _jcmp.Load(fileStream);
                     break;
             }
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
             switch (_magic)
             {
                 case "jARC":
-                    _jarc.Save(fileStream, Files);
+                    _jarc.Save(fileStream, _files);
                     break;
 
                 case "jCMP":
-                    _jcmp.Save(fileStream, Files);
+                    _jcmp.Save(fileStream, _files);
                     break;
             }
-
-            return Task.CompletedTask;
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

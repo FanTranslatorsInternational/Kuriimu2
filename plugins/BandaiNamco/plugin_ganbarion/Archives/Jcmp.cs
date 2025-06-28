@@ -1,38 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_ganbarion.Archives
 {
     class Jcmp
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(JcmpHeader));
+        private static readonly int HeaderSize = 0x14;
 
-        private Jarc _jarc;
+        private Jarc _jarc = new();
         private JcmpHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<JcmpHeader>();
+            _header = ReadHeader(br);
 
             // Decompress data
             var jarcStream = new MemoryStream();
             Compressions.ZLib.Build().Decompress(new SubStream(input, 0x14, _header.compSize), jarcStream);
             jarcStream.Position = 0;
 
-            _jarc = new Jarc();
             return _jarc.Load(jarcStream);
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -53,7 +48,28 @@ namespace plugin_ganbarion.Archives
             _header.fileSize = (int)output.Length;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private JcmpHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new JcmpHeader
+            {
+                magic = reader.ReadString(4),
+                fileSize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(JcmpHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileSize);
+            writer.Write(header.unk1);
+            writer.Write(header.compSize);
+            writer.Write(header.decompSize);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 using plugin_bandai_namco.Compression;
 
 namespace plugin_bandai_namco.Archives
@@ -13,7 +12,7 @@ namespace plugin_bandai_namco.Archives
     {
         private IList<int> _sizes;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -35,7 +34,7 @@ namespace plugin_bandai_namco.Archives
             }
 
             // Add files
-            var result = new ArchiveFileInfo[offsets.Count];
+            var result = new List<IArchiveFile>(offsets.Count);
             for (var i = 0; i < offsets.Count; i++)
             {
                 var subStream = new SubStream(input, offsets[i], _sizes[i]);
@@ -43,14 +42,19 @@ namespace plugin_bandai_namco.Archives
                 var compressionMethod = NintendoCompressor.PeekCompressionMethod(subStream);
                 var decompressedSize = NintendoCompressor.PeekDecompressedSize(subStream);
 
-                result[i] = new ArchiveFileInfo(subStream, $"{i:00000000}{_3dsLzSupport.DetermineExtension(subStream)}",
-                    NintendoCompressor.GetConfiguration(compressionMethod), decompressedSize);
+                result.Add(new ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = $"{i:00000000}{_3dsLzSupport.DetermineExtension(subStream)}",
+                    FileData = subStream,
+                    Compression = NintendoCompressor.GetConfiguration(compressionMethod),
+                    DecompressedSize = decompressedSize
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Since this is a pointerless archive, we need to keep the original offsets in tact as much as possible
 
@@ -62,13 +66,13 @@ namespace plugin_bandai_namco.Archives
 
                 bw.WriteString("3DS-LZ\r\n", Encoding.ASCII, false, false);
 
-                var writtenSize = files[i].SaveFileData(output);
+                var writtenSize = files[i].WriteFileData(output);
                 var paddedSize = (writtenSize + 0x3F) & ~0x3F;
                 var finalSize = paddedSize - 8;
                 if (i + 1 < files.Count && finalSize > _sizes[i])
                     throw new InvalidOperationException("Plugin can not save larger files than their original.");
 
-                output.Position = offset + _sizes[i]+8;
+                output.Position = offset + _sizes[i] + 8;
             }
         }
     }

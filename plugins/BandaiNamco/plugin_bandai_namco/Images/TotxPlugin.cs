@@ -1,39 +1,39 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_bandai_namco.Images
 {
-    public class TotxPlugin : IFilePlugin, IIdentifyFiles
+    public class TotxPlugin : IIdentifyFiles
     {
-        public Guid PluginId { get; }
-        public PluginType PluginType { get; }
-        public string[] FileExtensions { get; }
-        public PluginMetadata Metadata { get; }
+        public Guid PluginId => Guid.Parse("d05e8cb7-cb50-41b6-9513-494e25989915");
 
-        public TotxPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.ttx"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("TOTX","onepiecefreak","Image resource found in FileArc.bin's of Dragon Ball Heroes games.");
-        }
+            Author = "onepiecefreak",
+            Name = "TOTX",
+            LongDescription = "Image resource found in FileArc.bin's of Dragon Ball Heroes games."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br=new BinaryReaderX(fileStream);
             return br.ReadString(4) == "TOTX";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new TotxState(fileManager);
+            return new TotxState(pluginFileManager);
         }
     }
 }
