@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.1.0" />
-    <PackageReference Include="Komponent" Version="2.1.4" />
+    <PackageReference Include="Komponent" Version="2.1.5" />
   </ItemGroup>
 
   <ItemGroup>
