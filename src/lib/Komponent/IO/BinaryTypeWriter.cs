@@ -6,23 +6,23 @@ using Komponent.DataClasses;
 
 namespace Komponent.IO
 {
-    public class BinaryTypeWriter
+    public static class BinaryTypeWriter
     {
         private static readonly MemberInfoProvider MemberInfoProvider = new();
 
-        public void Write(object value, BinaryWriterX writer)
+        public static void Write(object value, BinaryWriterX writer)
         {
             var storage = new ValueStorage();
             WriteInternal(value, value.GetType(), writer, storage);
         }
 
-        public void WriteMany<T>(IEnumerable<T> list, BinaryWriterX writer)
+        public static void WriteMany<T>(IEnumerable<T> list, BinaryWriterX writer)
         {
             foreach (T element in list)
                 Write(element, writer);
         }
 
-        private void WriteInternal(object writeValue, Type writeType, BinaryWriterX writer, ValueStorage storage, FieldInfo? fieldInfo = null)
+        private static void WriteInternal(object writeValue, Type writeType, BinaryWriterX writer, ValueStorage storage, FieldInfo? fieldInfo = null)
         {
             ByteOrder bkByteOrder = writer.ByteOrder;
             BitOrder bkBitOrder = writer.BitOrder;
@@ -66,7 +66,7 @@ namespace Komponent.IO
             writer.BlockSize = bkBlockSize;
         }
 
-        private void WritePrimitive(object writeValue, Type writeType, BinaryWriterX writer)
+        private static void WritePrimitive(object writeValue, Type writeType, BinaryWriterX writer)
         {
             switch (Type.GetTypeCode(writeType))
             {
@@ -86,7 +86,7 @@ namespace Komponent.IO
             }
         }
 
-        private void WriteString(string writeValue, BinaryWriterX writer, LengthInfo? lengthInfo)
+        private static void WriteString(string writeValue, BinaryWriterX writer, LengthInfo? lengthInfo)
         {
             // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
             if (lengthInfo == null)
@@ -101,7 +101,7 @@ namespace Komponent.IO
             writer.Write(stringBytes);
         }
 
-        private void WriteList(IList writeValue, BinaryWriterX writer, LengthInfo lengthInfo, ValueStorage storage)
+        private static void WriteList(IList writeValue, BinaryWriterX writer, LengthInfo lengthInfo, ValueStorage storage)
         {
             if (writeValue.Count != lengthInfo.Length)
                 throw new FieldLengthMismatchException(writeValue.Count, lengthInfo.Length);
@@ -111,7 +111,7 @@ namespace Komponent.IO
                 WriteInternal(value, value.GetType(), writer, storage.CreateScope($"[{listCounter++}]"));
         }
 
-        private void WriteComplex(object writeValue, Type writeType, BinaryWriterX writer, ValueStorage storage)
+        private static void WriteComplex(object writeValue, Type writeType, BinaryWriterX writer, ValueStorage storage)
         {
             BitFieldInfo? bitField = MemberInfoProvider.GetBitFieldInfo(writeType);
             int? alignment = MemberInfoProvider.GetAlignment(writeType);
@@ -150,7 +150,7 @@ namespace Komponent.IO
                 writer.WriteAlignment(alignment.Value);
         }
 
-        private bool ResolveCondition(ConditionInfo? condition, ValueStorage storage)
+        private static bool ResolveCondition(ConditionInfo? condition, ValueStorage storage)
         {
             // If no condition is given, resolve it to true so the field is read
             if (condition == null)
@@ -179,7 +179,7 @@ namespace Komponent.IO
             }
         }
 
-        private byte[] ClampBuffer(byte[] input, int length)
+        private static byte[] ClampBuffer(byte[] input, int length)
         {
             var buffer = new byte[length];
 
@@ -188,12 +188,12 @@ namespace Komponent.IO
             return buffer;
         }
 
-        private bool IsList(Type type)
+        private static bool IsList(Type type)
         {
             return type.IsAssignableTo(typeof(IList));
         }
 
-        private bool IsStruct(Type type)
+        private static bool IsStruct(Type type)
         {
             return type is { IsValueType: true, IsEnum: false };
         }

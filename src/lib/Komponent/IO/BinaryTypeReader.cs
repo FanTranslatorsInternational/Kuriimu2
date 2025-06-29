@@ -5,22 +5,22 @@ using Komponent.DataClasses;
 
 namespace Komponent.IO
 {
-    public class BinaryTypeReader
+    public static class BinaryTypeReader
     {
         private static readonly MemberInfoProvider MemberInfoProvider = new();
 
-        public T? Read<T>(BinaryReaderX reader)
+        public static T? Read<T>(BinaryReaderX reader)
         {
             return (T?)Read(reader, typeof(T));
         }
 
-        public object? Read(BinaryReaderX reader, Type type)
+        public static object? Read(BinaryReaderX reader, Type type)
         {
             var storage = new ValueStorage();
             return ReadInternal(reader, type, storage);
         }
 
-        public IList<T?> ReadMany<T>(BinaryReaderX reader, int length)
+        public static IList<T?> ReadMany<T>(BinaryReaderX reader, int length)
         {
             var result = new T?[length];
             for (var i = 0; i < length; i++)
@@ -29,7 +29,7 @@ namespace Komponent.IO
             return result;
         }
 
-        public IList<object?> ReadMany(BinaryReaderX reader, Type type, int length)
+        public static IList<object?> ReadMany(BinaryReaderX reader, Type type, int length)
         {
             var result = new object?[length];
             for (var i = 0; i < length; i++)
@@ -38,7 +38,7 @@ namespace Komponent.IO
             return result;
         }
 
-        private object? ReadInternal(BinaryReaderX reader, Type type, ValueStorage storage, FieldInfo? fieldInfo = null, bool isTypeChosen = false)
+        private static object? ReadInternal(BinaryReaderX reader, Type type, ValueStorage storage, FieldInfo? fieldInfo = null, bool isTypeChosen = false)
         {
             ByteOrder bkByteOrder = reader.ByteOrder;
             BitOrder bkBitOrder = reader.BitOrder;
@@ -90,7 +90,7 @@ namespace Komponent.IO
             return returnValue;
         }
 
-        private object ReadTypePrimitive(BinaryReaderX reader, Type readType)
+        private static object ReadTypePrimitive(BinaryReaderX reader, Type readType)
         {
             switch (Type.GetTypeCode(readType))
             {
@@ -110,7 +110,7 @@ namespace Komponent.IO
             }
         }
 
-        private object ReadTypeString(BinaryReaderX reader, LengthInfo? lengthInfo)
+        private static object ReadTypeString(BinaryReaderX reader, LengthInfo? lengthInfo)
         {
             // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
             if (lengthInfo == null)
@@ -119,7 +119,7 @@ namespace Komponent.IO
             return reader.ReadString(lengthInfo.Length, lengthInfo.Encoding);
         }
 
-        private object ReadList(BinaryReaderX reader, Type type, LengthInfo lengthInfo, ValueStorage storage, string? listFieldName)
+        private static object ReadList(BinaryReaderX reader, Type type, LengthInfo lengthInfo, ValueStorage storage, string? listFieldName)
         {
             IList list;
             Type elementType;
@@ -147,7 +147,7 @@ namespace Komponent.IO
             return list;
         }
 
-        private object ReadComplex(BinaryReaderX reader, Type type, ValueStorage storage)
+        private static object ReadComplex(BinaryReaderX reader, Type type, ValueStorage storage)
         {
             BitFieldInfo? bitField = MemberInfoProvider.GetBitFieldInfo(type);
             int? alignment = MemberInfoProvider.GetAlignment(type);
@@ -184,12 +184,12 @@ namespace Komponent.IO
             return item;
         }
 
-        private bool IsTypeChoice(MemberInfo? field)
+        private static bool IsTypeChoice(MemberInfo? field)
         {
             return MemberInfoProvider.GetTypeChoices(field).Count > 0;
         }
 
-        private Type ChooseType(Type readType, IList<TypeChoice> typeChoices, ValueStorage storage)
+        private static Type ChooseType(Type readType, IList<TypeChoice> typeChoices, ValueStorage storage)
         {
             if (readType != typeof(object) && typeChoices.Any(x => !readType.IsAssignableFrom(x.InjectionType)))
                 throw new InvalidOperationException($"Not all type choices are injectable to '{readType.Name}'.");
@@ -235,7 +235,7 @@ namespace Komponent.IO
             throw new InvalidOperationException("No choice matched the criteria for injection");
         }
 
-        private bool ResolveCondition(ConditionInfo? condition, ValueStorage storage)
+        private static bool ResolveCondition(ConditionInfo? condition, ValueStorage storage)
         {
             // If no condition is given, resolve it to true so the field is read
             if (condition == null)
