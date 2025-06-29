@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Komponent.IO;
+﻿using Komponent.IO;
 
 namespace plugin_criware.Archives.Support
 {

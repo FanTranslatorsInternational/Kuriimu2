@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.IO;
-using Kryptography;
+using Komponent.Streams;
+using Kryptography.Encryption;
 
 namespace plugin_criware.Archives.Support
 {
@@ -26,8 +22,8 @@ namespace plugin_criware.Archives.Support
             0x37, 0x83, 0xBF, 0xAB, 0x07, 0x93, 0x0F, 0x3B, 0xD7, 0xA3
         };
 
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(CpkTableHeader));
-        private static readonly int TableInfoSize = Tools.MeasureType(typeof(CpkTableInfo));
+        private static readonly int HeaderSize = 0x10;
+        private static readonly int TableInfoSize = 0x20;
 
         private IList<CpkColumnInfo> _columns;
 
@@ -63,7 +59,7 @@ namespace plugin_criware.Archives.Support
             using var br = new BinaryReaderX(input, true);
 
             // Read table header
-            var header = br.ReadType<CpkTableHeader>();
+            var header = ReadTableHeader(br);
 
             // Create UTF stream
             Stream utfStream = new SubStream(input, offset + 0x10, header.packetSize);
@@ -77,7 +73,7 @@ namespace plugin_criware.Archives.Support
         {
             // Read table info
             using var utfBr = new BinaryReaderX(utfStream, ByteOrder.BigEndian);
-            var tableInfo = utfBr.ReadType<CpkTableInfo>();
+            var tableInfo = ReadTableInfo(utfBr);
 
             // Create readers
             var tableStream = new SubStream(utfStream, 0x8, tableInfo.tableSize);
@@ -108,6 +104,33 @@ namespace plugin_criware.Archives.Support
                 rows.Add(ReadRow(tableBr, stringBr, dataBr, columns));
 
             return new CpkTable(tableMagic, name, columns, rows);
+        }
+
+        private static CpkTableHeader ReadTableHeader(BinaryReaderX reader)
+        {
+            return new CpkTableHeader
+            {
+                magic = reader.ReadString(4),
+                flags = reader.ReadInt32(),
+                packetSize = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private static CpkTableInfo ReadTableInfo(BinaryReaderX reader)
+        {
+            return new CpkTableInfo
+            {
+                magic = reader.ReadString(4),
+                tableSize = reader.ReadInt32(),
+                valuesOffset = reader.ReadInt32(),
+                stringsOffset = reader.ReadInt32(),
+                binaryOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32(),
+                columnCount = reader.ReadInt16(),
+                rowLength = reader.ReadInt16(),
+                rowCount = reader.ReadInt32()
+            };
         }
 
         #endregion
@@ -193,7 +216,7 @@ namespace plugin_criware.Archives.Support
             };
 
             bw.BaseStream.Position = tableInfoOffset;
-            bw.WriteType(tableInfo);
+            WriteTableInfo(tableInfo, bw);
 
             if (!writeHeader)
                 return;
@@ -207,7 +230,7 @@ namespace plugin_criware.Archives.Support
             };
 
             bw.BaseStream.Position = headerOffset;
-            bw.WriteType(header);
+            WriteTableHeader(header, bw);
         }
 
         public int CalculateSize(bool writeHeader = true)
@@ -219,6 +242,27 @@ namespace plugin_criware.Archives.Support
             size = (size + CalculateDataTableSize(columns, Rows) + 0xF) & ~0xF;
 
             return size;
+        }
+
+        private void WriteTableHeader(CpkTableHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.flags);
+            writer.Write(header.packetSize);
+            writer.Write(header.zero0);
+        }
+
+        private void WriteTableInfo(CpkTableInfo tableInfo, BinaryWriterX writer)
+        {
+            writer.WriteString(tableInfo.magic, writeNullTerminator: false);
+            writer.Write(tableInfo.tableSize);
+            writer.Write(tableInfo.valuesOffset);
+            writer.Write(tableInfo.stringsOffset);
+            writer.Write(tableInfo.binaryOffset);
+            writer.Write(tableInfo.nameOffset);
+            writer.Write(tableInfo.columnCount);
+            writer.Write(tableInfo.rowLength);
+            writer.Write(tableInfo.rowCount);
         }
 
         #endregion

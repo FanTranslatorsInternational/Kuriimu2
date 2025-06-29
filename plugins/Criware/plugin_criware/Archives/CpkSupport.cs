@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 using plugin_criware.Archives.Support;
-#pragma warning disable 649
 
 namespace plugin_criware.Archives
 {
@@ -16,7 +11,6 @@ namespace plugin_criware.Archives
     /// </summary>
     public class CpkTableHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int flags = 0xFF;    // Not encrypted by default
         public int packetSize;
@@ -30,7 +24,6 @@ namespace plugin_criware.Archives
     /// </summary>
     public class CpkTableInfo
     {
-        [FixedLength(4)]
         public string magic = "@UTF";
         public int tableSize;
         public int valuesOffset;
@@ -42,16 +35,11 @@ namespace plugin_criware.Archives
         public int rowCount;
     }
 
-    class CpkArchiveFileInfo : ArchiveFileInfo
+    class CpkArchiveFile : ArchiveFile
     {
         public CpkRow Row { get; }
 
-        public CpkArchiveFileInfo(Stream fileData, string filePath, CpkRow row) : base(fileData, filePath)
-        {
-            Row = row;
-        }
-
-        public CpkArchiveFileInfo(Stream fileData, string filePath, CpkRow row, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        public CpkArchiveFile(ArchiveFileInfo fileInfo, CpkRow row) : base(fileInfo)
         {
             Row = row;
         }
@@ -67,7 +55,7 @@ namespace plugin_criware.Archives
         public static string ReadString(BinaryReaderX br, long offset)
         {
             br.BaseStream.Position = offset;
-            return br.ReadCStringASCII();
+            return br.ReadNullTerminatedString();
         }
 
         public static byte[] ReadBytes(BinaryReaderX br, long offset, int size)

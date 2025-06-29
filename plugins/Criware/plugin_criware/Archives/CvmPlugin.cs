@@ -1,37 +1,37 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_criware.Archives
 {
-    public class CvmPlugin : IFilePlugin, IIdentifyFiles
+    public class CvmPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("6fc77f8b-7811-4820-a1b8-c0708d898652");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.cvm" };
-        public PluginMetadata Metadata { get; }
 
-        public CvmPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.cvm"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("CVM", "onepiecefreak", "The main archive resource by Cri Middleware in the PS2 era of games.");
-        }
+            Author = "onepiecefreak",
+            Name = "CVM",
+            LongDescription = "The main archive resource by Cri Middleware in the PS2 era of games."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
             return br.ReadString(4) == "CVMH";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new CvmState();
         }

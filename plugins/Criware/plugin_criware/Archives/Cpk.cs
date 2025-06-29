@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 using plugin_criware.Archives.Support;
 
 namespace plugin_criware.Archives
@@ -27,7 +25,7 @@ namespace plugin_criware.Archives
 
         private int _align;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -44,7 +42,7 @@ namespace plugin_criware.Archives
             var etocOffset = headerRow.Get<long>("EtocOffset");
             var gtocOffset = headerRow.Get<long>("GtocOffset");
 
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
             // Read tables
             if (etocOffset > 0)
@@ -62,7 +60,7 @@ namespace plugin_criware.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             var headerTableSize = _header.CalculateSize();
             long tableOffset = headerTableSize;
@@ -102,9 +100,9 @@ namespace plugin_criware.Archives
             _header.Write(output, 0, _align);
         }
 
-        public void DeleteFile(IArchiveFileInfo afi)
+        public void DeleteFile(IArchiveFile afi)
         {
-            var fileInfo = afi as CpkArchiveFileInfo;
+            var fileInfo = afi as CpkArchiveFile;
             if (fileInfo == null)
                 return;
 
@@ -151,7 +149,7 @@ namespace plugin_criware.Archives
 
         #region Read tables
 
-        private IEnumerable<IArchiveFileInfo> ReadTocTable(BinaryReaderX br, long tocOffset, long contentOffset)
+        private IEnumerable<IArchiveFile> ReadTocTable(BinaryReaderX br, long tocOffset, long contentOffset)
         {
             // Read toc table
             _tocTable = CpkTable.Create(br.BaseStream, tocOffset);
@@ -172,13 +170,23 @@ namespace plugin_criware.Archives
 
                 var subStream = new SubStream(br.BaseStream, offset, compSize);
                 if (compSize == decompSize)
-                    yield return new CpkArchiveFileInfo(subStream, UPath.Combine(dir, name).FullName, row);
+                    yield return new CpkArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = UPath.Combine(dir, name).FullName,
+                        FileData = subStream
+                    }, row);
                 else
-                    yield return new CpkArchiveFileInfo(subStream, UPath.Combine(dir, name).FullName, row, Kompression.Implementations.Compressions.Crilayla, decompSize);
+                    yield return new CpkArchiveFile(new CompressedArchiveFileInfo
+                    {
+                        FilePath = UPath.Combine(dir, name).FullName,
+                        FileData = subStream,
+                        Compression = Compressions.Crilayla.Build(),
+                        DecompressedSize = decompSize
+                    }, row);
             }
         }
 
-        private IEnumerable<IArchiveFileInfo> ReadItocTable(BinaryReaderX br, long itocOffset)
+        private IEnumerable<IArchiveFile> ReadItocTable(BinaryReaderX br, long itocOffset)
         {
             // Read toc table
             _itocTable = CpkTable.Create(br.BaseStream, itocOffset);
@@ -202,9 +210,19 @@ namespace plugin_criware.Archives
 
                 var subStream = new SubStream(br.BaseStream, fileOffset, compSize);
                 if (compSize == decompSize)
-                    yield return new CpkArchiveFileInfo(subStream, $"{id:00000}.bin", row);
+                    yield return new CpkArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = $"{id:00000}.bin",
+                        FileData = subStream
+                    }, row);
                 else
-                    yield return new CpkArchiveFileInfo(subStream, $"{id:00000}.bin", row, Kompression.Implementations.Compressions.Crilayla, decompSize);
+                    yield return new CpkArchiveFile(new CompressedArchiveFileInfo
+                    {
+                        FilePath = $"{id:00000}.bin",
+                        FileData = subStream,
+                        Compression = Compressions.Crilayla.Build(),
+                        DecompressedSize = decompSize
+                    }, row);
 
                 fileOffset = (fileOffset + compSize + (_align - 1)) & ~(_align - 1);
             }
@@ -224,10 +242,10 @@ namespace plugin_criware.Archives
 
         #region Write tables
 
-        private void WriteTocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
+        private void WriteTocTable(Stream output, IList<IArchiveFile> files, long tableOffset, long fileOffset)
         {
             // Update file information
-            foreach (var file in files.Cast<CpkArchiveFileInfo>())
+            foreach (var file in files.Cast<CpkArchiveFile>())
             {
                 file.Row.Set("DirName", file.FilePath.ToRelative().GetDirectory().FullName);
                 file.Row.Set("FileName", file.FilePath.GetName());
@@ -240,14 +258,14 @@ namespace plugin_criware.Archives
             var filePosition = fileOffset;
 
             // Write files and update remaining file information
-            foreach (var file in files.Cast<CpkArchiveFileInfo>().OrderBy(x => x.Row.Get<int>("ID")))
+            foreach (var file in files.Cast<CpkArchiveFile>().OrderBy(x => x.Row.Get<int>("ID")))
             {
                 // Update offset
                 file.Row.Set("FileOffset", filePosition - tocOffset);
 
                 // Write file
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 while (output.Position % _align > 0)
                     output.WriteByte(0);
@@ -273,7 +291,7 @@ namespace plugin_criware.Archives
             _header.Rows[0].Set("ContentSize", filePosition - fileOffset);
         }
 
-        private void WriteItocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
+        private void WriteItocTable(Stream output, IList<IArchiveFile> files, long tableOffset, long fileOffset)
         {
             switch (_itocTable.Name)
             {
@@ -287,10 +305,10 @@ namespace plugin_criware.Archives
             }
         }
 
-        private void WriteItocFileTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
+        private void WriteItocFileTable(Stream output, IList<IArchiveFile> files, long tableOffset, long fileOffset)
         {
             // Update file information
-            foreach (var file in files.Cast<CpkArchiveFileInfo>())
+            foreach (var file in files.Cast<CpkArchiveFile>())
                 file.Row.Set("ExtractSize", (int)file.FileSize);
 
             var tocTableSize = _itocTable.CalculateSize();
@@ -298,11 +316,11 @@ namespace plugin_criware.Archives
             var filePosition = fileOffset;
 
             // Write files and update remaining file information
-            foreach (var file in files.Cast<CpkArchiveFileInfo>().OrderBy(x => int.Parse(x.FilePath.GetNameWithoutExtension())))
+            foreach (var file in files.Cast<CpkArchiveFile>().OrderBy(x => int.Parse(x.FilePath.GetNameWithoutExtension())))
             {
                 // Write file
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 while (output.Position % _align > 0)
                     output.WriteByte(0);
