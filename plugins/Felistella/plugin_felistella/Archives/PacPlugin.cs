@@ -1,24 +1,25 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_felistella.Archives
 {
     public class PacPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("e7e1f311-fb7e-4be5-bfba-469abe2c927f");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.PAC"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.PAC"];
 
-        public PacPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("PAC", "onepiecefreak", "The package resource in Genkai Tokki Seven Pirates.");
-        }
+            Author = "onepiecefreak",
+            Name = "PAC",
+            LongDescription = "The package resource in Genkai Tokki Seven Pirates."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new PacState();
         }

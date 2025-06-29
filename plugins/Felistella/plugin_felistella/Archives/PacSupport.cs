@@ -1,8 +1,7 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+﻿using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_felistella.Archives
 {
@@ -35,7 +34,6 @@ namespace plugin_felistella.Archives
 
     class PacDirectoryEntry
     {
-        [FixedLength(0x10)]
         public string name;
         public short entryCount;
         public short entryIndex;
@@ -53,11 +51,11 @@ namespace plugin_felistella.Archives
         public short flags;
     }
 
-    class PacArchiveFileInfo : ArchiveFileInfo
+    class PacArchiveFile : ArchiveFile
     {
         public PacEntry Entry { get; }
 
-        public PacArchiveFileInfo(Stream fileData, string filePath, PacEntry entry) : base(fileData, filePath)
+        public PacArchiveFile(ArchiveFileInfo fileInfo, PacEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }

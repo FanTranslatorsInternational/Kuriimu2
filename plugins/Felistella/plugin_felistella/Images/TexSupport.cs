@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Enums;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_felistella.Images
 {
@@ -37,7 +36,7 @@ namespace plugin_felistella.Images
 
     class TexSupport
     {
-        private static IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0] = ImageFormats.Rgba8888(ByteOrder.BigEndian)
         };
