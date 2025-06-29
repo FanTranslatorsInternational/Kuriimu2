@@ -1,27 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Plugin.File.Image;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_dotemu.Images
 {
     class XnbHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public byte major;
         public byte minor;
         public int fileSize;
         public byte itemCount;
-
         public string className;
         public int unk1;
         public short unk2;
-
         public int format;
         public int width;
         public int height;
@@ -31,21 +26,21 @@ namespace plugin_dotemu.Images
 
     class PremultiplyAlphaShader : IColorShader
     {
-        public Color Read(Color c)
+        public Rgba32 Read(Rgba32 c)
         {
             return c;
         }
 
-        public Color Write(Color c)
+        public Rgba32 Write(Rgba32 c)
         {
-            return Color.FromArgb(
-                c.A,
+            return new Rgba32(
                 PreMultiply(c.R, c.A),
                 PreMultiply(c.G, c.A),
-                PreMultiply(c.B, c.A));
+                PreMultiply(c.B, c.A),
+                c.A);
         }
 
-        private byte PreMultiply(byte a, byte b) => (byte)(a * b / 255);
+        private static byte PreMultiply(byte a, byte b) => (byte)(a * b / 255);
     }
 
     class XnbSupport
@@ -58,7 +53,7 @@ namespace plugin_dotemu.Images
             [6] = ImageFormats.Dxt5()
         };
 
-        public static readonly IDictionary<int,IColorShader> Shaders=new Dictionary<int, IColorShader>
+        public static readonly IDictionary<int, IColorShader> Shaders = new Dictionary<int, IColorShader>
         {
             [0] = new PremultiplyAlphaShader(),
             [4] = new PremultiplyAlphaShader(),

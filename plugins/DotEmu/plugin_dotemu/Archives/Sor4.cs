@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_dotemu.Archives
 {
@@ -13,7 +11,7 @@ namespace plugin_dotemu.Archives
     {
         private Platform _platform;
 
-        public IList<IArchiveFileInfo> Load(Stream texStream, Stream texListStream, Platform platform)
+        public List<IArchiveFile> Load(Stream texStream, Stream texListStream, Platform platform)
         {
             _platform = platform;
 
@@ -27,7 +25,7 @@ namespace plugin_dotemu.Archives
                 // TODO: Requires more research as to split texture files
                 try
                 {
-                    entries.Add(texListBr.ReadType<Sor4Entry>());
+                    entries.Add(Sor4Support.ReadEntry(texListBr));
                 }
                 catch
                 {
@@ -36,7 +34,7 @@ namespace plugin_dotemu.Archives
             }
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 Stream fileStream = null;
@@ -56,13 +54,19 @@ namespace plugin_dotemu.Archives
                         break;
                 }
 
-                result.Add(new Sor4ArchiveFileInfo(fileStream, entry.path, entry, Compressions.Deflate, decompSize));
+                result.Add(new Sor4ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = entry.path,
+                    FileData = fileStream,
+                    Compression = Compressions.Deflate.Build(),
+                    DecompressedSize = decompSize
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream texStream, Stream texListStream, IList<IArchiveFileInfo> files)
+        public void Save(Stream texStream, Stream texListStream, IList<IArchiveFile> files)
         {
             using var texBw = new BinaryWriterX(texStream);
             using var texListBw = new BinaryWriterX(texListStream, Encoding.Unicode);
@@ -71,12 +75,12 @@ namespace plugin_dotemu.Archives
             var dataPosition = 0;
 
             var entries = new List<Sor4Entry>();
-            foreach (var file in files.Cast<Sor4ArchiveFileInfo>())
+            foreach (var file in files.Cast<Sor4ArchiveFile>())
             {
                 // Write data
                 texStream.Position = dataPosition;
                 texBw.Write((int)file.FileSize);
-                var writtenSize = file.SaveFileData(texStream);
+                var writtenSize = file.WriteFileData(texStream, true);
 
                 // Update entry
                 file.Entry.compSize = (int)writtenSize + _platform == Platform.Pc ? 0 : 4;
@@ -96,7 +100,13 @@ namespace plugin_dotemu.Archives
             }
 
             // Write entries
-            texListBw.WriteMultiple(entries);
+            WriteEntries(entries, texListBw);
+        }
+
+        private void WriteEntries(IList<Sor4Entry> entries, BinaryWriterX writer)
+        {
+            foreach (Sor4Entry entry in entries)
+                Sor4Support.WriteEntry(entry, writer);
         }
     }
 }

@@ -1,26 +1,22 @@
-﻿using System.IO;
-using System.Text;
-using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_dotemu.Archives
 {
     class Sor4Entry
     {
         public string path;
-
         public int offset;
         public int flags;
         public int compSize;
     }
 
-    class Sor4ArchiveFileInfo : ArchiveFileInfo
+    class Sor4ArchiveFile : ArchiveFile
     {
         public Sor4Entry Entry { get; }
 
-        public Sor4ArchiveFileInfo(Stream fileData, string filePath, Sor4Entry entry, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        public Sor4ArchiveFile(ArchiveFileInfo fileInfo, Sor4Entry entry) : base(fileInfo)
         {
             Entry = entry;
         }
@@ -32,8 +28,8 @@ namespace plugin_dotemu.Archives
         {
             using var br = new BinaryReaderX(texListStream, true);
 
-            var entry1 = br.ReadType<Sor4Entry>();
-            var entry2 = br.ReadType<Sor4Entry>();
+            var entry1 = ReadEntry(br);
+            var entry2 = ReadEntry(br);
 
             texListStream.Position = 0;
 
@@ -44,6 +40,25 @@ namespace plugin_dotemu.Archives
                 return Platform.Pc;
 
             return Platform.Switch;
+        }
+
+        public static Sor4Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new Sor4Entry
+            {
+                path = reader.ReadString(),
+                offset = reader.ReadInt32(),
+                flags = reader.ReadInt32(),
+                compSize = reader.ReadInt32()
+            };
+        }
+
+        public static void WriteEntry(Sor4Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.path);
+            writer.Write(entry.offset);
+            writer.Write(entry.flags);
+            writer.Write(entry.compSize);
         }
     }
 
