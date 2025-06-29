@@ -1,24 +1,23 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_circus.Archives
 {
     class Main
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(MainHeader));
+        private static readonly int HeaderSize = 0x10;
 
         private MainHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<MainHeader>();
+            _header = ReadHeader(br);
 
             // Calculate file count
             var firstOffset = br.ReadInt32();
@@ -26,10 +25,10 @@ namespace plugin_circus.Archives
 
             // Read offsets
             input.Position = HeaderSize;
-            var offsets = br.ReadMultiple<int>(fileCount);
+            var offsets = ReadIntegers(br, fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < fileCount; i++)
             {
                 var offset = offsets[i];
@@ -38,13 +37,17 @@ namespace plugin_circus.Archives
                 var subStream = new SubStream(input, offset, size);
                 var fileName = $"{i:00000000}.bin";
 
-                result.Add(new ArchiveFileInfo(subStream, fileName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -56,10 +59,10 @@ namespace plugin_circus.Archives
             var offsets = new List<int>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 offsets.Add(filePosition);
 
@@ -69,12 +72,47 @@ namespace plugin_circus.Archives
 
             // Write offsets
             output.Position = entryOffset;
-            bw.WriteMultiple(offsets);
+            WriteIntegers(offsets, bw);
 
             // Write header
             output.Position = 0;
             _header.fileSize = (int)output.Length;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private MainHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new MainHeader
+            {
+                magic = reader.ReadString(4),
+                unk1 = reader.ReadInt32(),
+                fileSize = reader.ReadInt32(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(MainHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.unk1);
+            writer.Write(header.fileSize);
+            writer.Write(header.unk2);
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }
