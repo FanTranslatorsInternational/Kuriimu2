@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_beeworks.Archives
 {
     class TD1
     {
-        private static readonly int EntrySize = Tools.MeasureType(typeof(TD1Entry));
+        private static readonly int EntrySize = 8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -19,10 +18,10 @@ namespace plugin_beeworks.Archives
             var fileCount = br.ReadInt32();
 
             // Read entries
-            var entries = br.ReadMultiple<TD1Entry>(fileCount);
+            var entries = ReadEntries(br, fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < fileCount; i++)
             {
                 var entry = entries[i];
@@ -30,13 +29,17 @@ namespace plugin_beeworks.Archives
                 var subStream = new SubStream(input, entry.offset << 2, entry.size);
                 var fileName = $"{i:00000000}.bin";
 
-                result.Add(new ArchiveFileInfo(subStream, fileName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -48,10 +51,10 @@ namespace plugin_beeworks.Archives
             var entries = new List<TD1Entry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 entries.Add(new TD1Entry
                 {
@@ -64,11 +67,42 @@ namespace plugin_beeworks.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write file count
             output.Position = 0;
-            bw.WriteType(files.Count);
+            bw.Write(files.Count);
+        }
+
+        private TD1Entry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new TD1Entry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private TD1Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new TD1Entry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntries(IList<TD1Entry> entries, BinaryWriterX writer)
+        {
+            foreach (TD1Entry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(TD1Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

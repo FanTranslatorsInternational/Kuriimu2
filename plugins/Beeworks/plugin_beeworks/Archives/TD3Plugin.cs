@@ -5,23 +5,23 @@ using Konnect.Contract.Plugin.File;
 
 namespace plugin_beeworks.Archives
 {
-    public class TD1Plugin : IFilePlugin
+    public class TD3Plugin : IFilePlugin
     {
-        public Guid PluginId => Guid.Parse("e8b9f059-7321-4aff-bbb1-a55e06d0bd9f");
+        public Guid PluginId => Guid.Parse("adc5ff0e-9857-4a3e-8ccb-3b79c4b6f5e8");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => ["*.bin"];
+        public string[] FileExtensions => ["*.dat"];
 
         public PluginMetadata Metadata { get; } = new()
         {
             Author = "onepiecefreak",
-            Name = "Touch Detective 1",
-            LongDescription = "The main archive for Touch Detective 1."
+            Name = "Touch Detective 3",
+            LongDescription = "The main resource archive in Touch Detective 3."
         };
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new TD1State();
+            return new TD3State();
         }
     }
 }
