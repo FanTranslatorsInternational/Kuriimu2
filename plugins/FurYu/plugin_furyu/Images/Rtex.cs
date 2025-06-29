@@ -1,27 +1,28 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Image;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
+using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
-namespace plugin_alchemist.Images
+namespace plugin_furyu.Images
 {
     class Rtex
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(RtexHeader));
-        private static readonly int DataHeaderSize = Tools.MeasureType(typeof(RtexDataHeader));
+        private const int HeaderSize = 0x20;
+        private const int DataHeaderSize = 0x6;
 
         private RtexHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<RtexHeader>();
+            _header = ReadHeader(br);
 
             // Decompress image data
             var decompStream = new MemoryStream();
@@ -29,15 +30,20 @@ namespace plugin_alchemist.Images
             Compressions.ZLib.Build().Decompress(compStream, decompStream);
 
             // Create image info
-            var imageInfo = new ImageInfo(decompStream.ToArray(), _header.format, new Size(_header.width, _header.height));
-            imageInfo.PadSize.ToPowerOfTwo();
-
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context, CtrTransformation.YFlip));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = RtexSupport.Formats[_header.format].BitDepth,
+                ImageData = decompStream.ToArray(),
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height),
+                PadSize = builder => builder.ToPowerOfTwo(),
+                RemapPixels = context => new CtrSwizzle(context, CtrTransformation.YFlip)
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -50,11 +56,16 @@ namespace plugin_alchemist.Images
             Compressions.ZLib.Build().Compress(new MemoryStream(imageInfo.ImageData), output);
 
             // Write data header
+            var dataHeader = new RtexDataHeader
+            {
+                decompSize = imageInfo.ImageData.Length
+            };
+
             output.Position = dataHeaderOffset;
-            bw.WriteType(new RtexDataHeader { decompSize = imageInfo.ImageData.Length });
+            WriteDataHeader(dataHeader, bw);
 
             // Update header
-            var paddedSize = imageInfo.PadSize.Build(imageInfo.ImageSize);
+            var paddedSize = SizePadding.PowerOfTwo(imageInfo.ImageSize);
 
             _header.dataOffset = dataHeaderOffset;
             _header.dataSize = (int)output.Length - dataHeaderOffset;
@@ -66,7 +77,53 @@ namespace plugin_alchemist.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private RtexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new RtexHeader
+            {
+                magic = reader.ReadString(4),
+                zero0 = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                paddedWidth = reader.ReadInt16(),
+                paddedHeight = reader.ReadInt16(),
+                dataOffset = reader.ReadInt32(),
+                dataSize = reader.ReadInt32(),
+                format = reader.ReadByte(),
+                unk1 = reader.ReadByte(),
+                unk2 = reader.ReadInt16(),
+                unk3 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(RtexHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.zero0);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.paddedWidth);
+            writer.Write(header.paddedHeight);
+            writer.Write(header.dataOffset);
+            writer.Write(header.dataSize);
+            writer.Write(header.format);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+        }
+
+        private void WriteDataHeader(RtexDataHeader header, BinaryWriterX writer)
+        {
+            ByteOrder byteOrder = writer.ByteOrder;
+            writer.ByteOrder = ByteOrder.BigEndian;
+
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.decompSize);
+
+            writer.ByteOrder = byteOrder;
         }
     }
 }

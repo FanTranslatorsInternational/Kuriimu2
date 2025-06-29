@@ -1,13 +1,10 @@
 ﻿using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using K4os.Compression.LZ4.Encoders;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kompression.Implementations;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_headstrong_games.Archives
 {
@@ -15,7 +12,7 @@ namespace plugin_headstrong_games.Archives
     {
         private FabNode _root;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -23,7 +20,7 @@ namespace plugin_headstrong_games.Archives
             _root = FabNode.Read(br);
 
             // Read files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var fileBranch in _root.Nodes.Where(x => x.SubType == "FILE"))
             {
                 var fileName = fileBranch.Nodes.FirstOrDefault(x => x.Type == "NAME")?.AsString();
@@ -37,22 +34,32 @@ namespace plugin_headstrong_games.Archives
                 var fileStream = relevantNode?.Data;
 
                 if (userNode?.SubType == "LZ4C")
-                    result.Add(new FabArchiveFileInfo(fileStream, fileName, Compressions.Lz4Headerless, PeekDecompressedLength(fileStream)) { DataNode = relevantNode });
+                    result.Add(new FabArchiveFile(new CompressedArchiveFileInfo
+                    {
+                        FilePath = fileName,
+                        FileData = fileStream,
+                        Compression = Compressions.Lz4Headerless.Build(),
+                        DecompressedSize = PeekDecompressedLength(fileStream)
+                    }, relevantNode));
                 else
-                    result.Add(new FabArchiveFileInfo(fileStream, fileName) { DataNode = relevantNode });
+                    result.Add(new FabArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = fileName,
+                        FileData = fileStream
+                    }, relevantNode));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Replace changed file data in nodes
-            foreach (var file in files.Where(x => x.ContentChanged).Cast<FabArchiveFileInfo>())
+            foreach (var file in files.Where(x => x.ContentChanged).Cast<FabArchiveFile>())
             {
                 // This also re-compresses the changed file, if a compression is attached
                 var ms = new MemoryStream();
-                file.SaveFileData(ms);
+                file.WriteFileData(ms, true);
 
                 ms.Position = 0;
                 file.DataNode.Data = ms;

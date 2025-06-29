@@ -1,27 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_headstrong_games.Archives
 {
-    public class FabPlugin : IFilePlugin, IIdentifyFiles
+    public class FabPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("c112dde7-b983-4c63-9c06-9e4fbfee04d5");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.fab"};
-        public PluginMetadata Metadata { get; }
 
-        public FabPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.fab"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("FAB", "onepiecefreak", "The main file resource in Pokemon Art Academy.");
-        }
+            Author = "onepiecefreak",
+            Name = "FAB",
+            LongDescription = "The main file resource in Pokemon Art Academy."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -36,7 +36,7 @@ namespace plugin_headstrong_games.Archives
             return magic == "FBRC" && magic2 == "BNDL";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new FabState();
         }

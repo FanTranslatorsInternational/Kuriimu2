@@ -1,22 +1,16 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Buffers.Binary;
 using System.Text;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_headstrong_games.Archives
 {
     class FabNodeHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int size;
-        [FixedLength(4)]
         public string description;
     }
 
@@ -25,7 +19,7 @@ namespace plugin_headstrong_games.Archives
         private FabNodeHeader _header;
         private int _headerLength = 0xC;
 
-        public IList<FabNode> Nodes { get; private set; } = new List<FabNode>();
+        public IList<FabNode> Nodes { get; } = new List<FabNode>();
 
         public Stream Data { get; set; }
 
@@ -35,7 +29,7 @@ namespace plugin_headstrong_games.Archives
         public static FabNode Read(BinaryReaderX br)
         {
             // Read header
-            var header = br.ReadType<FabNodeHeader>();
+            var header = ReadNodeHeader(br);
 
             var result = new FabNode { _header = header };
             switch (header.magic)
@@ -85,7 +79,7 @@ namespace plugin_headstrong_games.Archives
                             break;
 
                         case "DATA":
-                            var nextHeader = br.ReadType<FabNodeHeader>();
+                            var nextHeader = ReadNodeHeader(br);
                             br.BaseStream.Position -= 0xC;
 
                             // Specially handle USER node to unwrap the "actual" file data from it
@@ -112,6 +106,16 @@ namespace plugin_headstrong_games.Archives
             }
 
             return result;
+        }
+
+        private static FabNodeHeader ReadNodeHeader(BinaryReaderX reader)
+        {
+            return new FabNodeHeader
+            {
+                magic = reader.ReadString(4),
+                size = reader.ReadInt32(),
+                description = reader.ReadString(4)
+            };
         }
 
         public void Write(BinaryWriterX bw)
@@ -176,16 +180,13 @@ namespace plugin_headstrong_games.Archives
         }
     }
 
-    class FabArchiveFileInfo : ArchiveFileInfo
+    class FabArchiveFile : ArchiveFile
     {
         public FabNode DataNode { get; set; }
 
-        public FabArchiveFileInfo(Stream fileData, string filePath) : base(fileData, filePath)
+        public FabArchiveFile(ArchiveFileInfo fileInfo, FabNode dataNode) : base(fileInfo)
         {
-        }
-
-        public FabArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
-        {
+            DataNode = dataNode;
         }
     }
 }

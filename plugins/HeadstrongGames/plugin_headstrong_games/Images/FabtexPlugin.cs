@@ -1,27 +1,28 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
+using Konnect.Management.Files;
 
 namespace plugin_headstrong_games.Images
 {
-    public class FabtexPlugin : IFilePlugin, IIdentifyFiles
+    public class FabtexPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("7508c096-591b-44b2-b0f0-c8495b862ec0");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.fabtex" };
-        public PluginMetadata Metadata { get; }
 
-        public FabtexPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.fabtex"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("FABTEX", "onepiecefreak", "The main image resource in Pokemon Art Academy.");
-        }
+            Author = "onepiecefreak",
+            Name = "FABTEX",
+            LongDescription = "The main image resource in Pokemon Art Academy."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -36,9 +37,9 @@ namespace plugin_headstrong_games.Images
             return magic == "FBRC" && magic2 == "TXTR";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new FabtexState(fileManager);
+            return new FabtexState(pluginFileManager);
         }
     }
 }

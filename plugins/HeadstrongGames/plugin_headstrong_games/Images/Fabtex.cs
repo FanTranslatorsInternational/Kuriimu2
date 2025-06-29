@@ -1,15 +1,9 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File.Image;
 using plugin_headstrong_games.Archives;
 
 namespace plugin_headstrong_games.Images
@@ -21,7 +15,7 @@ namespace plugin_headstrong_games.Images
         private FabNode _root;
         private IFileState _ctpkState;
 
-        public IList<IKanvasImage> Load(Stream input, IBaseFileManager fileManager)
+        public IReadOnlyList<IImageFile> Load(Stream input, IPluginFileManager fileManager)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -30,22 +24,23 @@ namespace plugin_headstrong_games.Images
             var dataNode = _root.Nodes.FirstOrDefault(x => x.Type == "PDAT");
 
             // Read CTPK
-            var result = fileManager.LoadFile(new StreamFile(dataNode.Data, "file.ctpk"), CtpkId).Result;
-            if (!result.IsSuccessful)
-                throw new InvalidOperationException(result.Message);
+            var result = fileManager.LoadFile(new StreamFile
+            {
+                Path = "file.ctpk",
+                Stream = dataNode.Data
+            }, CtpkId).Result;
+            if (result.Status is not LoadStatus.Successful)
+                throw new InvalidOperationException(result.Reason.ToString());
 
             _ctpkState = result.LoadedFileState;
-            return (_ctpkState.PluginState as IImageState).Images;
+            return (_ctpkState.PluginState as IImageFilePluginState).Images;
         }
 
-        public void Save(Stream output, IBaseFileManager fileManager)
+        public void Save(Stream output, IPluginFileManager fileManager)
         {
-            var imageState = _ctpkState.PluginState as IImageState;
-            var buffer = new byte[4];
-
             // Save CTPK
             var ctpkStream = _ctpkState.StateChanged
-                ? fileManager.SaveStream(_ctpkState).Result.SavedStream[0].Stream
+                ? fileManager.SaveStream(_ctpkState).Result.SavedStreams[0].Stream
                 : _ctpkState.FileSystem.OpenFile(_ctpkState.FilePath);
 
             // Set saved CTPK

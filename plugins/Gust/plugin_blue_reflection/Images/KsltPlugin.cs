@@ -7,20 +7,20 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
 
-namespace plugin_furyu.Images
+namespace plugin_blue_reflection.Images
 {
-    public class RtexPlugin : IIdentifyFiles
+    class KsltPlugin : IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("4dbf4d5b-ae1d-4369-b02d-295f93fac10c");
+        public Guid PluginId => Guid.Parse("69D27048-0EA2-4C48-A9A3-19521C9115C3");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => ["*.rtex"];
+        public string[] FileExtensions => ["*.kslt"];
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
-            Name = "RTEX",
-            LongDescription = "The main image resource in Gaki no Tsukai."
+            Author = "Megaflan",
+            Name = "KSLT",
+            LongDescription = "This is the KSLT image adapter for Kuriimu2."
         };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -28,12 +28,12 @@ namespace plugin_furyu.Images
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
-            return br.ReadString(4) == "RTEX";
+            return br.ReadString(8) == "TLSK3100";
         }
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new RtexState();
+            return new KsltState();
         }
     }
 }

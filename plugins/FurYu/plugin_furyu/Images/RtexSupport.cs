@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Konnect.Plugin.File.Image;
 
-namespace plugin_alchemist.Images
+namespace plugin_furyu.Images
 {
     class RtexHeader
     {
-        [FixedLength(4)]
         public string magic = "RTEX";
 
         public int zero0;
@@ -27,10 +24,8 @@ namespace plugin_alchemist.Images
         public int unk3;
     }
 
-    [Endianness(ByteOrder = ByteOrder.BigEndian)]
     class RtexDataHeader
     {
-        [FixedLength(2)]
         public string magic = "RZ";
         public int decompSize;
 
@@ -38,7 +33,7 @@ namespace plugin_alchemist.Images
 
     class RtexSupport
     {
-        private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0x04] = ImageFormats.Rgba8888(),
             [0x1F] = ImageFormats.Rgb565(),
