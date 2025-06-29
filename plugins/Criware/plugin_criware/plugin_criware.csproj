@@ -15,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kompression" Version="2.1.6" />
-    <PackageReference Include="Konnect" Version="2.1.27" />
-    <PackageReference Include="Kryptography" Version="2.1.5" />
+    <PackageReference Include="Kompression" Version="2.1.7" />
+    <PackageReference Include="Konnect" Version="2.1.28" />
+    <PackageReference Include="Kryptography" Version="2.1.6" />
   </ItemGroup>
 
 </Project>
