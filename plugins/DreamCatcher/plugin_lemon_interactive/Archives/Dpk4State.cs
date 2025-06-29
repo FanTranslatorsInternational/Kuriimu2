@@ -1,89 +1,39 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_lemon_interactive.Archives
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    class Dpk4State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class Dpk4State : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        private Dpk4 _dpk4;
+        private readonly Dpk4 _dpk4 = new();
+        private List<IArchiveFile> _files;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public IList<IArchiveFileInfo> Files { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public Dpk4State()
-        {
-            _dpk4 = new Dpk4();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileSystem"></param>
-        /// <param name="filePath"></param>
-        /// <param name="loadContext"></param>
-        /// <returns></returns>
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _dpk4.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _dpk4.Load(fileStream);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileSystem"></param>
-        /// <param name="savePath"></param>
-        /// <param name="saveContext"></param>
-        /// <returns></returns>
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _dpk4.Save(fileStream, Files);
-
-            return Task.CompletedTask;
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            _dpk4.Save(fileStream, _files);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="afi"></param>
-        /// <param name="fileData"></param>
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }
