@@ -18,6 +18,11 @@
         public required string[] Author { get; init; }
 
         /// <summary>
+        /// The platform the format was encountered on.
+        /// </summary>
+        public required string[] Platform { get; init; }
+
+        /// <summary>
         /// The developer of the game or format.
         /// </summary>
         public required string Developer { get; init; }
@@ -29,16 +34,16 @@
         public string? Publisher { get; init; }
 
         /// <summary>
-        /// The short form description of the plugin.
-        /// "A Kuriimu2 plugin."
-        /// </summary>
-        public string? ShortDescription { get; init; }
-
-        /// <summary>
         /// The long form description of the plugin.
         /// "A Kuriimu2 plugin to support a certain file format with meta information."
         /// </summary>
         public string? LongDescription { get; init; }
+
+        /// <summary>
+        /// The short form description of the plugin.
+        /// "A Kuriimu2 plugin."
+        /// </summary>
+        public string? ShortDescription { get; init; }
 
         /// <summary>
         /// The website at which either the plugin or the author can be found and contacted.

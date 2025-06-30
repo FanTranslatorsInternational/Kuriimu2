@@ -22,8 +22,9 @@ namespace Kuriimu2.ImGui.Models
             {
                 Author = ["onepiecefreak"],
                 Name = "Default",
-                LongDescription = "No description",
-                Developer = "FanTranslatorsInternational"
+                Platform = ["PC"],
+                Developer = "FanTranslatorsInternational",
+                LongDescription = "No description"
             };
         }
 
