@@ -20,9 +20,10 @@ namespace Kuriimu2.ImGui.Models
         {
             Metadata = new PluginMetadata
             {
-                Author = "onepiecefreak",
+                Author = ["onepiecefreak"],
                 Name = "Default",
-                LongDescription = "No description"
+                LongDescription = "No description",
+                Developer = "FanTranslatorsInternational"
             };
         }
 

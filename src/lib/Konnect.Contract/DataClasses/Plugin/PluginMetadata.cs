@@ -15,7 +15,18 @@
         /// The author/developer of this plugin.
         /// Any possible notation the author is known as can be used.
         /// </summary>
-        public required string Author { get; init; }
+        public required string[] Author { get; init; }
+
+        /// <summary>
+        /// The developer of the game or format.
+        /// </summary>
+        public required string Developer { get; init; }
+
+        /// <summary>
+        /// The publisher of the game a format is from.
+        /// Only necessary if the format is distinctly used by a single game or in combination of the same developer-publisher pair.
+        /// </summary>
+        public string? Publisher { get; init; }
 
         /// <summary>
         /// The short form description of the plugin.
