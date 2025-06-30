@@ -1,31 +1,29 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_inti_creates.Archives
 {
     class Vap
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(VapHeader));
-        private static readonly int FileEntrySize = Tools.MeasureType(typeof(VapFileEntry));
+        private static readonly int HeaderSize = 0xC;
+        private static readonly int FileEntrySize = 0x10;
 
         private VapHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<VapHeader>();
+            _header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<VapFileEntry>(_header.fileCount);
+            var entries = ReadEntries(br, _header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -33,13 +31,17 @@ namespace plugin_inti_creates.Archives
                 var subStream = new SubStream(input, entry.offset, entry.size);
                 var name = $"{i:00000000}{VapSupport.DetermineExtension(subStream)}";
 
-                result.Add(new VapArchiveFileInfo(subStream, name, entry));
+                result.Add(new VapArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = subStream,
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -50,10 +52,10 @@ namespace plugin_inti_creates.Archives
             bw.BaseStream.Position = fileOffset;
 
             var entries = new List<VapFileEntry>();
-            foreach (var file in files.Cast<VapArchiveFileInfo>())
+            foreach (var file in files.Cast<VapArchiveFile>())
             {
                 fileOffset = (int)bw.BaseStream.Position;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 if (file != files.Last())
                     bw.WriteAlignment(0x80);
@@ -70,15 +72,69 @@ namespace plugin_inti_creates.Archives
 
             // Write entries
             bw.BaseStream.Position = HeaderSize;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
-            bw.BaseStream.Position = 0;
-            bw.WriteType(new VapHeader
+            var header = new VapHeader
             {
                 fileCount = files.Count,
                 unk1 = _header.unk1
-            });
+            };
+
+            bw.BaseStream.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private VapHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new VapHeader
+            {
+                fileCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private VapFileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new VapFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private VapFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new VapFileEntry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(VapHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.fileCount);
+            writer.Write(header.unk1);
+            writer.Write(header.zero0);
+        }
+
+        private void WriteEntries(IList<VapFileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (VapFileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(VapFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
+            writer.Write(entry.unk1);
+            writer.Write(entry.unk2);
         }
     }
 }

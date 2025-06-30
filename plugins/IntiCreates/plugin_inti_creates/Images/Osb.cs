@@ -1,12 +1,11 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Image;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
 using plugin_inti_creates.Cryptography;
+using SixLabors.ImageSharp;
 
 namespace plugin_inti_creates.Images
 {
@@ -16,7 +15,7 @@ namespace plugin_inti_creates.Images
         private byte[] _nodeRegion;
         private byte[] _postData;
 
-        public ImageInfo Load(Stream input, Platform platform)
+        public ImageFileInfo Load(Stream input, Platform platform)
         {
             input = new IntiCreatesCipherStream(input, "obj90210");
 
@@ -28,7 +27,7 @@ namespace plugin_inti_creates.Images
 
             // Read header
             br.BaseStream.Position = 0;
-            _header = br.ReadType<OsbHeader>();
+            _header = ReadHeader(br);
 
             // Read node region
             br.BaseStream.Position = _header.nodeOffset;
@@ -43,15 +42,21 @@ namespace plugin_inti_creates.Images
             _postData = br.ReadBytes(_header.postSize);
 
             // Create image info
-            var imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = OsbSupport.Formats[_header.format].BitDepth,
+                ImageData = imgData,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height)
+            };
 
             if (platform == Platform.N3DS)
-                imageInfo.RemapPixels.With(context => new CtrSwizzle(context, CtrTransformation.YFlip));
+                imageInfo.RemapPixels = context => new CtrSwizzle(context, CtrTransformation.YFlip);
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms);
@@ -86,7 +91,7 @@ namespace plugin_inti_creates.Images
 
             // Write header
             ms.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
 
             // Compress with ZLib
             output = new IntiCreatesCipherStream(output, "obj90210");
@@ -103,6 +108,39 @@ namespace plugin_inti_creates.Images
 
             compStream.Position = 0;
             compStream.CopyTo(output);
+        }
+
+        private OsbHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new OsbHeader
+            {
+                nodeOffset = reader.ReadInt32(),
+                dataSize = reader.ReadInt32(),
+                format = reader.ReadInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                postSize = reader.ReadInt32(),
+                postOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(OsbHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.nodeOffset);
+            writer.Write(header.dataSize);
+            writer.Write(header.format);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.dataOffset);
+            writer.Write(header.postSize);
+            writer.Write(header.postOffset);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
         }
     }
 }

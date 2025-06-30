@@ -14,12 +14,15 @@ namespace plugin_level5.Switch.Archive
         public Guid PluginId => Guid.Parse("0964a630-2ca3-4063-8e53-bf7210cbc70e");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.g4pk","*.g4pkm" };
+        public string[] FileExtensions => ["*.g4pk","*.g4pkm"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "G4PK",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["Switch"],
             LongDescription = "Game archive for Switch Level-5 games."
         };
 

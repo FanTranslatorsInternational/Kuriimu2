@@ -19,8 +19,11 @@ namespace plugin_nintendo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["IcySon55", "onepiecefreak"],
             Name = "BXLIM",
-            Author = "IcySon55, onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS", "WiiU"],
             LongDescription = "The BCLIM and BFLIM image containers used in Nintendo 3DS games or newer."
         };
 

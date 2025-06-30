@@ -14,12 +14,15 @@ namespace plugin_level5.NDS.Image
         public Guid PluginId => Guid.Parse("169acf3f-ccc8-4193-b32c-84b44c0f6f68");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.cimg" };
+        public string[] FileExtensions => ["*.cimg"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "LIMG",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["NDS"],
             LongDescription = "Main image for later DS Level-5 games."
         };
 

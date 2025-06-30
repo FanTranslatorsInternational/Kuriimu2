@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "L7C",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["Vita"],
             LongDescription = "The resource archive in Tales Of games on PS Vita."
         };
 

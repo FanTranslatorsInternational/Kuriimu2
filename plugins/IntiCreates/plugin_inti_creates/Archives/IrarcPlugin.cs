@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_inti_creates.Archives
 {
     public class IrarcPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("9bd9e260-6e91-48cb-9603-2e0c40e06013");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.irarc", "*.irlst"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.irarc", "*.irlst"];
 
-        public IrarcPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("IRARC", "onepiecefreak", "An archive for Azure Striker Gunvolt on 3DS.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "IRARC",
+            Publisher = "Inti Creates",
+            Developer = "Inti Creates",
+            Platform = ["3DS"],
+            LongDescription = "An archive for Azure Striker Gunvolt on 3DS."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new IrarcState();
         }

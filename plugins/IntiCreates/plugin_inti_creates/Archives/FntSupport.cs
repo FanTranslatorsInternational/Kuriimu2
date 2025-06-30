@@ -1,11 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Komponent.IO;
 
 namespace plugin_inti_creates.Archives
 {
@@ -13,29 +6,6 @@ namespace plugin_inti_creates.Archives
     {
         public int offset;
         public int endOffset;
-    }
-
-    class FntArchiveFileInfo : ArchiveFileInfo
-    {
-        public FntArchiveFileInfo(Stream fileData, string filePath) :
-            base(fileData, filePath)
-        {
-        }
-
-        public FntArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-        }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize = base.SaveFileData(output, compress, progress);
-
-            while (output.Position % 0x80 > 0)
-                output.WriteByte(0);
-
-            return writtenSize;
-        }
     }
 
     class FntSupport
@@ -64,7 +34,7 @@ namespace plugin_inti_creates.Archives
             input.Position = bkPos + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

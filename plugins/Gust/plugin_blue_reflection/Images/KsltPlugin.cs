@@ -18,8 +18,11 @@ namespace plugin_blue_reflection.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "Megaflan",
+            Author = ["Megaflan"],
             Name = "KSLT",
+            Publisher = "Koei Tecmo",
+            Developer = "Gust",
+            Platform = ["Vita"],
             LongDescription = "This is the KSLT image adapter for Kuriimu2."
         };
 

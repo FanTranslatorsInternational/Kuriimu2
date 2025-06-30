@@ -18,8 +18,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "NARC",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["NDS"],
             LongDescription = "Standard resource archive on NDS."
         };
 

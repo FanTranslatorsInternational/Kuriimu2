@@ -18,8 +18,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "PAC",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["WiiU"],
             LongDescription = "The main resource in Mario Party 10."
         };
 

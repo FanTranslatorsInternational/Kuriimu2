@@ -14,12 +14,15 @@ namespace plugin_level5.Switch.Image
         public Guid PluginId => Guid.Parse("89222f8f-a345-45ed-9b79-e9e873bda1e9");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.nxtch" };
+        public string[] FileExtensions => ["*.nxtch"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "NXTCH",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["Switch"],
             LongDescription = "The main image resource in some Level5 Switch games."
         };
 

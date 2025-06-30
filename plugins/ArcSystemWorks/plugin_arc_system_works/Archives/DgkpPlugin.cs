@@ -18,8 +18,11 @@ namespace plugin_arc_system_works.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "DGKP",
+            Publisher = "Arc System Works",
+            Developer = "Arc System Works",
+            Platform = ["3DS"],
             LongDescription = "A resource archive of Chase: Cold Case Investigations on 3DS."
         };
 

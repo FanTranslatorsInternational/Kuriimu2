@@ -14,8 +14,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["IcySon55", "onepiecefreak"],
             Name = "UMSBT",
-            Author = "IcySon55; onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The UMSBT resource for Nintendo games."
         };
 

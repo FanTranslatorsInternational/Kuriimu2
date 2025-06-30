@@ -19,8 +19,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "U8",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["Wii"],
             LongDescription = "The main archive format for Wii games."
         };
 

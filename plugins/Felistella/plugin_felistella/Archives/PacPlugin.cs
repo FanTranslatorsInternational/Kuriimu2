@@ -14,8 +14,11 @@ namespace plugin_felistella.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "PAC",
+            Publisher = "Felistella",
+            Developer = "Felistella",
+            Platform = ["Vita"],
             LongDescription = "The package resource in Genkai Tokki Seven Pirates."
         };
 

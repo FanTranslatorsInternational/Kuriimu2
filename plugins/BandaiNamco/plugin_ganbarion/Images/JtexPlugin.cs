@@ -18,8 +18,11 @@ namespace plugin_ganbarion.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "JTEX",
+            Publisher = "Bandai Namco",
+            Developer = "Ganbarion",
+            Platform = ["3DS"],
             LongDescription = "The main image format in ganbarion games on the 3DS."
         };
 

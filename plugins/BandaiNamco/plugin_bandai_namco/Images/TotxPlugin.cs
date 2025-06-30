@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "TOTX",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["3DS"],
             LongDescription = "Image resource found in FileArc.bin's of Dragon Ball Heroes games."
         };
 

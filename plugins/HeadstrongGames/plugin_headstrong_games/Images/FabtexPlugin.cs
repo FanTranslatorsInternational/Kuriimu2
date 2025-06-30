@@ -6,7 +6,6 @@ using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
-using Konnect.Management.Files;
 
 namespace plugin_headstrong_games.Images
 {
@@ -19,8 +18,11 @@ namespace plugin_headstrong_games.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "FABTEX",
+            Publisher = "Headstrong Games",
+            Developer = "Headstrong Games",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in Pokemon Art Academy."
         };
 

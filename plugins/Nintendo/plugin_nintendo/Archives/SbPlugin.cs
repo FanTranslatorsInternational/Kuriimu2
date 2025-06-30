@@ -18,8 +18,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "SB",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Gamefreak",
+            Platform = ["3DS"],
             LongDescription = "Archive found in GARCs."
         };
 

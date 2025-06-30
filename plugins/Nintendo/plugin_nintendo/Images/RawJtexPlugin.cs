@@ -14,8 +14,11 @@ namespace plugin_nintendo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "RawJTEX",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The image format used in 3DS games."
         };
 

@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "IDX",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["3DS"],
             LongDescription = "Main package resource in Gundam 3D Battle."
         };
 

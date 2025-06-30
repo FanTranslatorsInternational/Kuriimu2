@@ -18,8 +18,11 @@ namespace plugin_nintendo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "SMDH",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The 3DS icon format."
         };
 

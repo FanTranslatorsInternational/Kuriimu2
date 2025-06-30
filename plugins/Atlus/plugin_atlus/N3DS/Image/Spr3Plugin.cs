@@ -13,12 +13,17 @@ namespace plugin_atlus.N3DS.Image
     public class Spr3Plugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("e8df5de0-39a7-4bbe-9779-8fd687da0fe7");
+
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] {"*.spr3"};
+        public string[] FileExtensions => ["*.spr3"];
+
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "SPR3",
-            Author = "onepiecefreak",
+            Publisher = "Atlus",
+            Developer = "Atlus",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in Persona Q games."
         };
 

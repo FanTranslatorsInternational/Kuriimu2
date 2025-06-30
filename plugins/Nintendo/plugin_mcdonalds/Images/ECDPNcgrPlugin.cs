@@ -19,8 +19,11 @@ namespace plugin_mcdonalds.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onpiecefreak"],
             Name = "eCDP NCGR",
-            Author = "onpiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["NDS"],
             LongDescription = "NCGR's found in eCDP by McDonald's."
         };
 

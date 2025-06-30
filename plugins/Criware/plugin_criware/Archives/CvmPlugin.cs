@@ -18,8 +18,11 @@ namespace plugin_criware.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "CVM",
+            Publisher = "Criware",
+            Developer = "Criware",
+            Platform = ["PS2"],
             LongDescription = "The main archive resource by Cri Middleware in the PS2 era of games."
         };
 

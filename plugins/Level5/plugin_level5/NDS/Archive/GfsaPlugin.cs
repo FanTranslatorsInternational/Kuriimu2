@@ -14,12 +14,15 @@ namespace plugin_level5.NDS.Archive
         public Guid PluginId => Guid.Parse("f38e0ef3-f6ad-42d8-bb52-a1d3323d5372");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.fa"};
+        public string[] FileExtensions => ["*.fa"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "GFSA",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["NDS"],
             LongDescription = "Main resource archive in Professor Layton 4."
         };
 

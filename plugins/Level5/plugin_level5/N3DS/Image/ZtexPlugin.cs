@@ -14,12 +14,15 @@ namespace plugin_level5.N3DS.Image
         public Guid PluginId => Guid.Parse("e131dd95-a61b-4eee-a4fa-48d222ac03d5");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.ztex" };
+        public string[] FileExtensions => ["*.ztex"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "ZTEX",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in Fantasy Life."
         };
 

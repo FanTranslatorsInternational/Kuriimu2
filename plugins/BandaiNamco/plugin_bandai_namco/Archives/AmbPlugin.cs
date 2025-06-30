@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "AMB",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["3DS"],
             LongDescription = "The resource archive used in Dragon Ball Heroes games."
         };
 

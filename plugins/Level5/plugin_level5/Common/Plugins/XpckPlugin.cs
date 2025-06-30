@@ -21,8 +21,11 @@ namespace plugin_level5.Common.Plugins
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "XPCK",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["PSP", "Vita", "3DS", "Switch", "Android"],
             LongDescription = "Main archive for 3DS Level-5 games"
         };
 

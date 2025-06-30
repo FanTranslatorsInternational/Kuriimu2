@@ -1,26 +1,24 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Buffers.Binary;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_inti_creates.Archives
 {
     class Irarc
     {
-        public IList<IArchiveFileInfo> Load(Stream lstStream, Stream arcStream)
+        public List<IArchiveFile> Load(Stream lstStream, Stream arcStream)
         {
             using var br = new BinaryReaderX(lstStream);
 
             // Read entries
             var entryCount = br.ReadInt32();
-            var entries = br.ReadMultiple<IrarcFileEntry>(entryCount);
+            var entries = ReadEntries(br, entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < entryCount; i++)
             {
                 var entry = entries[i];
@@ -34,16 +32,16 @@ namespace plugin_inti_creates.Archives
             return result;
         }
 
-        public void Save(Stream lstStream, Stream arcStream, IList<IArchiveFileInfo> files)
+        public void Save(Stream lstStream, Stream arcStream, IList<IArchiveFile> files)
         {
             using var lstBw = new BinaryWriterX(lstStream);
 
             // Write files
             var entries = new List<IrarcFileEntry>();
-            foreach (var file in files.Cast<IrarcArchiveFileInfo>())
+            foreach (var file in files.Cast<IrarcArchiveFile>())
             {
                 var offset = arcStream.Position;
-                var writtenSize = file.SaveFileData(arcStream);
+                var writtenSize = file.WriteFileData(arcStream);
 
                 entries.Add(new IrarcFileEntry
                 {
@@ -57,10 +55,10 @@ namespace plugin_inti_creates.Archives
 
             // Write entries
             lstBw.Write(entries.Count);
-            lstBw.WriteMultiple(entries);
+            WriteEntries(entries, lstBw);
         }
 
-        private ArchiveFileInfo CreateAfi(Stream file, string name, IrarcFileEntry entry)
+        private IArchiveFile CreateAfi(Stream file, string name, IrarcFileEntry entry)
         {
             if (entry.IsCompressed)
             {
@@ -69,16 +67,22 @@ namespace plugin_inti_creates.Archives
 
                 file = new SubStream(file, 0x18, file.Length - 0x18);
 
-                return new IrarcArchiveFileInfo(file, name, entry, Kompression.Implementations.Compressions.IrLz, decompressedSize)
+                return new IrarcArchiveFile(new CompressedArchiveFileInfo
                 {
-                    PluginIds = new[] { Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f") }
-                };
+                    FilePath = name,
+                    FileData = file,
+                    Compression = Compressions.IrLz.Build(),
+                    DecompressedSize = decompressedSize,
+                    PluginIds = [Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f")]
+                }, entry);
             }
 
-            return new IrarcArchiveFileInfo(file, name, entry)
+            return new IrarcArchiveFile(new ArchiveFileInfo
             {
-                PluginIds = new[] { Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f") }
-            };
+                FilePath = name,
+                FileData = file,
+                PluginIds = [Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f")]
+            }, entry);
         }
 
         private int PeekInt32(Stream input)
@@ -86,11 +90,44 @@ namespace plugin_inti_creates.Archives
             var bkPos = input.Position;
 
             var buffer = new byte[4];
-            input.Read(buffer, 0, 4);
+            _ = input.Read(buffer, 0, 4);
 
             input.Position = bkPos;
 
             return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+        }
+
+        private IrarcFileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new IrarcFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private IrarcFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new IrarcFileEntry
+            {
+                id = reader.ReadInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntries(IList<IrarcFileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (IrarcFileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(IrarcFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.id);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

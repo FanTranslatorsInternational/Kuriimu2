@@ -14,12 +14,15 @@ namespace plugin_level5.N3DS.Archive
         public Guid PluginId => Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.arc" };
+        public string[] FileExtensions => ["*.arc"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "ARCV",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["3DS"],
             LongDescription = "Generic archive for 3DS Level-5 games"
         };
 

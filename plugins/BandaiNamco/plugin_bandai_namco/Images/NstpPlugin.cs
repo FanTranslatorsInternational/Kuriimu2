@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "NSTP",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["Switch"],
             LongDescription = "Main image resource for Bandai Namco games on Nintendo Switch."
         };
 

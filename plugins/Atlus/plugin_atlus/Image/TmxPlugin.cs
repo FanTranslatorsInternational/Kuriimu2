@@ -12,18 +12,23 @@ namespace plugin_atlus.Image
     public class TmxPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("c533c2a1-4fdb-4e2a-bbb5-c07d6bf5a22d");
+
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.tmx" };
+        public string[] FileExtensions => ["*.tmx"];
+
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "TMX",
-            Author = "onepiecefreak",
+            Publisher = "Atlus",
+            Developer = "Atlus",
+            Platform = ["3DS"],
             LongDescription = "An image resource from Atlus games."
         };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
 

@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "Megaflan",
+            Author = ["Megaflan"],
             Name = "TOTEXK",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["3DS"],
             LongDescription = "The image format found in Tales of Abyss 3DS."
         };
 

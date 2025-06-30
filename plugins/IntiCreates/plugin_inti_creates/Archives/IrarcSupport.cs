@@ -1,9 +1,6 @@
 ﻿using System.Buffers.Binary;
-using System.IO;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_inti_creates.Archives
 {
@@ -19,31 +16,25 @@ namespace plugin_inti_creates.Archives
         public bool IsCompressed => (flags & 0x10) > 0;
     }
 
-    class IrarcArchiveFileInfo : ArchiveFileInfo
+    class IrarcArchiveFile : ArchiveFile
     {
         public IrarcFileEntry Entry { get; }
 
-        public IrarcArchiveFileInfo(Stream fileData, string filePath, IrarcFileEntry entry) : base(fileData, filePath)
+        public IrarcArchiveFile(ArchiveFileInfo fileInfo, IrarcFileEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
 
-        public IrarcArchiveFileInfo(Stream fileData, string filePath, IrarcFileEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-            Entry = entry;
-        }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
+        public long WriteFileData(Stream output)
         {
             var bkPos = output.Position;
 
             if (UsesCompression)
                 output.Position += 0x18;
 
-            var writtenSize = base.SaveFileData(output, compress, progress);
+            var writtenSize = base.WriteFileData(output, true);
 
-            if (!UsesCompression) 
+            if (!UsesCompression)
                 return writtenSize;
 
             writtenSize += 0x18;

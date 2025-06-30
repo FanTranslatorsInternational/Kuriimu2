@@ -14,8 +14,11 @@ namespace plugin_bandai_namco.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "SEG",
+            Publisher = "Bandai Namco",
+            Developer = "BBStudio",
+            Platform = ["PS2"],
             LongDescription = "The SEG format in Super Robot Taisen Z."
         };
 

@@ -18,8 +18,11 @@ namespace plugin_nintendo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "BCH",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The object resource for games on Nintendo 3DS."
         };
 

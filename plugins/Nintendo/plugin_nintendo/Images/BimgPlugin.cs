@@ -14,8 +14,11 @@ namespace plugin_nintendo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "BIMG",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The thumbnail format for 3DS movies from the eshop."
         };
 

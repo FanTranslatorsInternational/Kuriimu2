@@ -14,8 +14,11 @@ namespace plugin_hunex.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "Sn0wCrack; onepiecefreak",
+            Author = ["Sn0wCrack", "onepiecefreak"],
             Name = "HED",
+            Publisher = "HuneX",
+            Developer = "HuneX",
+            Platform = ["Vita"],
             LongDescription = "The first main archive for HuneX games."
         };
 

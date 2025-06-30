@@ -14,12 +14,15 @@ namespace plugin_level5.N3DS.Image
         public Guid PluginId => Guid.Parse("eab51bcd-385b-4b06-b622-2a433cfc4530");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.aif" };
+        public string[] FileExtensions => ["*.aif"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "AIF",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["3DS"],
             LongDescription = "Main image resource in Danball Senki by Level5."
         };
 

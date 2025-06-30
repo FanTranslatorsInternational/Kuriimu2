@@ -18,8 +18,11 @@ namespace plugin_arc_system_works.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "FPAC",
+            Publisher = "Arc System Works",
+            Developer = "Arc System Works",
+            Platform = ["3DS"],
             LongDescription = "The main resource in Arc System Works games."
         };
 

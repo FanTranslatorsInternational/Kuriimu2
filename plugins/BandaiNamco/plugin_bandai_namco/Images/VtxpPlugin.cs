@@ -18,8 +18,11 @@ namespace plugin_bandai_namco.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "VTXP",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["Vita"],
             LongDescription = "Main image resource for Bandai Namco games on Sony PS Vita."
         };
 

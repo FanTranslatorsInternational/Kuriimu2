@@ -18,8 +18,11 @@ namespace plugin_grezzo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "GAR",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Grezzo",
+            Platform = ["3DS"],
             LongDescription = "Main archive type in Zelda: Majoras Mask."
         };
 

@@ -1,31 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_inti_creates.Archives
 {
-    class IrarcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class IrarcState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Irarc _irarc;
+        private readonly Irarc _irarc=new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsContentChanged();
-
-        public IrarcState()
-        {
-            _irarc = new Irarc();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -53,10 +42,10 @@ namespace plugin_inti_creates.Archives
                 arcStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Files = _irarc.Load(lstStream, arcStream);
+            _files = _irarc.Load(lstStream, arcStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream lstStream;
             Stream arcStream;
@@ -67,29 +56,27 @@ namespace plugin_inti_creates.Archives
             switch (savePath.GetExtensionWithDot())
             {
                 case ".irlst":
-                    lstStream = fileSystem.OpenFile(savePath.GetDirectory() / lstName, FileMode.Create);
-                    arcStream = fileSystem.OpenFile(savePath.GetDirectory() / arcName, FileMode.Create);
+                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create);
+                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create);
                     break;
 
                 default:
-                    lstStream = fileSystem.OpenFile(savePath.GetDirectory() / lstName, FileMode.Create);
-                    arcStream = fileSystem.OpenFile(savePath.GetDirectory() / arcName, FileMode.Create);
+                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create);
+                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create);
                     break;
             }
 
-            _irarc.Save(lstStream, arcStream, Files);
-
-            return Task.CompletedTask;
+            _irarc.Save(lstStream, arcStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

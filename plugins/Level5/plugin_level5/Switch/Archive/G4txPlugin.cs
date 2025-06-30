@@ -14,12 +14,15 @@ namespace plugin_level5.Switch.Archive
         public Guid PluginId => Guid.Parse("ae6bc510-096b-4dcd-ba9c-b67985d2bed2");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.g4tx" };
+        public string[] FileExtensions => ["*.g4tx"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "G4TX",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["Switch"],
             LongDescription = "The main image resource container in some Level5 Switch games."
         };
 

@@ -18,8 +18,11 @@ namespace plugin_ganbarion.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "JARC",
+            Publisher = "Bandai Namco",
+            Developer = "Ganbarion",
+            Platform = ["3DS"],
             LongDescription = "The main archive resource in Ganbarion games on 3DS."
         };
 

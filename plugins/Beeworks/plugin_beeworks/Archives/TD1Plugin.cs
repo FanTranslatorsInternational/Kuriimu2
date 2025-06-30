@@ -14,8 +14,11 @@ namespace plugin_beeworks.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "Touch Detective 1",
+            Publisher = "BeeWorks",
+            Developer = "BeeWorks",
+            Platform = ["NDS"],
             LongDescription = "The main archive for Touch Detective 1."
         };
 

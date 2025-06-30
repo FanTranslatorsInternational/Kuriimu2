@@ -14,12 +14,15 @@ namespace plugin_level5.NDS.Archive
         public Guid PluginId => Guid.Parse("0fc27e6a-f61e-426f-93c2-62550646ea89");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.ca", "*.cb" };
+        public string[] FileExtensions => ["*.ca", "*.cb"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "GFSP",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["NDS"],
             LongDescription = "The main resource archive in Level5 games on DS."
         };
 

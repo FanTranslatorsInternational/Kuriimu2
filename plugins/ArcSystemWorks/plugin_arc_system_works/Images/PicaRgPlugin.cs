@@ -18,8 +18,11 @@ namespace plugin_arc_system_works.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "PicaRg",
+            Publisher = "Arc System Works",
+            Developer = "Arc System Works",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in Jake Hunter by Arc System Works."
         };
 

@@ -18,8 +18,11 @@ namespace plugin_furyu.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "RTEX",
+            Publisher = "FurYu",
+            Developer = "FurYu",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in Gaki no Tsukai."
         };
 

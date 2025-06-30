@@ -14,8 +14,11 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["IcySon55"],
             Name = "MMBin",
-            Author = "IcySon55",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["WiiU"],
             LongDescription = "2D resource from Mario Maker."
         };
 

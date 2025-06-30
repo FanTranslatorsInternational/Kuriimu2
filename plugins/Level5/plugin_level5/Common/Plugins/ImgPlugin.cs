@@ -27,8 +27,11 @@ namespace plugin_level5.Common.Plugins
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "IMGx",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["PSP", "Vita", "3DS", "Switch", "Android"],
             LongDescription = "Main image resource for Level-5 games on multiple platforms."
         };
 

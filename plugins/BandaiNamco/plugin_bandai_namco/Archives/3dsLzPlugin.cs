@@ -14,8 +14,11 @@ namespace plugin_bandai_namco.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "3DS-LZ",
+            Publisher = "Bandai Namco",
+            Developer = "Bandai Namco",
+            Platform = ["3DS"],
             LongDescription = "The archive used in Dragon Ball Heroes Ultimate Mission"
         };
 

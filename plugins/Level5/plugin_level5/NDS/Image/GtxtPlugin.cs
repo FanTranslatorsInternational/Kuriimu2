@@ -14,12 +14,15 @@ namespace plugin_level5.NDS.Image
         public Guid PluginId => Guid.Parse("20341149-76dc-43a5-9c02-d87b16f8b369");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.lt", "*.lp" };
+        public string[] FileExtensions => ["*.lt", "*.lp"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "GTXT",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["NDS"],
             LongDescription = "The main image resource in Professor Layton Spectre's Call by Level5."
         };
 

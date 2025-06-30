@@ -1,11 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_inti_creates.Archives
 {
@@ -24,19 +19,13 @@ namespace plugin_inti_creates.Archives
         public int unk2;
     }
 
-    class VapArchiveFileInfo : ArchiveFileInfo
+    class VapArchiveFile : ArchiveFile
     {
         public VapFileEntry Entry { get; }
 
-        public VapArchiveFileInfo(Stream fileData, string filePath, VapFileEntry entry) :
-            base(fileData, filePath)
+        public VapArchiveFile(ArchiveFileInfo fileInfo, VapFileEntry entry) : base(fileInfo)
         {
             Entry = entry;
-        }
-
-        public VapArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
         }
     }
 
@@ -66,7 +55,7 @@ namespace plugin_inti_creates.Archives
             input.Position = bkPos + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

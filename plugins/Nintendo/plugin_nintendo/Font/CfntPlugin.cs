@@ -18,8 +18,11 @@ namespace plugin_nintendo.Font
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "BCFNT",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["3DS"],
             LongDescription = "The Nintendo SDK standard font."
         };
 

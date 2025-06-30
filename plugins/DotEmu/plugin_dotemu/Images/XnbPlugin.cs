@@ -18,8 +18,11 @@ namespace plugin_dotemu.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "XNB",
+            Publisher = "DotEmu",
+            Developer = "DotEmu",
+            Platform = ["Switch"],
             LongDescription = "Main image resource for Microsoft.XNA.Framework"
         };
 

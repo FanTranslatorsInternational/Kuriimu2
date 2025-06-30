@@ -14,12 +14,15 @@ namespace plugin_atlus.N3DS.Image
         public Guid PluginId => Guid.Parse("8075AB6F-5D1F-4EE3-AF90-DDBF1E0852C0");
 
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.stex" };
+        public string[] FileExtensions => ["*.stex"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "STEX",
-            Author = "onepiecefreak",
+            Publisher = "Atlus",
+            Developer = "Atlus",
+            Platform = ["3DS"],
             LongDescription = "Image format found in Shin Megami Tensei and Etrian Odyssey 3DS games."
         };
 

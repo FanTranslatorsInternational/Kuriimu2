@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Kontract.Extensions;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_inti_creates.Images
 {
@@ -33,7 +32,7 @@ namespace plugin_inti_creates.Images
 
     class OsbSupport
     {
-        private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0] = new Rgba(8, 8, 8, 8, "ARGB"),
             [4] = ImageFormats.Rgba4444()

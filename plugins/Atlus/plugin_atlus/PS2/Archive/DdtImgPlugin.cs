@@ -10,12 +10,15 @@ namespace plugin_atlus.PS2.Archive
         public Guid PluginId => Guid.Parse("ddf8e73e-1037-445f-b3f9-cfd2ce9cbde2");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.ddt", "*.img" };
+        public string[] FileExtensions => ["*.ddt", "*.img"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["IcySon55"],
             Name = "DDTIMG",
-            Author = "IcySon55",
+            Publisher = "Atlus",
+            Developer = "Atlus",
+            Platform = ["PS2"],
             LongDescription = "Main archive of PS2 Atlus games."
         };
 

@@ -18,8 +18,11 @@ namespace plugin_circus.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "Da Capo Script",
+            Publisher = "Circus",
+            Developer = "Circus",
+            Platform = ["Vita"],
             LongDescription = "The script file of Da Capo games."
         };
 

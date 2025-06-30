@@ -14,8 +14,11 @@ namespace plugin_felistella.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "TEX_VITA",
+            Publisher = "Felistella",
+            Developer = "Felistella",
+            Platform = ["Vita"],
             LongDescription = "The main image resource in Genka Tikko Seven Pirates."
         };
 

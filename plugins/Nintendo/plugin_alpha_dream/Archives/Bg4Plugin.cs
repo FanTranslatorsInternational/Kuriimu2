@@ -18,8 +18,11 @@ namespace plugin_alpha_dream.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "BG4",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "AlphaDream",
+            Platform = ["3DS"],
             LongDescription = "The main resource archive in Mario & Luigi Superstar Saga."
         };
 

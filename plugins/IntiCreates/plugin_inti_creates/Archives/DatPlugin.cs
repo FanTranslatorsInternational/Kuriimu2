@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_inti_creates.Archives
 {
     public class DatPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("5882b51c-d553-4f8c-9843-6d022f153d99");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.dat"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.dat"];
 
-        public DatPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("DAT","onepiecefreak","A data resource found in Azure Strikers Gunvokt.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "DAT",
+            Publisher = "Inti Creates",
+            Developer = "Inti Creates",
+            Platform = ["3DS"],
+            LongDescription = "A data resource found in Azure Strikers Gunvokt."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new DatState();
         }

@@ -1,23 +1,23 @@
-﻿using System;
-using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_inti_creates.Archives
 {
     class Dat
     {
-        private static int HeaderSize = Tools.MeasureType(typeof(DatHeader));
-        private static int SubHeaderSize = Tools.MeasureType(typeof(DatSubHeader));
+        private static int HeaderSize = 0x18;
+        private static int SubHeaderSize = 0x14;
 
-        public IArchiveFileInfo Load(Stream input)
+        public IArchiveFile Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            var header = br.ReadType<DatHeader>();
+            var header = ReadHeader(br);
 
             // Decompress file
             var ms = new MemoryStream();
@@ -27,14 +27,18 @@ namespace plugin_inti_creates.Archives
             // Read files
             using var decompBr = new BinaryReaderX(ms, true);
 
-            var decompHeader = decompBr.ReadType<DatSubHeader>();
+            var decompHeader = ReadSubHeader(decompBr);
             if (decompHeader.fileCount > 1)
                 throw new InvalidOperationException("Filecount is higher than 1. Create an issue to resolve this.");
 
-            return new ArchiveFileInfo(new SubStream(ms, decompHeader.dataOffset, decompHeader.dataSize), "00000000.bin");
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = "00000000.bin",
+                FileData = new SubStream(ms, decompHeader.dataOffset, decompHeader.dataSize)
+            });
         }
 
-        public void Save(Stream output, IArchiveFileInfo file)
+        public void Save(Stream output, IArchiveFile file)
         {
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms);
@@ -46,7 +50,7 @@ namespace plugin_inti_creates.Archives
 
             // Write file data
             ms.Position = innerDataOffset;
-            (file as ArchiveFileInfo).SaveFileData(ms);
+            file.WriteFileData(ms);
 
             // Write sub header
             var subHeader = new DatSubHeader
@@ -57,7 +61,7 @@ namespace plugin_inti_creates.Archives
             };
 
             ms.Position = 0;
-            bw.WriteType(subHeader);
+            WriteSubHeader(subHeader, bw);
 
             // Compress file
             ms.Position = 0;
@@ -73,7 +77,51 @@ namespace plugin_inti_creates.Archives
             };
 
             output.Position = 0;
-            outputBw.WriteType(header);
+            WriteHeader(header, outputBw);
+        }
+
+        private DatHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DatHeader
+            {
+                dataOffset = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                fileSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                zero2 = reader.ReadInt32(),
+                zero3 = reader.ReadInt32()
+            };
+        }
+
+        private DatSubHeader ReadSubHeader(BinaryReaderX reader)
+        {
+            return new DatSubHeader
+            {
+                fileCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                dataSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(DatHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.dataOffset);
+            writer.Write(header.zero1);
+            writer.Write(header.fileSize);
+            writer.Write(header.decompSize);
+            writer.Write(header.zero2);
+            writer.Write(header.zero3);
+        }
+
+        private void WriteSubHeader(DatSubHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.fileCount);
+            writer.Write(header.unk1);
+            writer.Write(header.zero1);
+            writer.Write(header.dataOffset);
+            writer.Write(header.dataSize);
         }
     }
 }

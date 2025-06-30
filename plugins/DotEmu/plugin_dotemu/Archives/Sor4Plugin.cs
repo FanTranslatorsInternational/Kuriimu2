@@ -14,8 +14,11 @@ namespace plugin_dotemu.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "SOR4",
+            Publisher = "DotEmu",
+            Developer = "DotEmu",
+            Platform = ["Switch"],
             LongDescription = "The main texture resource archive in Streets Of Rage 4."
         };
 

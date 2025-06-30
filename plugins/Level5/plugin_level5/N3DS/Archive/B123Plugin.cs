@@ -14,12 +14,15 @@ namespace plugin_level5.N3DS.Archive
         public Guid PluginId => Guid.Parse("948cde6d-e0e8-4518-a38a-9ba5bf6d4e9e");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.fa" };
+        public string[] FileExtensions => ["*.fa"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "B123",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["3DS"],
             LongDescription = "Main game archive for older 3DS Level-5 games"
         };
 

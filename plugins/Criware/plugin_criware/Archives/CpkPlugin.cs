@@ -18,8 +18,11 @@ namespace plugin_criware.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "IcySon55, onepiecefreak",
+            Author = ["IcySon55", "onepiecefreak"],
             Name = "CPK",
+            Publisher = "Criware",
+            Developer = "Criware",
+            Platform = ["3DS", "Vita", "PSP", "Switch"],
             LongDescription = "The main archive for the CriWare Middleware."
         };
 

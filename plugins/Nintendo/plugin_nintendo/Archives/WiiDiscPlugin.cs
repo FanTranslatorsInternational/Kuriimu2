@@ -14,9 +14,12 @@ namespace plugin_nintendo.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "WiiDisc",
-            Author = "onepiecefreak",
-            LongDescription = "The disc format for the Nintendo Wii"
+            Publisher = "Nintendo",
+            Developer = "Nintendo",
+            Platform = ["Wii"],
+            LongDescription = "The disc format for the Nintendo Wii."
         };
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)

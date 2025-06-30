@@ -19,9 +19,12 @@ namespace plugin_level5.Common.Plugins
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "FNT",
-            Author = "onepiecefreak",
-            LongDescription = "Font for 3DS Level-5 games."
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["PSP", "Vita", "3DS", "Switch"],
+            LongDescription = "Font for Level-5 games."
         };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)

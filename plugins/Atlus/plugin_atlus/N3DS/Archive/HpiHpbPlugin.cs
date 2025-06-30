@@ -13,13 +13,17 @@ namespace plugin_atlus.N3DS.Archive
     public class HpiHpbPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("9479a384-5725-47c0-9257-0f3f88fdbcde");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.hpi", "*.hpb" };
+        public string[] FileExtensions => ["*.hpi", "*.hpb"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "HPIHPB",
-            Author = "onepiecefreak",
+            Publisher = "Atlus",
+            Developer = "Atlus",
+            Platform = ["3DS"],
             LongDescription = "The main archive for Etrian Odyssey games on 3DS."
         };
 
@@ -41,6 +45,6 @@ namespace plugin_atlus.N3DS.Archive
         public IFilePluginState CreatePluginState(IPluginFileManager fileManager)
         {
             return new HpiHpbState();
-        }        
+        }
     }
 }

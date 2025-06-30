@@ -18,8 +18,11 @@ namespace plugin_lemon_interactive.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "IcySon55",
+            Author = ["IcySon55"],
             Name = "DPK4",
+            Publisher = "CI Games",
+            Developer = "CI Games",
+            Platform = ["PC"],
             LongDescription = "An archive plugin for Project Earth: Starmageddon."
         };
 

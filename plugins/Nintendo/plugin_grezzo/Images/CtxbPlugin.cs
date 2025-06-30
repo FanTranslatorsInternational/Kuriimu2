@@ -18,8 +18,11 @@ namespace plugin_grezzo.Images
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "CTXB",
-            Author = "onepiecefreak",
+            Publisher = "Nintendo",
+            Developer = "Grezzo",
+            Platform = ["3DS"],
             LongDescription = "The main image resource in 3DS Zelda ports."
         };
 

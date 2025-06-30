@@ -14,12 +14,15 @@ namespace plugin_level5.Mobile.Archive
         public Guid PluginId => Guid.Parse("e499eb38-f6b0-4bc8-a846-0ea73cf2907a");
 
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.obb" };
+        public string[] FileExtensions => ["*.obb"];
 
         public PluginMetadata Metadata { get; } = new()
         {
+            Author = ["onepiecefreak"],
             Name = "ARC1",
-            Author = "onepiecefreak",
+            Publisher = "Level5",
+            Developer = "Level5",
+            Platform = ["Android"],
             LongDescription = "Main data of Professor Layton 1 on Android."
         };
 

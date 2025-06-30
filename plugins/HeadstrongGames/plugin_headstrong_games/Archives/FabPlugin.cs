@@ -18,8 +18,11 @@ namespace plugin_headstrong_games.Archives
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = "onepiecefreak",
+            Author = ["onepiecefreak"],
             Name = "FAB",
+            Publisher = "Headstrong Games",
+            Developer = "Headstrong Games",
+            Platform = ["3DS"],
             LongDescription = "The main file resource in Pokemon Art Academy."
         };
 
