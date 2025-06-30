@@ -1,11 +1,7 @@
-﻿using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_hunex.Archives
+﻿namespace plugin_hunex.Archives
 {
     class MRGHeader
     {
-        [FixedLength(6)]
         public string magic = "mrgd00";
         public short fileCount;
     }

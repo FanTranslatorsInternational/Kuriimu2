@@ -1,32 +1,31 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_hunex.Archives
 {
     // Specifications: https://github.com/Hintay/PS-HuneX_Tools/tree/master/Specifications
     class MRG
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(MRGHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(MRGEntry));
+        private static readonly int HeaderSize = 0x8;
+        private static readonly int EntrySize = 0x8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<MRGHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<MRGEntry>(header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Add files
             var dataOffset = br.BaseStream.Position;
 
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -34,13 +33,17 @@ namespace plugin_hunex.Archives
                 var subStream = new SubStream(input, dataOffset + entry.Offset, entry.Size);
                 var fileName = $"{i:00000000}.bin";
 
-                result.Add(new ArchiveFileInfo(subStream, fileName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -52,10 +55,10 @@ namespace plugin_hunex.Archives
             var entries = new List<MRGEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
                 bw.WritePadding(8, 0xFF);
 
                 entries.Add(new MRGEntry
@@ -69,14 +72,66 @@ namespace plugin_hunex.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
-            output.Position = 0;
-            bw.WriteType(new MRGHeader
+            var header = new MRGHeader
             {
                 fileCount = (short)files.Count
-            });
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private MRGHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new MRGHeader
+            {
+                magic = reader.ReadString(6),
+                fileCount = reader.ReadInt16()
+            };
+        }
+
+        private MRGEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new MRGEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private MRGEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new MRGEntry
+            {
+                sectorOffset = reader.ReadUInt16(),
+                lowOffset = reader.ReadUInt16(),
+                sectorCount = reader.ReadUInt16(),
+                lowSize = reader.ReadUInt16()
+            };
+        }
+
+        private void WriteHeader(MRGHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileCount);
+        }
+
+        private void WriteEntries(IList<MRGEntry> entries, BinaryWriterX writer)
+        {
+            foreach (MRGEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(MRGEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.sectorOffset);
+            writer.Write(entry.lowOffset);
+            writer.Write(entry.sectorCount);
+            writer.Write(entry.lowSize);
         }
     }
 }

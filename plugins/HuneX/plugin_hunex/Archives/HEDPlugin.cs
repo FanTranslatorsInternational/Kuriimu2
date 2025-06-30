@@ -1,26 +1,25 @@
-﻿using Kontract.Interfaces.Plugins.Identifier;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_hunex.Archives
 {
     public class HEDPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("3102046d-562a-4d81-ae60-828e3ee10e21");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.hed" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.hed"];
 
-        public HEDPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("HED", "Sn0wCrack; onepiecefreak", "The first main archive for HuneX games.");
-        }
+            Author = "Sn0wCrack; onepiecefreak",
+            Name = "HED",
+            LongDescription = "The first main archive for HuneX games."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new HEDState();
         }

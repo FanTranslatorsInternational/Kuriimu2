@@ -1,36 +1,29 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_hunex.Archives
 {
-    class HEDState : IArchiveState, ILoadFiles
+    class HEDState : ILoadFiles, IArchiveFilePluginState
     {
-        private HED _hed;
+        private readonly HED _hed = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
-
-        public HEDState()
-        {
-            _hed = new HED();
-        }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var hedStream = await fileSystem.OpenFileAsync(filePath);
-            var mrgStream = await fileSystem.OpenFileAsync(filePath.ChangeExtension("mrg"));
+            Stream hedStream = await fileSystem.OpenFileAsync(filePath);
+            Stream mrgStream = await fileSystem.OpenFileAsync(filePath.ChangeExtension("mrg"));
 
             Stream namStream = null;
             if (fileSystem.FileExists(filePath.ChangeExtension("nam")))
                 namStream = await fileSystem.OpenFileAsync(filePath.ChangeExtension("nam"));
 
-            Files = _hed.Load(hedStream, mrgStream, namStream);
+            _files = _hed.Load(hedStream, mrgStream, namStream);
         }
     }
 }

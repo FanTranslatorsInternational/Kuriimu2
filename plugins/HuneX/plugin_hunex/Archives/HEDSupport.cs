@@ -1,7 +1,4 @@
-﻿using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_hunex.Archives
+﻿namespace plugin_hunex.Archives
 {
     #region Entry
 
@@ -42,7 +39,6 @@ namespace plugin_hunex.Archives
 
     class NamEntry1 : INamEntry
     {
-        [FixedLength(0x20, StringEncoding = StringEncoding.SJIS)]
         public string name;
 
         public string Name => name.Replace("\r\n", "").Trim('\0');
@@ -50,7 +46,6 @@ namespace plugin_hunex.Archives
 
     class NamEntry2 : INamEntry
     {
-        [FixedLength(0x8, StringEncoding = StringEncoding.SJIS)]
         public string name;
 
         public string Name => name.Trim('\0');
