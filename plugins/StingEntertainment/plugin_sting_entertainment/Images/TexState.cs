@@ -1,48 +1,35 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
 
 namespace plugin_sting_entertainment.Images
 {
-    class TexState : IImageState, ILoadFiles, ISaveFiles
+    class TexState : ILoadFiles, ISaveFiles, IImageFilePluginState
     {
-        private Tex _img;
+        private readonly Tex _img = new();
+        private List<IImageFile> _images;
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        public IReadOnlyList<IImageFile> Images => _images;
 
         public bool ContentChanged => IsContentChanged();
 
-        public TexState()
-        {
-            _img = new Tex();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = new List<IKanvasImage> { _img.Load(fileStream) };
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _images = [_img.Load(fileStream)];
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _img.Save(fileStream, Images[0]);
-
-            return Task.CompletedTask;
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            _img.Save(fileStream, _images[0]);
         }
 
         private bool IsContentChanged()
         {
-            return Images.Any(x => x.ContentChanged);
+            return _images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Kanvas;
-using Kanvas.Encoding;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_sting_entertainment.Images
 {
@@ -33,7 +31,11 @@ namespace plugin_sting_entertainment.Images
             var definition = new EncodingDefinition();
 
             definition.AddPaletteEncodings(PaletteFormats);
-            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition(x.Value, new[] { 0 }))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition
+            {
+                IndexEncoding = x.Value,
+                PaletteEncodingIndices = [0]
+            })).ToArray());
 
             return definition;
         }

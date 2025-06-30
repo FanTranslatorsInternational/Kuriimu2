@@ -1,49 +1,45 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using Kanvas;
+﻿using System.Buffers.Binary;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 using plugin_sting_entertainment.Archives;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_sting_entertainment.Images
 {
     class Tex
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(PckHeader));
-        private static readonly int TexHeaderSize = Tools.MeasureType(typeof(TexHeader));
+        private static readonly int HeaderSize = 0xC;
+        private static readonly int TexHeaderSize = 0x10;
 
         private TexHeader _texHeader;
         private uint _magic;
         private byte[] _unkRegion;
 
-        public IKanvasImage Load(Stream input)
+        public IImageFile Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            var header = br.ReadType<PckHeader>();
-            _texHeader = br.ReadType<TexHeader>();
+            var header = PckSupport.ReadHeader(br);
+            _texHeader = ReadHeader(br);
 
             // Read data
             var imgData = new SubStream(input, input.Position, _texHeader.dataSize);
 
             var buffer = new byte[4];
-            imgData.Read(buffer);
+            _ = imgData.Read(buffer);
             imgData.Position -= 4;
 
-            IKanvasImage image;
+            IImageFile image;
             switch (_magic = BinaryPrimitives.ReadUInt32BigEndian(buffer))
             {
                 case 0x89504E47:    // PNG
-                    var img = (Bitmap)Image.FromStream(imgData);
-                    image = new BitmapKanvasImage(img);
-
+                    image = new StaticImageFile(Image.Load<Rgba32>(imgData));
                     break;
 
                 case 0x4C5A3737:    // LZ77
@@ -57,13 +53,17 @@ namespace plugin_sting_entertainment.Images
 
                     // Prepare image info
                     var dataSize = _texHeader.width * _texHeader.height;
-                    var imageInfo = new ImageInfo(dataBr.ReadBytes(dataSize), 0, new Size(_texHeader.width, _texHeader.height))
+                    var imageInfo = new ImageFileInfo
                     {
+                        BitDepth = 32,
+                        ImageData = dataBr.ReadBytes(dataSize),
+                        ImageFormat = 0,
+                        ImageSize = new Size(_texHeader.width, _texHeader.height),
                         PaletteData = dataBr.ReadBytes(256 * 4),
                         PaletteFormat = 0
                     };
 
-                    image = new KanvasImage(TexSupport.GetEncodingDefinition(), imageInfo);
+                    image = new ImageFile(imageInfo, TexSupport.GetEncodingDefinition());
 
                     break;
 
@@ -78,7 +78,7 @@ namespace plugin_sting_entertainment.Images
             return image;
         }
 
-        public void Save(Stream output, IKanvasImage image)
+        public void Save(Stream output, IImageFile image)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -87,12 +87,12 @@ namespace plugin_sting_entertainment.Images
             switch (_magic)
             {
                 case 0x89504E47:    // PNG
-                    ((BitmapKanvasImage)image).GetImage().Save(imgData, ImageFormat.Png);
+                    image.GetImage().SaveAsPng(imgData);
                     break;
 
                 case 0x4C5A3737:    // LZ77
-                    imgData.Write(((KanvasImage)image).ImageInfo.ImageData);
-                    imgData.Write(((KanvasImage)image).ImageInfo.PaletteData);
+                    imgData.Write(image.ImageInfo.ImageData);
+                    imgData.Write(image.ImageInfo.PaletteData);
 
                     imgData.Position = 0;
                     var compData = new MemoryStream();
@@ -103,8 +103,18 @@ namespace plugin_sting_entertainment.Images
             }
 
             // Write headers
-            bw.WriteType(new PckHeader { magic = "Texture ", size = (int)(imgData.Length + HeaderSize + TexHeaderSize) });
-            bw.WriteType(new TexHeader { unk1 = _texHeader.unk1, dataSize = (int)imgData.Length, width = image.ImageSize.Width, height = image.ImageSize.Height });
+            PckSupport.WriteHeader(new PckHeader
+            {
+                magic = "Texture ",
+                size = (int)(imgData.Length + HeaderSize + TexHeaderSize)
+            }, bw);
+            WriteHeader(new TexHeader
+            {
+                unk1 = _texHeader.unk1, 
+                dataSize = (int)imgData.Length, 
+                width = image.ImageInfo.ImageSize.Width, 
+                height = image.ImageInfo.ImageSize.Height
+            }, bw);
 
             // Write image data
             imgData.Position = 0;
@@ -113,6 +123,25 @@ namespace plugin_sting_entertainment.Images
 
             // Write unknown region
             bw.Write(_unkRegion);
+        }
+
+        private TexHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new TexHeader
+            {
+                unk1 = reader.ReadInt32(),
+                dataSize = reader.ReadInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(TexHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.unk1);
+            writer.Write(header.dataSize);
+            writer.Write(header.width);
+            writer.Write(header.height);
         }
     }
 }
