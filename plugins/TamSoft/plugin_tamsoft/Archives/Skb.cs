@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_tamsoft.Archives
 {
@@ -13,7 +10,7 @@ namespace plugin_tamsoft.Archives
     {
         private byte[] _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -25,25 +22,29 @@ namespace plugin_tamsoft.Archives
             var entryCount = br.ReadInt32();
 
             // Read offsets
-            var offsets = br.ReadMultiple<int>(entryCount);
+            var offsets = ReadIntegers(br, entryCount);
 
             // Read sizes
-            var sizes = br.ReadMultiple<int>(entryCount);
+            var sizes = ReadIntegers(br, entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < entryCount; i++)
             {
                 var subStream = new SubStream(input, offsets[i], sizes[i]);
                 var name = $"{i:00000000}{SkbSupport.DetermineExtension(subStream)}";
 
-                result.Add(new ArchiveFileInfo(subStream, name));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -56,10 +57,10 @@ namespace plugin_tamsoft.Archives
             var sizes = new List<int>();
 
             output.Position = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 fileOffset = (int)output.Position;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 bw.WriteAlignment(0x80);
 
@@ -71,12 +72,28 @@ namespace plugin_tamsoft.Archives
             output.Position = entryOffset;
 
             bw.Write(files.Count);
-            bw.WriteMultiple(offsets);
-            bw.WriteMultiple(sizes);
+            WriteIntegers(offsets, bw);
+            WriteIntegers(sizes, bw);
 
             // Write header
             output.Position = 0;
             bw.Write(_header);
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

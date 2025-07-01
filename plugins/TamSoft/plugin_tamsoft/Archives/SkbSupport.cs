@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Komponent.IO;
+﻿using Komponent.IO;
 
 namespace plugin_tamsoft.Archives
 {
@@ -36,7 +31,7 @@ namespace plugin_tamsoft.Archives
             input.Position = bkPos + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }
