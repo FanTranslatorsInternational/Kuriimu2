@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Enums;
+using Konnect.Plugin.File.Image;
 
-namespace superflat_games.Images
+namespace plugin_superflat_games.Images
 {
     class ImgHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int size;
         public int zero0;

@@ -1,27 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
-namespace superflat_games.Images
+namespace plugin_superflat_games.Images
 {
     public class ImgPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("fd64ef73-8c60-43e6-bfef-cf4abc32dd07");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.tex" };
-        public PluginMetadata Metadata { get; }
 
-        public ImgPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.tex"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("TEX", "onepiecefreak", "Main image resource in Lone Survivor.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "TEX",
+            Publisher = "Superflat Games",
+            Developer = "Superflat Games",
+            Platform = ["Vita"],
+            LongDescription = "Main image resource in Lone Survivor."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -34,7 +37,7 @@ namespace superflat_games.Images
             return magic1 == "IMG0" && fileStream.Length == size;
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new ImgState();
         }
