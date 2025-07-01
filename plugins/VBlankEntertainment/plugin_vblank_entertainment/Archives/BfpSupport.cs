@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_vblank_entertainment.Archives
+﻿namespace plugin_vblank_entertainment.Archives
 {
     class BfpHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public int entryCount;
         public int unk1;
         public int unk2;

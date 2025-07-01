@@ -1,30 +1,30 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_vblank_entertainment.Archives
 {
     class Bfp
     {
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<BfpHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
             input.Position = 0x20;
-            var entries = br.ReadMultiple<BfpFileEntry>(header.entryCount);
+            var entries = ReadEntries(br, header.entryCount);
 
             // Read bucket entries
-            var bucketEntries = br.ReadMultiple<BfpBucketFileEntry>(0x100);
+            var bucketEntries = ReadBucketEntries(br, 0x100);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < header.entryCount; i++)
             {
                 var entry = entries[i];
@@ -52,12 +52,72 @@ namespace plugin_vblank_entertainment.Archives
             return result;
         }
 
-        private ArchiveFileInfo CreateAfi(Stream file, string name, int decompSize)
+        private IArchiveFile CreateAfi(Stream file, string name, int decompSize)
         {
             if (file.Length == decompSize)
-                return new ArchiveFileInfo(file, name);
+                return new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = file
+                });
 
-            return new ArchiveFileInfo(file, name, Kompression.Implementations.Compressions.ZLib, decompSize);
+            return new ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = name,
+                FileData = file,
+                Compression = Compressions.ZLib.Build(),
+                DecompressedSize = decompSize
+            });
+        }
+
+        private BfpHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new BfpHeader
+            {
+                magic = reader.ReadString(4),
+                entryCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private BfpFileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new BfpFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private BfpFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new BfpFileEntry
+            {
+                hash = reader.ReadUInt32(),
+                offset = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
+        }
+
+        private BfpBucketFileEntry[] ReadBucketEntries(BinaryReaderX reader, int count)
+        {
+            var result = new BfpBucketFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadBucketEntry(reader);
+
+            return result;
+        }
+
+        private BfpBucketFileEntry ReadBucketEntry(BinaryReaderX reader)
+        {
+            return new BfpBucketFileEntry
+            {
+                offset = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
         }
     }
 }
