@@ -1,37 +1,40 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_cavia.Archives
 {
-    public class Dg2DpkPlugin:IFilePlugin,IIdentifyFiles
+    public class Dg2DpkPlugin : IIdentifyFiles
     {
-        public Guid PluginId { get; }
-        public PluginType PluginType { get; }
-        public string[] FileExtensions { get; }
-        public PluginMetadata Metadata { get; }
+        public Guid PluginId => Guid.Parse("92653036-ff2e-40a3-8827-8e1e298bc86c");
 
-        public Dg2DpkPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.BIN"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("DPK","onepiecefreak","The main archive in Drakengard 2.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "DPK",
+            Publisher = "Cavia",
+            Developer = "Square Enix",
+            Platform = ["PS2"],
+            LongDescription = "The main archive in Drakengard 2."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);
 
             return br.ReadString(3) == "dpk";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new Dg2DpkState();
         }

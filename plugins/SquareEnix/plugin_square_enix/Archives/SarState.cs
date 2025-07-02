@@ -1,56 +1,45 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_square_enix.Archives
 {
-    class SarState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class SarState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Sar _arc;
+        private readonly Sar _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChange();
-
-        public SarState()
-        {
-            _arc = new Sar();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var dataStream = await fileSystem.OpenFileAsync(filePath);
             var matStream = await fileSystem.OpenFileAsync(filePath.ChangeExtension(".sar.mat"));
 
-            Files = _arc.Load(dataStream, matStream);
+            _files = _arc.Load(dataStream, matStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var dataStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            var matStream = fileSystem.OpenFile(savePath.ChangeExtension(".sar.mat"), FileMode.Create, FileAccess.Write);
+            var dataStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            var matStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".sar.mat"), FileMode.Create, FileAccess.Write);
 
-            _arc.Save(dataStream, matStream, Files);
-
-            return Task.CompletedTask;
+            _arc.Save(dataStream, matStream, _files);
         }
 
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChange()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

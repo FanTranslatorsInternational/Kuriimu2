@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Encryption;
 
 namespace plugin_square_enix.Archives
 {
@@ -20,13 +18,13 @@ namespace plugin_square_enix.Archives
          */
         private static readonly byte[][] Keys =
         {
-            new byte[] {0x46, 0x78, 0x63, 0x15},
-            new byte[] {0x4E, 0x69, 0x29, 0x75}
+            [0x46, 0x78, 0x63, 0x15],
+            [0x4E, 0x69, 0x29, 0x75]
         };
 
         private byte[] _selectedKey;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             // Determine key
             _selectedKey = DetermineKey(input);
@@ -51,10 +49,10 @@ namespace plugin_square_enix.Archives
             // Read sizes
             count = br.ReadInt16();
 
-            var sizes = br.ReadMultiple<int>(count);
+            var sizes = ReadIntegers(br, count);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
             var offset = input.Position;
             for (var i = 0; i < count; i++)
@@ -65,7 +63,11 @@ namespace plugin_square_enix.Archives
                 if (result.Any(x => x.FilePath.ToRelative().FullName == name))
                     continue;
 
-                result.Add(new ArchiveFileInfo(new SubStream(input, offset, size), name));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = new SubStream(input, offset, size),
+                }));
 
                 offset += size;
             }
@@ -73,7 +75,7 @@ namespace plugin_square_enix.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Wrap encryption
             output = new XorStream(output, _selectedKey);
@@ -86,13 +88,13 @@ namespace plugin_square_enix.Archives
 
             // Write files
             output.Position = dataOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
-                file.SaveFileData(output);
+            foreach (var file in files)
+                file.WriteFileData(output);
 
             // Write sizes
             output.Position = sizeOffset;
             bw.Write((short)files.Count);
-            bw.WriteMultiple(files.Select(x => (int)x.FileSize));
+            WriteIntegers(files.Select(x => (int)x.FileSize).ToArray(), bw);
 
             // Write names
             output.Position = 0;
@@ -118,6 +120,22 @@ namespace plugin_square_enix.Archives
             }
 
             return null;
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteIntegers(int[] entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

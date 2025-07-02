@@ -1,32 +1,30 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_cavia.Archives
 {
     class Dg2Dpk
     {
         private const int Alignment_ = 0x800;
-        private static readonly int EntrySize = Tools.MeasureType(typeof(DpkEntry));
+        private static readonly int EntrySize = 0x20;
 
         private DpkHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<DpkHeader>();
+            _header = ReadHeader(br);
 
             // Read entries
             input.Position = _header.entryOffset;
-            var entries = br.ReadMultiple<DpkEntry>(_header.fileCount);
+            var entries = ReadEntries(br, _header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -34,13 +32,17 @@ namespace plugin_cavia.Archives
                 var subStream = new SubStream(input, entry.fileOffset, entry.fileSize);
                 var name = $"{i:00000000}.bin";
 
-                result.Add(new DpkArchiveFileInfo(subStream, name, entry));
+                result.Add(new DpkArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = subStream
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -54,9 +56,9 @@ namespace plugin_cavia.Archives
             var entries = new List<DpkEntry>();
 
             output.Position = fileOffset;
-            foreach (var file in files.Cast<DpkArchiveFileInfo>())
+            foreach (var file in files.Cast<DpkArchiveFile>())
             {
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
                 bw.WriteAlignment(Alignment_);
 
                 file.Entry.fileOffset = fileOffset;
@@ -70,13 +72,71 @@ namespace plugin_cavia.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
             _header.fileCount = files.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private DpkHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DpkHeader
+            {
+                magic = reader.ReadString(4),
+                entryOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+                fileCount = reader.ReadInt32()
+            };
+        }
+
+        private DpkEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new DpkEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private DpkEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new DpkEntry
+            {
+                unk1 = reader.ReadBytes(0x10),
+                fileSize = reader.ReadInt32(),
+                padFileSize = reader.ReadInt32(),
+                fileOffset = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(DpkHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.entryOffset);
+            writer.Write(header.unk1);
+            writer.Write(header.fileOffset);
+            writer.Write(header.fileCount);
+        }
+
+        private void WriteEntries(IList<DpkEntry> entries, BinaryWriterX writer)
+        {
+            foreach (DpkEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(DpkEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.unk1);
+            writer.Write(entry.fileSize);
+            writer.Write(entry.padFileSize);
+            writer.Write(entry.fileOffset);
+            writer.Write(entry.zero0);
         }
     }
 }

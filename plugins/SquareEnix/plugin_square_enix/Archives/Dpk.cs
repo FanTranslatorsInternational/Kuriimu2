@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_square_enix.Archives
 {
@@ -14,19 +12,19 @@ namespace plugin_square_enix.Archives
     {
         private const int BlockSize = 0x80;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<DpkHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
             input.Position = BlockSize;
-            var entries = br.ReadMultiple<DpkEntry>(header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var subStream = new SubStream(input, entry.offset, entry.compSize);
@@ -38,7 +36,7 @@ namespace plugin_square_enix.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -51,10 +49,10 @@ namespace plugin_square_enix.Archives
             var entries = new List<DpkEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.OrderBy(x => x.FilePath.ToRelative().FullName).Cast<ArchiveFileInfo>())
+            foreach (var file in files.OrderBy(x => x.FilePath.ToRelative().FullName))
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 var name = CapAndPadName(file.FilePath.ToRelative().FullName);
                 entries.Add(new DpkEntry
@@ -75,29 +73,37 @@ namespace plugin_square_enix.Archives
             // Write entries
             // HINT: Entries are ordered by nameSum
             output.Position = entryOffset;
-            bw.WriteMultiple(entries.OrderBy(x => x.nameSum));
+            WriteEntries(entries.OrderBy(x => x.nameSum).ToArray(), bw);
 
             // Write header
-            output.Position = 0;
-            bw.WriteType(new DpkHeader
+            var header = new DpkHeader
             {
                 fileCount = files.Count,
                 fileSize = (int)output.Length
-            });
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream file, string name, DpkEntry entry)
+        private IArchiveFile CreateAfi(Stream file, string name, DpkEntry entry)
         {
             if (entry.decompSize != entry.compSize)
-                return new ArchiveFileInfo(file, name, Compressions.Wp16, entry.decompSize)
+                return new ArchiveFile(new CompressedArchiveFileInfo
                 {
-                    PluginIds = Path.GetExtension(name) == ".PCK" ? new[] { Guid.Parse("16951227-46b9-436c-9a02-1016ee6ffda3") } : null
-                };
+                    FilePath = name,
+                    FileData = file,
+                    Compression = Compressions.Wp16.Build(),
+                    DecompressedSize = entry.decompSize,
+                    PluginIds = Path.GetExtension(name) == ".PCK" ? [Guid.Parse("16951227-46b9-436c-9a02-1016ee6ffda3")] : null
+                });
 
-            return new ArchiveFileInfo(file, name)
+            return new ArchiveFile(new ArchiveFileInfo
             {
-                PluginIds = Path.GetExtension(name) == ".PCK" ? new[] { Guid.Parse("16951227-46b9-436c-9a02-1016ee6ffda3") } : null
-            };
+                FilePath = name,
+                FileData = file,
+                PluginIds = Path.GetExtension(name) == ".PCK" ? [Guid.Parse("16951227-46b9-436c-9a02-1016ee6ffda3")] : null
+            });
         }
 
         private string CapAndPadName(string input)
@@ -108,6 +114,64 @@ namespace plugin_square_enix.Archives
         private int NameSum(string input)
         {
             return input.Sum(x => (byte)x);
+        }
+
+        private DpkHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DpkHeader
+            {
+                fileCount = reader.ReadInt32(),
+                fileSize = reader.ReadInt32()
+            };
+        }
+
+        private DpkEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new DpkEntry[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                result[i] = ReadEntry(reader);
+                reader.SeekAlignment(0x80);
+            }
+
+            return result;
+        }
+
+        private DpkEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new DpkEntry
+            {
+                name = reader.ReadString(0x16),
+                nameSum = reader.ReadInt16(),
+                offset = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(DpkHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.fileCount);
+            writer.Write(header.fileSize);
+        }
+
+        private void WriteEntries(DpkEntry[] entries, BinaryWriterX writer)
+        {
+            foreach (DpkEntry entry in entries)
+            {
+                WriteEntry(entry, writer);
+                writer.WriteAlignment(0x80);
+            }
+        }
+
+        private void WriteEntry(DpkEntry entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.name, writeNullTerminator: false);
+            writer.Write(entry.nameSum);
+            writer.Write(entry.offset);
+            writer.Write(entry.compSize);
+            writer.Write(entry.decompSize);
         }
     }
 }

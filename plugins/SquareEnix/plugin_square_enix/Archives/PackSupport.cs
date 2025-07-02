@@ -1,20 +1,14 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_square_enix.Archives
 {
     class PackHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int size;
         public short unk1;
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ByteOrder byteOrder = ByteOrder.LittleEndian;
+        public ushort byteOrder;
         public short fileCount;
         public short headerSize;
         public int unk2;
@@ -28,27 +22,17 @@ namespace plugin_square_enix.Archives
         public uint fileSize;
     }
 
-    class PackArchiveFileInfo : ArchiveFileInfo
+    class PackArchiveFile : ArchiveFile
     {
         public FileEntry Entry { get; }
 
-        public PackArchiveFileInfo(Stream fileData, string filePath, FileEntry entry) : base(fileData, filePath)
+        public PackArchiveFile(ArchiveFileInfo fileInfo, FileEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize = base.SaveFileData(output, compress, progress);
-
-            while (output.Position % 4 != 0)
-                output.WriteByte(0);
-
-            return writtenSize;
-        }
     }
 
-    class PackSupport
+    static class PackSupport
     {
         public static int GetAlignment(string extension)
         {

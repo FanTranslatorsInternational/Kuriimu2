@@ -1,49 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
 using plugin_square_enix.Compression;
-using System.Linq;
 using System.Text;
+using Komponent.Streams;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_square_enix.Archives
 {
     class Sar
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(SarContainerHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(SarEntry));
+        private static readonly int HeaderSize = 0xC;
+        private static readonly int EntrySize = 0x8;
 
         private SarContainerHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream dataStream, Stream matStream)
+        public List<IArchiveFile> Load(Stream dataStream, Stream matStream)
         {
             using var br = new BinaryReaderX(dataStream, true);
             using var matBr = new BinaryReaderX(matStream);
 
             // Read entries
-            var entries = matBr.ReadMultiple<SarEntry>((int)(matStream.Length / EntrySize));
+            var entries = ReadEntries(matBr, (int)(matStream.Length / EntrySize));
 
             // Read header
-            _header = br.ReadType<SarContainerHeader>();
+            _header = ReadContainerHeader(br);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
-            for (var i = 0; i < entries.Count; i++)
+            var result = new List<IArchiveFile>();
+            for (var i = 0; i < entries.Length; i++)
             {
                 var entry = entries[i];
                 dataStream.Position = entry.offset;
 
                 // Read compression header
-                var compHeader = br.ReadType<SarContainerHeader>();
+                var compHeader = ReadContainerHeader(br);
                 if (compHeader.magic != "cmp ")
                 {
-                    result.Add(new SarArchiveFileInfo(new SubStream(dataStream, entry.offset, entry.size), $"{i:00000000}.bin"));
+                    result.Add(new ArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = $"{i:00000000}.bin",
+                        FileData = new SubStream(dataStream, entry.offset, entry.size)
+                    }));
                     continue;
                 }
 
-                compHeader = br.ReadType<SarContainerHeader>();
+                compHeader = ReadContainerHeader(br);
                 if (compHeader.magic != "lz7 ")
                     throw new InvalidOperationException($"Unknown compression container detected for file at index {i}.");
 
@@ -51,13 +53,19 @@ namespace plugin_square_enix.Archives
                 var name = $"{i:00000000}.bin";
 
                 var compMethod = NintendoCompressor.PeekCompressionMethod(fileStream);
-                result.Add(new SarArchiveFileInfo(fileStream, name, NintendoCompressor.GetConfiguration(compMethod), NintendoCompressor.PeekDecompressedSize(fileStream)));
+                result.Add(new ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = fileStream,
+                    Compression = NintendoCompressor.GetConfiguration(compMethod),
+                    DecompressedSize = NintendoCompressor.PeekDecompressedSize(fileStream)
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream dataStream, Stream matStream, IList<IArchiveFileInfo> files)
+        public void Save(Stream dataStream, Stream matStream, IList<IArchiveFile> files)
         {
             long endPos;
 
@@ -72,16 +80,16 @@ namespace plugin_square_enix.Archives
             var entries = new List<SarEntry>();
 
             var dataPosition = dataOffset;
-            foreach (var file in files.Cast<SarArchiveFileInfo>())
+            foreach (var file in files)
             {
                 // Write file data1
                 dataStream.Position = dataPosition;
                 if (file.UsesCompression)
                     dataStream.Position += HeaderSize * 2;
 
-                var streamToWrite = file.GetFinalStream();
-                streamToWrite.CopyTo(dataStream);
-                var alignedSize = (streamToWrite.Length + 3) & ~3;
+                using var streamToWrite = new MemoryStream();
+                var length = file.WriteFileData(streamToWrite, true);
+                var alignedSize = (length + 3) & ~3;
 
                 // Write compression headers
                 if (file.UsesCompression)
@@ -89,10 +97,10 @@ namespace plugin_square_enix.Archives
                     endPos = dataStream.Position;
                     dataStream.Position = dataPosition;
 
-                    bw.WriteType(new SarContainerHeader { magic = "cmp ", data1 = 0x00010002, data2 = (int)(alignedSize + HeaderSize * 2 + 8) });
+                    WriteContainerHeader(new SarContainerHeader { magic = "cmp ", data1 = 0x00010002, data2 = (int)(alignedSize + HeaderSize * 2 + 8) }, bw);
                     // Divide bit count by 8; this may omit the remainder and is intended in the size calculation
                     // This recreates a buggy behaviour by the developers, who missed to account for the remainder properly, which can lead to the compressed size being off by 1
-                    bw.WriteType(new SarContainerHeader { magic = "lz7 ", data1 = (int)(alignedSize + HeaderSize + 4), data2 = SarSupport.CalculateBits(streamToWrite) / 8 });
+                    WriteContainerHeader(new SarContainerHeader { magic = "lz7 ", data1 = (int)(alignedSize + HeaderSize + 4), data2 = SarSupport.CalculateBits(streamToWrite) / 8 }, bw);
 
                     dataStream.Position = endPos;
                     bw.WriteString("~lz7", Encoding.ASCII, false, false);
@@ -110,7 +118,7 @@ namespace plugin_square_enix.Archives
             endPos = dataStream.Position;
 
             dataStream.Position = mbrOffset;
-            bw.WriteType(new SarContainerHeader { magic = "mbr ", data1 = (int)(dataStream.Length - HeaderSize + 4), data2 = files.Count });
+            WriteContainerHeader(new SarContainerHeader { magic = "mbr ", data1 = (int)(dataStream.Length - HeaderSize + 4), data2 = files.Count }, bw);
 
             dataStream.Position = endPos;
             bw.WriteString("~mbr", Encoding.ASCII, false, false);
@@ -119,13 +127,13 @@ namespace plugin_square_enix.Archives
             var mifOffset = dataStream.Position;
 
             dataStream.Position += HeaderSize;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write mif header
             endPos = dataStream.Position;
 
             dataStream.Position = mifOffset;
-            bw.WriteType(new SarContainerHeader { magic = "mif ", data1 = (int)(dataStream.Length - mifOffset + 4), data2 = files.Count });
+            WriteContainerHeader(new SarContainerHeader { magic = "mif ", data1 = (int)(dataStream.Length - mifOffset + 4), data2 = files.Count }, bw);
 
             dataStream.Position = endPos;
             bw.WriteString("~mif", Encoding.ASCII, false, false);
@@ -134,12 +142,60 @@ namespace plugin_square_enix.Archives
             bw.WriteString("~sar", Encoding.ASCII, false, false);
 
             dataStream.Position = 0;
-            bw.WriteType(new SarContainerHeader { magic = "sar ", data1 = _header.data1, data2 = (int)dataStream.Length });
+            WriteContainerHeader(new SarContainerHeader { magic = "sar ", data1 = _header.data1, data2 = (int)dataStream.Length }, bw);
 
             // Write mat content
             foreach (var entry in entries)
                 entry.offset += dataOffset; // Offsets in .mat are absolute to the .sar
-            matBw.WriteMultiple(entries);
+            WriteEntries(entries, matBw);
+        }
+
+        private SarEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new SarEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private SarEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new SarEntry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private SarContainerHeader ReadContainerHeader(BinaryReaderX reader)
+        {
+            return new SarContainerHeader
+            {
+                magic = reader.ReadString(4),
+                data1 = reader.ReadInt32(),
+                data2 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteContainerHeader(SarContainerHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.data1);
+            writer.Write(header.data2);
+        }
+
+        private void WriteEntries(IList<SarEntry> entries, BinaryWriterX writer)
+        {
+            foreach (SarEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(SarEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

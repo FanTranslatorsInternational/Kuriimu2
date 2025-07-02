@@ -1,20 +1,5 @@
-﻿using System;
-using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-
-namespace plugin_square_enix.Archives
+﻿namespace plugin_square_enix.Archives
 {
-    class SarHeader
-    {
-        [FixedLength(4)]
-        public string magic;
-
-        public int unk1;
-        public int fileSize;
-    }
-
     class SarEntry
     {
         public int offset;
@@ -23,27 +8,9 @@ namespace plugin_square_enix.Archives
 
     class SarContainerHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public int data1;
         public int data2;
-    }
-
-    class SarArchiveFileInfo : ArchiveFileInfo
-    {
-        public SarArchiveFileInfo(Stream fileData, string filePath) : base(fileData, filePath)
-        {
-        }
-
-        public SarArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
-        {
-        }
-
-        public Stream GetFinalStream()
-        {
-            return base.GetFinalStream();
-        }
     }
 
     class SarSupport
@@ -51,7 +18,7 @@ namespace plugin_square_enix.Archives
         public static int GetCompressedSize(Stream input, int offset, int readCompSize)
         {
             var buffer = new byte[4];
-            ReadOnlySpan<byte> magic = new byte[] { 0x7e, 0x6c, 0x7a, 0x37 };
+            ReadOnlySpan<byte> magic = "~lz7"u8;
 
             var startPos = input.Position;
             var checkPos = offset + readCompSize;
