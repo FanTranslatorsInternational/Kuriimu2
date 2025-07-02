@@ -1,48 +1,32 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_sony.Archives.PSARC
 {
-    /// <summary>
-    /// PSARC Plugin
-    /// </summary>
-    public class PsarcPlugin : IFilePlugin, IIdentifyFiles
+    public class PsarcPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("A260C29A-323B-4725-9592-737544F77C65");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.psarc" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.psarc"];
 
-        /// <summary>
-        /// PSARC Constructor
-        /// </summary>
-        public PsarcPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("PSARC", "IcySon55", "The PlayStation archive format used on several platforms.");
-        }
+            Author = ["IcySon5"],
+            Name = "PSARC",
+            Publisher = "Sony",
+            Developer = "Sony",
+            Platform = ["PS2"],
+            LongDescription = "The PlayStation archive format used on several platforms."
+        };
 
-        /// <summary>
-        /// PSARC State Creation
-        /// </summary>
-        /// <param name="pluginManager"></param>
-        /// <returns></returns>
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager) => new PsarcState();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileSystem"></param>
-        /// <param name="filePath"></param>
-        /// <param name="identifyContext"></param>
-        /// <returns></returns>
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
@@ -51,12 +35,25 @@ namespace plugin_sony.Archives.PSARC
             try
             {
                 using var br = new BinaryReaderX(fileStream, ByteOrder.BigEndian);
-                var header = br.ReadType<PsarcHeader>();
-                isPsarc = header.Magic == "PSAR" && (header.Compression == "zlib" || header.Compression == "lzma");
+
+                string magic = br.ReadString(4);
+                isPsarc = magic == "PSAR";
+
+                br.BaseStream.Position += 4;
+                string compression = br.ReadString(4);
+                isPsarc &= compression is "zlib" or "lzma";
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // ignored
+            }
 
             return isPsarc;
+        }
+
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
+        {
+            return new PsarcState();
         }
     }
 }

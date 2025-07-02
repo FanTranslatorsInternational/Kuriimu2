@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-
-#pragma warning disable 649
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_sony.Images
 {
@@ -26,12 +23,10 @@ namespace plugin_sony.Images
 
     class GxtHeader
     {
-        [FixedLength(4)]
         public string magic;
         public uint version;
         public int texCount;
         public int dataOffset;
-
         public int dataSize;
         public int p4PalCount;
         public int p8PalCount;
@@ -136,18 +131,18 @@ namespace plugin_sony.Images
 
     class GxtSupport
     {
-        private static readonly IDictionary<uint, IColorEncoding> Formats = new Dictionary<uint, IColorEncoding>
+        public static readonly IDictionary<uint, IColorEncoding> Formats = new Dictionary<uint, IColorEncoding>
         {
             [0x85000000] = ImageFormats.Dxt1()
         };
 
-        private static readonly IDictionary<uint, IIndexEncoding> IndexFormats = new Dictionary<uint, IIndexEncoding>
+        public static readonly IDictionary<uint, IIndexEncoding> IndexFormats = new Dictionary<uint, IIndexEncoding>
         {
             [0x94000000] = ImageFormats.I4(),
             [0x95000000] = ImageFormats.I8()
         };
 
-        private static readonly IDictionary<uint, IColorEncoding> PaletteFormats = new Dictionary<uint, IColorEncoding>
+        public static readonly IDictionary<uint, IColorEncoding> PaletteFormats = new Dictionary<uint, IColorEncoding>
         {
             [0x0000] = new Rgba(8, 8, 8, 8, "ABGR"),
             [0x1000] = new Rgba(8, 8, 8, 8, "ARGB"),
@@ -165,7 +160,11 @@ namespace plugin_sony.Images
             definition.AddColorEncodings(Formats.Select(x => ((int)x.Key, x.Value)).ToArray());
 
             definition.AddPaletteEncodings(PaletteFormats.Select(x => ((int)x.Key, x.Value)).ToArray());
-            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition(x.Value, PaletteFormats.Keys.Select(x => (int)x).ToArray()))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition
+            {
+                IndexEncoding = x.Value,
+                PaletteEncodingIndices = [..PaletteFormats.Keys.Select(x => (int)x)]
+            })).ToArray());
 
             return definition;
         }

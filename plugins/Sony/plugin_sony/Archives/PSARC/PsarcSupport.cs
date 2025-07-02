@@ -1,23 +1,16 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Kompression;
-using Kontract.Models.IO;
+﻿using System.Buffers.Binary;
+using Komponent.Contract.Aspects;
+using Komponent.Streams;
+using Kompression;
+using Kompression.Contract;
 
 namespace plugin_sony.Archives.PSARC
 {
     public class PsarcHeader
     {
-        [FixedLength(4)]
         public string Magic;
         public ushort Major;
         public ushort Minor;
-        [FixedLength(4)]
         public string Compression;
         public int TocSize; // zSize
         public int TocEntrySize;
@@ -28,13 +21,16 @@ namespace plugin_sony.Archives.PSARC
         public string Version => $"v{Major}.{Minor}";
     }
 
-    [BitFieldInfo(BlockSize = 1)]
-    [Endianness(ByteOrder = ByteOrder.BigEndian)]
     public sealed class PsarcEntry
     {
-        [FixedLength(16)]
         public byte[] MD5Hash;
         public int FirstBlockIndex;
+        public PsarcSizeInfo SizeInfo;
+    }
+
+    [BitFieldInfo(BlockSize = 1)]
+    public class PsarcSizeInfo
+    {
         [BitField(40)]
         public long UncompressedSize; // 40 bit (5 bytes)
         [BitField(40)]
@@ -71,9 +67,9 @@ namespace plugin_sony.Archives.PSARC
         {
             _baseStream = baseStream;
             _decompBlockSize = decompBlockSize;
-            _decompSize = entry.UncompressedSize;
+            _decompSize = entry.SizeInfo.UncompressedSize;
 
-            var blockCount = (int)Math.Ceiling((double)entry.UncompressedSize / decompBlockSize);
+            var blockCount = (int)Math.Ceiling((double)entry.SizeInfo.UncompressedSize / decompBlockSize);
             _blocks = blockInfos.Skip(entry.FirstBlockIndex).Take(blockCount).ToArray();
             _decompBlocks = new Stream[blockCount];
 
@@ -176,39 +172,5 @@ namespace plugin_sony.Archives.PSARC
             input.Read(_blockBuffer, 0, blockSize);
             output.Write(_blockBuffer);
         }
-
-        //public static int[] ChunkStream(Stream input, Stream output, int decompBlockSize, int alignment)
-        //{
-        //    var blockSizes = new int[input.Length / decompBlockSize + (input.Length % decompBlockSize > 0 ? 1 : 0)];
-        //    var buffer = new byte[4];
-
-        //    var position = 0;
-        //    var blockIndex = 0;
-        //    while (position < input.Length)
-        //    {
-        //        var startPos = output.Position;
-        //        output.Position += 4;
-
-        //        // Compress block
-        //        var blockStream = new SubStream(input, position, Math.Min(decompBlockSize, input.Length - position));
-        //        ZLib.Compress(blockStream, output);
-
-        //        var endPos = output.Position;
-        //        output.Position = startPos;
-
-        //        BinaryPrimitives.WriteInt32LittleEndian(buffer, (int)(endPos - startPos - 4));
-        //        output.Write(buffer);
-        //        blockSizes[blockIndex] = (int)(endPos - startPos);
-
-        //        output.Position = endPos;
-        //        while (output.Position % alignment > 0)
-        //            output.Position++;
-
-        //        position += decompBlockSize;
-        //        blockIndex++;
-        //    }
-
-        //    return blockSizes;
-        //}
     }
 }
