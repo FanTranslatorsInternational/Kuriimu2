@@ -1,33 +1,21 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_spike_chunsoft.Images
 {
-    class SrdState : IImageState, ILoadFiles, ISaveFiles
+    class SrdState : ILoadFiles, ISaveFiles, IImageFilePluginState
     {
-        private Srd _img;
+        private readonly Srd _img=new();
+        private List<IImageFile> _images;
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        public IReadOnlyList<IImageFile> Images => _images;
 
         public bool ContentChanged => IsContentChanged();
-
-        public SrdState()
-        {
-            _img = new Srd();
-
-            EncodingDefinition = SrdSupport.GetEncodingDefinition();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -45,33 +33,31 @@ namespace plugin_spike_chunsoft.Images
                 srdvStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Images = _img.Load(srdStream, srdvStream).Select(x => new KanvasImage(EncodingDefinition, x)).ToArray();
+            _images = _img.Load(srdStream, srdvStream).Select(IImageFile (x) => new ImageFile(x, SrdSupport.GetEncodingDefinition())).ToList();
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream srdStream;
             Stream srdvStream;
 
             if (savePath.GetExtensionWithDot() == ".srd")
             {
-                srdStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-                srdvStream = fileSystem.OpenFile(savePath.ChangeExtension(".srdv"), FileMode.Create, FileAccess.Write);
+                srdStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+                srdvStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".srdv"), FileMode.Create, FileAccess.Write);
             }
             else
             {
-                srdStream = fileSystem.OpenFile(savePath.ChangeExtension(".srd"), FileMode.Create, FileAccess.Write);
-                srdvStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+                srdStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".srd"), FileMode.Create, FileAccess.Write);
+                srdvStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             }
 
-            _img.Save(srdStream, srdvStream, Images.Select(x => x.ImageInfo).ToArray());
-
-            return Task.CompletedTask;
+            _img.Save(srdStream, srdvStream, _images.Select(x => x.ImageInfo).ToArray());
         }
 
         private bool IsContentChanged()
         {
-            return Images.Any(x => x.ContentChanged);
+            return _images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

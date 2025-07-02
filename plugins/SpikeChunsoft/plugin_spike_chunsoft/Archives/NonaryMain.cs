@@ -1,58 +1,144 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.Buffers.Binary;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kryptography;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Encryption;
 using plugin_spike_chunsoft.Archives.Lookups;
 
 namespace plugin_spike_chunsoft.Archives
 {
     class NonaryMain
     {
-        private static readonly byte[] Key = { 0xDA, 0xCE, 0xBA, 0xFA };
+        private static readonly byte[] Key = [0xDA, 0xCE, 0xBA, 0xFA];
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(new PositionalXorStream(input, Key), true);
 
             // Read header
-            var header = br.ReadType<NonaryHeader>();
+            var header = ReadHeader(br);
 
             // Read directories
-            var dirHeader = br.ReadType<NonaryTableHeader>();
-            var dirHashes = br.ReadMultiple<uint>(dirHeader.entryCount);
+            var dirHeader = ReadTableHeader(br);
+            _ = ReadUnsignedIntegers(br, dirHeader.entryCount);
 
             br.SeekAlignment();
 
-            var dirEntries = br.ReadMultiple<NonaryDirectoryEntry>(dirHeader.entryCount);
+            var dirEntries = ReadDirectoryEntries(br, dirHeader.entryCount);
 
             // Read file entries
-            var fileHeader = br.ReadType<NonaryTableHeader>();
-            var fileHashes = br.ReadMultiple<uint>(fileHeader.entryCount);
+            var fileHeader = ReadTableHeader(br);
+            _ = ReadUnsignedIntegers(br, fileHeader.entryCount);
+
             br.SeekAlignment();
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
             foreach (var dirEntry in dirEntries)
             {
                 if (!NonaryLookups.Directories.TryGetValue(dirEntry.directoryHash, out var dirPath))
                     dirPath = $"/UNK/0x{dirEntry.directoryHash:X8}";
 
-                var fileEntries = br.ReadMultiple<NonaryEntry>(dirEntry.fileCount);
+                var fileEntries = ReadEntries(br, dirEntry.fileCount);
                 foreach (var fileEntry in fileEntries)
                 {
-                    if (!NonaryLookups.Files.TryGetValue(fileEntry.XORpad, out var fileName))
-                        fileName = $"{dirPath}/0x{fileEntry.XORpad:X8}.unk";
+                    var xorValue = BinaryPrimitives.ReadUInt32LittleEndian(fileEntry.XorPad);
 
-                    var subStream = new PositionalXorStream(new SubStream(input, header.dataOffset + fileEntry.fileOffset, fileEntry.fileSize), fileEntry.XorPadBytes);
+                    if (!NonaryLookups.Files.TryGetValue(xorValue, out var fileName))
+                        fileName = $"{dirPath}/0x{xorValue:X8}.unk";
 
-                    result.Add(new ArchiveFileInfo(subStream, fileName));
+                    var subStream = new PositionalXorStream(new SubStream(input, header.dataOffset + fileEntry.fileOffset, fileEntry.fileSize), fileEntry.XorPad);
+
+                    result.Add(new ArchiveFile(new ArchiveFileInfo
+                    {
+                        FilePath = fileName,
+                        FileData = subStream
+                    }));
                 }
             }
 
             return result;
+        }
+
+        private NonaryHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new NonaryHeader
+            {
+                magic = reader.ReadString(4),
+                hashTableOffset = reader.ReadInt32(),
+                fileEntryOffset = reader.ReadInt32(),
+                dataOffset = reader.ReadInt64(),
+                infoSecSize = reader.ReadInt64(),
+                hold0 = reader.ReadInt32()
+            };
+        }
+
+        private NonaryTableHeader ReadTableHeader(BinaryReaderX reader)
+        {
+            return new NonaryTableHeader
+            {
+                tableSize = reader.ReadInt32(),
+                entryCount = reader.ReadInt32(),
+                hold0 = reader.ReadInt64()
+            };
+        }
+
+        private uint[] ReadUnsignedIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private NonaryDirectoryEntry[] ReadDirectoryEntries(BinaryReaderX reader, int count)
+        {
+            var result = new NonaryDirectoryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadDirectoryEntry(reader);
+
+            return result;
+        }
+
+        private NonaryDirectoryEntry ReadDirectoryEntry(BinaryReaderX reader)
+        {
+            return new NonaryDirectoryEntry
+            {
+                directoryHash = reader.ReadUInt32(),
+                fileCount = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                hold0 = reader.ReadUInt32()
+            };
+        }
+
+        private NonaryEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new NonaryEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private NonaryEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new NonaryEntry
+            {
+                fileOffset = reader.ReadInt64(),
+                XorPad = reader.ReadBytes(4),
+                fileSize = reader.ReadInt64(),
+                XorId = reader.ReadUInt32(),
+                directoryHashId = reader.ReadInt16(),
+                const0 = reader.ReadInt16(),
+                hold0 = reader.ReadUInt32()
+            };
         }
     }
 }

@@ -1,9 +1,8 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_spike_chunsoft.Images
 {
@@ -11,25 +10,31 @@ namespace plugin_spike_chunsoft.Images
     {
         private CteHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<CteHeader>();
+            _header = ReadHeader(br);
 
             // Read image data
             input.Position = _header.dataOffset;
             var imgData = br.ReadBytes((int)(input.Length - _header.dataOffset));
 
             // Create image info
-            var imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height));
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context, CtrTransformation.YFlip));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = CteSupport.Formats[_header.format].BitDepth,
+                ImageData = imgData,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height),
+                RemapPixels = context => new CtrSwizzle(context, CtrTransformation.YFlip)
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -49,7 +54,32 @@ namespace plugin_spike_chunsoft.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private CteHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new CteHeader
+            {
+                magic = reader.ReadString(4),
+                format = reader.ReadInt32(),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                format2 = reader.ReadInt32(),
+                zero1 = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(CteHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.format);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.format2);
+            writer.Write(header.zero1);
+            writer.Write(header.dataOffset);
         }
     }
 }

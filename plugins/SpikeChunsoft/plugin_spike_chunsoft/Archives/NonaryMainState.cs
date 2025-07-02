@@ -1,30 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_spike_chunsoft.Archives
 {
-    class NonaryMainState:IArchiveState,ILoadFiles
+    class NonaryMainState : ILoadFiles, IArchiveFilePluginState
     {
-        private NonaryMain _arc;
+        private readonly NonaryMain _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
-
-        public NonaryMainState()
-        {
-            _arc=new NonaryMain();
-        }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _arc.Load(fileStream);
         }
     }
 }

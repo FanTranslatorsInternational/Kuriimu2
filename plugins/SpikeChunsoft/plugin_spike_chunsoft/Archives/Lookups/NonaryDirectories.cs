@@ -1,25 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace plugin_spike_chunsoft.Archives.Lookups
+﻿namespace plugin_spike_chunsoft.Archives.Lookups
 {
     partial class NonaryLookups
     {
-        /* Code to reproduce the strings in the lookup
-         *
-         * 	var bg0 = "a01,cardlock,suitcase|a11,trickingpicture|a12,inputdevice|a21,inputdevice,lucyjohn|a31,helm,telegraph|a32,inputdevice,morse|a41,bookshelf,cylinderlock,password|a42,cross,helm,morse,nonarygame|a51,anagram,final,password|b11,piano|b12,baccarat,exitlockingdevice1,exitlockingdevice2,slot|b21,lightsout|b31,gear|b32,lockingdevice1,lockingdevice2,oshiguruma|c21,inputdevice|c31,panel|c32,brainwaves1,brainwaves2".Split('|').Select(s => s.Split(',')).ToList();
-            var bg1 = "novel,sprite,sprite/alpha,sprite/button/ps4,sprite/button/psv,sprite/button/steam,sprite/channel,sprite/circle,sprite/cursor,sprite/kigou,topview".Split(',');
-            var bg2 = "calculator,description,escape,file,flow,item,map,novel,option,preview,room,save,start,title,topview".Split(',');
-            var root = "cha,etc,item,item/texture,movie,scr,scr/table,shader,sound,sound/voice,sound/voice_us,temp".Split(',');
-	
-	        var folders = bg0.SelectMany(spl => new[] { $"/bg/{spl[0]}", $"/bg/{spl[0]}/outline" }.Concat(spl.Skip(1).Select(s => $"/bg/minigame/{spl[0]}_{s}")))
-                   .Concat(bg1.Select(s => $"/bg/{s}"))
-                   .Concat(bg2.Select(s => $"/bg/minigame/{s}"))
-                   .Concat(root.Select(s => $"/{s}"));
-            folders = folders.Concat(folders.Select(s => $"/us{s}"));
-            folders = folders.Concat(folders.Select(s => $"{s}/resource"));
-        */
-
-        public static Dictionary<uint, string> Directories = new Dictionary<uint, string>
+        public static Dictionary<uint, string> Directories = new()
         {
             [0x6F3BF739] = "/bg/a01",
             [0x54BEE768] = "/bg/a01/outline",

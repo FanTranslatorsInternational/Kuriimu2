@@ -1,48 +1,28 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_spike_chunsoft.Images
 {
-    [Endianness(ByteOrder = ByteOrder.BigEndian)]
     class SrdHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public int subDataSize;
         public int unk1;
     }
 
-    [Alignment(0x10)]
     class SrdSection
     {
         public SrdHeader header;
-
-        [VariableLength("header.sectionSize")]
         public byte[] sectionData;
-
-        [VariableLength("header.subDataSize")]
         public byte[] subData;
     }
 
-    class SrdImageInfo : ImageInfo
+    class SrdImageFileInfo : ImageFileInfo
     {
-        public SrdSection Section { get; }
-
-        public SrdImageInfo(byte[] imageData, int imageFormat, Size imageSize, SrdSection section) : base(imageData, imageFormat, imageSize)
-        {
-            Section = section;
-        }
-
-        public SrdImageInfo(byte[] imageData, IList<byte[]> mipMaps, int imageFormat, Size imageSize, SrdSection section) : base(imageData, mipMaps, imageFormat, imageSize)
-        {
-            Section = section;
-        }
+        public required SrdSection Section { get; init; }
     }
 
     class SrdSupport

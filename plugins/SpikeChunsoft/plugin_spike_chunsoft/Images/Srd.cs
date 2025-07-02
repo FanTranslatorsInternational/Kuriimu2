@@ -1,35 +1,34 @@
 ﻿using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_spike_chunsoft.Images
 {
     class Srd
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(SrdHeader));
+        private static readonly int HeaderSize = 0x10;
 
         private SrdSection _rsfSection;
 
-        public IList<ImageInfo> Load(Stream srdStream, Stream srdvStream)
+        public List<ImageFileInfo> Load(Stream srdStream, Stream srdvStream)
         {
-            using var br = new BinaryReaderX(srdStream, ByteOrder.BigEndian);
+            using var br = new BinaryReaderX(srdStream, Komponent.Contract.Enums.ByteOrder.BigEndian);
 
             // Read sections
             var sections = new List<SrdSection>();
             while (srdStream.Position < srdStream.Length)
-                sections.Add(br.ReadType<SrdSection>());
+            {
+                sections.Add(ReadSection(br));
+                br.SeekAlignment();
+            }
 
             _rsfSection = sections[1];
 
             // Add image infos
-            var imageInfos = new List<ImageInfo>();
+            var imageInfos = new List<ImageFileInfo>();
             foreach (var imageSection in sections.Skip(2))
             {
                 if (imageSection.header.magic != "$TXR")
@@ -54,13 +53,20 @@ namespace plugin_spike_chunsoft.Images
                 srdvStream.Position = dataOffset;
                 srdvStream.Read(imgData);
 
-                var imageInfo = new SrdImageInfo(imgData, format, new Size(width, height), imageSection) { Name = name };
-                if (hasSwizzle)
-                    imageInfo.RemapPixels.With(context => new VitaSwizzle(context));
-                else
-                // TODO: Remove with pre-swizzle in encoding
-                    if (SrdSupport.Formats[format].ColorsPerValue > 1)
-                    imageInfo.RemapPixels.With(context => new BcSwizzle(context));
+                var imageInfo = new SrdImageFileInfo
+                {
+                    Name = name,
+                    BitDepth = SrdSupport.Formats[format].BitDepth,
+                    ImageData = imgData,
+                    ImageFormat = format,
+                    ImageSize = new Size(width, height),
+                    RemapPixels = hasSwizzle
+                        ? context => new VitaSwizzle(context)
+                        : SrdSupport.Formats[format].ColorsPerValue > 1
+                            ? context => new BcSwizzle(context)
+                            : null,
+                    Section = imageSection
+                };
 
                 // Read mips
                 var mips = new List<byte[]>();
@@ -86,7 +92,7 @@ namespace plugin_spike_chunsoft.Images
             return imageInfos;
         }
 
-        public void Save(Stream srdStream, Stream srdvStream, IList<ImageInfo> imageInfos)
+        public void Save(Stream srdStream, Stream srdvStream, IList<ImageFileInfo> imageInfos)
         {
             using var bw = new BinaryWriterX(srdStream);
 
@@ -98,7 +104,7 @@ namespace plugin_spike_chunsoft.Images
             var texDataPosition = 0;
 
             var texSectionPosition = texSectionOffset;
-            foreach (var imageInfo in imageInfos.Cast<SrdImageInfo>())
+            foreach (var imageInfo in imageInfos.Cast<SrdImageFileInfo>())
             {
                 // Update and write section data
                 BinaryPrimitives.TryWriteInt16LittleEndian(imageInfo.Section.sectionData[6..], (short)imageInfo.ImageSize.Width);
@@ -109,8 +115,8 @@ namespace plugin_spike_chunsoft.Images
                 srdStream.Write(imageInfo.Section.sectionData);
 
                 // Update and write sub data part 1
-                imageInfo.Section.subData[0x13] = (byte)(imageInfo.MipMapCount + 1);
-                BinaryPrimitives.WriteInt32LittleEndian(imageInfo.Section.subData[0x1C..], 0x10 + (imageInfo.MipMapCount + 1) * 0x10);
+                imageInfo.Section.subData[0x13] = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1);
+                BinaryPrimitives.WriteInt32LittleEndian(imageInfo.Section.subData[0x1C..], 0x10 + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 0x10);
 
                 srdStream.Write(imageInfo.Section.subData[..0x20]);
 
@@ -123,7 +129,7 @@ namespace plugin_spike_chunsoft.Images
                 srdvStream.Write(imageInfo.ImageData);
                 texDataPosition += (imageInfo.ImageData.Length + 0x7F) & ~0x7F;
 
-                for (var i = 0; i < imageInfo.MipMapCount; i++)
+                for (var i = 0; i < (imageInfo.MipMapData?.Count ?? 0); i++)
                 {
                     bw.Write(texDataPosition + 0x40000000);
                     bw.Write(imageInfo.MipMapData[i].Length);
@@ -135,29 +141,68 @@ namespace plugin_spike_chunsoft.Images
                 }
 
                 // Write sub data part 2
-                bw.WriteString(imageInfo.Name, Encoding.ASCII, false);
-                bw.WriteAlignment();
+                bw.WriteString(imageInfo.Name, Encoding.ASCII);
+                bw.WriteAlignment(0x10);
 
-                bw.WriteType(new SrdHeader { magic = "$CT0" });
+                WriteHeader(new SrdHeader { magic = "$CT0" }, bw);
 
                 // Update and write header information
                 imageInfo.Section.header.subDataSize = (int)(srdStream.Position - texSectionPosition - HeaderSize - 0x10);
 
                 var newTexSectionPosition = srdStream.Position;
                 srdStream.Position = texSectionPosition;
-                bw.WriteType(imageInfo.Section.header);
+                WriteHeader(imageInfo.Section.header, bw);
 
                 texSectionPosition = (int)newTexSectionPosition;
             }
 
             srdStream.Position = srdStream.Length;
-            bw.WriteType(new SrdHeader { magic = "$CT0" });
+            WriteHeader(new SrdHeader { magic = "$CT0" }, bw);
 
             // Write file start
             srdStream.Position = 0;
-            bw.WriteType(new SrdHeader { magic = "$CFH", unk1 = 1 });
+            WriteHeader(new SrdHeader { magic = "$CFH", unk1 = 1 }, bw);
 
-            bw.WriteType(_rsfSection);
+            WriteSection(_rsfSection, bw);
+        }
+
+        private SrdSection ReadSection(BinaryReaderX reader)
+        {
+            var section = new SrdSection
+            {
+                header = ReadHeader(reader)
+            };
+
+            section.sectionData = reader.ReadBytes(section.header.sectionSize);
+            section.subData = reader.ReadBytes(section.header.subDataSize);
+
+            return section;
+        }
+
+        private SrdHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new SrdHeader
+            {
+                magic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32(),
+                subDataSize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteSection(SrdSection section, BinaryWriterX writer)
+        {
+            WriteHeader(section.header, writer);
+            writer.Write(section.sectionData);
+            writer.Write(section.subData);
+        }
+
+        private void WriteHeader(SrdHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.sectionSize);
+            writer.Write(header.subDataSize);
+            writer.Write(header.unk1);
         }
     }
 }

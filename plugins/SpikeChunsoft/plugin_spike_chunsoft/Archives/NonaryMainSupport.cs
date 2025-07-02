@@ -1,12 +1,7 @@
-﻿using System.Linq;
-using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_spike_chunsoft.Archives
+﻿namespace plugin_spike_chunsoft.Archives
 {
     class NonaryHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int hashTableOffset;
         public int fileEntryOffset;
@@ -33,14 +28,12 @@ namespace plugin_spike_chunsoft.Archives
     class NonaryEntry
     {
         public long fileOffset;
-        public uint XORpad;
+        public byte[] XorPad;
         public long fileSize;
-        public uint XORID;
-        public short directoryHashID;
+        public uint XorId;
+        public short directoryHashId;
         public short const0;
         public uint hold0;
-
-        public byte[] XorPadBytes => new[] { (byte)XORpad, (byte)(XORpad >> 8), (byte)(XORpad >> 16), (byte)(XORpad >> 24) };
     }
 
     class NonarySupport

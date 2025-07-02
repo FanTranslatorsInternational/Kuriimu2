@@ -1,13 +1,8 @@
-﻿using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_spike_chunsoft.Archives
+﻿namespace plugin_spike_chunsoft.Archives
 {
     class ZdpPartitionHeader
     {
-        [FixedLength(8)] 
         public string magic = "datapack";
-
         public int zero0;
         public int unk1;
     }
