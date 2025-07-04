@@ -1,37 +1,40 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_konami.Archives
 {
-    public class TarcPlugin : IFilePlugin, IIdentifyFiles
+    public class TarcPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("f7d52572-b076-4f0d-b7c2-533984428d20");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.tarc" };
-        public PluginMetadata Metadata { get; }
 
-        public TarcPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.tarc"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("TARC", "onepiecefreak", "The main resource in Tongari Boushi.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "TARC",
+            Publisher = "Konami",
+            Developer = "Konami",
+            Platform = ["3DS"],
+            LongDescription = "The main resource in Tongari Boushi."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
             return br.ReadString(4) == "TBAF";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new TarcState();
         }

@@ -1,45 +1,35 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
-namespace plugin_yuusha_shisu.PAC
+namespace plugin_yuusha_shisu.Archives
 {
-    public class PacState : IArchiveState, ILoadFiles, ISaveFiles
+    public class PacState : ILoadFiles, ISaveFiles, IArchiveFilePluginState
     {
-        private readonly Pac _pac;
+        private readonly Pac _pac = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsChanged();
 
-        public PacState()
-        {
-            _pac = new Pac();
-        }
-
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _pac.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _pac.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            _pac.Save(saveStream, Files);
-
-            return Task.CompletedTask;
+            Stream saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            _pac.Save(saveStream, _files);
         }
 
         private bool IsChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

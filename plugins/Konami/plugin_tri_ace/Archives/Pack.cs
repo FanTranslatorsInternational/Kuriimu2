@@ -1,30 +1,28 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_tri_ace.Archives
 {
     // Game: Beyond The Labyrinth
     class Pack
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(PackHeader));
-        private static readonly int FileEntrySize = Tools.MeasureType(typeof(PackFileEntry));
+        private static readonly int HeaderSize = 0x8;
+        private static readonly int FileEntrySize = 0x10;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<PackHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<PackFileEntry>(header.fileCount + 1);
+            var entries = ReadEntries(br, header.fileCount + 1);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -32,16 +30,18 @@ namespace plugin_tri_ace.Archives
                 var subStream = new SubStream(input, entry.offset, entries[i + 1].offset - entry.offset);
                 var name = $"{i:00000000}{PackSupport.DetermineExtension(entry.fileType)}";
 
-                result.Add(new PackArchiveFileInfo(subStream, name, entry)
+                result.Add(new PackArchiveFile(new ArchiveFileInfo
                 {
+                    FilePath = name,
+                    FileData = subStream,
                     PluginIds = PackSupport.RetrievePluginMapping(entries[i].fileType)
-                });
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -53,12 +53,12 @@ namespace plugin_tri_ace.Archives
             output.Position = fileOffset;
 
             var entries = new List<PackFileEntry>();
-            foreach (var file in files.Cast<PackArchiveFileInfo>())
+            foreach (var file in files.Cast<PackArchiveFile>())
             {
                 fileOffset = (int)output.Position;
-                file.SaveFileData(output);
+                file.WriteFileData(output, true);
 
-                bw.WriteAlignment();
+                bw.WriteAlignment(0x10);
 
                 entries.Add(new PackFileEntry
                 {
@@ -77,14 +77,68 @@ namespace plugin_tri_ace.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
-            output.Position = 0;
-            bw.WriteType(new PackHeader
+            var header = new PackHeader
             {
                 fileCount = (short)files.Count
-            });
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
+        }
+
+        private PackHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new PackHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt16(),
+                fileCount = reader.ReadInt16()
+            };
+        }
+
+        private PackFileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PackFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PackFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new PackFileEntry
+            {
+                offset = reader.ReadInt32(),
+                fileType = reader.ReadInt32(),
+                unk0 = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(PackHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.fileCount);
+        }
+
+        private void WriteEntries(IList<PackFileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (PackFileEntry entry in entries)
+                ReadEntry(entry, writer);
+        }
+
+        private void ReadEntry(PackFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.fileType);
+            writer.Write(entry.unk0);
+            writer.Write(entry.zero0);
         }
     }
 }

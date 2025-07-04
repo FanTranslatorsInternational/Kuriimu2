@@ -1,37 +1,40 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_primula.Archives
 {
-    public class Pac2Plugin : IFilePlugin, IIdentifyFiles
+    public class Pac2Plugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("AF5ADDBD-BF3A-4168-A287-BD78C9306DEB");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.dat" };
-        public PluginMetadata Metadata { get; }
 
-        public Pac2Plugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.dat"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("Pac2", "Megaflan", "The main archive resource in Primula games.");
-        }
+            Author = ["Megaflan"],
+            Name = "Pac2",
+            Publisher = "Primula",
+            Developer = "Primula",
+            Platform = ["PC"],
+            LongDescription = "The main archive resource in Primula games."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);
 
             return br.ReadString(12) == "GAMEDAT PAC2";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new Pac2State();
         }

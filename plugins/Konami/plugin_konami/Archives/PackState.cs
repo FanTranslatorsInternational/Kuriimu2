@@ -1,31 +1,22 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_konami.Archives
 {
-    class PackState : IArchiveState, ILoadFiles
+    class PackState : ILoadFiles, IArchiveFilePluginState
     {
-        private Pack _arc;
+        private readonly Pack _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
-
-        public PackState()
-        {
-            _arc = new Pack();
-        }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc.Load(fileStream);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _arc.Load(fileStream);
         }
     }
 }

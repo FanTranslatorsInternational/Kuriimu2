@@ -1,27 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_yuusha_shisu.Images
 {
-    public class BtxPlugin : IFilePlugin, IIdentifyFiles
+    public class BtxPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("df2a52a8-9cbe-4959-a593-ad62ae687c17");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.btx" };
-        public PluginMetadata Metadata { get; }
 
-        public BtxPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.btx"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("BTX", "IcySon55;onepiecefreak", "The image resource for Death of a Hero");
-        }
+            Author = ["IcySon55","onepiecefreak"],
+            Name = "BTX",
+            Publisher = "Nippon Ichi Software",
+            Developer = "Nippon Ichi Software",
+            Platform = ["Vita"],
+            LongDescription = "The image resource for Death of a Hero"
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -31,7 +34,7 @@ namespace plugin_yuusha_shisu.Images
             return br.ReadString(4) == "btx\0";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new BtxState();
         }

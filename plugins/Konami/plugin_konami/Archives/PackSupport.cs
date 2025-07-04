@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
-#pragma warning disable 649
-
-namespace plugin_konami.Archives
+﻿namespace plugin_konami.Archives
 {
     class PackHeader
     {
-        [FixedLength(4)]
         public string magic;
         public short unk1;
         public short fileCount;
@@ -23,7 +16,6 @@ namespace plugin_konami.Archives
 
     class PackEntry
     {
-        [FixedLength(4)]
         public string magic;
         public int zero1;
         public int decompSize;

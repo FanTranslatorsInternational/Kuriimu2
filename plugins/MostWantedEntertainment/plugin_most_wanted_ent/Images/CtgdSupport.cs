@@ -1,20 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 
-namespace most_wanted_ent.Images
+namespace plugin_most_wanted_ent.Images
 {
     class CtgdSection
     {
-        [FixedLength(8)]
         public string magic;
         public int size;
-
-        [VariableLength("size", Offset = -0xC)]
         public byte[] data;
     }
 
@@ -35,7 +30,11 @@ namespace most_wanted_ent.Images
             var definition = new EncodingDefinition();
 
             definition.AddPaletteEncodings(PaletteFormats);
-            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition(x.Value, new[] { 0 }))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition
+            {
+                IndexEncoding = x.Value,
+                PaletteEncodingIndices = [0]
+            })).ToArray());
 
             return definition;
         }

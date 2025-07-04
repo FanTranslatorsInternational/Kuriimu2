@@ -1,15 +1,12 @@
 ﻿using Komponent.IO;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using System.Reflection.PortableExecutable;
 
-namespace plugin_yuusha_shisu.PAC
+namespace plugin_yuusha_shisu.Archives
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Pac
     {
         private const int EntryAlignment = 0x20;
@@ -18,77 +15,161 @@ namespace plugin_yuusha_shisu.PAC
         private FileHeader _header;
         private IList<FileEntry> _entries;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
-            using (var br = new BinaryReaderX(input, true))
+            using var br = new BinaryReaderX(input, true);
+
+            // Header
+            _header = ReadHeader(br);
+
+            // Offsets
+            var offsets = ReadOffsets(br, _header.FileCount);
+            br.SeekAlignment(EntryAlignment);
+
+            // Entries
+            _entries = ReadEntries(br, _header.FileCount);
+
+            // Files
+            var result = new List<IArchiveFile>();
+            for (var i = 0; i < offsets.Length; i++)
             {
-                // Header
-                _header = br.ReadType<FileHeader>();
+                br.BaseStream.Position = offsets[i];
+                var length = br.ReadInt32();
+                var off = br.BaseStream.Position + FileAlignment - sizeof(int);
 
-                // Offsets
-                var offsets = br.ReadMultiple<int>(_header.FileCount);
-                br.SeekAlignment(EntryAlignment);
-
-                // Entries
-                _entries = br.ReadMultiple<FileEntry>(_header.FileCount);
-
-                // Files
-                var result = new List<IArchiveFileInfo>();
-                for (var i = 0; i < offsets.Count; i++)
+                // TODO: Add plugin Id to each *.msg file
+                result.Add(new ArchiveFile(new ArchiveFileInfo
                 {
-                    br.BaseStream.Position = offsets[i];
-                    var length = br.ReadInt32();
-                    var off = br.BaseStream.Position + FileAlignment - sizeof(int);
+                    FilePath = _entries[i].FileName.Trim('\0'),
+                    FileData = new SubStream(br.BaseStream, off, length)
+                }));
+            }
 
-                    // TODO: Add plugin Id to each *.msg file
-                    result.Add(new ArchiveFileInfo(new SubStream(br.BaseStream, off, length),
-                        _entries[i].FileName.Trim('\0')));
-                }
+            return result;
+        }
 
-                return result;
+        public void Save(Stream output, IList<IArchiveFile> files)
+        {
+            using var bw = new BinaryWriterX(output, true);
+
+            // Header
+            WriteHeader(_header, bw);
+            var offsetPosition = bw.BaseStream.Position;
+
+            // Skip Offsets
+            bw.BaseStream.Position += _header.FileCount * sizeof(int);
+            bw.WriteAlignment(EntryAlignment);
+
+            // Entries
+            WriteEntries(_entries, bw);
+            bw.WriteAlignment(FileAlignment);
+
+            // Files
+            var offsets = new List<int>();
+            foreach (var afi in files)
+            {
+                offsets.Add((int)bw.BaseStream.Position);
+
+                bw.Write((int)afi.FileSize);
+                bw.Write(FileAlignment);
+                bw.WriteAlignment(FileAlignment);
+
+                afi.WriteFileData(bw.BaseStream);
+                bw.WriteAlignment(FileAlignment);
+            }
+
+            // Offsets
+            bw.BaseStream.Position = offsetPosition;
+            WriteOffsets(offsets, bw);
+        }
+
+        private FileHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new FileHeader
+            {
+                Magic = reader.ReadString(4),
+                Unk1 = reader.ReadInt32(),
+                FileCount = reader.ReadInt32(),
+                Null1 = reader.ReadInt32(),
+                ArchiveName = reader.ReadString(0x20)
+            };
+        }
+
+        private FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                result[i] = ReadEntry(reader);
+                reader.SeekAlignment(0x20);
+            }
+
+            return result;
+        }
+
+        private FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            var entry = new FileEntry
+            {
+                Extension = reader.ReadString(4),
+                Unk1 = reader.ReadInt16(),
+                FileNumbers = reader.ReadInt16(),
+                Checksum = reader.ReadInt32(),
+                Unk2 = reader.ReadInt16(),
+                StringLength = reader.ReadInt16(),
+                Null2 = reader.ReadInt32()
+            };
+
+            entry.FileName = reader.ReadString(entry.StringLength);
+
+            return entry;
+        }
+
+        private int[] ReadOffsets(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(FileHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.Magic, writeNullTerminator: false);
+            writer.Write(header.Unk1);
+            writer.Write(header.FileCount);
+            writer.Write(header.Null1);
+            writer.WriteString(header.ArchiveName, writeNullTerminator: false);
+        }
+
+        private void WriteEntries(IList<FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (FileEntry entry in entries)
+            {
+                WriteEntry(entry, writer);
+                writer.WriteAlignment(0x20);
             }
         }
 
-        /// <summary>
-        /// Saves the metadata and files into a PAC archive.
-        /// </summary>
-        /// <param name="output">An output stream for a PAC archive.</param>
-        /// <param name="files">The files to save.</param>
-        /// <returns>True if successful.</returns>
-        public bool Save(Stream output, IList<IArchiveFileInfo> files)
+        private void WriteEntry(FileEntry entry, BinaryWriterX writer)
         {
-            using (var bw = new BinaryWriterX(output, true))
-            {
-                // Header
-                bw.WriteType(_header);
-                var offsetPosition = bw.BaseStream.Position;
+            writer.WriteString(entry.Extension, writeNullTerminator: false);
+            writer.Write(entry.Unk1);
+            writer.Write(entry.FileNumbers);
+            writer.Write(entry.Checksum);
+            writer.Write(entry.Unk2);
+            writer.Write(entry.StringLength);
+            writer.Write(entry.Null2);
+            writer.WriteString(entry.FileName, writeNullTerminator: false);
+        }
 
-                // Skip Offsets
-                bw.BaseStream.Position += _header.FileCount * sizeof(int);
-                bw.WriteAlignment(EntryAlignment);
-
-                // Entries
-                bw.WriteMultiple(_entries);
-                bw.WriteAlignment(FileAlignment);
-
-                // Files
-                var offsets = new List<int>();
-                foreach (var afi in files.Cast<ArchiveFileInfo>())
-                {
-                    offsets.Add((int)bw.BaseStream.Position);
-                    bw.Write((int)afi.FileSize);
-                    bw.Write(FileAlignment);
-                    bw.WriteAlignment(FileAlignment);
-                    afi.SaveFileData(bw.BaseStream, null);
-                    bw.WriteAlignment(FileAlignment);
-                }
-
-                // Offsets
-                bw.BaseStream.Position = offsetPosition;
-                bw.WriteMultiple(offsets);
-            }
-
-            return true;
+        private void WriteOffsets(IList<int> offsets, BinaryWriterX writer)
+        {
+            foreach (int offset in offsets)
+                writer.Write(offset);
         }
     }
 }

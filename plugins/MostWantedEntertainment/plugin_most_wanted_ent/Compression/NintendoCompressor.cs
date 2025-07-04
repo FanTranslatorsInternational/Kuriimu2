@@ -1,9 +1,7 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.IO;
-using Kontract.Kompression.Configuration;
+﻿using System.Buffers.Binary;
+using Kompression.Contract;
 
-namespace most_wanted_ent.Compression
+namespace plugin_most_wanted_ent.Compression
 {
     class NintendoCompressor
     {
@@ -14,14 +12,14 @@ namespace most_wanted_ent.Compression
 
             var configuration = GetConfiguration(method);
 
-            configuration.Build().Decompress(input, output);
+            configuration.Decompress(input, output);
         }
 
         public static void Compress(Stream input, Stream output, NintendoCompressionMethod method)
         {
             var configuration = GetConfiguration(method);
 
-            configuration.Build().Compress(input, output);
+            configuration.Compress(input, output);
         }
 
         public static int PeekDecompressedSize(Stream input)
@@ -41,30 +39,30 @@ namespace most_wanted_ent.Compression
             return (NintendoCompressionMethod)method;
         }
 
-        public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)
+        public static ICompression GetConfiguration(NintendoCompressionMethod method)
         {
             switch (method)
             {
                 case NintendoCompressionMethod.Lz10:
-                    return Kompression.Implementations.Compressions.Nintendo.Lz10;
+                    return Kompression.Compressions.Nintendo.Lz10.Build();
 
                 case NintendoCompressionMethod.Lz11:
-                    return Kompression.Implementations.Compressions.Nintendo.Lz11;
+                    return Kompression.Compressions.Nintendo.Lz11.Build();
 
                 case NintendoCompressionMethod.Lz40:
-                    return Kompression.Implementations.Compressions.Nintendo.Lz40;
+                    return Kompression.Compressions.Nintendo.Lz40.Build();
 
                 case NintendoCompressionMethod.Lz60:
-                    return Kompression.Implementations.Compressions.Nintendo.Lz60;
+                    return Kompression.Compressions.Nintendo.Lz60.Build();
 
                 case NintendoCompressionMethod.Huffman4:
-                    return Kompression.Implementations.Compressions.Nintendo.Huffman4Bit;
+                    return Kompression.Compressions.Nintendo.Huffman4Bit.Build();
 
                 case NintendoCompressionMethod.Huffman8:
-                    return Kompression.Implementations.Compressions.Nintendo.Huffman8Bit;
+                    return Kompression.Compressions.Nintendo.Huffman8Bit.Build();
 
                 case NintendoCompressionMethod.Rle:
-                    return Kompression.Implementations.Compressions.Nintendo.Rle;
+                    return Kompression.Compressions.Nintendo.Rle.Build();
 
                 default:
                     throw new NotSupportedException($"Unknown compression method {method}");

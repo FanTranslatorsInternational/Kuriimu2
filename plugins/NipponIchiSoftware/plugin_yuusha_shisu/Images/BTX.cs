@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_yuusha_shisu.Images
 {
@@ -16,16 +12,16 @@ namespace plugin_yuusha_shisu.Images
 
         private BtxHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<BtxHeader>();
+            _header = ReadHeader(br);
 
             // Read name
             input.Position = _header.nameOffset;
-            var name = br.ReadCStringASCII();
+            var name = br.ReadNullTerminatedString();
 
             // Read image data
             var dataLength = _header.width * _header.height * BtxSupport.GetBitDepth(_header.format) / 8;
@@ -46,9 +42,15 @@ namespace plugin_yuusha_shisu.Images
             var paletteData = br.ReadBytes(paletteLength);
 
             // Create image info
-            var imageInfo = new ImageInfo(imgData, _header.format, new Size(_header.width, _header.height))
+            var imageInfo = new ImageFileInfo
             {
-                Name = name
+                Name = name,
+                BitDepth = !BtxSupport.ColorFormats.TryGetValue(_header.format, out var encoding)
+                    ? BtxSupport.IndexFormats[_header.format].IndexEncoding.BitDepth
+                    : encoding.BitDepth,
+                ImageData = imgData,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height)
             };
 
             if (paletteLength > 0)
@@ -63,14 +65,14 @@ namespace plugin_yuusha_shisu.Images
             switch (_header.swizzleMode)
             {
                 case 1:
-                    imageInfo.RemapPixels.With(context => new VitaSwizzle(context));
+                    imageInfo.RemapPixels = context => new VitaSwizzle(context);
                     break;
             }
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -92,7 +94,7 @@ namespace plugin_yuusha_shisu.Images
                 bw.Write(mipData);
 
             // Write palette data
-            if (imageInfo.HasPaletteInformation)
+            if (imageInfo.PaletteData is not null)
             {
                 output.Position = paletteOffset;
                 bw.Write(imageInfo.PaletteData);
@@ -102,14 +104,53 @@ namespace plugin_yuusha_shisu.Images
             _header.nameOffset = nameOffset;
             _header.dataOffset = dataOffset;
             _header.paletteOffset = paletteOffset;
-            _header.mipLevels = (byte)imageInfo.MipMapCount;
+            _header.mipLevels = (byte)(imageInfo.MipMapData?.Count ?? 0);
             _header.format = (byte)imageInfo.ImageFormat;
             _header.width = (short)imageInfo.ImageSize.Width;
             _header.height = (short)imageInfo.ImageSize.Height;
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private BtxHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new BtxHeader
+            {
+                magic = reader.ReadString(4),
+                clrCount = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unk1 = reader.ReadInt32(),
+                format = reader.ReadByte(),
+                swizzleMode = reader.ReadByte(),
+                mipLevels = reader.ReadByte(),
+                unk2 = reader.ReadByte(),
+                unk4 = reader.ReadInt32(),
+                dataOffset = reader.ReadInt32(),
+                unk5 = reader.ReadInt32(),
+                paletteOffset = reader.ReadInt32(),
+                nameOffset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(BtxHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.clrCount);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk1);
+            writer.Write(header.format);
+            writer.Write(header.swizzleMode);
+            writer.Write(header.mipLevels);
+            writer.Write(header.unk2);
+            writer.Write(header.unk4);
+            writer.Write(header.dataOffset);
+            writer.Write(header.unk5);
+            writer.Write(header.paletteOffset);
+            writer.Write(header.nameOffset);
         }
     }
 }

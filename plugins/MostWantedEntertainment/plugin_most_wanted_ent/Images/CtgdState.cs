@@ -1,36 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kanvas;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
-using most_wanted_ent.Compression;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
+using plugin_most_wanted_ent.Compression;
 
-namespace most_wanted_ent.Images
+namespace plugin_most_wanted_ent.Images
 {
-    class CtgdState : IImageState, ILoadFiles, ISaveFiles
+    class CtgdState : ILoadFiles, ISaveFiles, IImageFilePluginState
     {
-        private Ctgd _img;
-        private bool _wasCompressed;
+        private readonly Ctgd _img = new();
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
+        private bool _wasCompressed;
+        private List<IImageFile> _images;
+
+        public IReadOnlyList<IImageFile> Images => _images;
 
         public bool ContentChanged => IsContentChanged();
-
-        public CtgdState()
-        {
-            _img = new Ctgd();
-
-            EncodingDefinition = CtgdSupport.GetEncodingDefinition();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -53,13 +41,13 @@ namespace most_wanted_ent.Images
             }
 
             fileStream.Position = 0;
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _img.Load(fileStream)) };
+            _images = [new ImageFile(_img.Load(fileStream), CtgdSupport.GetEncodingDefinition())];
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = _wasCompressed ? new MemoryStream() : fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _img.Save(fileStream, Images[0].ImageInfo);
+            _img.Save(fileStream, _images[0].ImageInfo);
 
             // Compress, if necessary
             if (_wasCompressed)
@@ -75,7 +63,7 @@ namespace most_wanted_ent.Images
 
         private bool IsContentChanged()
         {
-            return Images.Any(x => x.ImageInfo.ContentChanged);
+            return _images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

@@ -1,43 +1,44 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_nippon_ichi.Archives
 {
     class Dat
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(DatHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(DatEntry));
+        private static readonly int HeaderSize = 0x10;
+        private static readonly int EntrySize = 0x2C;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<DatHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<DatEntry>(header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.offset, entry.size);
                 var fileName = entry.name.Trim('\0');
 
-                result.Add(new DatArchiveFileInfo(fileStream, fileName, entry));
+                result.Add(new DatArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = fileStream
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -49,11 +50,11 @@ namespace plugin_nippon_ichi.Archives
             var entries = new List<DatEntry>();
 
             var dataPosition = dataOffset;
-            foreach (var file in files.Cast<DatArchiveFileInfo>())
+            foreach (var file in files.Cast<DatArchiveFile>())
             {
                 // Write file data
                 output.Position = dataPosition;
-                file.SaveFileData(output);
+                file.WriteFileData(output, true);
 
                 // Add entry
                 entries.Add(new DatEntry
@@ -69,11 +70,63 @@ namespace plugin_nippon_ichi.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
             output.Position = 0;
-            bw.WriteType(new DatHeader { fileCount = files.Count });
+            WriteHeader(new DatHeader { fileCount = files.Count }, bw);
+        }
+
+        private DatHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new DatHeader
+            {
+                magic = reader.ReadString(8),
+                fileCount = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private DatEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new DatEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private DatEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new DatEntry
+            {
+                name = reader.ReadString(0x20),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                unk1 = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(DatHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.fileCount);
+            writer.Write(header.zero0);
+        }
+
+        private void WriteEntries(IList<DatEntry> entries, BinaryWriterX writer)
+        {
+            foreach (DatEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(DatEntry entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.name, writeNullTerminator: false);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
+            writer.Write(entry.unk1);
         }
     }
 }

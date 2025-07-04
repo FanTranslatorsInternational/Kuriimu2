@@ -1,7 +1,5 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_konami.Archives
 {
@@ -23,7 +21,6 @@ namespace plugin_konami.Archives
 
     class NlpMeta
     {
-        [FixedLength(4)] 
         public string magic = "\0\0\0\0";
 
         public int zero0;
@@ -45,13 +42,13 @@ namespace plugin_konami.Archives
         public int offset;
     }
 
-    class NlpArchiveFileInfo : ArchiveFileInfo
+    class NlpArchiveFile : ArchiveFile
     {
         public NlpMeta Meta { get; }
 
         public int Id { get; }
 
-        public NlpArchiveFileInfo(Stream fileData, string filePath, NlpMeta meta, int id) : base(fileData, filePath)
+        public NlpArchiveFile(ArchiveFileInfo fileInfo, NlpMeta meta, int id) : base(fileInfo)
         {
             Meta = meta;
             Id = id;

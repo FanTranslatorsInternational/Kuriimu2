@@ -1,6 +1,6 @@
-﻿using System.IO;
-using Komponent.IO;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_mercury_steam.Archives
 {
@@ -18,15 +18,15 @@ namespace plugin_mercury_steam.Archives
         public int endOffset;
     }
 
-    class PkgArchiveFileInfo : ArchiveFileInfo
+    class PkgArchiveFile : ArchiveFile
     {
         public string Type { get; private set; }
         public uint Hash { get; }
 
-        public PkgArchiveFileInfo(Stream fileData, string filePath, uint hash) : base(fileData, filePath)
+        public PkgArchiveFile(ArchiveFileInfo fileInfo, uint hash) : base(fileInfo)
         {
+            Type = PkgSupport.DetermineMagic(fileInfo.FileData);
             Hash = hash;
-            Type = PkgSupport.DetermineMagic(fileData);
         }
 
         public override void SetFileData(Stream fileData)

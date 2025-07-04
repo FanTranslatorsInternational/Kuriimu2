@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using System.Linq;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_konami.Archives
 {
@@ -12,30 +9,30 @@ namespace plugin_konami.Archives
     {
         private const int BlockSize = 0x800;
 
-        private static readonly int MetaSize = Tools.MeasureType(typeof(NlpMeta));
-        private static readonly int BlockOffsetHeaderSize = Tools.MeasureType(typeof(NlpBlockOffsetHeader));
-        private static readonly int BlockOffsetSize = Tools.MeasureType(typeof(NlpBlockOffset));
+        private static readonly int MetaSize = 0x14;
+        private static readonly int BlockOffsetHeaderSize = 0xC;
+        private static readonly int BlockOffsetSize = 0x8;
 
         private NlpHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<NlpHeader>();
+            _header = ReadHeader(br);
 
             // Read meta
             input.Position = BlockSize;
-            var metas = br.ReadMultiple<NlpMeta>(_header.entryCount);
+            var metas = ReadMetas(br, _header.entryCount);
 
             // Read block offsets
             input.Position = _header.blockEntriesOffset + BlockSize;
-            var blockOffsetHeader = br.ReadType<NlpBlockOffsetHeader>();
-            var blockOffsets = br.ReadMultiple<NlpBlockOffset>(blockOffsetHeader.entryCount);
+            var blockOffsetHeader = ReadOffsetHeader(br);
+            var blockOffsets = ReadOffsets(br, blockOffsetHeader.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < blockOffsetHeader.entryCount; i++)
             {
                 var blockOffset = blockOffsets[i];
@@ -48,16 +45,18 @@ namespace plugin_konami.Archives
                 var subStream = new SubStream(input, offset, size);
                 var fileName = $"{i:00000000}{NlpSupport.DetermineExtension(meta)}";
 
-                result.Add(new NlpArchiveFileInfo(subStream, fileName, meta, blockOffset.metaId)
+                result.Add(new NlpArchiveFile(new ArchiveFileInfo
                 {
-                    PluginIds = meta.magic == "PAK " ? new[] { Guid.Parse("a4615fdf-f408-4d22-a3fe-17f082f974e0") } : null
-                });
+                    FilePath = fileName,
+                    FileData = subStream,
+                    PluginIds = meta.magic == "PAK " ? [Guid.Parse("a4615fdf-f408-4d22-a3fe-17f082f974e0")] : null
+                }, meta, blockOffset.metaId));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -72,11 +71,11 @@ namespace plugin_konami.Archives
             var metas = Enumerable.Repeat(new NlpMeta(), _header.entryCount).ToArray();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<NlpArchiveFileInfo>())
+            foreach (var file in files.Cast<NlpArchiveFile>())
             {
                 // Write file
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
                 bw.WriteAlignment(BlockSize);
 
                 // Update meta entry
@@ -95,16 +94,18 @@ namespace plugin_konami.Archives
 
             // Write metas
             output.Position = metaOffset;
-            bw.WriteMultiple(metas);
+            WriteMetas(metas, bw);
 
             // Write block offsets
-            output.Position = blockOffset;
-            bw.WriteType(new NlpBlockOffsetHeader
+            var offsetHeader = new NlpBlockOffsetHeader
             {
                 entryCount = files.Count,
                 offset = blockOffset + BlockOffsetHeaderSize - BlockSize
-            });
-            bw.WriteMultiple(blockOffsets);
+            };
+
+            output.Position = blockOffset;
+            WriteOffsetHeader(offsetHeader, bw);
+            WriteOffsets(blockOffsets, bw);
             bw.WriteAlignment(BlockSize);
 
             // Write header
@@ -114,10 +115,10 @@ namespace plugin_konami.Archives
             _header.entryCount = metas.Length;
             _header.blockEntriesOffset = blockOffset - BlockSize;
             _header.unkOffset = blockOffsetEnd - BlockSize;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
         }
 
-        private void AdjustMeta(NlpArchiveFileInfo file)
+        private void AdjustMeta(NlpArchiveFile file)
         {
             var fileStream = file.GetFileData().Result;
             fileStream.Position = 0;
@@ -141,6 +142,122 @@ namespace plugin_konami.Archives
             file.Meta.size = (int)file.FileSize;
             file.Meta.dataStart = 0;
             file.Meta.unk2 = 0;
+        }
+
+        private NlpHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new NlpHeader
+            {
+                unk1 = reader.ReadInt32(),
+                fileBlockOffset = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+                unk3 = reader.ReadInt32(),
+                entryCount = reader.ReadInt32(),
+                blockEntriesOffset = reader.ReadInt32(),
+                unk4 = reader.ReadInt32(),
+                unk5 = reader.ReadInt32(),
+                unkCount = reader.ReadInt32(),
+                unkOffset = reader.ReadInt32()
+            };
+        }
+
+        private NlpMeta[] ReadMetas(BinaryReaderX reader, int count)
+        {
+            var result = new NlpMeta[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadMeta(reader);
+
+            return result;
+        }
+
+        private NlpMeta ReadMeta(BinaryReaderX reader)
+        {
+            return new NlpMeta
+            {
+                magic = reader.ReadString(4),
+                zero0 = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                dataStart = reader.ReadInt32(),
+                unk2 = reader.ReadInt32()
+            };
+        }
+
+        private NlpBlockOffsetHeader ReadOffsetHeader(BinaryReaderX reader)
+        {
+            return new NlpBlockOffsetHeader
+            {
+                zero0 = reader.ReadInt32(),
+                entryCount = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        private NlpBlockOffset[] ReadOffsets(BinaryReaderX reader, int count)
+        {
+            var result = new NlpBlockOffset[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadOffset(reader);
+
+            return result;
+        }
+
+        private NlpBlockOffset ReadOffset(BinaryReaderX reader)
+        {
+            return new NlpBlockOffset
+            {
+                metaId = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(NlpHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.unk1);
+            writer.Write(header.fileBlockOffset);
+            writer.Write(header.unk2);
+            writer.Write(header.unk3);
+            writer.Write(header.entryCount);
+            writer.Write(header.blockEntriesOffset);
+            writer.Write(header.unk4);
+            writer.Write(header.unk5);
+            writer.Write(header.unkCount);
+            writer.Write(header.unkOffset);
+        }
+
+        private void WriteMetas(IList<NlpMeta> metas, BinaryWriterX writer)
+        {
+            foreach (NlpMeta meta in metas)
+                WriteMetas(metas, writer);
+        }
+
+        private void WriteMeta(NlpMeta entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.magic, writeNullTerminator: false);
+            writer.Write(entry.zero0);
+            writer.Write(entry.size);
+            writer.Write(entry.dataStart);
+            writer.Write(entry.unk2);
+        }
+
+        private void WriteOffsetHeader(NlpBlockOffsetHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.zero0);
+            writer.Write(header.entryCount);
+            writer.Write(header.offset);
+        }
+
+        private void WriteOffsets(IList<NlpBlockOffset> offsets, BinaryWriterX writer)
+        {
+            foreach (NlpBlockOffset offset in offsets)
+                WriteOffset(offset, writer);
+        }
+
+        private void WriteOffset(NlpBlockOffset offset, BinaryWriterX writer)
+        {
+            writer.Write(offset.metaId);
+            writer.Write(offset.offset);
         }
     }
 }

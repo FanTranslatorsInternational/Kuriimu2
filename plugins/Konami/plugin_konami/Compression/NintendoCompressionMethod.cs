@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace plugin_konami.Compression
+﻿namespace plugin_level5.Common.Compression
 {
-    enum NintendoCompressionMethod : byte
+    enum NintendoCompressionMethod
     {
         Lz10 = 0x10,
         Lz11 = 0x11,

@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_konami.Archives
 {
     public class NlpPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("839e2182-87f5-47cd-adac-49c0b61113ff");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.bin"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bin"];
 
-        public NlpPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("NLP","onepiecefreak","The main resource for New Love Plus.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "NLP",
+            Publisher = "Konami",
+            Developer = "Konami",
+            Platform = ["3DS"],
+            LongDescription = "The main resource for New Love Plus."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new NlpState();
         }

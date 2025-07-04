@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Kanvas.Swizzle;
+﻿using System.Text;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
-namespace most_wanted_ent.Images
+namespace plugin_most_wanted_ent.Images
 {
     class Ctgd
     {
         private IList<CtgdSection> _sections;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -23,7 +19,7 @@ namespace most_wanted_ent.Images
             // Read sections
             _sections = new List<CtgdSection>();
             while (input.Position < input.Length)
-                _sections.Add(br.ReadType<CtgdSection>());
+                _sections.Add(ReadSection(br));
 
             // Get format
             var formatSection = _sections.FirstOrDefault(x => x.magic == "nns_frmt");
@@ -36,26 +32,29 @@ namespace most_wanted_ent.Images
             var paletteSection = _sections.FirstOrDefault(x => x.magic == "nns_pcol");
 
             // Create image info
-            ImageInfo imageInfo;
+            ImageFileInfo imageInfo;
             switch (format)
             {
                 case "palette256":
-                    imageInfo = new ImageInfo(texelSection.data, 0, new Size(width, height));
-
-                    imageInfo.PaletteFormat = 0;
-                    imageInfo.PaletteData = paletteSection.data;
-
+                    imageInfo = new ImageFileInfo
+                    {
+                        BitDepth = 8,
+                        ImageData = texelSection.data,
+                        ImageFormat = 0,
+                        ImageSize = new Size(width, height),
+                        PaletteData = paletteSection.data,
+                        PaletteFormat = 0
+                    };
                     break;
 
                 default:
-                    imageInfo = null;
-                    break;
+                    throw new InvalidOperationException($"Unsupported image format {format}.");
             }
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output, true);
 
@@ -73,7 +72,33 @@ namespace most_wanted_ent.Images
             bw.Write((ushort)imageInfo.ImageSize.Height);
 
             // Write sections
-            bw.WriteMultiple(_sections);
+            WriteSections(_sections, bw);
+        }
+
+        private CtgdSection ReadSection(BinaryReaderX reader)
+        {
+            var section = new CtgdSection
+            {
+                magic = reader.ReadString(8),
+                size = reader.ReadInt32()
+            };
+
+            section.data = reader.ReadBytes(section.size - 0xC);
+
+            return section;
+        }
+
+        private void WriteSections(IList<CtgdSection> sections, BinaryWriterX writer)
+        {
+            foreach (CtgdSection section in sections)
+                WriteSection(section, writer);
+        }
+
+        private void WriteSection(CtgdSection section, BinaryWriterX writer)
+        {
+            writer.WriteString(section.magic, writeNullTerminator: false);
+            writer.Write(section.size);
+            writer.Write(section.data);
         }
     }
 }

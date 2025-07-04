@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 // NOTE: Each entry has information about decompressed and compressed size and offset per file.
 // NOTE: Each entry contains a flag marking a file to be compressed or not
@@ -16,22 +17,22 @@ namespace plugin_konami.Archives
 {
     class Pack
     {
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<PackHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<PackEntry>(header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Read string offsets
             input.Position = header.stringOffsetsOffset;
-            var stringOffsets = br.ReadMultiple<int>(header.fileCount);
+            var stringOffsets = ReadOffsets(br, header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -42,7 +43,7 @@ namespace plugin_konami.Archives
                 var subStream = new SubStream(input, offset, size);
 
                 input.Position = header.stringOffset + stringOffset;
-                var fileName = br.ReadCStringASCII();
+                var fileName = br.ReadNullTerminatedString();
 
                 // It seems that for TEX files, the names are stored, but not referenced at all
                 // Instead for TEX, the TEXI names are referenced and will be shortened to .tex
@@ -55,12 +56,73 @@ namespace plugin_konami.Archives
             return result;
         }
 
-        private IArchiveFileInfo CreateAfi(Stream file, string fileName, PackEntry entry)
+        private IArchiveFile CreateAfi(Stream file, string fileName, PackEntry entry)
         {
             if (entry.IsCompressed)
-                return new ArchiveFileInfo(file, fileName, Kompression.Implementations.Compressions.ZLib, entry.decompSize);
+                return new ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file,
+                    Compression = Compressions.ZLib.Build(),
+                    DecompressedSize = entry.decompSize
+                });
 
-            return new ArchiveFileInfo(file, fileName);
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = file
+            });
+        }
+
+        private PackHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new PackHeader
+            {
+                magic = reader.ReadString(4),
+                unk1 = reader.ReadInt16(),
+                fileCount = reader.ReadInt16(),
+                stringOffsetsOffset = reader.ReadInt32(),
+                stringOffset = reader.ReadInt32(),
+                decompressedDataEnd = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                zero1 = reader.ReadInt32()
+            };
+        }
+
+        private PackEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PackEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PackEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new PackEntry
+            {
+                magic = reader.ReadString(4),
+                zero1 = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                decompOffset = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                flags = reader.ReadInt32(),
+                compSize = reader.ReadInt32(),
+                compOffset = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadOffsets(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
         }
     }
 }

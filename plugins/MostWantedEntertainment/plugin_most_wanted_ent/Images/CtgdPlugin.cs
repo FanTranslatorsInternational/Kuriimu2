@@ -1,31 +1,34 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
-namespace most_wanted_ent.Images
+namespace plugin_most_wanted_ent.Images
 {
-    public class CtgdPlugin : IFilePlugin, IIdentifyFiles
+    public class CtgdPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("68b01e10-af37-4064-bd14-1bdcd10036ff");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] {"*.tgd", "*.ctgd"};
-        public PluginMetadata Metadata { get; }
 
-        public CtgdPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.tgd", "*.ctgd"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("CTGD", "onepiecefreak", "The image resource in Memory Tales Time Travel.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "CTGD",
+            Publisher = "Most Wanted Entertainment",
+            Developer = "Most Wanted Entertainment",
+            Platform = ["NDS"],
+            LongDescription = "The image resource in Memory Tales Time Travel."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
 
@@ -38,7 +41,7 @@ namespace most_wanted_ent.Images
             return magic == "nns_" || magic1 == "nns_";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new CtgdState();
         }

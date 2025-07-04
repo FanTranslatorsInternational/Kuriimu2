@@ -1,14 +1,10 @@
-﻿using System.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_konami.Archives
 {
     class TarcHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int fileSize;
         public int fileCount;
@@ -23,7 +19,6 @@ namespace plugin_konami.Archives
         public int unk3;
     }
 
-    [Alignment(0x10)]
     class TarcEntry
     {
         public int unk1;
@@ -34,18 +29,11 @@ namespace plugin_konami.Archives
         public int unk2;
     }
 
-    class TarcArchiveFileInfo : ArchiveFileInfo
+    class TarcArchiveFile : ArchiveFile
     {
         public TarcEntry Entry { get; }
 
-        public TarcArchiveFileInfo(Stream fileData, string filePath, TarcEntry entry) :
-            base(fileData, filePath)
-        {
-            Entry = entry;
-        }
-
-        public TarcArchiveFileInfo(Stream fileData, string filePath, TarcEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
+        public TarcArchiveFile(ArchiveFileInfo fileInfo, TarcEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }

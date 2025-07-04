@@ -1,10 +1,7 @@
-﻿using Komponent.IO.Attributes;
-
-namespace plugin_mercury_steam.Images
+﻿namespace plugin_mercury_steam.Images
 {
     class MtxtHeader
     {
-        [FixedLength(4)]
         public string magic;
 
         public int unk1;
