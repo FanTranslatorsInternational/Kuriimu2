@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_shade.Archives
 {
@@ -14,45 +11,47 @@ namespace plugin_shade.Archives
     {
         private byte[] _unkIndexData;
 
-        public IList<IArchiveFileInfo> Load(Stream indexStream, Stream dataStream)
+        public List<IArchiveFile> Load(Stream indexStream, Stream dataStream)
         {
             // Read index entries from mcb0
             var indexEntryCount = PeekMcb0EntryCount(indexStream);
 
             using var indexBr = new BinaryReaderX(indexStream);
-            var indexEntries = indexBr.ReadMultiple<Mcb0Entry>(indexEntryCount);
+            var indexEntries = ReadEntries(indexBr, indexEntryCount);
 
             // Save unknown data from the index file
             _unkIndexData = indexBr.ReadBytes((int)(indexBr.BaseStream.Length - indexBr.BaseStream.Position));
 
             // Parse files from mcb1
             var index = 0;
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var indexEntry in indexEntries)
             {
                 var stream = new SubStream(dataStream, indexEntry.offset, indexEntry.size);
-                result.Add(new BlnArchiveFileInfo(stream, $"{index++:D8}_{indexEntry.id:X4}.bin", indexEntry)
+                result.Add(new BlnArchiveFile(new ArchiveFileInfo
                 {
-                    PluginIds = new[] { Guid.Parse("6d71d07c-b517-496b-b659-3498cd3542fd") }
-                });
+                    FilePath = $"{index++:D8}_{indexEntry.id:X4}.bin",
+                    FileData = stream,
+                    PluginIds = [Guid.Parse("6d71d07c-b517-496b-b659-3498cd3542fd")]
+                }, indexEntry));
             }
 
             return result;
         }
 
-        public void Save(Stream indexOutput, Stream dataOutput, IList<IArchiveFileInfo> files)
+        public void Save(Stream indexOutput, Stream dataOutput, IList<IArchiveFile> files)
         {
             // Write files
             using var indexBw = new BinaryWriterX(indexOutput);
 
             var offset = 0u;
-            foreach (var file in files.Cast<BlnArchiveFileInfo>())
+            foreach (var file in files.Cast<BlnArchiveFile>())
             {
-                var dataSize = (uint)file.SaveFileData(dataOutput);
+                var dataSize = (uint)file.WriteFileData(dataOutput, true);
 
                 file.Entry.offset = offset;
                 file.Entry.size = dataSize;
-                indexBw.WriteType(file.Entry);
+                WriteEntry(file.Entry, indexBw);
 
                 offset += dataSize;
             }
@@ -75,6 +74,35 @@ namespace plugin_shade.Archives
 
             indexStream.Position = bkPos;
             return count;
+        }
+
+        private Mcb0Entry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Mcb0Entry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Mcb0Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new Mcb0Entry
+            {
+                id = reader.ReadInt16(),
+                unk2 = reader.ReadInt16(),
+                offset = reader.ReadUInt32(),
+                size = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteEntry(Mcb0Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.id);
+            writer.Write(entry.unk2);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

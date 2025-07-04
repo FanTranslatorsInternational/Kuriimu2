@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+﻿using System.Text;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_shade.Archives
 {
@@ -52,7 +48,7 @@ namespace plugin_shade.Archives
             input.Position = bkPos + 2;
             var magic3 = PeekUInt32(input);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
 
         private static uint PeekUInt32(Stream input)
@@ -100,24 +96,18 @@ namespace plugin_shade.Archives
             return (uint)((buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0]);
         }
     }
-    class ShadeArchiveFileInfo : ArchiveFileInfo
+    class ShadeArchiveFile : ArchiveFile
     {
         public long OriginalSize { get; }
 
-        public ShadeArchiveFileInfo(Stream fileData, string filePath):
-            base(fileData, filePath)
+        public ShadeArchiveFile(ArchiveFileInfo fileInfo) : base(fileInfo)
         {
-            OriginalSize = fileData.Length;
-        }
-        public ShadeArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-            OriginalSize = fileData.Length;
+            OriginalSize = fileInfo.FileData.Length;
         }
 
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
+        public long WriteFileData(Stream output)
         {
-            var writtenSize = base.SaveFileData(output, compress, progress);
+            var writtenSize = WriteFileData(output, true);
 
             if (writtenSize > OriginalSize)
                 throw new InvalidOperationException("The replaced file cannot be larger than its original.");

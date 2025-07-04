@@ -1,6 +1,4 @@
-﻿using System.IO;
-using Kontract.Kompression.Configuration;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 
 namespace plugin_shade.Archives
 {
@@ -18,17 +16,11 @@ namespace plugin_shade.Archives
         public uint offSize;
     }
 
-    class BinArchiveFileInfo : ShadeArchiveFileInfo
+    class BinArchiveFile : ShadeArchiveFile
     {
         public BinFileInfo Entry { get; }
 
-        public BinArchiveFileInfo(Stream fileData, string filePath, BinFileInfo entry) :
-            base(fileData, filePath) 
-        {
-            Entry = entry;
-        }
-        public BinArchiveFileInfo(Stream fileData, string filePath, BinFileInfo entry, IKompressionConfiguration configuration, long decompressedSize) : 
-            base(fileData, filePath, configuration, decompressedSize)
+        public BinArchiveFile(ArchiveFileInfo fileInfo, BinFileInfo entry) : base(fileInfo)
         {
             Entry = entry;
         }

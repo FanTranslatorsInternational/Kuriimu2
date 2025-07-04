@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_shade.Archives
 {
     public class BlnSubPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("6d71d07c-b517-496b-b659-3498cd3542fd");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.bin" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bin"];
 
-        public BlnSubPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("BLN Sub", "onepiecefreak", "Archive in Inazuma Eleven GO Strikers 2013 BLN files.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "BLN Sub",
+            Publisher = "Level5",
+            Developer = "Shade",
+            Platform = ["Wii"],
+            LongDescription = "Archive in Inazuma Eleven GO Strikers 2013 BLN files."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new BlnSubState();
         }

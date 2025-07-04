@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations.Decoders.Headerless;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Kompression;
+using Kompression.Decoder.Headerless;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_shade.Archives
 {
@@ -13,12 +12,12 @@ namespace plugin_shade.Archives
     // HINT: Unbelievably ugly archive. Ignore everything that's done here and move on with your life, god dammit
     class BlnSub
     {
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
 
             var index = 0;
             while (br.BaseStream.Position < input.Length)
@@ -28,7 +27,7 @@ namespace plugin_shade.Archives
                     break;
 
                 br.BaseStream.Position -= 4;
-                var entry = br.ReadType<BlnSubEntry>();
+                var entry = ReadEntry(br);
 
                 if (entry.size == 0)
                     break;
@@ -42,20 +41,20 @@ namespace plugin_shade.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Write files
             using var bw = new BinaryWriterX(output);
-            foreach (var file in files.Cast<BlnSubArchiveFileInfo>())
+            foreach (var file in files.Cast<BlnSubArchiveFile>())
             {
                 var startOffset = output.Position;
                 output.Position += 0xC;
 
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 var endOffset = startOffset + writtenSize + 0xC;
                 output.Position = startOffset;
-                bw.WriteType(file.Entry);
+                WriteEntry(file.Entry, bw);
 
                 output.Position = endOffset;
             }
@@ -65,18 +64,44 @@ namespace plugin_shade.Archives
             bw.WriteAlignment(0x1000);
         }
 
-        private ArchiveFileInfo CreateAfi(Stream stream, int index, BlnSubEntry entry)
+        private IArchiveFile CreateAfi(Stream stream, int index, BlnSubEntry entry)
         {
             // Every file not compressed with the headered Spike Chunsoft compression, is compressed headerless
             var compressionMagic = ShadeSupport.PeekInt32LittleEndian(stream);
             if (compressionMagic != 0xa755aafc)
-                return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.ShadeLzHeaderless, ShadeLzHeaderlessDecoder.CalculateDecompressedSize(stream));
+                return new BlnSubArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = ShadeSupport.CreateFileName(index, stream, false),
+                    FileData = stream,
+                    Compression = Compressions.ShadeLzHeaderless.Build(),
+                    DecompressedSize = (int)ShadeLzHeaderlessDecoder.CalculateDecompressedSize(stream)
+                }, entry);
 
             stream.Position = 0;
-            return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.ShadeLz, ShadeSupport.PeekDecompressedSize(stream));
-
+            return new BlnSubArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = ShadeSupport.CreateFileName(index, stream, true),
+                FileData = stream,
+                Compression = Compressions.ShadeLz.Build(),
+                DecompressedSize = (int)ShadeSupport.PeekDecompressedSize(stream)
+            }, entry);
         }
 
-        
+        private BlnSubEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new BlnSubEntry
+            {
+                archiveIndex = reader.ReadInt32(),
+                archiveOffset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntry(BlnSubEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.archiveIndex);
+            writer.Write(entry.archiveOffset);
+            writer.Write(entry.size);
+        }
     }
 }

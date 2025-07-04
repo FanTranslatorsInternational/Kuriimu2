@@ -1,7 +1,6 @@
-﻿using System.Drawing;
-using System.IO;
-using Komponent.IO;
-using Kontract.Models.Image;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_shade.Images
 {
@@ -12,72 +11,100 @@ namespace plugin_shade.Images
         private byte[] palette;
         private byte[] _unkChunk;
         private int textureDataLength;
-        public ImageInfo Load(Stream input)
+
+        public ImageFileInfo Load(Stream input)
         {
+            using var br = new BinaryReaderX(input);
 
-            using (var br = new BinaryReaderX(input))
+            // Header
+            _header = ReadHeader(br);
+
+            // Get image data
+            switch (_header.Format)
             {
-                // Header
-                _header = br.ReadType<ShtxHeader>();
+                case 0x4646:
+                    textureDataLength = _header.Width * _header.Height * 4;
+                    break;
 
-                // Get image data
-                switch (_header.Format)
-                {
-                    case 0x4646:
-                        textureDataLength = _header.Width * _header.Height * 4;
-                        break;
-                    case 0x3446:
-                        paletteDataLength = 16 * 4;
-                        palette = br.ReadBytes(paletteDataLength);
-                        _unkChunk = br.ReadBytes(240 * 4); // For some reason SHTXF4's have space for 240 other colors, it's sometimes used for other things, saves it
-                        textureDataLength = (_header.Width * _header.Height) / 2;
-                        break;
-                    default:
-                        textureDataLength = _header.Width * _header.Height;
-                        palette = br.ReadBytes(paletteDataLength);
-                        break;
-                }
-                var textureData = br.ReadBytes(textureDataLength);
+                case 0x3446:
+                    paletteDataLength = 16 * 4;
+                    palette = br.ReadBytes(paletteDataLength);
+                    _unkChunk = br.ReadBytes(240 * 4); // For some reason SHTXF4's have space for 240 other colors, it's sometimes used for other things, saves it
+                    textureDataLength = _header.Width * _header.Height / 2;
+                    break;
 
-
-                var imageInfo = new ImageInfo(textureData, _header.Format, new Size(_header.Width, _header.Height));
-                if (_header.Format == 0x4646)
-                    return imageInfo;
-
-                imageInfo.PaletteData = palette;
-                imageInfo.PaletteFormat = 0;
-
-                return imageInfo;
+                default:
+                    textureDataLength = _header.Width * _header.Height;
+                    palette = br.ReadBytes(paletteDataLength);
+                    break;
             }
+
+            var textureData = br.ReadBytes(textureDataLength);
+
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = !ShtxSupport.EncodingsV1.TryGetValue(_header.Format, out var encoding)
+                    ? ShtxSupport.IndexEncodings[_header.Format].IndexEncoding.BitDepth
+                    : encoding.BitsPerValue,
+                ImageData = textureData,
+                ImageFormat = _header.Format,
+                ImageSize = new Size(_header.Width, _header.Height)
+            };
+
+            if (_header.Format == 0x4646)
+                return imageInfo;
+
+            imageInfo.PaletteData = palette;
+            imageInfo.PaletteFormat = 0;
+
+            return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
-            using (var bw = new BinaryWriterX(output))
+            using var bw = new BinaryWriterX(output);
+
+            _header.Width = (short)imageInfo.ImageSize.Width;
+            _header.Height = (short)imageInfo.ImageSize.Height;
+
+            WriteHeader(_header, bw);
+
+            if (_header.Format != 0x4646)
             {
-                _header.Width = (short)imageInfo.ImageSize.Width;
-                _header.Height = (short)imageInfo.ImageSize.Height;
+                bw.Write(imageInfo.PaletteData);
 
-                bw.WriteType(_header);
-                if (_header.Format == 0x4646)
-                {
-                    bw.Write(imageInfo.ImageData);
-                }
-                else
-                {
-                    bw.Write(imageInfo.PaletteData);
+                // In case the quantized image has a palette size that doesn't match the number of colors in the format
+                var missingColors = paletteDataLength - imageInfo.PaletteData.Length;
+                bw.WritePadding(missingColors);
 
-                    // In case the quantized image has a palette size that doesn't match the number of colors in the format
-                    var missingColors = paletteDataLength - imageInfo.PaletteData.Length;
-                    bw.WritePadding(missingColors);
-
-                    if (_unkChunk != null)
-                        bw.Write(_unkChunk);
-                    bw.Write(imageInfo.ImageData);
-                }
-
-
+                if (_unkChunk != null)
+                    bw.Write(_unkChunk);
             }
+
+            bw.Write(imageInfo.ImageData);
+        }
+
+        private ShtxHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new ShtxHeader
+            {
+                Magic = reader.ReadString(4),
+                Format = reader.ReadInt16(),
+                Width = reader.ReadInt16(),
+                Height = reader.ReadInt16(),
+                unk1 = reader.ReadByte(),
+                unk2 = reader.ReadByte()
+            };
+        }
+
+        private void WriteHeader(ShtxHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.Magic, writeNullTerminator: false);
+            writer.Write(header.Format);
+            writer.Write(header.Width);
+            writer.Write(header.Height);
+            writer.Write(header.unk1);
+            writer.Write(header.unk2);
         }
     }
 }

@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Interfaces.Managers;
-using Kontract.Models.Dialog;
+using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
+using Konnect.Plugin.File.Image;
+using Index = Kanvas.Encoding.Index;
 
 namespace plugin_shade.Images
 {
     class ShtxHeader
     {
-        [FixedLength(4)]
         public string Magic;
         public short Format; // 0x4646 (FF), 0x5346(FS), 0x3446(F4)
         public short Width;
@@ -38,8 +37,8 @@ namespace plugin_shade.Images
 
         public static IDictionary<int, IndexEncodingDefinition> IndexEncodings = new Dictionary<int, IndexEncodingDefinition>
         {
-            [0x3446] = new IndexEncodingDefinition(new Index(4), new[] { 0 }),
-            [0x5346] = new IndexEncodingDefinition(new Index(8), new[] { 0 })
+            [0x3446] = new() { IndexEncoding = new Index(4), PaletteEncodingIndices = [0] },
+            [0x5346] = new() { IndexEncoding = new Index(8), PaletteEncodingIndices = [0] }
         };
 
         public static readonly IDictionary<string, IDictionary<int, IColorEncoding>> PlatformPaletteEncodingMapping =
@@ -55,11 +54,18 @@ namespace plugin_shade.Images
 
             // Show a dialog to the user, selecting the platform
             var availablePlatforms = PlatformPaletteEncodingMapping.Keys.ToArray();
-            var dialogField = new DialogField(DialogFieldType.DropDown, "Select the platform:", availablePlatforms.First(), availablePlatforms);
+            var dialogField = new DialogField
+            {
+                Text = "Select the platform:",
+                Type = DialogFieldType.DropDown,
+                DefaultValue = availablePlatforms.First(),
+                Options = availablePlatforms
+            };
 
-            dialogManager.ShowDialog(new[] { dialogField });
+            dialogManager.ShowDialog([dialogField]);
 
-            var encodingDefinition = EncodingsV1.ToColorDefinition();
+            var encodingDefinition = new EncodingDefinition();
+            encodingDefinition.AddColorEncodings(EncodingsV1);
             encodingDefinition.AddPaletteEncodings(PlatformPaletteEncodingMapping[dialogField.Result]);
             encodingDefinition.AddIndexEncodings(IndexEncodings);
 

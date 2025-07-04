@@ -1,30 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_shade.Archives
 {
-    class BlnState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class BlnState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly Bln _bln;
+        private readonly Bln _bln = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsChanged();
-
-        public BlnState()
-        {
-            _bln = new Bln();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -47,10 +37,10 @@ namespace plugin_shade.Archives
             if (dataStream == null || indexStream == null)
                 throw new InvalidOperationException("This is no Bln archive.");
 
-            Files = _bln.Load(indexStream, dataStream);
+            _files = _bln.Load(indexStream, dataStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream dataOutput;
             Stream indexOutput;
@@ -58,22 +48,20 @@ namespace plugin_shade.Archives
             switch (savePath.GetName())
             {
                 case "mcb1.bln":
-                    dataOutput = fileSystem.OpenFile(savePath, FileMode.Create);
-                    indexOutput = fileSystem.OpenFile(savePath.GetDirectory() / "mcb0.bln", FileMode.Create);
+                    dataOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+                    indexOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb0.bln", FileMode.Create);
                     break;
 
                 default:
-                    indexOutput = fileSystem.OpenFile(savePath, FileMode.Create);
-                    dataOutput = fileSystem.OpenFile(savePath.GetDirectory() / "mcb1.bln", FileMode.Create);
+                    indexOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+                    dataOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb1.bln", FileMode.Create);
                     break;
             }
 
-            _bln.Save(indexOutput, dataOutput, Files);
-
-            return Task.CompletedTask;
+            _bln.Save(indexOutput, dataOutput, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
