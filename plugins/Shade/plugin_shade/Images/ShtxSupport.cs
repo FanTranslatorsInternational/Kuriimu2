@@ -15,8 +15,8 @@ namespace plugin_shade.Images
         public short Format; // 0x4646 (FF), 0x5346(FS), 0x3446(F4)
         public short Width;
         public short Height;
-        public byte unk1;
-        public byte unk2;
+        public byte LogW;
+        public byte LogH;
     }
 
     class ShtxSupport
