@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using Kanvas;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_sega.Images
 {
@@ -21,7 +20,7 @@ namespace plugin_sega.Images
 
     class CompSupport
     {
-        private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0x00] = ImageFormats.Rgba8888(),
             [0x01] = ImageFormats.Rgb888(),

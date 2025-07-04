@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_sega.Images
 {
     class HtexHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int sectionSize;
         public uint data1;
@@ -36,7 +34,11 @@ namespace plugin_sega.Images
             var definition = new EncodingDefinition();
 
             definition.AddPaletteEncodings(PaletteEncodings);
-            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition(x.Value, new[] { 0x6C09, 0x6409 }))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => (x.Key, new IndexEncodingDefinition
+            {
+                IndexEncoding = x.Value,
+                PaletteEncodingIndices = [0x6C09, 0x6409]
+            })).ToArray());
 
             definition.AddPaletteShader(0x6C09, new HtexColorShader());
 
@@ -46,14 +48,14 @@ namespace plugin_sega.Images
 
     class HtexColorShader : IColorShader
     {
-        public Color Read(Color c)
+        public Rgba32 Read(Rgba32 c)
         {
-            return Color.FromArgb(c.A * 0xFF / 0x80, c.R, c.G, c.B);
+            return new Rgba32(c.R, c.G, c.B, (byte)(c.A * 0xFF / 0x80));
         }
 
-        public Color Write(Color c)
+        public Rgba32 Write(Rgba32 c)
         {
-            return Color.FromArgb(c.A * 0x80 / 0xFF, c.R, c.G, c.B);
+            return new Rgba32(c.R, c.G, c.B, (byte)(c.A * 0x80 / 0xFF));
         }
     }
 }
