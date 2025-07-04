@@ -92,8 +92,8 @@ namespace plugin_shade.Images
                 Format = reader.ReadInt16(),
                 Width = reader.ReadInt16(),
                 Height = reader.ReadInt16(),
-                unk1 = reader.ReadByte(),
-                unk2 = reader.ReadByte()
+                LogW = reader.ReadByte(),
+                LogH = reader.ReadByte()
             };
         }
 
@@ -103,8 +103,8 @@ namespace plugin_shade.Images
             writer.Write(header.Format);
             writer.Write(header.Width);
             writer.Write(header.Height);
-            writer.Write(header.unk1);
-            writer.Write(header.unk2);
+            writer.Write((byte)Math.Ceiling(Math.Log(header.Width, 2)));
+            writer.Write((byte)Math.Ceiling(Math.Log(header.Height, 2)));
         }
     }
 }
