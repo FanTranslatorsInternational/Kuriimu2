@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Komponent.IO;
 
 namespace plugin_kadokawa.Archives
 {
@@ -43,7 +37,7 @@ namespace plugin_kadokawa.Archives
             input.Position = bkPos + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

@@ -1,8 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_cattle_call.Images
 {
@@ -10,12 +9,12 @@ namespace plugin_cattle_call.Images
     {
         private F3xtHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<F3xtHeader>();
+            _header = ReadHeader(br);
 
             // Read image data
             var dataSize = (int)(input.Length - _header.dataStart);
@@ -24,14 +23,20 @@ namespace plugin_cattle_call.Images
             var imageData = br.ReadBytes(dataSize);
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
-            imageInfo.PadSize.Width.To(dimension => _header.paddedWidth).Height.To(dimension => _header.paddedHeight);
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = F3xtSupport.Formats[_header.format].BitDepth,
+                ImageData = imageData,
+                ImageFormat = _header.format,
+                ImageSize = new Size(_header.width, _header.height),
+                PadSize = builder => builder.Width.To(_ => _header.paddedWidth).Height.To(_ => _header.paddedHeight),
+                RemapPixels = context => new CtrSwizzle(context)
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -50,7 +55,38 @@ namespace plugin_cattle_call.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private F3xtHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new F3xtHeader
+            {
+                magic = reader.ReadString(4),
+                texEntries = reader.ReadUInt32(),
+                format = reader.ReadInt16(),
+                widthLog = reader.ReadByte(),
+                heightLog = reader.ReadByte(),
+                width = reader.ReadUInt16(),
+                height = reader.ReadUInt16(),
+                paddedWidth = reader.ReadUInt16(),
+                paddedHeight = reader.ReadUInt16(),
+                dataStart = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(F3xtHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.texEntries);
+            writer.Write(header.format);
+            writer.Write(header.widthLog);
+            writer.Write(header.heightLog);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.paddedWidth);
+            writer.Write(header.paddedHeight);
+            writer.Write(header.dataStart);
         }
     }
 }

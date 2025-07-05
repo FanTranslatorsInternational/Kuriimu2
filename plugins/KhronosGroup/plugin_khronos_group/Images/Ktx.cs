@@ -1,16 +1,13 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using BCnEncoder.Shared;
+﻿using BCnEncoder.Shared;
 using BCnEncoder.Shared.ImageFiles;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_khronos_group.Images
 {
     class Ktx
     {
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             // Load Ktx file
             var ktxFile = KtxFile.Load(input);
@@ -21,13 +18,17 @@ namespace plugin_khronos_group.Images
             var size = new Size((int)ktxFile.header.PixelWidth, (int)ktxFile.header.PixelHeight);
 
             // Prepare mip maps
-            return new ImageInfo(imageData, imageFormat, size)
+            return new ImageFileInfo
             {
+                BitDepth = KtxSupport.Formats[imageFormat].BitDepth,
+                ImageData = imageData,
+                ImageFormat = imageFormat,
+                ImageSize = size,
                 MipMapData = ktxFile.MipMaps.Skip(1).Select(x => x.Faces[0].Data).ToArray()
             };
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             // Create Ktx file
             var ktxHeader = CreateKtxHeader(imageInfo.ImageFormat, imageInfo.ImageSize);
@@ -37,7 +38,7 @@ namespace plugin_khronos_group.Images
             ktxFile.MipMaps.Add(CreateMipMap(imageInfo.ImageData, imageInfo.ImageSize));
 
             // Add mips to Ktx
-            for (var i = 1; i <= imageInfo.MipMapCount; i++)
+            for (var i = 1; i <= (imageInfo.MipMapData?.Count ?? 0); i++)
             {
                 ktxFile.MipMaps.Add(CreateMipMap(imageInfo.MipMapData[i - 1], new Size(imageInfo.ImageSize.Width >> i, imageInfo.ImageSize.Height >> i)));
             }

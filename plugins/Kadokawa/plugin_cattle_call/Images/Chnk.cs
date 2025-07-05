@@ -1,23 +1,22 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
+﻿using System.Buffers.Binary;
 using Kanvas;
+using Kanvas.Contract.DataClasses;
+using Kanvas.Contract.Enums;
 using Kanvas.Encoding;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Kanvas;
-using Kontract.Kanvas.Model;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 using plugin_cattle_call.Compression;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_cattle_call.Images
 {
     class Chnk
     {
-        public IList<IKanvasImage> Load(Stream input)
+        public List<IImageFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
@@ -32,7 +31,7 @@ namespace plugin_cattle_call.Images
 
             // Read information chunk
             using var infBr = new BinaryReaderX(new MemoryStream(infChunk.data));
-            var texInfo = infBr.ReadType<ChnkInfo>();
+            var texInfo = ReadChunkInfo(infBr);
 
             // Detect index depth by data length and palette size
             var paddedWidth = ChnkSupport.ToPowerOfTwo(texInfo.width);
@@ -68,13 +67,22 @@ namespace plugin_cattle_call.Images
             }
 
             // Create image info
-            var result = new List<IKanvasImage>();
+            var result = new List<IImageFile>();
             if (imageFormat != -1)
             {
                 var definition = ChnkSupport.GetEncodingDefinition();
                 foreach (var dataChunk in dataChunks)
                 {
-                    var imageInfo = new ImageInfo(dataChunk.data, imageFormat, new Size(texInfo.width, texInfo.height));
+                    var imageInfo = new ImageFileInfo
+                    {
+                        BitDepth = !ChnkSupport.ColorFormats.TryGetValue(imageFormat, out var encoding)
+                            ? ChnkSupport.IndexFormats[imageFormat].BitDepth
+                            : encoding.BitDepth,
+                        ImageData = dataChunk.data,
+                        ImageFormat = imageFormat,
+                        ImageSize = new Size(texInfo.width, texInfo.height),
+                        PadSize = builder => builder.Width.ToPowerOfTwo()
+                    };
 
                     if (imageFormat < 7)
                     {
@@ -82,26 +90,30 @@ namespace plugin_cattle_call.Images
                         imageInfo.PaletteFormat = 0;
                     }
 
-                    imageInfo.PadSize.Width.ToPowerOfTwo();
-
-                    result.Add(new KanvasImage(definition, imageInfo));
+                    result.Add(new ImageFile(imageInfo, definition));
                 }
             }
             else
             {
                 // Expand TX4I data to RGBA8888
                 foreach (var dataChunk in dataChunks)
-                    result.Add(new BitmapKanvasImage(ExpandTX4I(dataChunk.data, tx4iChunk.data, paletteChunk.data)
-                        .ToBitmap(new Size(texInfo.width, texInfo.height), new Size(paddedWidth, texInfo.height),
-                            new BcSwizzle(new SwizzlePreparationContext(new Rgba(8, 8, 8, 8), new Size(paddedWidth, texInfo.height))), ImageAnchor.TopLeft)));
+                {
+                    var expandedColors = ExpandTX4I(dataChunk.data, tx4iChunk.data, paletteChunk.data);
+
+                    var size = new Size(texInfo.width, texInfo.height);
+                    var paddedSize = new Size(paddedWidth, texInfo.height);
+                    var swizzle = new BcSwizzle(new SwizzleOptions
+                    {
+                        Size = new Size(paddedWidth, texInfo.height),
+                        EncodingInfo = new Rgba(8, 8, 8, 8)
+                    });
+                    var expandedImage = expandedColors.ToImage(size, paddedSize, swizzle, ImageAnchor.TopLeft);
+
+                    result.Add(new StaticImageFile(expandedImage));
+                }
             }
 
             return result;
-        }
-
-        public void Save(Stream output, IList<IKanvasImage> images)
-        {
-
         }
 
         private IList<ChnkSection> ReadSections(BinaryReaderX br)
@@ -109,7 +121,7 @@ namespace plugin_cattle_call.Images
             // Read raw chunks
             var chunks = new List<ChnkSection>();
             while (br.BaseStream.Position < br.BaseStream.Length)
-                chunks.Add(br.ReadType<ChnkSection>());
+                chunks.Add(ReadSection(br));
 
             // Decompress chunk data
             foreach (var chunk in chunks)
@@ -127,12 +139,16 @@ namespace plugin_cattle_call.Images
             return chunks;
         }
 
-        private IList<Color> ExpandTX4I(byte[] data, byte[] tx4iData, byte[] paletteData)
+        private IList<Rgba32> ExpandTX4I(byte[] data, byte[] tx4iData, byte[] paletteData)
         {
             var palEnc = new Rgba(5, 5, 5, "BGR");
-            Color DecodeColor(byte[] cData) => palEnc.Load(cData, new EncodingLoadContext(new Size(1, 1), 1)).First();
+            Rgba32 DecodeColor(byte[] cData) => palEnc.Load(cData, new EncodingOptions
+            {
+                Size = new Size(1, 1),
+                TaskCount = 1
+            }).First();
 
-            var result = new List<Color>();
+            var result = new List<Rgba32>();
             var clrBuffer = new byte[2];
 
             for (var i = 0; i < data.Length; i += 4)
@@ -202,6 +218,37 @@ namespace plugin_cattle_call.Images
             }
 
             return result;
+        }
+
+        private ChnkInfo ReadChunkInfo(BinaryReaderX reader)
+        {
+            return new ChnkInfo
+            {
+                unk1 = reader.ReadInt16(),
+                unk2 = reader.ReadInt16(),
+                dataSize = reader.ReadInt32(),
+                tx4iSize = reader.ReadInt32(),
+                paletteDataSize = reader.ReadInt32(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                imgCount = reader.ReadInt16(),
+                unk3 = reader.ReadInt16()
+            };
+        }
+
+        private ChnkSection ReadSection(BinaryReaderX reader)
+        {
+            var section = new ChnkSection
+            {
+                magic = reader.ReadString(4),
+                decompressedSize = reader.ReadUInt32(),
+                sectionMagic = reader.ReadString(4),
+                sectionSize = reader.ReadInt32()
+            };
+
+            section.data = reader.ReadBytes(section.sectionSize);
+
+            return section;
         }
     }
 }

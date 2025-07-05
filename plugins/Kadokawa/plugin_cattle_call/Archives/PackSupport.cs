@@ -1,6 +1,5 @@
-﻿using System.IO;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_cattle_call.Archives
 {
@@ -11,16 +10,11 @@ namespace plugin_cattle_call.Archives
         public int size;
     }
 
-    class PackArchiveFileInfo : ArchiveFileInfo
+    class PackArchiveFile : ArchiveFile
     {
         public PackEntry Entry { get; }
 
-        public PackArchiveFileInfo(Stream fileData, string filePath, PackEntry entry) : base(fileData, filePath)
-        {
-            Entry = entry;
-        }
-
-        public PackArchiveFileInfo(Stream fileData, string filePath, PackEntry entry, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        public PackArchiveFile(ArchiveFileInfo fileInfo, PackEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }

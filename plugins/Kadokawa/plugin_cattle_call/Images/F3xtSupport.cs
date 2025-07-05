@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_cattle_call.Images
 {
     class F3xtHeader
     {
-        [FixedLength(4)]
         public string magic;
         public uint texEntries;
         public short format;
@@ -24,7 +21,7 @@ namespace plugin_cattle_call.Images
 
     class F3xtSupport
     {
-        private static Dictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static Dictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0] = ImageFormats.Rgba8888(),
             [1] = new Rgba(8, 8, 8, "BGR"),

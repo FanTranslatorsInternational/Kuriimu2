@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-#pragma warning disable 649
-
-namespace plugin_metal_max.Archives
+﻿namespace plugin_cattle_call.Archives
 {
     class PakHeader
     {
@@ -18,7 +13,6 @@ namespace plugin_metal_max.Archives
         public int offset;
     }
 
-    [DebuggerDisplay("{Text}")]
     class StringNode
     {
         public string Text { get; private set; }

@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_cattle_call.Archives
 {
     public class PackPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("74d25496-ec7b-4a4b-8e68-e2a7dae2b118");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new string[0];
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions =>[];
 
-        public PackPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("PACK", "onepiecefreak", "Extensionless pack files in Metal Max 4.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "PACK",
+            Publisher = "Kadokawa",
+            Developer = "Cattle Call",
+            Platform = ["3DS"],
+            LongDescription = "Extensionless pack files in Metal Max 4."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new PackState();
         }

@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Assembly;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_khronos_group.Images
 {
-    public class KtxPlugin : IFilePlugin, IIdentifyFiles, IRegisterAssembly
+    public class KtxPlugin : IIdentifyFiles
     {
         private static readonly IList<byte[]> SupportedMagics = new List<byte[]>
         {
@@ -21,33 +18,38 @@ namespace plugin_khronos_group.Images
         };
 
         public Guid PluginId => Guid.Parse("d25919cc-ac22-4f4a-94b2-b0f42d1123d4");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.ktx" };
-        public PluginMetadata Metadata { get; }
 
-        public KtxPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.ktx"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("KTX", "Nominom; onepiecefreak", "The image resource by the Khronos Group.");
-        }
+            Author = ["Nominom", "onepiecefreak"],
+            Name = "KTX",
+            Publisher = "Khronos Group",
+            Developer = "Khronos Group",
+            Platform = ["Android"],
+            LongDescription = "The image resource by the Khronos Group."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadBytes(12);
+            byte[] magic = br.ReadBytes(12);
 
             return SupportedMagics.Any(x => x.SequenceEqual(magic));
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new KtxState();
         }
 
-        public void RegisterAssemblies(DomainContext context)
+        public void RegisterAssemblies(IAssemblyManager manager)
         {
-            context.FromResource("plugin_khronos_group.Libs.BCnEncoder.dll");
+            manager.FromResource("plugin_khronos_group.Libs.BCnEncoder.dll");
         }
     }
 }

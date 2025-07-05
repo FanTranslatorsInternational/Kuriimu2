@@ -1,32 +1,47 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Kanvas;
-using Komponent.IO.Attributes;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Kanvas;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_kadokawa.Images
 {
     [Alignment(0x20)]
     class CtxHeader
     {
-        [FixedLength(8)]
         public string magic = "CTX 10 \0";
         public int width;
         public int height;
         public int width2;
         public int height2;
         public int unk1;
-        public int format;
+        public uint format;
         public int unk2;
         public int dataSize;
     }
 
     class CtxSupport
     {
-        private static readonly IDictionary<uint, IColorEncoding> Formats = new Dictionary<uint, IColorEncoding>
+        public static readonly IDictionary<uint, IColorEncoding> Formats = new Dictionary<uint, IColorEncoding>
         {
+            // Pixel Format:
+            // - 0x6752: RGBA
+            // - 0x6754: RGB
+            // - 0x6756: A
+            // - 0x6757: L
+            // - 0x6758: LA
+            // - 0x675A: ETC1
+            // - 0x675B: ETC1A4
+
+            // Data Format:
+            // - 0x0000: default/unnecessary
+            // - 0x1401: 8 per component
+            // - 0x8033: 4444
+            // - 0x8034: 5551
+            // - 0x8363: 565
+            // - 0x6761: 4
+            // - 0x6760: 44
+
             // Composed of dataType and PixelFormat
             // Short + short
             [0x14016752] = ImageFormats.Rgba8888(),
@@ -39,7 +54,7 @@ namespace plugin_kadokawa.Images
             [0x67616756] = ImageFormats.A4(BitOrder.LeastSignificantBitFirst),
             [0x14016757] = ImageFormats.L8(),
             [0x67616757] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
-            [0x14016757] = ImageFormats.La88(),
+            [0x14016758] = ImageFormats.La88(),
             [0x67606758] = ImageFormats.La44(),
             [0x0000675A] = ImageFormats.Etc1(true),
             [0x0000675B] = ImageFormats.Etc1A4(true),
@@ -50,7 +65,7 @@ namespace plugin_kadokawa.Images
         public static EncodingDefinition GetEncodingDefinition()
         {
             var definition = new EncodingDefinition();
-            definition.AddColorEncodings(Formats.ToDictionary(x => (int)x.Key, y => y.Value));
+            definition.AddColorEncodings(Formats.ToDictionary(x => unchecked((int)x.Key), y => y.Value));
 
             return definition;
         }

@@ -1,49 +1,22 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Kanvas;
-using Kontract.Models.Context;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Image;
 
 namespace plugin_cattle_call.Images
 {
-    class ChnkState : IImageState, ILoadFiles, ISaveFiles
+    class ChnkState : ILoadFiles, IImageFilePluginState
     {
-        private Chnk _img;
+        private readonly Chnk _img = new();
+        private List<IImageFile> _images;
 
-        public EncodingDefinition EncodingDefinition { get; }
-        public IList<IKanvasImage> Images { get; private set; }
-
-        public bool ContentChanged => IsContentChanged();
-
-        public ChnkState()
-        {
-            _img = new Chnk();
-
-            EncodingDefinition = ChnkSupport.GetEncodingDefinition();
-        }
+        public IReadOnlyList<IImageFile> Images => _images;
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = _img.Load(fileStream);
-        }
-
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
-        {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _img.Save(fileStream, Images);
-
-            return Task.CompletedTask;
-        }
-
-        private bool IsContentChanged()
-        {
-            return Images.Any(x => x.ContentChanged);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _images = _img.Load(fileStream);
         }
     }
 }

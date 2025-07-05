@@ -1,18 +1,17 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using plugin_cattle_call.Compression;
 
 namespace plugin_cattle_call.Archives
 {
     class Pack
     {
-        private static readonly int EntrySize = Tools.MeasureType(typeof(PackEntry));
+        private static readonly int EntrySize = 0xC;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -20,10 +19,10 @@ namespace plugin_cattle_call.Archives
             var fileCount = br.ReadInt32();
 
             // Read entries
-            var entries = br.ReadMultiple<PackEntry>(fileCount);
+            var entries = ReadEntries(br, fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.offset, entry.size);
@@ -35,7 +34,7 @@ namespace plugin_cattle_call.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -47,11 +46,11 @@ namespace plugin_cattle_call.Archives
             var entries = new List<PackEntry>();
 
             var dataPosition = dataOffset;
-            foreach (var file in files.Cast<PackArchiveFileInfo>().OrderBy(x => x.Entry.offset))
+            foreach (var file in files.Cast<PackArchiveFile>().OrderBy(x => x.Entry.offset))
             {
                 // Write file data
                 output.Position = dataPosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 // Add entry
                 entries.Add(new PackEntry { offset = dataPosition, size = (int)writtenSize, hash = file.Entry.hash });
@@ -61,20 +60,63 @@ namespace plugin_cattle_call.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries.OrderBy(x => x.hash));
+            WriteEntries(entries.OrderBy(x => x.hash).ToArray(), bw);
 
             // Write file count
             output.Position = 0;
             bw.Write(files.Count);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream input, string fileName, PackEntry entry)
+        private IArchiveFile CreateAfi(Stream input, string fileName, PackEntry entry)
         {
             var method = NintendoCompressor.PeekCompressionMethod(input);
-            if (!NintendoCompressor.IsValidCompressionMethod(method))
-                return new PackArchiveFileInfo(input, fileName, entry);
+            if (!Enum.IsDefined(method))
+                return new PackArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = input
+                }, entry);
 
-            return new PackArchiveFileInfo(input, fileName, entry, NintendoCompressor.GetConfiguration(method), NintendoCompressor.PeekDecompressedSize(input));
+            return new PackArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = input,
+                Compression = NintendoCompressor.GetConfiguration(method),
+                DecompressedSize = NintendoCompressor.PeekDecompressedSize(input)
+            }, entry);
+        }
+
+        private PackEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PackEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PackEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new PackEntry
+            {
+                hash = reader.ReadUInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteEntries(IList<PackEntry> entries, BinaryWriterX writer)
+        {
+            foreach (PackEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(PackEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.hash);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

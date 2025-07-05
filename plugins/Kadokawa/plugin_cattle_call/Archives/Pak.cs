@@ -1,37 +1,35 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Enumeration;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 
-namespace plugin_metal_max.Archives
+namespace plugin_cattle_call.Archives
 {
     class Pak
     {
-        private static readonly int EntrySize = Tools.MeasureType(typeof(PakEntry));
+        private static readonly int EntrySize = 0x8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            var header = br.ReadType<PakHeader>();
+            var header = ReadHeader(br);
 
             // Read entries
             input.Position = header.entryOffset;
-            var entries = br.ReadMultiple<PakEntry>(header.fileCount);
+            var entries = ReadEntries(br, header.fileCount);
 
             // Read names
             input.Position = header.nameTable;
             var names = ReadStrings(br).ToArray();
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -39,13 +37,17 @@ namespace plugin_metal_max.Archives
                 var subStream = new SubStream(input, entry.offset, entry.size);
                 var fileName = names[i];
 
-                result.Add(new ArchiveFileInfo(subStream, fileName));
+                result.Add(new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -75,10 +77,10 @@ namespace plugin_metal_max.Archives
             var entries = new List<PakEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
 
                 entries.Add(new PakEntry
                 {
@@ -91,23 +93,25 @@ namespace plugin_metal_max.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write strings
             foreach (var pair in nodeOffsetMap)
             {
                 output.Position = pair.Value;
-                bw.WriteString(pair.Key.Text, Encoding.ASCII, false);
+                bw.WriteString(pair.Key.Text, Encoding.ASCII);
             }
 
             // Write header
-            output.Position = 0;
-            bw.WriteType(new PakHeader
+            var header = new PakHeader
             {
                 fileCount = (short)files.Count,
                 entryOffset = (int)entryOffset,
                 nameTable = (short)nameTableOffset
-            });
+            };
+
+            output.Position = 0;
+            WriteHeader(header, bw);
         }
 
         private IEnumerable<string> ReadStrings(BinaryReaderX br, string currentName = "")
@@ -124,12 +128,12 @@ namespace plugin_metal_max.Archives
                 if ((flags & 0x1) > 0)
                 {
                     br.BaseStream.Position = stringOffset;
-                    yield return currentName + br.ReadCStringASCII();
+                    yield return currentName + br.ReadNullTerminatedString();
                 }
                 else
                 {
                     br.BaseStream.Position = stringOffset;
-                    var part = br.ReadCStringASCII();
+                    var part = br.ReadNullTerminatedString();
 
                     br.BaseStream.Position = flags >> 1;
                     foreach (var name in ReadStrings(br, currentName + part))
@@ -197,6 +201,54 @@ namespace plugin_metal_max.Archives
             }
 
             bw.BaseStream.Position = nextPosition;
+        }
+
+        private PakHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new PakHeader
+            {
+                fileCount = reader.ReadInt16(),
+                entryOffset = reader.ReadInt32(),
+                nameTable = reader.ReadInt16()
+            };
+        }
+
+        private PakEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new PakEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private PakEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new PakEntry
+            {
+                size = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(PakHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.fileCount);
+            writer.Write(header.entryOffset);
+            writer.Write(header.nameTable);
+        }
+
+        private void WriteEntries(IList<PakEntry> entries, BinaryWriterX writer)
+        {
+            foreach (PakEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(PakEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.size);
+            writer.Write(entry.offset);
         }
     }
 }

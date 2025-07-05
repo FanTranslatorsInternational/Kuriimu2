@@ -1,8 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Image;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using SixLabors.ImageSharp;
 
 namespace plugin_kadokawa.Images
 {
@@ -10,23 +9,28 @@ namespace plugin_kadokawa.Images
     {
         private CtxHeader _header;
 
-        public ImageInfo Load(Stream input)
+        public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<CtxHeader>();
+            _header = ReadHeader(br);
 
             // Read image data
             var imageData = br.ReadBytes(_header.dataSize);
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
-
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
+            var imageInfo = new ImageFileInfo
+            {
+                BitDepth = CtxSupport.Formats[_header.format].BitDepth,
+                ImageData = imageData,
+                ImageFormat = unchecked((int)_header.format),
+                ImageSize = new Size(_header.width, _header.height),
+                RemapPixels = context => new CtrSwizzle(context)
+            };
 
             return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, ImageFileInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -39,7 +43,7 @@ namespace plugin_kadokawa.Images
 
             // Update header
             _header.dataSize = imageInfo.ImageData.Length;
-            _header.format = imageInfo.ImageFormat;
+            _header.format = unchecked((uint)imageInfo.ImageFormat);
             _header.width = imageInfo.ImageSize.Width;
             _header.height = imageInfo.ImageSize.Height;
             _header.width2 = imageInfo.ImageSize.Width;
@@ -47,7 +51,36 @@ namespace plugin_kadokawa.Images
 
             // Write header
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private CtxHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new CtxHeader
+            {
+                magic = reader.ReadString(8),
+                width = reader.ReadInt32(),
+                height = reader.ReadInt32(),
+                width2 = reader.ReadInt32(),
+                height2 = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                format = reader.ReadUInt32(),
+                unk2 = reader.ReadInt32(),
+                dataSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(CtxHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator:false);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.width2);
+            writer.Write(header.height2);
+            writer.Write(header.unk1);
+            writer.Write(header.format);
+            writer.Write(header.unk2);
+            writer.Write(header.dataSize);
         }
     }
 }

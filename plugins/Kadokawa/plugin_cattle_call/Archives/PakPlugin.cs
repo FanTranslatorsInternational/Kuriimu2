@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
-namespace plugin_metal_max.Archives
+namespace plugin_cattle_call.Archives
 {
     public class PakPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("2a4e1bf2-1718-44bd-8a72-8c33a9026fb8");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.pak" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.pak"];
 
-        public PakPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("PAK", "onepiecefreak", "The main resource in Metal Max 3.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "PAK",
+            Publisher = "Kadokawa",
+            Developer = "Cattle Call",
+            Platform = ["NDS"],
+            LongDescription = "The main resource in Metal Max 3."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new PakState();
         }

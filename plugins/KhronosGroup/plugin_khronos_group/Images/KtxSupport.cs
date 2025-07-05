@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using BCnEncoder.Shared;
+﻿using BCnEncoder.Shared;
 using Kanvas;
-using Kontract.Kanvas;
-using Kontract.Models.Image;
+using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_khronos_group.Images
 {
     class KtxSupport
     {
-        private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
+        public static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [(int)GlInternalFormat.GlCompressedRgb8Etc2] = ImageFormats.Etc2(),
             [(int)GlInternalFormat.GlCompressedRgb8PunchthroughAlpha1Etc2] = ImageFormats.Etc2A1(),
