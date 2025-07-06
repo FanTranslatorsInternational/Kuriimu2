@@ -1,24 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+﻿using System.Globalization;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_mt_framework.Archives
 {
     class MtArc
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(MtHeader));
+        private static readonly int HeaderSize = 0x8;
 
         private MtHeader _header;
         private MtArcPlatform _platform;
 
-        public IList<IArchiveFileInfo> Load(Stream input, MtArcPlatform platform)
+        public List<IArchiveFile> Load(Stream input, MtArcPlatform platform)
         {
             _platform = platform;
 
@@ -38,7 +37,7 @@ namespace plugin_mt_framework.Archives
             }
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             switch (_platform)
             {
@@ -59,7 +58,7 @@ namespace plugin_mt_framework.Archives
             }
         }
 
-        public IArchiveFileInfo Add(Stream fileData, UPath filePath)
+        public IArchiveFile Add(Stream fileData, UPath filePath)
         {
             // Determine extension hash
             var extension = filePath.GetExtensionWithDot()[1..];
@@ -106,32 +105,32 @@ namespace plugin_mt_framework.Archives
 
         #region Load
 
-        private IList<IArchiveFileInfo> LoadLittleEndian(Stream input)
+        private List<IArchiveFile> LoadLittleEndian(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<MtHeader>();
+            _header = MtArcSupport.ReadHeader(br);
 
             // Skip additional int under certain conditions
             if (_header.version != 7 && _header.version != 8)
                 br.ReadInt32();
 
             // Determine if entries have extended file name section
-            var firstEntry = br.ReadType<MtEntry>();
+            var firstEntry = MtArcSupport.ReadEntry(br);
             var hasExtendedName = firstEntry.extensionHash == 0 ||
                                   firstEntry.decompSize == 0 ||
                                   firstEntry.offset == 0;
 
-            input.Position -= Tools.MeasureType(typeof(MtEntry));
+            input.Position -= 0x50;
 
             // Read entries
             var entries = hasExtendedName ?
-                (IList<IMtEntry>)br.ReadMultiple<MtEntryExtendedName>(_header.entryCount) :
-                (IList<IMtEntry>)br.ReadMultiple<MtEntry>(_header.entryCount);
+                MtArcSupport.ReadEntries<MtEntryExtendedName>(br, _header.entryCount) :
+                MtArcSupport.ReadEntries<MtEntry>(br, _header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
@@ -143,18 +142,18 @@ namespace plugin_mt_framework.Archives
             return result;
         }
 
-        private IList<IArchiveFileInfo> LoadBigEndian(Stream input)
+        private List<IArchiveFile> LoadBigEndian(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header
-            _header = br.ReadType<MtHeader>();
+            _header = MtArcSupport.ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<MtEntry>(_header.entryCount);
+            var entries = MtArcSupport.ReadEntries<MtEntry>(br, _header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
@@ -166,18 +165,18 @@ namespace plugin_mt_framework.Archives
             return result;
         }
 
-        private IList<IArchiveFileInfo> LoadSwitch(Stream input)
+        private List<IArchiveFile> LoadSwitch(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<MtHeader>();
+            _header = MtArcSupport.ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<MtEntrySwitch>(_header.entryCount);
+            var entries = MtArcSupport.ReadEntries<MtEntrySwitch>(br, _header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
@@ -187,7 +186,13 @@ namespace plugin_mt_framework.Archives
                 // Reasoning: Example file game.arc contains of at least one file "om120a" where compressed and uncompressed size are equal but the file is still compressed
                 //            the decompressed file is really the same size; comparing with other entries no clear differences were found, that would indicate a
                 //            compression flag
-                result.Add(new MtArchiveFileInfo(fileStream, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(_platform)));
+                result.Add(new MtArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = fileStream,
+                    Compression = Compressions.ZLib.Build(),
+                    DecompressedSize = entry.GetDecompressedSize(_platform)
+                }, entry));
             }
 
             return result;
@@ -197,7 +202,7 @@ namespace plugin_mt_framework.Archives
 
         #region Save
 
-        private void SaveLittleEndian(Stream output, IList<IArchiveFileInfo> files)
+        private void SaveLittleEndian(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -205,16 +210,16 @@ namespace plugin_mt_framework.Archives
 
             // Calculate offsets
             var entryOffset = HeaderSize + (isExtendedHeader ? 4 : 0);
-            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset, (files[0] as MtArchiveFileInfo)?.Entry.GetType() == typeof(MtEntryExtendedName));
+            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset, (files[0] as MtArchiveFile)?.Entry.GetType() == typeof(MtEntryExtendedName));
 
             // Write files
             var entries = new List<IMtEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<MtArchiveFileInfo>())
+            foreach (var file in files.Cast<MtArchiveFile>())
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
@@ -227,16 +232,16 @@ namespace plugin_mt_framework.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            MtArcSupport.WriteEntries(entries, bw);
 
             // Write header
             _header.entryCount = (short)files.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            MtArcSupport.WriteHeader(_header, bw);
         }
 
-        private void SaveBigEndian(Stream output, IList<IArchiveFileInfo> files)
+        private void SaveBigEndian(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
@@ -248,10 +253,10 @@ namespace plugin_mt_framework.Archives
             var entries = new List<IMtEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<MtArchiveFileInfo>())
+            foreach (var file in files.Cast<MtArchiveFile>())
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
@@ -264,16 +269,16 @@ namespace plugin_mt_framework.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            MtArcSupport.WriteEntries(entries, bw);
 
             // Write header
             _header.entryCount = (short)files.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            MtArcSupport.WriteHeader(_header, bw);
         }
 
-        private void SaveSwitch(Stream output, IList<IArchiveFileInfo> files)
+        private void SaveSwitch(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -285,10 +290,10 @@ namespace plugin_mt_framework.Archives
             var entries = new List<IMtEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<MtArchiveFileInfo>())
+            foreach (var file in files.Cast<MtArchiveFile>())
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
@@ -301,20 +306,20 @@ namespace plugin_mt_framework.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            MtArcSupport.WriteEntries(entries, bw);
 
             // Write header
             _header.entryCount = (short)files.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            MtArcSupport.WriteHeader(_header, bw);
         }
 
         #endregion
 
         #region Support
 
-        public static int GetArchiveSize(IList<IArchiveFileInfo> files, int version, ByteOrder byteOrder)
+        public static int GetArchiveSize(IList<IArchiveFile> files, int version, ByteOrder byteOrder)
         {
             // Get header size
             var isExtendedHeader = version != 7 && version != 8;
@@ -324,21 +329,31 @@ namespace plugin_mt_framework.Archives
             var fileOffset = MtArcSupport.DetermineFileOffset(byteOrder, version, files.Count, headerSize, files[0].GetType() == typeof(MtEntryExtendedName));
 
             // Add file sizes
-            var fileRegionSize = (int)files.Cast<MtArchiveFileInfo>().Sum(x => x.GetFinalStream().Length);
+            var fileRegionSize = (int)files.Cast<MtArchiveFile>().Sum(x => x.GetFinalStream().Length);
 
             return fileOffset + fileRegionSize;
         }
 
-        public static IArchiveFileInfo CreateAfi(Stream file, string fileName, IMtEntry entry, MtArcPlatform mtArcPlatform)
+        public static IArchiveFile CreateAfi(Stream file, string fileName, IMtEntry entry, MtArcPlatform mtArcPlatform)
         {
             if (entry.CompSize == entry.GetDecompressedSize(mtArcPlatform))
-                return new MtArchiveFileInfo(file, fileName, entry);
+                return new MtArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file
+                }, entry);
 
             var compMagic = file.ReadByte();
             if ((compMagic & 0xF) != 8 || (compMagic & 0xF0) > 0x70)
                 throw new InvalidOperationException("File is marked as compressed but doesn't use ZLib.");
 
-            return new MtArchiveFileInfo(file, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(mtArcPlatform));
+            return new MtArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = file,
+                Compression = Compressions.ZLib.Build(),
+                DecompressedSize = entry.GetDecompressedSize(mtArcPlatform)
+            }, entry);
 
         }
 

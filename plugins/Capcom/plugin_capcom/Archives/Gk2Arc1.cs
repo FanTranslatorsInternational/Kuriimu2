@@ -1,31 +1,29 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using plugin_capcom.Compression;
 
 namespace plugin_capcom.Archives
 {
     class Gk2Arc1
     {
-        private static readonly int EntrySize = Tools.MeasureType(typeof(Gk2Arc1Entry));
+        private static readonly int EntrySize = 0x8;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read first entry
-            var firstEntry = br.ReadType<Gk2Arc1Entry>();
+            var firstEntry = ReadEntry(br);
             var fileCount = firstEntry.offset / EntrySize;
 
             // Read all entries
             input.Position = 0;
-            var entries = br.ReadMultiple<Gk2Arc1Entry>(fileCount);
+            var entries = ReadEntries(br, fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < fileCount - 1; i++)
             {
                 var entry = entries[i];
@@ -41,7 +39,7 @@ namespace plugin_capcom.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Calculate offsets
             var fileOffset = (files.Count + 1) * EntrySize;
@@ -50,11 +48,11 @@ namespace plugin_capcom.Archives
             var fileEntries = new List<Gk2Arc1Entry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<Gk2Arc1ArchiveFileInfo>())
+            foreach (var file in files.Cast<Gk2Arc1ArchiveFile>())
             {
                 output.Position = filePosition;
 
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.offset = filePosition;
                 file.Entry.FileSize = (uint)file.FileSize;
@@ -72,18 +70,59 @@ namespace plugin_capcom.Archives
             using var bw = new BinaryWriterX(output);
 
             output.Position = 0;
-            bw.WriteMultiple(fileEntries);
+            WriteEntries(fileEntries, bw);
         }
 
-        private IArchiveFileInfo CreateAfi(Stream file, string fileName, Gk2Arc1Entry entry)
+        private IArchiveFile CreateAfi(Stream file, string fileName, Gk2Arc1Entry entry)
         {
             if (!entry.IsCompressed)
-                return new Gk2Arc1ArchiveFileInfo(file, fileName, entry);
+                return new Gk2Arc1ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = file
+                }, entry);
 
             file.Position = 0;
             var compression = NintendoCompressor.PeekCompressionMethod(file);
             var decompressedSize = NintendoCompressor.PeekDecompressedSize(file);
-            return new Gk2Arc1ArchiveFileInfo(file, fileName, entry, NintendoCompressor.GetConfiguration(compression), decompressedSize);
+            return new Gk2Arc1ArchiveFile(new CompressedArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = file,
+                Compression = NintendoCompressor.GetConfiguration(compression),
+                DecompressedSize = decompressedSize
+            }, entry);
+        }
+
+        private Gk2Arc1Entry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new Gk2Arc1Entry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private Gk2Arc1Entry ReadEntry(BinaryReaderX reader)
+        {
+            return new Gk2Arc1Entry
+            {
+                offset = reader.ReadInt32(),
+                size = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteEntries(IList<Gk2Arc1Entry> entries, BinaryWriterX writer)
+        {
+            foreach (Gk2Arc1Entry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(Gk2Arc1Entry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
         }
     }
 }

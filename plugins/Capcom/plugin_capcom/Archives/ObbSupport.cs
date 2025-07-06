@@ -1,17 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_capcom.Archives
 {
     // HINT: Hashes are CRC32/JAMCRC
     class ObbHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int version;
         public int fileCount;
@@ -26,11 +21,11 @@ namespace plugin_capcom.Archives
         public uint unkHash;
     }
 
-    class ObbArchiveFileInfo : ArchiveFileInfo
+    class ObbArchiveFile : ArchiveFile
     {
         public ObbEntry Entry { get; }
 
-        public ObbArchiveFileInfo(Stream fileData, string filePath, ObbEntry entry) : base(fileData, filePath)
+        public ObbArchiveFile(ArchiveFileInfo fileInfo, ObbEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
@@ -128,7 +123,7 @@ namespace plugin_capcom.Archives
             input.Position = bkPos + 8;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

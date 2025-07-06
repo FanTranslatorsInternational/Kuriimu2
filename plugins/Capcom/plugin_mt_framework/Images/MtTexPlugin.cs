@@ -1,27 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_mt_framework.Images
 {
-    public class MtTexPlugin : IFilePlugin, IIdentifyFiles
+    public class MtTexPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("9e85ef16-7157-40ba-846a-b5a17148775f");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.tex" };
-        public PluginMetadata Metadata { get; }
 
-        public MtTexPlugin()
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => ["*.tex"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("MT TEX", "onepiecefreak", "Main image resource for the MT Framework by Capcom.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "MT TEX",
+            Publisher = "Capcom",
+            Developer = "Capcom",
+            Platform = ["3DS", "Switch", "PC", "PS3", "Android"],
+            LongDescription = "Main image resource for the MT Framework by Capcom."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
@@ -29,10 +32,10 @@ namespace plugin_mt_framework.Images
 
             using var br = new BinaryReaderX(fileStream);
             var magic = br.ReadString(4);
-            return magic == "TEX\0" || magic == "\0XET" || magic == "TEX ";
+            return magic is "TEX\0" or "\0XET" or "TEX ";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new MtTexState();
         }

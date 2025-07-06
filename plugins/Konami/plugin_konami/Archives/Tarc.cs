@@ -4,7 +4,7 @@ using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
-using plugin_level5.Common.Compression;
+using plugin_konami.Compression;
 
 namespace plugin_konami.Archives
 {

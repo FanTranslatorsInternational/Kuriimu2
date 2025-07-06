@@ -1,16 +1,11 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Buffers.Binary;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kryptography.Blowfish;
-using Kryptography.Hash.Crc;
-#pragma warning disable 649
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
+using Kryptography.Checksum.Crc;
+using Kryptography.Encryption.Blowfish;
 
 namespace plugin_mt_framework.Archives
 {
@@ -18,9 +13,7 @@ namespace plugin_mt_framework.Archives
 
     class MtHeader
     {
-        [FixedLength(4)]
         public string magic;
-
         public short version;
         public short entryCount;
     }
@@ -244,26 +237,16 @@ namespace plugin_mt_framework.Archives
 
     #endregion
 
-    class MtArchiveFileInfo : ArchiveFileInfo
+    class MtArchiveFile : ArchiveFile
     {
         public IMtEntry Entry { get; }
 
-        public MtArchiveFileInfo(Stream fileData, string filePath, IMtEntry entry) :
-            base(fileData, filePath)
+        public MtArchiveFile(ArchiveFileInfo fileInfo, IMtEntry entry) : base(fileInfo)
         {
             Entry = entry;
         }
 
-        public MtArchiveFileInfo(Stream fileData, string filePath, IMtEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-            Entry = entry;
-        }
-
-        public Stream GetFinalStream()
-        {
-            return base.GetFinalStream();
-        }
+        public Stream GetFinalStream() => base.GetFinalStream();
     }
 
     enum MtArcPlatform
@@ -275,14 +258,14 @@ namespace plugin_mt_framework.Archives
 
     class MtArcSupport
     {
-        private static readonly Crc32 Hash = Crc32.Default;
+        private static readonly Crc32 Hash = Crc32.Crc32B;
 
         public static MtArcPlatform DeterminePlatform(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Peek header
-            var header = br.ReadType<MtHeader>();
+            var header = ReadHeader(br);
             input.Position = 0;
 
             // Version 9 was only encountered in Nintendo Switch games
@@ -298,9 +281,131 @@ namespace plugin_mt_framework.Archives
             return MtArcPlatform.LittleEndian;
         }
 
+        public static MtHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new MtHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt16(),
+                entryCount = reader.ReadInt16()
+            };
+        }
+
+        public static IMtEntry[] ReadEntries<TEntry>(BinaryReaderX reader, int count)
+            where TEntry : IMtEntry
+        {
+            var result = new IMtEntry[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                if (typeof(TEntry) == typeof(MtEntry))
+                    result[i] = ReadEntry(reader);
+                else if (typeof(TEntry) == typeof(MtEntryExtendedName))
+                    result[i] = ReadExtendedEntry(reader);
+                else if (typeof(TEntry) == typeof(MtEntrySwitch))
+                    result[i] = ReadSwitchEntry(reader);
+            }
+
+            return result;
+        }
+
+        public static MtEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new MtEntry
+            {
+                fileName = reader.ReadString(0x40),
+                extensionHash = reader.ReadUInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        public static MtEntryExtendedName ReadExtendedEntry(BinaryReaderX reader)
+        {
+            return new MtEntryExtendedName
+            {
+                fileName = reader.ReadString(0x80),
+                extensionHash = reader.ReadUInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        public static MtEntrySwitch ReadSwitchEntry(BinaryReaderX reader)
+        {
+            return new MtEntrySwitch
+            {
+                fileName = reader.ReadString(0x40),
+                extensionHash = reader.ReadUInt32(),
+                compSize = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                unk1 = reader.ReadInt32(),
+                offset = reader.ReadInt32()
+            };
+        }
+
+        public static void WriteHeader(MtHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.entryCount);
+        }
+
+        public static void WriteEntries<TEntry>(IList<TEntry> entries, BinaryWriterX writer)
+            where TEntry : IMtEntry
+        {
+            foreach (TEntry entry in entries)
+            {
+                switch (entry)
+                {
+                    case MtEntry defaultEntry:
+                        WriteEntry(defaultEntry, writer);
+                        break;
+
+                    case MtEntryExtendedName extendedEntry:
+                        WriteEntry(extendedEntry, writer);
+                        break;
+
+                    case MtEntrySwitch switchEntry:
+                        WriteEntry(switchEntry, writer);
+                        break;
+                }
+            }
+        }
+
+        private static void WriteEntry(MtEntry entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.fileName, writeNullTerminator: false);
+            writer.Write(entry.extensionHash);
+            writer.Write(entry.compSize);
+            writer.Write(entry.decompSize);
+            writer.Write(entry.offset);
+        }
+
+        private static void WriteEntry(MtEntryExtendedName entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.fileName, writeNullTerminator: false);
+            writer.Write(entry.extensionHash);
+            writer.Write(entry.compSize);
+            writer.Write(entry.decompSize);
+            writer.Write(entry.offset);
+        }
+
+        private static void WriteEntry(MtEntrySwitch entry, BinaryWriterX writer)
+        {
+            writer.WriteString(entry.fileName, writeNullTerminator: false);
+            writer.Write(entry.extensionHash);
+            writer.Write(entry.compSize);
+            writer.Write(entry.decompSize);
+            writer.Write(entry.unk1);
+            writer.Write(entry.offset);
+        }
+
         public static string DetermineExtension(uint extensionHash)
         {
-            return _extensionMap.ContainsKey(extensionHash) ? _extensionMap[extensionHash] : $".{extensionHash:X8}";
+            return _extensionMap.TryGetValue(extensionHash, out string? extension) ? extension : $".{extensionHash:X8}";
         }
 
         public static uint DetermineExtensionHash(string extension)
@@ -310,7 +415,7 @@ namespace plugin_mt_framework.Archives
 
         public static int DetermineFileOffset(ByteOrder byteOrder, int version, int fileCount, int entryOffset, bool hasExtendedNames)
         {
-            var entrySize = hasExtendedNames ? Tools.MeasureType(typeof(MtEntryExtendedName)) : Tools.MeasureType(typeof(MtEntry));
+            var entrySize = hasExtendedNames ? 0x90 : 0x50;
 
             switch (version)
             {
@@ -323,7 +428,7 @@ namespace plugin_mt_framework.Archives
                     break;
 
                 case 0x9:
-                    return (entryOffset + Tools.MeasureType(typeof(MtEntrySwitch)) * fileCount + 0x7FFF) & ~0x7FFF;
+                    return (entryOffset + 0x54 * fileCount + 0x7FFF) & ~0x7FFF;
 
                 case 0x11:
                     if (byteOrder == ByteOrder.LittleEndian)
@@ -339,7 +444,7 @@ namespace plugin_mt_framework.Archives
             return ~Hash.ComputeValue(input);
         }
 
-        private static Dictionary<uint, string> _extensionMap = new Dictionary<uint, string>
+        private static Dictionary<uint, string> _extensionMap = new()
         {
             [GetHash("rAIFSM")] = ".xfsa",
             [GetHash("rCameraList")] = ".lcm",

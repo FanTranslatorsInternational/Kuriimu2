@@ -1,38 +1,41 @@
-﻿using System;
-using System.Threading.Tasks;
-using Komponent.IO;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_mt_framework.Archives
 {
-    public class MtArcPlugin : IFilePlugin, IIdentifyFiles
+    public class MtArcPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("5a2dfcb6-60d6-4783-acd1-bc7fb4a65f38");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.arc" };
-        public PluginMetadata Metadata { get; }
 
-        public MtArcPlugin()
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => ["*.arc"];
+
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("MT ARC", "onepiecefreak", "The main archive resource in Capcom games using the MT Framework.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "MT ARC",
+            Publisher = "Capcom",
+            Developer = "Capcom",
+            Platform = ["3DS", "PS3", "Android", "Switch"],
+            LongDescription = "The main archive resource in Capcom games using the MT Framework."
+        };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadString(4);
-            return magic == "ARC\0" || magic == "\0CRA";
+            string magic = br.ReadString(4);
+            return magic is "ARC\0" or "\0CRA";
         }
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new MtArcState();
         }

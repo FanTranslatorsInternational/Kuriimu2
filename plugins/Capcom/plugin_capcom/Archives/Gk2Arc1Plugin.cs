@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_capcom.Archives
 {
-    public class Gk2Arc1Plugin:IFilePlugin
+    public class Gk2Arc1Plugin : IFilePlugin
     {
-        public Guid PluginId =>Guid.Parse("fdfbae91-a06d-4443-b1d8-cbb1d84797a1");
+        public Guid PluginId => Guid.Parse("fdfbae91-a06d-4443-b1d8-cbb1d84797a1");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] {"*.bin"};
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.bin"];
 
-        public Gk2Arc1Plugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata=new PluginMetadata("GK2_1","onepiecefreak","The main resource archive for Gyakuten Kenji 2.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "GK2_1",
+            Publisher = "Capcom",
+            Developer = "Capcom",
+            Platform = ["NDS"],
+            LongDescription = "The main resource archive for Gyakuten Kenji 2."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new Gk2Arc1State();
         }

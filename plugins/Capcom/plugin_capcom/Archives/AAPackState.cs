@@ -1,30 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_capcom.Archives
 {
-    class AAPackState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class AAPackState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly AAPack _aatri;
+        private readonly AAPack _aatri = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => IsContentChanged();
-
-        public AAPackState()
-        {
-            _aatri = new AAPack();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -48,10 +38,10 @@ namespace plugin_capcom.Archives
                 datStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Files = _aatri.Load(incStream, datStream, AAPackSupport.GetVersion(loadContext.DialogManager));
+            _files = _aatri.Load(incStream, datStream, AAPackSupport.GetVersion(loadContext.DialogManager));
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream incStream;
             Stream datStream;
@@ -59,29 +49,27 @@ namespace plugin_capcom.Archives
             switch (savePath.GetExtensionWithDot())
             {
                 case ".inc":
-                    incStream = fileSystem.OpenFile(savePath.GetDirectory() / "pack.inc", FileMode.Create);
-                    datStream = fileSystem.OpenFile(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".dat", FileMode.Create);
+                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.inc", FileMode.Create);
+                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".dat", FileMode.Create);
                     break;
 
                 default:
-                    incStream = fileSystem.OpenFile(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".inc", FileMode.Create);
-                    datStream = fileSystem.OpenFile(savePath.GetDirectory() / "pack.dat", FileMode.Create);
+                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".inc", FileMode.Create);
+                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.dat", FileMode.Create);
                     break;
             }
 
-            _aatri.Save(incStream, datStream, Files);
-
-            return Task.CompletedTask;
+            _aatri.Save(incStream, datStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

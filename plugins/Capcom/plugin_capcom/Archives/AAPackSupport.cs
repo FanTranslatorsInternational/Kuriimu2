@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Progress;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
-using Kontract.Models.Dialog;
-#pragma warning disable 649
+﻿using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_capcom.Archives
 {
@@ -21,30 +15,13 @@ namespace plugin_capcom.Archives
         public uint hash;
     }
 
-    class AAPackArchiveFileInfo:ArchiveFileInfo
+    class AAPackArchiveFile : ArchiveFile
     {
         public AAPackFileEntry Entry { get; }
 
-        public AAPackArchiveFileInfo(Stream fileData, string filePath, AAPackFileEntry entry) : 
-            base(fileData, filePath)
+        public AAPackArchiveFile(ArchiveFileInfo fileInfo, AAPackFileEntry entry) : base(fileInfo)
         {
             Entry = entry;
-        }
-
-        public AAPackArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize, AAPackFileEntry entry) : 
-            base(fileData, filePath, configuration, decompressedSize)
-        {
-            Entry = entry;
-        }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize= base.SaveFileData(output, compress, progress);
-
-            while(output.Position%4!=0)
-                output.WriteByte(0);
-
-            return writtenSize;
         }
     }
 
@@ -52,8 +29,14 @@ namespace plugin_capcom.Archives
     {
         public static string GetVersion(IDialogManager dialogManager)
         {
-            var dialogField = new DialogField(DialogFieldType.DropDown, "Game Version:", "None", "None", "Ace Attorney Trilogy", "Apollo Justice");
-            dialogManager.ShowDialog(new[] { dialogField });
+            var dialogField = new DialogField
+            {
+                Text = "Game Version:",
+                Type = DialogFieldType.DropDown,
+                DefaultValue = "None",
+                Options = ["None", "Ace Attorney Trilogy", "Apollo Justice"]
+            };
+            dialogManager.ShowDialog([dialogField]);
 
             return dialogField.Result;
         }

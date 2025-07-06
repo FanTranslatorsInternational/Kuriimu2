@@ -1,37 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_mt_framework.Archives
 {
     class Arcc
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(MtHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(MtEntry));
+        private static readonly int HeaderSize = 0x8;
+        private static readonly int EntrySize = 0x50;
 
         private MtHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<MtHeader>();
+            _header = MtArcSupport.ReadHeader(br);
 
             // Read entries
             var key = GetCipherKey("imaguy_uyrag_igurustim_", "enokok_ikorodo_odohuran");
             var entryStream = new MtBlowfishStream(new SubStream(input, HeaderSize, _header.entryCount * EntrySize), key);
 
             using var entryBr = new BinaryReaderX(entryStream);
-            var entries = entryBr.ReadMultiple<MtEntry>(_header.entryCount);
+            var entries = MtArcSupport.ReadEntries<MtEntry>(entryBr, _header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var fileStream = new MtBlowfishStream(new SubStream(input, entry.Offset, entry.CompSize), key);
@@ -43,7 +39,7 @@ namespace plugin_mt_framework.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             var key = GetCipherKey("imaguy_uyrag_igurustim_", "enokok_ikorodo_odohuran");
 
@@ -60,7 +56,7 @@ namespace plugin_mt_framework.Archives
             var entries = new List<IMtEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<MtArchiveFileInfo>())
+            foreach (var file in files.Cast<MtArchiveFile>())
             {
                 var fileStream = file.GetFinalStream();
                 Stream targetStream = new SubStream(output, filePosition, fileStream.Length);
@@ -81,13 +77,13 @@ namespace plugin_mt_framework.Archives
             entryStream = new MtBlowfishStream(entryStream, key);
             using var entryBw = new BinaryWriterX(entryStream);
 
-            entryBw.WriteMultiple(entries);
+            MtArcSupport.WriteEntries(entries, entryBw);
 
             // Write header
             _header.entryCount = (short)files.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            MtArcSupport.WriteHeader(_header, bw);
         }
 
         private byte[] GetCipherKey(string key1, string key2) => key1.Reverse().Select((c, i) => (byte)(c ^ key2[i] | i << 6)).ToArray();

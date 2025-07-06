@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_capcom.Archives
 {
@@ -21,35 +19,39 @@ namespace plugin_capcom.Archives
     // HINT: The video OBB is a normal zip, while the asset OBB is of this format
     class Obb
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(ObbHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(ObbEntry));
+        private static readonly int HeaderSize = 0x10;
+        private static readonly int EntrySize = 0x10;
 
         private ObbHeader _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<ObbHeader>();
+            _header = ReadHeader(br);
 
             // Read entries
-            var entries = br.ReadMultiple<ObbEntry>(_header.fileCount);
+            var entries = ReadEntries(br, _header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var subStream = new SubStream(input, entry.offset, entry.size);
                 var fileName = $"{entry.pathHash:X8}{ObbSupport.DetermineExtension(subStream)}";
 
-                result.Add(new ObbArchiveFileInfo(subStream, fileName, entry));
+                result.Add(new ObbArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = subStream
+                }, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -61,10 +63,10 @@ namespace plugin_capcom.Archives
             var entries = new List<ObbEntry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<ObbArchiveFileInfo>())
+            foreach (var file in files.Cast<ObbArchiveFile>())
             {
                 output.Position = filePosition;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 file.Entry.offset = filePosition;
                 file.Entry.size = (int)writtenSize;
@@ -75,13 +77,67 @@ namespace plugin_capcom.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
             output.Position = 0;
 
             _header.fileCount = files.Count;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private ObbHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new ObbHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt32(),
+                fileCount = reader.ReadInt32(),
+                crc = reader.ReadUInt32()
+            };
+        }
+
+        private ObbEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new ObbEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private ObbEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new ObbEntry
+            {
+                pathHash = reader.ReadUInt32(),
+                offset = reader.ReadInt32(),
+                size = reader.ReadInt32(),
+                unkHash = reader.ReadUInt32()
+            };
+        }
+
+        private void WriteHeader(ObbHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.fileCount);
+            writer.Write(header.crc);
+        }
+
+        private void WriteEntries(IList<ObbEntry> entries, BinaryWriterX writer)
+        {
+            foreach (ObbEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(ObbEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.pathHash);
+            writer.Write(entry.offset);
+            writer.Write(entry.size);
+            writer.Write(entry.unkHash);
         }
     }
 }

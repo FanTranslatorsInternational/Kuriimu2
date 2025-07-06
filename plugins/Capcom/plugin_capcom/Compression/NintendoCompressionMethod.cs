@@ -1,6 +1,6 @@
 ﻿namespace plugin_capcom.Compression
 {
-    enum NintendoCompressionMethod : byte
+    enum NintendoCompressionMethod
     {
         Lz10 = 0x10,
         Lz11 = 0x11,

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Komponent.IO;
-using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_capcom.Archives
 {
@@ -23,16 +18,11 @@ namespace plugin_capcom.Archives
         public bool IsCompressed => (size & 0x80000000) != 0;
     }
 
-    class Gk2Arc1ArchiveFileInfo : ArchiveFileInfo
+    class Gk2Arc1ArchiveFile : ArchiveFile
     {
         public Gk2Arc1Entry Entry { get; }
 
-        public Gk2Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry) : base(fileData, filePath)
-        {
-            Entry = entry;
-        }
-
-        public Gk2Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        public Gk2Arc1ArchiveFile(ArchiveFileInfo fileInfo, Gk2Arc1Entry entry) : base(fileInfo)
         {
             Entry = entry;
         }
@@ -73,7 +63,7 @@ namespace plugin_capcom.Archives
             input.Position = bkPos + (isCompressed ? 4 : 0) + 2;
             var magic3 = br.ReadString(4);
 
-            return new[] { magic1, magic2, magic3 };
+            return [magic1, magic2, magic3];
         }
     }
 }

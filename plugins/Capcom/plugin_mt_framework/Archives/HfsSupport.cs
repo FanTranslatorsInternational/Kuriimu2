@@ -1,24 +1,21 @@
-﻿using System;
-using System.IO;
-using Komponent.IO.Attributes;
-using Kryptography.Hash;
+﻿using Komponent.Contract.Aspects;
+using Kryptography.Checksum;
+using Kryptography.Contract.Checksum;
 
 namespace plugin_mt_framework.Archives
 {
-    [Alignment(0x10)]
     class HfsHeader
     {
-        [FixedLength(4)]
         public string magic;
         public short version;
         public short type;
         public int fileSize;
     }
 
-    class HfsHash : BaseHash<byte[]>
+    class HfsHash : Checksum<byte[]>
     {
-        private static readonly byte[] InitValues = { 0x87, 0x55, 0x07, 0xB5, 0x4B, 0x04, 0xA5, 0xAE, 0xC7, 0x67, 0xBE, 0xCB, 0x01, 0x50, 0x58, 0x44 };
-        private static readonly int[] RotValues = { 1, 6, 3, 4, 2, 5, 7, 4, 6, 2, 1, 5, 3, 1, 7, 3 };
+        private static readonly byte[] InitValues = [0x87, 0x55, 0x07, 0xB5, 0x4B, 0x04, 0xA5, 0xAE, 0xC7, 0x67, 0xBE, 0xCB, 0x01, 0x50, 0x58, 0x44];
+        private static readonly int[] RotValues = [1, 6, 3, 4, 2, 5, 7, 4, 6, 2, 1, 5, 3, 1, 7, 3];
 
         protected override byte[] CreateInitialValue()
         {
@@ -53,7 +50,7 @@ namespace plugin_mt_framework.Archives
         private readonly Stream _baseStream;
 
         private static readonly byte[] VerificationPlaceholder = new byte[VerificationSize];
-        private static readonly IHash Hash = new HfsHash();
+        private static readonly IChecksum Hash = new HfsHash();
 
         public const int BlockSize = 0x20000;
         public const int VerificationSize = 0x10;

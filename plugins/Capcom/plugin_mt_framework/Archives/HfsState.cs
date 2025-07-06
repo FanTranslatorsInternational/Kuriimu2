@@ -1,56 +1,46 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_mt_framework.Archives
 {
-    class HfsState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class HfsState : ILoadFiles, ISaveFiles, IReplaceFiles, IRenameFiles
     {
-        private Hfs _hfs;
+        private readonly Hfs _hfs = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
+
         public bool ContentChanged => IsContentChanged();
-
-        public HfsState()
-        {
-            _hfs = new Hfs();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _hfs.Load(fileStream, filePath.GetName());
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
+            _files = _hfs.Load(fileStream, filePath.GetName());
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.ReadWrite);
-            _hfs.Save(fileStream, Files);
-
-            return Task.CompletedTask;
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.ReadWrite);
+            _hfs.Save(fileStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
-        public void Rename(IArchiveFileInfo afi, UPath path)
+        public void RenameFile(IArchiveFile afi, UPath path)
         {
             afi.FilePath = path;
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_mt_framework.Archives
 {
@@ -14,22 +13,29 @@ namespace plugin_mt_framework.Archives
         private string _contentMagic;
 
         // Method based on MtArc.LoadBigEndian
-        public IList<IArchiveFileInfo> Load(Stream input, string fileName)
+        public List<IArchiveFile> Load(Stream input, string fileName)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read HFS header
-            _header = br.ReadType<HfsHeader>();
+            _header = ReadHeader(br);
 
             // Prepare stream
             var arcOffset = GetArchiveOffset(_header.type);
             var hfsStream = new HfsStream(new SubStream(input, arcOffset, input.Length - arcOffset));
 
             // Read HFS content
-            return new List<IArchiveFileInfo> { new ArchiveFileInfo(hfsStream, Path.GetFileNameWithoutExtension(fileName) + ".unhfs" + Path.GetExtension(fileName)) };
+            return
+            [
+                new ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = Path.GetFileNameWithoutExtension(fileName) + ".unhfs" + Path.GetExtension(fileName),
+                    FileData = hfsStream
+                })
+            ];
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             // Prepare stream
             var archiveOffset = GetArchiveOffset(_header.type);
@@ -42,7 +48,7 @@ namespace plugin_mt_framework.Archives
 
             // Write HFS content
             var hfsStream = new HfsStream(new SubStream(output, archiveOffset, hfsLength));
-            (files[0] as ArchiveFileInfo).SaveFileData(hfsStream);
+            files[0].WriteFileData(hfsStream);
 
             hfsStream.Flush();
 
@@ -50,12 +56,31 @@ namespace plugin_mt_framework.Archives
             _header.fileSize = (int)archiveSize;
 
             bw.BaseStream.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
         }
 
         private int GetArchiveOffset(int type)
         {
             return type == 0 ? 0x20000 : 0x10;
+        }
+
+        private HfsHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new HfsHeader
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadInt16(),
+                type = reader.ReadInt16(),
+                fileSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(HfsHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.type);
+            writer.Write(header.fileSize);
         }
     }
 }

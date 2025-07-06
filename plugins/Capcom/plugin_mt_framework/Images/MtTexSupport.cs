@@ -1,24 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract;
+using Kanvas.Contract.Encoding;
+using Komponent.Contract.Aspects;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Interfaces.Managers;
-using Kontract.Kanvas;
-using Kontract.Models.Dialog;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
+using Konnect.Plugin.File.Image;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_mt_framework.Images
 {
-    [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
+    #region Header
+
     class MtTexHeader
     {
-        [FixedLength(4)]
         public string magic;
 
+        public MtTexHeaderImageData imageData;
+
+        public byte imgCount;
+        public byte format;
+        public ushort unk3;
+    }
+
+    [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
+    class MtTexHeaderImageData
+    {
         [BitField(12)]
         public short version;
         [BitField(12)]
@@ -34,28 +43,28 @@ namespace plugin_mt_framework.Images
         public short width;
         [BitField(13)]
         public short height;
+    }
 
-        [BitField(8)]
-        public byte imgCount;
-        [BitField(8)]
-        public byte format;
-        [BitField(16)]
-        public ushort unk3;
+    #endregion
+
+    #region Header Version 87
+
+    class MtTexHeader87
+    {
+        public string magic;
+
+        public byte version;
+        public byte useDxt10;
+        public short reserved1;
+
+        public MtTexHeader87ImageData imageData;
+
+        public int format;
     }
 
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
-    class MtTexHeader87
+    class MtTexHeader87ImageData
     {
-        [FixedLength(4)]
-        public string magic;
-
-        [BitField(8)]
-        public byte version;
-        [BitField(8)]
-        public byte useDxt10;
-        [BitField(16)]
-        public short reserved1;
-
         [BitField(4)]
         public byte reserved2;
         [BitField(4)]
@@ -71,23 +80,26 @@ namespace plugin_mt_framework.Images
         public short height;
         [BitField(19)]
         public int imgCount;
+    }
 
-        public int format;
+    #endregion
+
+    #region Header Mobile
+
+    class MobileMtTexHeader
+    {
+        public string magic;
+
+        public ushort version;
+        public byte format;
+        public byte unk1;
+
+        public MobileMtTexHeaderImageData imageData;
     }
 
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
-    class MobileMtTexHeader
+    class MobileMtTexHeaderImageData
     {
-        [FixedLength(4)]
-        public string magic;
-
-        [BitField(16)]
-        public ushort version;
-        [BitField(8)]
-        public byte format;
-        [BitField(8)]
-        public byte unk1;
-
         [BitField(4)]
         public byte unk2;
         [BitField(28)]
@@ -102,6 +114,8 @@ namespace plugin_mt_framework.Images
         [BitField(2)]
         public byte unk3;
     }
+
+    #endregion
 
     class MtTexSupport
     {
@@ -229,6 +243,21 @@ namespace plugin_mt_framework.Images
             [0x2A] = new MtTex_YCbCrColorShader()
         };
 
+        public static int GetBitDepth(MtTexPlatform platform, int format)
+        {
+            return platform switch
+            {
+                MtTexPlatform.N3DS => CtrFormats[format].BitDepth,
+                MtTexPlatform.Switch => SwitchFormats[format].BitDepth,
+                MtTexPlatform.PS3 => Ps3Formats[format].BitDepth,
+                MtTexPlatform.Mobile => MobileFormats[format].BitDepth,
+                MtTexPlatform.Pc => PcFormats[format].BitDepth,
+                MtTexPlatform.Pc87 => Pc87Formats[format].BitDepth,
+                MtTexPlatform.Wii => throw new InvalidOperationException("Cannot obtain bit depth for Wii MT Tex."),
+                _ => throw new InvalidOperationException($"Unsupported platform {platform}.")
+            };
+        }
+
         public static MtTexPlatform DeterminePlatform(Stream file, IDialogManager dialogManager)
         {
             using var br = new BinaryReaderX(file, true);
@@ -272,8 +301,14 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.Switch;
 
                 case 0xa3:
-                    var selection = new DialogField(DialogFieldType.DropDown, "Platform", MtTexPlatform.Pc.ToString(), MtTexPlatform.Pc.ToString(), MtTexPlatform.Switch.ToString());
-                    dialogManager.ShowDialog(new[] { selection });
+                    var selection = new DialogField
+                    {
+                        Text = "Platform",
+                        Type = DialogFieldType.DropDown,
+                        DefaultValue = MtTexPlatform.Pc.ToString(),
+                        Options = [MtTexPlatform.Pc.ToString(), MtTexPlatform.Switch.ToString()]
+                    };
+                    dialogManager.ShowDialog([selection]);
 
                     return Enum.Parse<MtTexPlatform>(selection.Result);
 
@@ -328,9 +363,7 @@ namespace plugin_mt_framework.Images
         Wii,
         N3DS,
         Switch,
-
         PS3,
-
         Mobile,
         Pc,
         Pc87
@@ -341,35 +374,40 @@ namespace plugin_mt_framework.Images
         // https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
         private const int CbCrThreshold_ = 123; // usually 128, but 123 seems to work better here
 
-        public Color Read(Color c)
+        public Rgba32 Read(Rgba32 c)
         {
             var (a, y, cb, cr) = (c.G, c.A, c.B - CbCrThreshold_, c.R - CbCrThreshold_);
-            return Color.FromArgb(a,
+            return new Rgba32(
                 Clamp(y + 1.402 * cr),
                 Clamp(y - 0.344136 * cb - 0.714136 * cr),
-                Clamp(y + 1.772 * cb));
+                Clamp(y + 1.772 * cb),
+                a);
         }
 
-        public Color Write(Color c)
+        public Rgba32 Write(Rgba32 c)
         {
             var (a, y, cb, cr) = (c.A,
                 0.299 * c.R + 0.587 * c.G + 0.114 * c.B,
                 CbCrThreshold_ - 0.168736 * c.R - 0.331264 * c.G + 0.5 * c.B,
                 CbCrThreshold_ + 0.5 * c.R - 0.418688 * c.G - 0.081312 * c.B);
-            return Color.FromArgb(Clamp(y), Clamp(cr), a, Clamp(cb));
+            return new Rgba32(
+                Clamp(cr),
+                a,
+                Clamp(cb),
+                Clamp(y));
         }
 
-        private int Clamp(double n) => (int)Math.Max(0, Math.Min(n, 255));
+        private byte Clamp(double n) => (byte)Math.Max(0, Math.Min(n, 255));
     }
 
     class MtTex_NoAlphaShader : IColorShader
     {
-        public Color Read(Color c)
+        public Rgba32 Read(Rgba32 c)
         {
-            return Color.FromArgb(255, c.R, c.G, c.B);
+            return new Rgba32(c.R, c.G, c.B, 255);
         }
 
-        public Color Write(Color c)
+        public Rgba32 Write(Rgba32 c)
         {
             return c;
         }

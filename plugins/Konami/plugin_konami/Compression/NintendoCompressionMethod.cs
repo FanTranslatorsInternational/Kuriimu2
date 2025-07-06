@@ -1,4 +1,4 @@
-﻿namespace plugin_level5.Common.Compression
+﻿namespace plugin_konami.Compression
 {
     enum NintendoCompressionMethod
     {
