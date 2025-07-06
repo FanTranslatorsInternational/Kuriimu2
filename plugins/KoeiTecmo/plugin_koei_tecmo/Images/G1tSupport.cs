@@ -1,26 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using Kanvas;
+﻿using Kanvas;
+using Kanvas.Contract;
+using Kanvas.Contract.DataClasses;
+using Kanvas.Contract.Encoding;
+using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Encoding;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
+using Komponent.Contract.Enums;
 using Komponent.IO;
-using Komponent.IO.Attributes;
-using Kontract.Interfaces.Managers;
-using Kontract.Kanvas;
-using Kontract.Kanvas.Model;
-using Kontract.Models.Dialog;
-using Kontract.Models.Image;
-using Kontract.Models.IO;
+using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
+using Konnect.Plugin.File.Image;
+using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_koei_tecmo.Images
 {
     class G1tHeader
     {
-        [FixedLength(8)]
         public string magic;
         public int fileSize;
         public int dataOffset;
@@ -41,11 +38,8 @@ namespace plugin_koei_tecmo.Images
         public byte unk4;
         public byte extHeader;
 
-        [Condition(nameof(extHeader), ConditionComparer.Greater, 0)]
         public int extHeaderSize;
 
-        [Condition(nameof(extHeader), ConditionComparer.Greater, 0)]
-        [VariableLength(nameof(extHeaderSize), Offset = -4)]
         public byte[] extHeaderContent;
 
         public int Height
@@ -76,14 +70,9 @@ namespace plugin_koei_tecmo.Images
         Switch
     }
 
-    class G1tImageInfo : ImageInfo
+    class G1tImageFileInfo : ImageFileInfo
     {
-        public G1tEntry Entry { get; }
-
-        public G1tImageInfo(byte[] imageData, int imageFormat, Size imageSize, G1tEntry entry) : base(imageData, imageFormat, imageSize)
-        {
-            Entry = entry;
-        }
+        public G1tEntry Entry { get; init; }
     }
 
     class G1tSupport
@@ -154,7 +143,7 @@ namespace plugin_koei_tecmo.Images
             var texCount = br.ReadInt32();
 
             input.Position = dataOffset;
-            var offsets = br.ReadMultiple<int>(texCount);
+            var offsets = ReadIntegers(br, texCount);
 
             var formats = new List<byte>();
             foreach (var offset in offsets)
@@ -185,11 +174,27 @@ namespace plugin_koei_tecmo.Images
             // If a platform could still not be uniquely identified, ask the user for the platform to use that could make sense
             var possiblePlatforms = givenFormats.Select((x, i) => (x, i)).Where(x => formats.All(y => x.x.Contains(y))).Select(x => givenPlatforms[x.i]);
             var platformNames = possiblePlatforms.Select(x => Enum.GetName(typeof(G1tPlatform), x)).ToArray();
-            var field = new DialogField(DialogFieldType.DropDown, "Platform", platformNames[0], platformNames);
+            var field = new DialogField
+            {
+                Text = "Platform",
+                Type = DialogFieldType.DropDown,
+                DefaultValue = platformNames[0],
+                Options = platformNames
+            };
 
-            manager.ShowDialog(new[] { field });
+            manager.ShowDialog([field]);
 
             return Enum.Parse<G1tPlatform>(field.Result);
+        }
+
+        public static int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
         }
 
         public static EncodingDefinition GetEncodingDefinition(G1tPlatform platform)
@@ -249,7 +254,7 @@ namespace plugin_koei_tecmo.Images
             }
         }
 
-        public static IImageSwizzle GetSwizzle(SwizzlePreparationContext context, int format, G1tPlatform platform)
+        public static IImageSwizzle GetSwizzle(SwizzleOptions context, int format, G1tPlatform platform)
         {
             switch (platform)
             {

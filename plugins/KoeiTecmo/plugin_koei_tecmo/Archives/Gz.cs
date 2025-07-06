@@ -1,32 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_koei_tecmo.Archives
 {
     class Gz
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(GzHeader));
+        private static readonly int HeaderSize = 0xC;
 
         private GzHeader _header;
         private IList<int> _blockSizes;
         private Stream _origStream;
 
-        public IArchiveFileInfo Load(Stream input, string fileName = null)
+        public IArchiveFile Load(Stream input, string fileName = null)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<GzHeader>();
+            _header = ReadHeader(br);
 
             // Read sizes
-            _blockSizes = br.ReadMultiple<int>(_header.blockCount);
+            _blockSizes = ReadIntegers(br, _header.blockCount);
             var blockOffsets = new int[_header.blockCount];
             for (var i = 0; i < _header.blockCount; i++)
             {
@@ -40,10 +36,14 @@ namespace plugin_koei_tecmo.Archives
             var fileStream = new GzStream(input, _header.decompBlockSize, _header.decompSize, blockOffsets.Zip(_blockSizes.Select(x => x - 4)).ToArray());
             fileName ??= "00000000.bin";
 
-            return new ArchiveFileInfo(fileStream, fileName);
+            return new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = fileName,
+                FileData = fileStream
+            });
         }
 
-        public void Save(Stream output, IArchiveFileInfo file)
+        public void Save(Stream output, IArchiveFile file)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -71,10 +71,43 @@ namespace plugin_koei_tecmo.Archives
             _header.blockCount = blockSizes.Count;
 
             output.Position = 0;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
 
             // Write block sizes
-            bw.WriteMultiple(blockSizes);
+            WriteIntegers(blockSizes, bw);
+        }
+
+        private GzHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new GzHeader
+            {
+                decompBlockSize = reader.ReadInt32(),
+                blockCount = reader.ReadInt32(),
+                decompSize = reader.ReadInt32()
+            };
+        }
+
+        private int[] ReadIntegers(BinaryReaderX reader, int count)
+        {
+            var result = new int[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadInt32();
+
+            return result;
+        }
+
+        private void WriteHeader(GzHeader header, BinaryWriterX writer)
+        {
+            writer.Write(header.decompBlockSize);
+            writer.Write(header.blockCount);
+            writer.Write(header.decompSize);
+        }
+
+        private void WriteIntegers(IList<int> entries, BinaryWriterX writer)
+        {
+            foreach (int entry in entries)
+                writer.Write(entry);
         }
     }
 }

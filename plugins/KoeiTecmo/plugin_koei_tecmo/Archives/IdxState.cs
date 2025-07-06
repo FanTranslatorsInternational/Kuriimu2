@@ -1,28 +1,19 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_koei_tecmo.Archives
 {
-    class IdxState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class IdxState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Idx _arc;
+        private readonly Idx _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public IdxState()
-        {
-            _arc = new Idx();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -40,38 +31,36 @@ namespace plugin_koei_tecmo.Archives
                 binStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Files = _arc.Load(idxStream, binStream);
+            _files = _arc.Load(idxStream, binStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream idxStream;
             Stream binStream;
 
             if (savePath.GetExtensionWithDot() == ".idx")
             {
-                idxStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-                binStream = fileSystem.OpenFile(savePath.ChangeExtension(".bin"), FileMode.Create, FileAccess.Write);
+                idxStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+                binStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".bin"), FileMode.Create, FileAccess.Write);
             }
             else
             {
-                idxStream = fileSystem.OpenFile(savePath.ChangeExtension(".idx"), FileMode.Create, FileAccess.Write);
-                binStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+                idxStream = await fileSystem.OpenFileAsync(savePath.ChangeExtension(".idx"), FileMode.Create, FileAccess.Write);
+                binStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             }
 
-            _arc.Save(idxStream, binStream, Files);
-
-            return Task.CompletedTask;
+            _arc.Save(idxStream, binStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

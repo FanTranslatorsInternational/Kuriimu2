@@ -1,35 +1,35 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Kompression;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_ruby_party.Archives
 {
     class Cdar
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(CdarHeader));
-        private static readonly int FileEntrySize = Tools.MeasureType(typeof(CdarFileEntry));
+        private static readonly int HeaderSize = 0x10;
+        private static readonly int FileEntrySize = 0xC;
 
         private CdarHeader _header;
         private IList<uint> _hashes;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<CdarHeader>();
+            _header = ReadHeader(br);
 
             // Read hashes
-            _hashes = br.ReadMultiple<uint>(_header.entryCount);
+            _hashes = ReadHashes(br, _header.entryCount);
 
             // Read entries
-            var entries = br.ReadMultiple<CdarFileEntry>(_header.entryCount);
+            var entries = ReadEntries(br, _header.entryCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < _header.entryCount; i++)
             {
                 var entry = entries[i];
@@ -37,13 +37,19 @@ namespace plugin_ruby_party.Archives
                 var subStream = new SubStream(input, entry.offset, entry.size);
                 var name = $"{i:00000000}.bin";
 
-                result.Add(new CdarArchiveFileInfo(subStream, name, Kompression.Implementations.Compressions.ZLib, entry.decompSize));
+                result.Add(new ArchiveFile(new CompressedArchiveFileInfo
+                {
+                    FilePath = name,
+                    FileData = subStream,
+                    Compression = Compressions.ZLib.Build(),
+                    DecompressedSize = entry.decompSize
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -56,10 +62,14 @@ namespace plugin_ruby_party.Archives
             output.Position = fileOffset;
 
             var entries = new List<CdarFileEntry>();
-            foreach (var file in files.Cast<ArchiveFileInfo>())
+            foreach (var file in files)
             {
                 fileOffset = (int)output.Position;
-                var writtenSize = file.SaveFileData(output);
+                var writtenSize = file.WriteFileData(output);
+
+                var random = new Random();
+                while (output.Position % 0x10 > 0)
+                    output.WriteByte((byte)random.Next());
 
                 entries.Add(new CdarFileEntry
                 {
@@ -71,17 +81,85 @@ namespace plugin_ruby_party.Archives
 
             // Write entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write hashes
             output.Position = hashOffset;
-            bw.WriteMultiple(_hashes);
+            WriteHashes(_hashes, bw);
 
             // Write header
             output.Position = 0;
 
             _header.entryCount = files.Count;
-            bw.WriteType(_header);
+            WriteHeader(_header, bw);
+        }
+
+        private CdarHeader ReadHeader(BinaryReaderX reader)
+        {
+            return new CdarHeader
+            {
+                magic = reader.ReadString(4),
+                unk1 = reader.ReadInt32(),
+                entryCount = reader.ReadInt32(),
+                unk2 = reader.ReadInt32(),
+            };
+        }
+
+        private uint[] ReadHashes(BinaryReaderX reader, int count)
+        {
+            var result = new uint[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = reader.ReadUInt32();
+
+            return result;
+        }
+
+        private CdarFileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new CdarFileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private CdarFileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new CdarFileEntry
+            {
+                offset = reader.ReadInt32(),
+                decompSize = reader.ReadInt32(),
+                size = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(CdarHeader header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.unk1);
+            writer.Write(header.entryCount);
+            writer.Write(header.unk2);
+        }
+
+        private void WriteHashes(IList<uint> hashes, BinaryWriterX writer)
+        {
+            foreach (uint hash in hashes)
+                writer.Write(hash);
+        }
+
+        private void WriteEntries(IList<CdarFileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (CdarFileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(CdarFileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.decompSize);
+            writer.Write(entry.size);
         }
     }
 }

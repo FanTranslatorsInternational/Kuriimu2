@@ -1,13 +1,10 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Buffers.Binary;
 using Komponent.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Kompression;
-using Kontract.Models.Archive;
-#pragma warning disable 649
+using Komponent.Streams;
+using Kompression;
+using Kompression.Contract;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_koei_tecmo.Archives
 {
@@ -28,20 +25,22 @@ namespace plugin_koei_tecmo.Archives
         public bool IsCompressed => fileSize != decompressedFileSize && decompressedFileSize > 0;
     }
 
-    class X3ArchiveFileInfo : ArchiveFileInfo
+    class X3ArchiveFile : ArchiveFile
     {
         private readonly Stream _rawStream;
+        private readonly ArchiveFileInfo _fileInfo;
 
         public X3FileEntry Entry { get; }
 
         public bool ShouldCompress { get; }
 
-        public X3ArchiveFileInfo(Stream fileData, string filePath, X3FileEntry entry) : base(entry.IsCompressed ? new X3CompressedStream(fileData) : fileData, filePath)
+        public X3ArchiveFile(ArchiveFileInfo fileInfo, Stream rawStream, X3FileEntry entry) : base(fileInfo)
         {
-            _rawStream = fileData;
+            _rawStream = rawStream;
+            _fileInfo = fileInfo;
 
-            ShouldCompress = entry.IsCompressed;
             Entry = entry;
+            ShouldCompress = entry.IsCompressed;
         }
 
         public Stream GetFinalStream()
@@ -52,9 +51,9 @@ namespace plugin_koei_tecmo.Archives
                 return _rawStream;
             }
 
-            var result = FileData;
+            var result = _fileInfo.FileData;
             if (ShouldCompress && ContentChanged)
-                return X3CompressedStream.Compress(FileData);
+                return X3CompressedStream.Compress(_fileInfo.FileData);
 
             result.Position = 0;
             return result;

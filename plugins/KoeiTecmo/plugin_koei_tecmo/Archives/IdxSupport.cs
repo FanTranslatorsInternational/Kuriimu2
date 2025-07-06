@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Komponent.IO;
+﻿using Komponent.IO;
 
 namespace plugin_koei_tecmo.Archives
 {

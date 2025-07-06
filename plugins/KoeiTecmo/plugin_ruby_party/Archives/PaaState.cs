@@ -1,29 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Models.Archive;
-using Kontract.Models.Context;
-using Kontract.Models.IO;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.FileSystem;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 
 namespace plugin_ruby_party.Archives
 {
-    class PaaState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class PaaState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Paa _arc;
+        private readonly Paa _arc = new();
+        private List<IArchiveFile> _files;
 
-        public IList<IArchiveFileInfo> Files { get; private set; }
+        public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => IsContentChanged();
-
-        public PaaState()
-        {
-            _arc = new Paa();
-        }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -32,29 +22,27 @@ namespace plugin_ruby_party.Archives
             var arcName = filePath.ChangeExtension(".arc");
             var arcStream = await fileSystem.OpenFileAsync(arcName);
 
-            Files = _arc.Load(fileStream, arcStream);
+            _files = _arc.Load(fileStream, arcStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            var fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
             var arcName = savePath.ChangeExtension(".arc");
-            var arcStream = fileSystem.OpenFile(arcName, FileMode.Create, FileAccess.Write);
+            var arcStream = await fileSystem.OpenFileAsync(arcName, FileMode.Create, FileAccess.Write);
 
-            _arc.Save(fileStream, arcStream, Files);
-
-            return Task.CompletedTask;
+            _arc.Save(fileStream, arcStream, _files);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFile afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _files.Any(x => x.ContentChanged);
         }
     }
 }

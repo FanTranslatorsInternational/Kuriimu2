@@ -1,24 +1,28 @@
-﻿using System;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+﻿using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File;
 
 namespace plugin_koei_tecmo.Archives
 {
     public class GzPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("b921e43d-ef03-48ea-bc44-c171ffdda2fb");
+
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.gz" };
-        public PluginMetadata Metadata { get; }
+        public string[] FileExtensions => ["*.gz"];
 
-        public GzPlugin()
+        public PluginMetadata Metadata { get; } = new()
         {
-            Metadata = new PluginMetadata("GZ", "onepiecefreak", "An archive resource found in Persona 5 Strikers.");
-        }
+            Author = ["onepiecefreak"],
+            Name = "GZ",
+            Publisher = "Koei Tecmo",
+            Developer = "Koei Tecmo",
+            Platform = ["Switch"],
+            LongDescription = "An archive resource found in Persona 5 Strikers."
+        };
 
-        public IPluginState CreatePluginState(IBaseFileManager fileManager)
+        public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
             return new GzState();
         }

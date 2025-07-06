@@ -1,10 +1,7 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
-using Komponent.IO.Streams;
-using Kompression.Implementations;
-using Kontract.Kompression;
+﻿using System.Buffers.Binary;
+using Komponent.Streams;
+using Kompression;
+using Kompression.Contract;
 
 namespace plugin_koei_tecmo.Archives
 {

@@ -1,31 +1,29 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
+﻿using Komponent.IO;
+using Komponent.Streams;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 
 namespace plugin_koei_tecmo.Archives
 {
     class X3
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(X3Header));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(X3FileEntry));
+        private static readonly int HeaderSize = 0x10;
+        private static readonly int EntrySize = 0x10;
 
         private X3Header _header;
 
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<X3Header>();
+            _header = ReadHeader(br);
 
             // Read file entries
-            var entries = br.ReadMultiple<X3FileEntry>(_header.fileCount);
+            var entries = ReadEntries(br, _header.fileCount);
 
             // Add files
-            var result = new List<IArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
                 var rawFileStream = new SubStream(input, entry.offset * _header.alignment, entry.fileSize);
@@ -40,13 +38,17 @@ namespace plugin_koei_tecmo.Archives
 
                 // Pass unmodified SubStream, so X3Afi can take care of compression wrapping again
                 // Necessary for access to original compressed file data in saving
-                result.Add(new X3ArchiveFileInfo(rawFileStream, fileName, entry));
+                result.Add(new X3ArchiveFile(new ArchiveFileInfo
+                {
+                    FilePath = fileName,
+                    FileData = entry.IsCompressed ? new X3CompressedStream(rawFileStream) : rawFileStream
+                }, rawFileStream, entry));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -59,7 +61,7 @@ namespace plugin_koei_tecmo.Archives
             var entries = new List<X3FileEntry>();
 
             var dataPosition = dataOffset;
-            foreach (var file in files.Cast<X3ArchiveFileInfo>())
+            foreach (var file in files.Cast<X3ArchiveFile>())
             {
                 output.Position = dataPosition;
 
@@ -71,7 +73,7 @@ namespace plugin_koei_tecmo.Archives
                 // Update entry
                 file.Entry.offset = dataPosition / alignment;
                 file.Entry.fileSize = (int)finalStream.Length;
-                file.Entry.decompressedFileSize = file.ShouldCompress? (int)file.FileSize : 0;
+                file.Entry.decompressedFileSize = file.ShouldCompress ? (int)file.FileSize : 0;
 
                 entries.Add(file.Entry);
                 dataPosition = (int)((dataPosition + finalStream.Length + 0x1F) & ~0x1F);
@@ -79,11 +81,69 @@ namespace plugin_koei_tecmo.Archives
 
             // Write file entries
             output.Position = entryOffset;
-            bw.WriteMultiple(entries);
+            WriteEntries(entries, bw);
 
             // Write header
+            var header = new X3Header
+            {
+                fileCount = files.Count,
+                alignment = alignment
+            };
+
             output.Position = 0;
-            bw.WriteType(new X3Header { fileCount = files.Count, alignment = alignment });
+            WriteHeader(header, bw);
+        }
+
+        private X3Header ReadHeader(BinaryReaderX reader)
+        {
+            return new X3Header
+            {
+                magic = reader.ReadUInt32(),
+                fileCount = reader.ReadInt32(),
+                alignment = reader.ReadInt32(),
+                zero0 = reader.ReadInt32()
+            };
+        }
+
+        private X3FileEntry[] ReadEntries(BinaryReaderX reader, int count)
+        {
+            var result = new X3FileEntry[count];
+
+            for (var i = 0; i < count; i++)
+                result[i] = ReadEntry(reader);
+
+            return result;
+        }
+
+        private X3FileEntry ReadEntry(BinaryReaderX reader)
+        {
+            return new X3FileEntry
+            {
+                offset = reader.ReadInt64(),
+                fileSize = reader.ReadInt32(),
+                decompressedFileSize = reader.ReadInt32()
+            };
+        }
+
+        private void WriteHeader(X3Header header, BinaryWriterX writer)
+        {
+            writer.Write(header.magic);
+            writer.Write(header.fileCount);
+            writer.Write(header.alignment);
+            writer.Write(header.zero0);
+        }
+
+        private void WriteEntries(IList<X3FileEntry> entries, BinaryWriterX writer)
+        {
+            foreach (X3FileEntry entry in entries)
+                WriteEntry(entry, writer);
+        }
+
+        private void WriteEntry(X3FileEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.offset);
+            writer.Write(entry.fileSize);
+            writer.Write(entry.decompressedFileSize);
         }
     }
 }

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
-
-namespace plugin_koei_tecmo.Archives
+﻿namespace plugin_koei_tecmo.Archives
 {
     class CraeHeader
     {
-        [FixedLength(4)]
         public string magic;
         public int unk1;
         public int dataSize;
@@ -21,11 +15,6 @@ namespace plugin_koei_tecmo.Archives
     {
         public int offset;
         public int size;
-        [FixedLength(0x30)]
         public string name;
-    }
-
-    class CraeSupport
-    {
     }
 }
