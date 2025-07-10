@@ -342,7 +342,7 @@ namespace Konnect.Management.Files
             // 2. Load file
             // IArchiveFileInfos have fileState as their parent, if loaded like this
             var loadResult = await LoadFile(fileSystem, afi.FilePath, streamManager, fileState, loadFileContext);
-            if (loadResult.Status == LoadStatus.Successful)
+            if (loadResult.Status != LoadStatus.Successful)
             {
                 lock (_loadingLock)
                     _loadingFiles.Remove(absoluteFilePath);

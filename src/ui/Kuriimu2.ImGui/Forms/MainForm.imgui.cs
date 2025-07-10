@@ -33,6 +33,7 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarRadio _changeLanguageMenu;
         private MenuBarRadio _changeThemeMenu;
 
+        private MenuBarButton _pluginsButton;
         private MenuBarButton _aboutButton;
 
         private TabControl _tabControl;
@@ -70,6 +71,7 @@ namespace Kuriimu2.ImGui.Forms
             _changeLanguageMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeLanguage };
             _changeThemeMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeTheme };
 
+            _pluginsButton = new MenuBarButton { Text = LocalizationResources.MenuPluginsTitle };
             _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuAboutTitle };
 
             AddLanguages(_changeLanguageMenu);
@@ -114,6 +116,7 @@ namespace Kuriimu2.ImGui.Forms
                     }},
                     new MenuBarMenu{Text = LocalizationResources.MenuHelp, Items =
                     {
+                        _pluginsButton,
                         _aboutButton
                     }}
                 }

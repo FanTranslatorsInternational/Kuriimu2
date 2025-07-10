@@ -16,6 +16,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Localization;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
+using ImGui.Forms.Modals.IO.Windows;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
@@ -103,6 +104,7 @@ namespace Kuriimu2.ImGui.Forms
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
 
+            _pluginsButton.Clicked += _pluginsButton_Clicked;
             _aboutButton.Clicked += _aboutButton_Clicked;
 
             #endregion
@@ -270,6 +272,11 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async void _pluginsButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowPluginsDialog();
+        }
 
         private async void _aboutButton_Clicked(object sender, EventArgs e)
         {
@@ -676,10 +683,16 @@ namespace Kuriimu2.ImGui.Forms
 
         #endregion
 
-        private async Task<DialogResult> ShowAboutDialog()
+        private async Task ShowPluginsDialog()
+        {
+            var pluginsDialog = new PluginsDialog(_pluginManager);
+            await pluginsDialog.ShowAsync();
+        }
+
+        private async Task ShowAboutDialog()
         {
             var aboutDialog = new AboutDialog();
-            return await aboutDialog.ShowAsync();
+            await aboutDialog.ShowAsync();
         }
 
         #endregion
@@ -833,17 +846,20 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task<string> SelectNewFile(string fileName)
         {
-            var sfd = new SaveFileDialog(fileName);
-            return await sfd.ShowAsync() == DialogResult.Ok ? sfd.SelectedPath : null;
+            var sfd = new WindowsSaveFileDialog
+            {
+                InitialFileName = fileName
+            };
+            return await sfd.ShowAsync() == DialogResult.Ok ? sfd.Files[0] : null;
         }
 
         private async Task<string> SelectFile()
         {
-            var ofd = new OpenFileDialog { InitialDirectory = SettingsResources.LastDirectory };
+            var ofd = new WindowsOpenFileDialog { InitialDirectory = SettingsResources.LastDirectory };
 
             // Set file filters
             foreach (var filter in GetFileFilters(_pluginManager).OrderBy(x => $"{x.Name}"))
-                ofd.FileFilters.Add(filter);
+                ofd.Filters.Add(filter);
 
             // Show dialog and wait for result
             var result = await ofd.ShowAsync();
@@ -851,9 +867,9 @@ namespace Kuriimu2.ImGui.Forms
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.SelectedPath);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
 
-            return ofd.SelectedPath;
+            return ofd.Files[0];
         }
 
         private async Task<IFilePlugin> ChoosePlugin(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)

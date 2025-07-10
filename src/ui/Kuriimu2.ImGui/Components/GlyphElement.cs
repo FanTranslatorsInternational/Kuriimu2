@@ -153,8 +153,8 @@ namespace Kuriimu2.ImGui.Components
 
         protected override int GetContentHeight(int parentWidth, int parentHeight, float layoutCorrection = 1)
         {
-            int textHeight = Math.Max(_mainFont.GetLineHeight(), _codeFont.GetLineHeight() + 1);
-            return (int)GlyphMaxSize.Y + 12 + textHeight;
+            float textHeight = Math.Max(_mainFont.GetLineHeight(), _codeFont.GetLineHeight() + 1);
+            return (int)(GlyphMaxSize.Y + 12 + textHeight);
         }
 
         private void OnSelectedChanged()

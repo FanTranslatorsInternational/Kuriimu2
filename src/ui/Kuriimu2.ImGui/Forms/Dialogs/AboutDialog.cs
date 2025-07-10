@@ -42,7 +42,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     new StackItem(_titleLabel) {VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center },
                     new StackItem(_versionLabel) {VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center },
                     new StackItem(_descriptionLabel) {VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center },
-                },
+                }
             };
 
             Caption = LocalizationResources.MenuAboutTitle;

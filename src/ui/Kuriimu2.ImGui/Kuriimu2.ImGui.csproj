@@ -77,7 +77,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Projekte\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
+    <ProjectReference Include="..\..\..\..\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy.Contract\Kaligraphy.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy\Kaligraphy.csproj" />
     <ProjectReference Include="..\..\lib\Konnect.Contract\Konnect.Contract.csproj" />

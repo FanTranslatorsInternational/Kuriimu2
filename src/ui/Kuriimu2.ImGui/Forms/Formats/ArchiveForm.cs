@@ -9,6 +9,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
+using ImGui.Forms.Modals.IO.Windows;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
@@ -74,9 +75,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _searchTerm.TextChanged += _searchTerm_TextChanged;
             _clearButton.Clicked += _clearButton_Clicked;
+
             _treeView.SelectedNodeChanged += _treeView_SelectedNodeChanged;
             _treeView.NodeExpanded += _treeView_NodeExpanded;
             _treeView.NodeCollapsed += _treeView_NodeCollapsed;
+
+            _fileView.DoubleClicked += _fileView_DoubleClicked;
 
             _directoryContext.Show += _directoryContext_Show;
             _fileContext.Show += _fileContext_Show;
@@ -159,6 +163,18 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void _treeView_NodeExpanded(object sender, NodeEventArgs<DirectoryEntry> e)
         {
             _openedDirectories.Add(e.Node.Data.AbsolutePath);
+        }
+
+        #endregion
+
+        #region FileView
+
+        private async void _fileView_DoubleClicked(object? sender, EventArgs e)
+        {
+            if (_fileView.SelectedRows.Count <= 0)
+                return;
+
+            await OpenFiles([_fileView.SelectedRows[0].Data]);
         }
 
         #endregion
@@ -1155,17 +1171,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task<UPath> OpenFile(string fileName)
         {
-            var ofd = new OpenFileDialog
+            var ofd = new WindowsOpenFileDialog
             {
-                InitialDirectory = SettingsResources.LastDirectory == string.Empty ? Path.GetFullPath(".") : SettingsResources.LastDirectory,
+                InitialDirectory = string.IsNullOrEmpty(SettingsResources.LastDirectory) ? Path.GetFullPath(".") : SettingsResources.LastDirectory,
                 InitialFileName = fileName
             };
 
-            var result = await ofd.ShowAsync() == DialogResult.Ok ? ofd.SelectedPath : UPath.Empty;
+            var result = await ofd.ShowAsync() == DialogResult.Ok ? ofd.Files[0] : UPath.Empty;
 
             if (result != UPath.Empty)
             {
-                SettingsResources.LastDirectory = result.FullName;
+                SettingsResources.LastDirectory = Path.GetDirectoryName(result.FullName);
             }
 
             return result;
@@ -1173,14 +1189,18 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task<UPath> SaveFile(string fileName)
         {
-            var dir = SettingsResources.LastDirectory == string.Empty ? Path.GetFullPath(".") : SettingsResources.LastDirectory;
-            var ofd = new SaveFileDialog(Path.Combine(dir, fileName));
+            var dir = string.IsNullOrEmpty(SettingsResources.LastDirectory) ? Path.GetFullPath(".") : SettingsResources.LastDirectory;
+            var ofd = new WindowsSaveFileDialog
+            {
+                InitialDirectory = dir,
+                InitialFileName = fileName
+            };
 
-            var result = await ofd.ShowAsync() == DialogResult.Ok ? ofd.SelectedPath : UPath.Empty;
+            var result = await ofd.ShowAsync() == DialogResult.Ok ? ofd.Files[0] : UPath.Empty;
 
             if (result != UPath.Empty)
             {
-                SettingsResources.LastDirectory = result.FullName;
+                SettingsResources.LastDirectory = Path.GetDirectoryName(result.FullName);
             }
 
             return result;

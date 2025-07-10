@@ -6,6 +6,7 @@ using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
+using ImGui.Forms.Modals.IO.Windows;
 using Konnect.Contract.Plugin.File.Image;
 using Konnect.Extensions;
 using Kuriimu2.ImGui.Components;
@@ -126,10 +127,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusExportStart(selectedItem.Name));
 
             // Select file to save at
-            var initialPath = Path.Combine(GetLastDirectory(), GetImageName(selectedItem) + ".png");
-            var sfd = new SaveFileDialog(initialPath)
+            var sfd = new WindowsSaveFileDialog
             {
-                Caption = LocalizationResources.ImageMenuExportPng
+                Title = LocalizationResources.ImageMenuExportPng,
+                InitialDirectory = GetLastDirectory(),
+                InitialFileName = GetImageName(selectedItem) + ".png"
             };
 
             if (await sfd.ShowAsync() != DialogResult.Ok)
@@ -141,10 +143,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.SelectedPath);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
 
             // Export image
-            await _asyncOperation.StartAsync(_ => selectedItem.ImageFile.GetImage(_state.Progress).SaveAsPng(sfd.SelectedPath));
+            await _asyncOperation.StartAsync(_ => selectedItem.ImageFile.GetImage(_state.Progress).SaveAsPng(sfd.Files[0]));
 
             UpdateFormInternal();
 
@@ -168,11 +170,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusImportStart(selectedItem.Name));
 
             // Select file to import from
-            var ofd = new OpenFileDialog
+            var ofd = new WindowsOpenFileDialog
             {
-                Caption = LocalizationResources.ImageMenuImportPng,
+                Title = LocalizationResources.ImageMenuImportPng,
                 InitialDirectory = GetLastDirectory(),
-                FileFilters = { new FileFilter(LocalizationResources.FilterPng, "*.png") }
+                Filters = { new FileFilter(LocalizationResources.FilterPng, "*.png") }
             };
 
             if (await ofd.ShowAsync() != DialogResult.Ok)
@@ -184,10 +186,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.SelectedPath);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
 
             // Import image
-            var newImage = Image.Load<Rgba32>(ofd.SelectedPath);
+            var newImage = Image.Load<Rgba32>(ofd.Files[0]);
             await _asyncOperation.StartAsync(_ => selectedItem.ImageFile.SetImage(newImage, _state.Progress));
 
             UpdateFormInternal();

@@ -1,6 +1,22 @@
 ﻿{
   "Name": "English",
 
+  // ImGui (Does not affect windows-native dialogs)
+  "ImGui.Button.Ok": "Ok",
+  "ImGui.Button.Cancel": "Cancel",
+  "ImGui.Button.Yes": "Yes",
+  "ImGui.Button.No": "No",
+  "ImGui.Button.Save": "Save",
+  "ImGui.FileDialog.Search": "Search...",
+  "ImGui.FileDialog.Name": "Name",
+  "ImGui.FileDialog.Type": "Type",
+  "ImGui.FileDialog.DateModified": "Date Modified",
+  "ImGui.FileDialog.SelectedFile": "File Name:",
+  "ImGui.FileDialog.ReplaceFile.Caption": "File exists",
+  "ImGui.FileDialog.ReplaceFile.Text": "Do you want to overwrite file {0}?",
+  "ImGui.FileDialog.CreateFolder.Caption": "Create folder",
+  "ImGui.FileDialog.CreateFolder.Text": "New folder name:",
+
   // Kuriimu2
 
   // Menu
@@ -42,6 +58,17 @@
   // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Dark",
   "Menu.Settings.ChangeTheme.Light": "Light",
+
+  // Plugins Dialog
+  "Menu.Plugins.Title": "Installed Plugins",
+  "Menu.Plugins.Name": "Name",
+  "Menu.Plugins.Publisher": "Publisher",
+  "Menu.Plugins.Developer": "Developer",
+  "Menu.Plugins.Authors": "Authors",
+  "Menu.Plugins.Platforms": "Platforms",
+  "Menu.Plugins.Archive": "Archive",
+  "Menu.Plugins.Image": "Image",
+  "Menu.Plugins.Font": "Font",
 
   // About Dialog
   "Menu.About.Title": "About Kuriimu",

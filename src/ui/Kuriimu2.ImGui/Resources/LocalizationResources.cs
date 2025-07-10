@@ -1,6 +1,7 @@
 ﻿using System;
 using ImGui.Forms.Localization;
 using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
 
 namespace Kuriimu2.ImGui.Resources
@@ -52,6 +53,21 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuSettingsChangeThemeDark => LocalizedString.FromId("Menu.Settings.ChangeTheme.Dark");
         public static LocalizedString MenuSettingsChangeThemeLight => LocalizedString.FromId("Menu.Settings.ChangeTheme.Light");
 
+        // Plugins Dialog
+        public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
+        public static LocalizedString MenuPluginsName => LocalizedString.FromId("Menu.Plugins.Name");
+        public static LocalizedString MenuPluginsPublisher => LocalizedString.FromId("Menu.Plugins.Publisher");
+        public static LocalizedString MenuPluginsDeveloper => LocalizedString.FromId("Menu.Plugins.Developer");
+        public static LocalizedString MenuPluginsAuthors => LocalizedString.FromId("Menu.Plugins.Authors");
+        public static LocalizedString MenuPluginsPlatforms => LocalizedString.FromId("Menu.Plugins.Platforms");
+        public static LocalizedString MenuPluginsType(PluginType type) => type switch
+        {
+            PluginType.Archive => LocalizedString.FromId("Menu.Plugins.Archive"),
+            PluginType.Image => LocalizedString.FromId("Menu.Plugins.Image"),
+            PluginType.Font => LocalizedString.FromId("Menu.Plugins.Font"),
+            _ => string.Empty
+        };
+
         // About Dialog
         public static LocalizedString MenuAboutTitle => LocalizedString.FromId("Menu.About.Title");
         public static LocalizedString MenuAboutVersion(string version) => LocalizedString.FromId("Menu.About.Version", () => version);
@@ -80,7 +96,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Status
         public static LocalizedString StatusPluginSelectNone => LocalizedString.FromId("Status.Plugin.Select.None");
-        public static LocalizedString StatusPluginSelectUnknown(IFilePluginState state) 
+        public static LocalizedString StatusPluginSelectUnknown(IFilePluginState state)
             => LocalizedString.FromId("Status.Plugin.Select.Unknown", () => state.GetType().Name);
         public static LocalizedString StatusPluginLoadNone => LocalizedString.FromId("Status.Plugin.Load.None");
         public static LocalizedString StatusPluginLoadNoArchive => LocalizedString.FromId("Status.Plugin.Load.NoArchive");
@@ -118,7 +134,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString StatusOperationRunning => LocalizedString.FromId("Status.Operation.Running");
 
         // Errors
-        public static LocalizedString ErrorUnsupportedOperatingSystem(string os) 
+        public static LocalizedString ErrorUnsupportedOperatingSystem(string os)
             => LocalizedString.FromId("Error.Unsupported.OperatingSystem", () => os);
 
         // File Filters
