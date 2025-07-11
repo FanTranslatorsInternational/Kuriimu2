@@ -47,11 +47,11 @@ namespace plugin_bandai_namco.Archives
         public int stringIndex;
         public int headerIndex;
         public int zero0;
-        public int offset;
+        public uint offset;
         public int count;
-        public int decompSize;
+        public uint decompSize;
         public int zero1;
-        public int compSize;
+        public uint compSize;
         public int zero2;
     }
 
@@ -165,11 +165,11 @@ namespace plugin_bandai_namco.Archives
                 stringIndex = reader.ReadInt32(),
                 headerIndex = reader.ReadInt32(),
                 zero0 = reader.ReadInt32(),
-                offset = reader.ReadInt32(),
+                offset = reader.ReadUInt32(),
                 count = reader.ReadInt32(),
-                decompSize = reader.ReadInt32(),
+                decompSize = reader.ReadUInt32(),
                 zero1 = reader.ReadInt32(),
-                compSize = reader.ReadInt32(),
+                compSize = reader.ReadUInt32(),
                 zero2 = reader.ReadInt32()
             };
         }
@@ -193,11 +193,10 @@ namespace plugin_bandai_namco.Archives
             var name = strings[entry.stringIndex];
 
             var isDirectory = (entry.flags & 0x1) > 0;
-            var isCompressed = (entry.flags & 0x200) > 0;
 
             if (isDirectory)
             {
-                foreach (var subEntry in entries.Skip(entry.offset).Take(entry.count))
+                foreach (var subEntry in entries.Skip((int)entry.offset).Take(entry.count))
                     foreach (var file in EnumerateFiles(streams, subEntry, path / name, apkHeaders, strings, entries))
                         yield return file;
             }
@@ -208,20 +207,34 @@ namespace plugin_bandai_namco.Archives
                     yield break;
 
                 ArchiveFileInfo fileInfo;
-                if (isCompressed)
+                if ((entry.flags & 0x200) > 0)
+                {
                     fileInfo = new CompressedArchiveFileInfo
                     {
                         FilePath = (headerName / path.ToRelative() / name).FullName,
                         FileData = new SubStream(stream, entry.offset, entry.compSize),
                         Compression = Compressions.ZLib.Build(),
-                        DecompressedSize = entry.decompSize
+                        DecompressedSize = (int)entry.decompSize
                     };
+                }
+                else if ((entry.flags & 0x300) > 0)
+                {
+                    fileInfo = new CompressedArchiveFileInfo
+                    {
+                        FilePath = (headerName / path.ToRelative() / name).FullName,
+                        FileData = new SubStream(stream, entry.offset, entry.compSize),
+                        Compression = Compressions.LZMA.Build(),
+                        DecompressedSize = (int)entry.decompSize
+                    };
+                }
                 else
+                {
                     fileInfo = new ArchiveFileInfo
                     {
                         FilePath = (headerName / path.ToRelative() / name).FullName,
                         FileData = new SubStream(stream, entry.offset, entry.decompSize)
                     };
+                }
 
                 yield return new ApkArchiveFile(fileInfo, entry.headerIndex);
             }
@@ -373,7 +386,7 @@ namespace plugin_bandai_namco.Archives
                     {
                         flags = 1,
                         stringIndex = strings.IndexOf(currentEntry.Name),
-                        offset = nextIndex,
+                        offset = (uint)nextIndex,
                         count = currentEntry.Directories.Count + currentEntry.Files.Count
                     };
 
@@ -408,9 +421,9 @@ namespace plugin_bandai_namco.Archives
                         flags = file.UsesCompression ? 0x200 : 0,
                         headerIndex = file.HeaderIndex,
                         stringIndex = strings.IndexOf(dirFile.Item1),
-                        offset = (int)dataOffset,
-                        compSize = file.UsesCompression ? (int)writtenSize : 0,
-                        decompSize = (int)file.FileSize
+                        offset = (uint)dataOffset,
+                        compSize = file.UsesCompression ? (uint)writtenSize : 0,
+                        decompSize = (uint)file.FileSize
                     };
 
                     output.Position = position;

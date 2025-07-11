@@ -234,5 +234,10 @@ namespace Kompression
             new CompressionConfigurationBuilder()
                 .Decode.With(() => new SosLz3Decoder())
                 .Encode.With(() => new SosLz3Encoder());
+
+        public static ICompressionConfigurationBuilder LZMA =>
+            new CompressionConfigurationBuilder()
+                .Decode.With(() => new LZMADecoder())
+                .Encode.With(() => new LZMAEncoder());
     }
 }

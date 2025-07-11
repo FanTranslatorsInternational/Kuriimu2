@@ -26,6 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EasyCompressor.LZMA" Version="2.1.0" />
     <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
     <PackageReference Include="Komponent" Version="2.1.5" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
