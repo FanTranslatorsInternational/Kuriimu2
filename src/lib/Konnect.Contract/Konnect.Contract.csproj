@@ -7,10 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.1.12" />
-    <PackageReference Include="Kompression" Version="2.1.7" />
+    <PackageReference Include="Kanvas" Version="2.1.13" />
+    <PackageReference Include="Kompression" Version="2.1.8" />
     <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
   </ItemGroup>
 
 </Project>

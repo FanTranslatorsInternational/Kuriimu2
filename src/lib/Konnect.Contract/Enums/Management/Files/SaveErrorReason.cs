@@ -8,6 +8,7 @@
         Closing,
         NotLoaded,
         NoChanges,
+        SaveNotSupported,
         StateSaveError,
         DestinationNotExist,
         FileReplaceError,

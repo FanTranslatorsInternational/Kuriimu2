@@ -184,6 +184,7 @@ namespace Konnect.Management.Files
             catch (Exception e)
             {
                 loadInfo.Logger?.Fatal(e, "The plugin state for '{0}' could not be initialized.", plugin.PluginId);
+
                 return new LoadResult
                 {
                     Status = LoadStatus.Errored,

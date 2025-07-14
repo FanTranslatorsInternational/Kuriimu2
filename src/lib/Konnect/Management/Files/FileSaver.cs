@@ -34,12 +34,23 @@ namespace Konnect.Management.Files
             SaveFileOptions saveInfo, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!fileState.PluginState.CanSave || !fileState.StateChanged)
+            if (!fileState.PluginState.CanSave)
+            {
                 return new SaveResult
                 {
-                    IsSuccessful = true,
+                    IsSuccessful = false,
+                    Reason = SaveErrorReason.SaveNotSupported
+                };
+            }
+
+            if (!fileState.StateChanged)
+            {
+                return new SaveResult
+                {
+                    IsSuccessful = false,
                     Reason = SaveErrorReason.NoChanges
                 };
+            }
 
             // 2. Save child states
             foreach (var archiveChild in fileState.ArchiveChildren)
@@ -158,6 +169,8 @@ namespace Konnect.Management.Files
             }
             catch (Exception ex)
             {
+                saveInfo.Logger?.Fatal(ex, "The plugin state could not save.");
+
                 return new SaveResult
                 {
                     IsSuccessful = false,
