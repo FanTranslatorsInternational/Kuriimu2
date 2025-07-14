@@ -18,9 +18,9 @@
 
     <dependencies>
       <group targetFramework="net8.0">
-        <dependency id="BCnEncoder.Net" version="2.1.0" />
-        <dependency id="SixLabors.ImageSharp" version="3.1.6" />
-        <dependency id="Komponent" version="2.1.5" />
+        <dependency id="BCnEncoder.Net" version="2.2.1" />
+        <dependency id="SixLabors.ImageSharp" version="3.1.10" />
+        <dependency id="Komponent" version="2.1.6" />
       </group>
     </dependencies>
   </metadata>
