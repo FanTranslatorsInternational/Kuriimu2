@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Komponent" Version="2.1.6" />
+    <PackageReference Include="Komponent" Version="2.1.7" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.6" />
   </ItemGroup>
