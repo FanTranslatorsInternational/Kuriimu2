@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Konnect</id>
-    <version>2.1.31</version>
+    <version>2.1.32</version>
     <description>A library containing interfaces and data models for plugins.</description>
 
     <authors>onepiecefreak;IcySon55</authors>
@@ -18,8 +18,8 @@
 
     <dependencies>
       <group targetFramework="net8.0">
-        <dependency id="Kanvas" version="2.1.13" />
-        <dependency id="Kompression" version="2.1.8" />
+        <dependency id="Kanvas" version="2.1.14" />
+        <dependency id="Kompression" version="2.1.9" />
         <dependency id="Serilog" version="4.2.0" />
         <dependency id="SixLabors.ImageSharp" version="3.1.10" />
       </group>
