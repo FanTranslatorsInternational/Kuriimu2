@@ -361,12 +361,7 @@ namespace Komponent.IO
                 if (length >= _encodingNullLength)
                 {
                     for (var i = 0; i < _encodingNullLength; i++)
-                    {
-                        if (buffer[i] != 0)
-                            continue;
-
-                        shouldStop = true;
-                    }
+                        shouldStop &= buffer[i] == 0;
                 }
 
                 if (shouldStop)
