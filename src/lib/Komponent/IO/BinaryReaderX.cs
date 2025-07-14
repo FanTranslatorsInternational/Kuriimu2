@@ -355,7 +355,7 @@ namespace Komponent.IO
             var buffer = new byte[_encodingNullLength];
             while (BaseStream.Position < BaseStream.Length)
             {
-                var shouldStop = false;
+                var shouldStop = true;
 
                 int length = BaseStream.Read(buffer);
                 if (length >= _encodingNullLength)

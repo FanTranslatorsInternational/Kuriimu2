@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Komponent</id>
-    <version>2.1.6</version>
+    <version>2.1.7</version>
     <description>A library containing all common tools like generic binary reading and writing.</description>
 
     <authors>onepiecefreak;IcySon55</authors>
