@@ -38,6 +38,7 @@ namespace plugin_level5.Mobile.Archive
     {
         private readonly Stream _baseStream;
         private readonly uint _initSeed;
+        private readonly uint _position;
 
         private uint _positionSeed;
 
@@ -51,10 +52,15 @@ namespace plugin_level5.Mobile.Archive
             set => Seek(value, SeekOrigin.Begin);
         }
 
-        public Arc1CryptoStream(Stream baseStream, uint seed)
+        public uint OriginalPosition => _position;
+        public Stream BaseStream => _baseStream;
+
+        public Arc1CryptoStream(Stream baseStream, uint position)
         {
+            _position = position;
+
             _baseStream = baseStream;
-            _initSeed = GetNextSeed(seed + 0x45243);
+            _initSeed = GetNextSeed(position + 0x45243);
 
             _positionSeed = GetPositionSeed(baseStream.Position);
         }

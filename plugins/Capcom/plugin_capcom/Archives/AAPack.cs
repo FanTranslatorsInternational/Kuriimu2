@@ -33,13 +33,13 @@ namespace plugin_capcom.Archives
                 if (nameMapping.ContainsKey(entries[i].hash))
                     fileName = nameMapping[entries[i].hash];
 
-                result[i] = new AAPackArchiveFile(new CompressedArchiveFileInfo
+                result.Add(new AAPackArchiveFile(new CompressedArchiveFileInfo
                 {
                     FilePath = fileName,
                     FileData = subStream,
                     Compression = NintendoCompressor.GetConfiguration(compressionMethod),
                     DecompressedSize = (int)entries[i].uncompSize
-                }, entries[i]);
+                }, entries[i]));
             }
 
             return result;
@@ -54,7 +54,8 @@ namespace plugin_capcom.Archives
                 file.Entry.offset = (uint)datStream.Position;
                 var writtenSize = file.WriteFileData(datStream, true);
 
-                bw.WriteAlignment(4);
+                while (datStream.Position % 4 != 0)
+                    datStream.WriteByte(0);
 
                 file.Entry.hash = IsUnmappedFile(file.FilePath.ToRelative().FullName) ? file.Entry.hash : AAPackSupport.CreateHash(file.FilePath.ToRelative().FullName);
                 file.Entry.compSize = (uint)writtenSize;

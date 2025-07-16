@@ -38,7 +38,9 @@ namespace plugin_capcom.Archives
                 datStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            _files = _aatri.Load(incStream, datStream, AAPackSupport.GetVersion(loadContext.DialogManager));
+            var version = await AAPackSupport.GetVersion(loadContext.DialogManager);
+
+            _files = _aatri.Load(incStream, datStream, version);
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -49,13 +51,13 @@ namespace plugin_capcom.Archives
             switch (savePath.GetExtensionWithDot())
             {
                 case ".inc":
-                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.inc", FileMode.Create);
-                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".dat", FileMode.Create);
+                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.inc", FileMode.Create, FileAccess.Write);
+                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".dat", FileMode.Create, FileAccess.Write);
                     break;
 
                 default:
-                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".inc", FileMode.Create);
-                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.dat", FileMode.Create);
+                    incStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / savePath.GetNameWithoutExtension() + ".inc", FileMode.Create, FileAccess.Write);
+                    datStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "pack.dat", FileMode.Create, FileAccess.Write);
                     break;
             }
 

@@ -21,46 +21,42 @@ namespace plugin_dotemu.Archives
             // Read entries
             var entries = new List<Sor4Entry>();
             while (texListStream.Position < texListStream.Length)
-            {
-                // TODO: Requires more research as to split texture files
-                try
-                {
-                    entries.Add(Sor4Support.ReadEntry(texListBr));
-                }
-                catch
-                {
-                    break;
-                }
-            }
+                entries.Add(Sor4Support.ReadEntry(texListBr));
 
             // Add files
             var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
-                Stream fileStream = null;
-                var decompSize = -1;
+                ArchiveFileInfo fileInfo;
 
                 switch (platform)
                 {
                     case Platform.Pc:
-                        fileStream = new SubStream(texStream, entry.offset, entry.compSize);
+                        fileInfo = new ArchiveFileInfo
+                        {
+                            FilePath = entry.path,
+                            FileData = new SubStream(texStream, entry.offset, entry.compSize)
+                        };
                         break;
 
                     case Platform.Switch:
                         texStream.Position = entry.offset;
-                        decompSize = texBr.ReadInt32();
+                        int decompSize = texBr.ReadInt32();
 
-                        fileStream = new SubStream(texStream, entry.offset + 4, entry.compSize - 4);
+                        fileInfo = new CompressedArchiveFileInfo
+                        {
+                            FilePath = entry.path,
+                            FileData = new SubStream(texStream, entry.offset + 4, entry.compSize - 4),
+                            Compression = Compressions.Deflate.Build(),
+                            DecompressedSize = decompSize
+                        };
                         break;
+
+                    default:
+                        throw new InvalidOperationException($"Unsupported platform {platform}.");
                 }
 
-                result.Add(new Sor4ArchiveFile(new CompressedArchiveFileInfo
-                {
-                    FilePath = entry.path,
-                    FileData = fileStream,
-                    Compression = Compressions.Deflate.Build(),
-                    DecompressedSize = decompSize
-                }, entry));
+                result.Add(new Sor4ArchiveFile(fileInfo, entry));
             }
 
             return result;
@@ -72,31 +68,40 @@ namespace plugin_dotemu.Archives
             using var texListBw = new BinaryWriterX(texListStream, Encoding.Unicode);
 
             // Write files
-            var dataPosition = 0;
+            var dataPosition = 0u;
 
             var entries = new List<Sor4Entry>();
             foreach (var file in files.Cast<Sor4ArchiveFile>())
             {
-                // Write data
                 texStream.Position = dataPosition;
-                texBw.Write((int)file.FileSize);
-                var writtenSize = file.WriteFileData(texStream, true);
 
-                // Update entry
-                file.Entry.compSize = (int)writtenSize + _platform == Platform.Pc ? 0 : 4;
-                file.Entry.offset = dataPosition;
-                entries.Add(file.Entry);
-
+                long writtenSize;
                 switch (_platform)
                 {
                     case Platform.Pc:
-                        dataPosition = (int)(dataPosition + writtenSize);
+                        writtenSize = file.WriteFileData(texStream, true);
+
+                        file.Entry.compSize = (int)writtenSize;
+                        file.Entry.offset = dataPosition;
+
+                        dataPosition = (uint)(dataPosition + writtenSize);
                         break;
 
                     case Platform.Switch:
-                        dataPosition = (int)(dataPosition + 4 + writtenSize + 0xF) & ~0xF;
+                        texBw.Write((int)file.FileSize);
+                        writtenSize = file.WriteFileData(texStream, true);
+
+                        file.Entry.compSize = (int)writtenSize + 4;
+                        file.Entry.offset = dataPosition;
+
+                        dataPosition = (uint)((dataPosition + 4 + writtenSize + 0xF) & ~0xF);
                         break;
+
+                    default:
+                        throw new InvalidOperationException($"Unsupported platform {_platform}.");
                 }
+
+                entries.Add(file.Entry);
             }
 
             // Write entries

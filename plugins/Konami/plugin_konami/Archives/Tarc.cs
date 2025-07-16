@@ -194,7 +194,10 @@ namespace plugin_konami.Archives
         private void WriteEntries(IList<TarcEntry> entries, BinaryWriterX writer)
         {
             foreach (TarcEntry entry in entries)
+            {
                 WriteEntry(entry, writer);
+                writer.WriteAlignment(0x10);
+            }
         }
 
         private void WriteEntry(TarcEntry entry, in BinaryWriterX writer)

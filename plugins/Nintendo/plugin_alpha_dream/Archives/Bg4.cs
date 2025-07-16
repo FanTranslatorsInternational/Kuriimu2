@@ -4,6 +4,7 @@ using Komponent.Streams;
 using Kompression;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum;
 
@@ -12,7 +13,7 @@ namespace plugin_alpha_dream.Archives
     class Bg4
     {
         private const int HeaderSize_ = 0x10;
-        private const int EntrySize_ = 0x1E;
+        private const int EntrySize_ = 0xE;
 
         private const int HashSeed_ = 0x1F;
 
@@ -56,7 +57,7 @@ namespace plugin_alpha_dream.Archives
             var stringPosition = 0;
             var stringDictionary = new Dictionary<string, int>();
 
-            foreach (var distinctString in files.Select(x => x.FilePath.FullName).Distinct())
+            foreach (var distinctString in files.Select(x => x.FilePath.ToRelative().FullName).Distinct())
             {
                 stringDictionary[distinctString] = stringPosition;
                 stringPosition += Encoding.ASCII.GetByteCount(distinctString) + 1;
@@ -76,7 +77,7 @@ namespace plugin_alpha_dream.Archives
                 var writtenSize = file.WriteFileData(output);
 
                 // Create entry
-                var fileName = file.FilePath.FullName;
+                var fileName = file.FilePath.ToRelative().FullName;
                 entries.Add(new Bg4Entry
                 {
                     FileOffset = filePosition,
@@ -97,6 +98,8 @@ namespace plugin_alpha_dream.Archives
             bw.WriteAlignment(4, 0xFF);
 
             // Write entries
+            entries = entries.OrderBy(x => x.nameHash).ToList();
+
             output.Position = entryOffset;
             WriteEntries(entries, bw);
 

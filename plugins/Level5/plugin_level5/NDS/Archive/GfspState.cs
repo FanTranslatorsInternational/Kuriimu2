@@ -3,15 +3,13 @@ using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
-using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.NDS.Archive
 {
     class GfspState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private readonly Gfsp _arc = new();
-
-        private List<ArchiveFile> _files;
+        private List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => _files.Any(x => x.ContentChanged);

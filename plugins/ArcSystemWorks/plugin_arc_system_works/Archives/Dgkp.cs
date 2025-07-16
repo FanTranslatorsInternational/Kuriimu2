@@ -140,7 +140,7 @@ namespace plugin_arc_system_works.Archives
             writer.Write(entry.entrySize);
             writer.Write(entry.size);
             writer.Write(entry.offset);
-            writer.Write(entry.name);
+            writer.WriteString(entry.name, writeNullTerminator: false);
         }
     }
 }

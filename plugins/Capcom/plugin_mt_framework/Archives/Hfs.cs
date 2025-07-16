@@ -22,7 +22,7 @@ namespace plugin_mt_framework.Archives
 
             // Prepare stream
             var arcOffset = GetArchiveOffset(_header.type);
-            var hfsStream = new HfsStream(new SubStream(input, arcOffset, input.Length - arcOffset));
+            var hfsStream = new HfsStream(new SubStream(input, arcOffset, input.Length - arcOffset), _header.fileSize);
 
             // Read HFS content
             return
@@ -47,7 +47,7 @@ namespace plugin_mt_framework.Archives
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Write HFS content
-            var hfsStream = new HfsStream(new SubStream(output, archiveOffset, hfsLength));
+            var hfsStream = new HfsStream(new SubStream(output, archiveOffset, hfsLength), archiveSize);
             files[0].WriteFileData(hfsStream);
 
             hfsStream.Flush();

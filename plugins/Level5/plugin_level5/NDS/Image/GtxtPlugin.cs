@@ -9,11 +9,11 @@ using Konnect.Contract.Plugin.File;
 
 namespace plugin_level5.NDS.Image
 {
-    public class GtxtPlugin : IFilePlugin, IIdentifyFiles
+    public class GtxtPlugin : IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("20341149-76dc-43a5-9c02-d87b16f8b369");
 
-        public PluginType PluginType => PluginType.Archive;
+        public PluginType PluginType => PluginType.Image;
         public string[] FileExtensions => ["*.lt", "*.lp"];
 
         public PluginMetadata Metadata { get; } = new()

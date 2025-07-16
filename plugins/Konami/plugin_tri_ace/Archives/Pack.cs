@@ -73,7 +73,7 @@ namespace plugin_tri_ace.Archives
             {
                 offset = (int)output.Position
             });
-            bw.WritePadding(0x80);
+            bw.WriteAlignment(0x400);
 
             // Write entries
             output.Position = entryOffset;
@@ -130,10 +130,10 @@ namespace plugin_tri_ace.Archives
         private void WriteEntries(IList<PackFileEntry> entries, BinaryWriterX writer)
         {
             foreach (PackFileEntry entry in entries)
-                ReadEntry(entry, writer);
+                WriteEntry(entry, writer);
         }
 
-        private void ReadEntry(PackFileEntry entry, BinaryWriterX writer)
+        private void WriteEntry(PackFileEntry entry, BinaryWriterX writer)
         {
             writer.Write(entry.offset);
             writer.Write(entry.fileType);

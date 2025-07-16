@@ -20,6 +20,8 @@ namespace plugin_nintendo.Archives
 
         public List<IArchiveFile> Load(Stream input)
         {
+            var hash = Fnv1.Create();
+
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
             // Read header

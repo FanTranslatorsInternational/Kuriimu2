@@ -15,7 +15,6 @@ namespace plugin_sony.Archives.PSARC
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             _files = _psarc.Load(fileStream);
         }

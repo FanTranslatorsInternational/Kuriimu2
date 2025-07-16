@@ -110,9 +110,10 @@ namespace plugin_nintendo.Archives
             // Write header
             var header = new NarcHeader
             {
-                fileSize = (int)output.Length,
+                magic = "NARC",
                 bom = 0xFFFE,
                 version = 0x100,
+                fileSize = (int)output.Length,
                 chunkSize = 0x10,
                 chunkCount = 0x3
             };

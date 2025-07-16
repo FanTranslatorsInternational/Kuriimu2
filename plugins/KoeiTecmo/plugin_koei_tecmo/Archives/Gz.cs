@@ -32,7 +32,7 @@ namespace plugin_koei_tecmo.Archives
             }
 
             // Create file
-            _origStream = new SubStream(input, blockOffsets[0], input.Length - blockOffsets[0] - 4);
+            _origStream = new SubStream(input, blockOffsets[0] - 4, input.Length - blockOffsets[0] + 4);
             var fileStream = new GzStream(input, _header.decompBlockSize, _header.decompSize, blockOffsets.Zip(_blockSizes.Select(x => x - 4)).ToArray());
             fileName ??= "00000000.bin";
 

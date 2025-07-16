@@ -13,7 +13,7 @@ namespace plugin_ganbarion.Archives
     {
         public Guid PluginId => Guid.Parse("26dad045-388d-42f3-a625-ec44dbf2060d");
 
-        public PluginType PluginType => PluginType.Image;
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => ["*.jarc"];
 
         public PluginMetadata Metadata { get; } = new()

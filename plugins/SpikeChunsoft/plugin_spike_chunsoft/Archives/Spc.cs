@@ -38,21 +38,21 @@ namespace plugin_spike_chunsoft.Archives
                 switch (entry.flag)
                 {
                     case 1:
-                        result.Add(new ArchiveFile(new ArchiveFileInfo
+                        result.Add(new SpcArchiveFile(new ArchiveFileInfo
                         {
                             FilePath = fileName,
                             FileData = fileStream
-                        }));
+                        }, entry));
                         break;
 
                     case 2:
-                        result.Add(new ArchiveFile(new CompressedArchiveFileInfo
+                        result.Add(new SpcArchiveFile(new CompressedArchiveFileInfo
                         {
                             FilePath = fileName,
                             FileData = fileStream,
                             Compression = Compressions.Danganronpa3.Build(),
                             DecompressedSize = entry.decompSize
-                        }));
+                        }, entry));
                         break;
 
                     default:
@@ -73,14 +73,14 @@ namespace plugin_spike_chunsoft.Archives
 
             // Write entries and files
             var dataPosition = (long)dataOffset;
-            foreach (var file in files)
+            foreach (var file in files.Cast<SpcArchiveFile>())
             {
                 var fileName = file.FilePath.ToRelative().FullName;
-                var entryLength = (0x20 + fileName.Length + 1 + 0xF) & ~0xF;
+                var entryLength = (0x20 + fileName.Length + 0xF) & ~0xF;
 
                 // Write file data
                 output.Position = dataPosition + entryLength;
-                var writtenSize = file.WriteFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
                 bw.WriteAlignment(0x10);
                 var nextDataPosition = output.Position;
@@ -89,6 +89,7 @@ namespace plugin_spike_chunsoft.Archives
                 var entry = new SpcEntry
                 {
                     flag = (short)(file.UsesCompression ? 2 : 1),
+                    unk1 = file.Entry.unk1,
                     compSize = (int)writtenSize,
                     decompSize = (int)file.FileSize,
                     nameLength = fileName.Length,
@@ -102,8 +103,15 @@ namespace plugin_spike_chunsoft.Archives
             }
 
             // Write root entry
+            var root = new SpcEntry
+            {
+                decompSize = files.Count,
+                nameLength = 4,
+                name = "Root"
+            };
+
             output.Position = rootOffset;
-            WriteEntry(new SpcEntry { unk1 = 0, decompSize = files.Count, nameLength = 4, name = "Root" }, bw);
+            WriteEntry(root, bw);
 
             // Write header
             output.Position = 0;

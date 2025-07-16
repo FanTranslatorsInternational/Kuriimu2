@@ -192,9 +192,6 @@ namespace plugin_cattle_call.Archives
                     nextPosition = bw.BaseStream.Position;
                 }
 
-                if (currentPosition == 0x18C)
-                    Debugger.Break();
-
                 bw.BaseStream.Position = currentPosition;
                 bw.Write((short)nodeOffsetMap[internalNode]);
                 bw.Write((short)flags);

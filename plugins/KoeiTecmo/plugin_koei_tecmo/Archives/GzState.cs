@@ -9,7 +9,7 @@ namespace plugin_koei_tecmo.Archives
 {
     class GzState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly Gz _arc=new();
+        private readonly Gz _arc = new();
         private List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;

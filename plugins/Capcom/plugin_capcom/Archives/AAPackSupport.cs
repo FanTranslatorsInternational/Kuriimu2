@@ -27,7 +27,7 @@ namespace plugin_capcom.Archives
 
     partial class AAPackSupport
     {
-        public static string GetVersion(IDialogManager dialogManager)
+        public static async Task<string> GetVersion(IDialogManager dialogManager)
         {
             var dialogField = new DialogField
             {
@@ -36,7 +36,7 @@ namespace plugin_capcom.Archives
                 DefaultValue = "None",
                 Options = ["None", "Ace Attorney Trilogy", "Apollo Justice"]
             };
-            dialogManager.ShowDialog([dialogField]);
+            await dialogManager.ShowDialog([dialogField]);
 
             return dialogField.Result;
         }

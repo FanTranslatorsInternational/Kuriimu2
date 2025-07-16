@@ -2,16 +2,16 @@
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_level5.NDS.Archive
 {
-    // TODO: Test plugin
     // Game: Professor Layton 3 on DS
     public class Lpc2
     {
-        private const int HeaderSize_ = 28;
-        private const int FileEntrySize_ = 12;
+        private const int HeaderSize_ = 0x1C;
+        private const int FileEntrySize_ = 0xC;
 
         public List<ArchiveFile> Load(Stream input)
         {
@@ -49,8 +49,8 @@ namespace plugin_level5.NDS.Archive
         {
             using var bw = new BinaryWriterX(output);
 
-            var fileEntryStartOffset = HeaderSize_;
-            var nameStartOffset = HeaderSize_ + files.Count * FileEntrySize_;
+            var fileEntryStartOffset = (HeaderSize_ + 0xF) & ~0xF;
+            var nameStartOffset = fileEntryStartOffset + files.Count * FileEntrySize_;
 
             // Write names
             var fileOffset = 0;
@@ -66,16 +66,30 @@ namespace plugin_level5.NDS.Archive
                 });
 
                 bw.BaseStream.Position = nameStartOffset + nameOffset;
-                bw.WriteString(file.FilePath.FullName, Encoding.ASCII);
+                bw.WriteString(file.FilePath.ToRelative().FullName, Encoding.ASCII);
                 nameOffset = (int)bw.BaseStream.Position - nameStartOffset;
 
                 fileOffset += (int)file.FileSize;
+
+                if (file.FileSize % 4 == 0)
+                    fileOffset += 4;
+                else
+                    fileOffset = (fileOffset + 3) & ~3;
             }
 
             // Write file data
-            var dataOffset = (int)bw.BaseStream.Position;
+            var dataOffset = (int)((bw.BaseStream.Position + 3) & ~3);
+            bw.BaseStream.Position = dataOffset;
+
             foreach (var file in files)
+            {
                 file.WriteFileData(bw.BaseStream, false);
+
+                if (file.FileSize % 4 == 0)
+                    bw.WritePadding(4);
+                else
+                    bw.WriteAlignment(4);
+            }
 
             // Write file entries
             bw.BaseStream.Position = fileEntryStartOffset;
@@ -92,7 +106,7 @@ namespace plugin_level5.NDS.Archive
 
                 fileCount = files.Count,
 
-                headerSize = HeaderSize_,
+                headerSize = dataOffset,
                 fileSize = (int)bw.BaseStream.Length
             };
 
@@ -147,7 +161,7 @@ namespace plugin_level5.NDS.Archive
 
         private void WriteEntries(IList<Lpc2FileEntry> entries, BinaryWriterX writer)
         {
-            foreach(Lpc2FileEntry entry in entries)
+            foreach (Lpc2FileEntry entry in entries)
                 WriteEntry(entry, writer);
         }
 

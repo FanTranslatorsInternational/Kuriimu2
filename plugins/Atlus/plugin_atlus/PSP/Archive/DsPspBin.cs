@@ -1,6 +1,7 @@
 ﻿using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 namespace plugin_atlus.PSP.Archive
@@ -8,9 +9,9 @@ namespace plugin_atlus.PSP.Archive
 {
     class DsPspBin
     {
-        public List<ArchiveFileInfo> Load(Stream input)
+        public List<IArchiveFile> Load(Stream input)
         {
-            using var br = new BinaryReaderX(input, leaveOpen: true);
+            using var br = new BinaryReaderX(input, true);
 
             var sizeList = new List<int>();
 
@@ -18,7 +19,7 @@ namespace plugin_atlus.PSP.Archive
             int fileCount = br.ReadInt32();
 
             // Read pointers
-            int entryPosition = fileCount * sizeof(int);
+            int entryPosition = fileCount * 4;
 
             // Read sizes
             for (int i = 0; i < fileCount; i++)
@@ -27,29 +28,29 @@ namespace plugin_atlus.PSP.Archive
             }
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFile>();
             for (int i = 0; i < fileCount; i++)
             {
                 var fileStream = new SubStream(input, entryPosition, sizeList[i]);
                 string name = $"{i:X8}.bin";
                 entryPosition += sizeList[i];
                 
-                result.Add(new ArchiveFileInfo
+                result.Add(new ArchiveFile(new ArchiveFileInfo
                 {
                     FilePath = name,
                     FileData = fileStream
-                });
+                }));
             }
 
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
             // Calculations
-            int entryPosition = files.Count * sizeof(int);
+            int entryPosition = files.Count * 4;
 
             // Write fileCount
             bw.Write(files.Count);
@@ -57,10 +58,9 @@ namespace plugin_atlus.PSP.Archive
             // Write data
             output.Position = entryPosition;
             var sizeList = new List<int>();
-            foreach (ArchiveFileInfo file in files)
+            foreach (IArchiveFile file in files)
             {
-                ArchiveFile archive = new ArchiveFile(file);
-                var writtenSize = archive.WriteFileData(bw.BaseStream, false);
+                var writtenSize = file.WriteFileData(bw.BaseStream, false);
                 sizeList.Add((int)writtenSize);
             }
 

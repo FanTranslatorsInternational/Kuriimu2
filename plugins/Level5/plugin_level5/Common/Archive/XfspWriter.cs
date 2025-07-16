@@ -20,7 +20,7 @@ namespace plugin_level5.Common.Archive
 
             // Write strings
             IDictionary<string, long> stringOffsets = CacheStrings(archiveData.Files);
-            Stream stringStream = WriteStrings(stringOffsets);
+            Stream stringStream = WriteStrings(stringOffsets, archiveData.StringCompression);
 
             long stringOffset = HeaderSize_ + archiveData.Files.Count * EntrySize_;
 
@@ -61,7 +61,7 @@ namespace plugin_level5.Common.Archive
             return result;
         }
 
-        private Stream WriteStrings(IDictionary<string, long> stringOffsets)
+        private Stream WriteStrings(IDictionary<string, long> stringOffsets, Level5CompressionMethod stringCompression)
         {
             var result = new MemoryStream();
 
@@ -76,7 +76,7 @@ namespace plugin_level5.Common.Archive
             }
 
             result.Position = 0;
-            Stream compressedResult = _compressor.Compress(result, Level5CompressionMethod.Lz10);
+            Stream compressedResult = _compressor.Compress(result, stringCompression);
 
             return compressedResult;
         }

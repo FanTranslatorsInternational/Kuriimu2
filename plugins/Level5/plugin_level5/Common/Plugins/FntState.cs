@@ -2,6 +2,7 @@
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.FileSystem;
+using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Font;
 using plugin_level5.Common.Font;
@@ -12,7 +13,7 @@ namespace plugin_level5.Common.Plugins
 {
     internal class FntState : ILoadFiles, ISaveFiles, IAddCharacters, IRemoveCharacters
     {
-        private readonly FontComposer _fontComposer = new();
+        private readonly IPluginFileManager _fileManager;
 
         private bool _isChanged;
 
@@ -27,11 +28,16 @@ namespace plugin_level5.Common.Plugins
 
         public bool ContentChanged => IsContentChanged();
 
+        public FntState(IPluginFileManager fileManager)
+        {
+            _fileManager = fileManager;
+        }
+
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream filestream = await fileSystem.OpenFileAsync(filePath);
 
-            var fontParser = new FontParser(loadContext.DialogManager!);
+            var fontParser = new FontParser(loadContext.DialogManager!, _fileManager);
             _fontImageData = await fontParser.Parse(filestream);
 
             if (_fontImageData is null)
@@ -71,8 +77,10 @@ namespace plugin_level5.Common.Plugins
                 ? new FontCtrGenerator()
                 : new FontDefaultGenerator();
 
+            var fontComposer = new FontComposer(_fileManager);
+
             _fontImageData = fontGenerator.Generate(_fontImageData, _characters);
-            _fontComposer.Compose(_fontImageData, fileStream);
+            await fontComposer.Compose(_fontImageData, fileStream);
 
             _isChanged = false;
         }

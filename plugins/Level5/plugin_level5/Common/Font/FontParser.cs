@@ -1,4 +1,5 @@
 ﻿using Konnect.Contract.Management.Dialog;
+using Konnect.Contract.Management.Files;
 using plugin_level5.Common.Archive;
 using plugin_level5.Common.Archive.Models;
 using plugin_level5.Common.Font.Models;
@@ -15,9 +16,9 @@ namespace plugin_level5.Common.Font
         private readonly FontReaderFactory _fontReaderFactory = new();
         private readonly ImageParser _imageParser;
 
-        public FontParser(IDialogManager dialogManager)
+        public FontParser(IDialogManager dialogManager, IPluginFileManager fileManager)
         {
-            _imageParser = new ImageParser(dialogManager);
+            _imageParser = new ImageParser(dialogManager, fileManager);
         }
 
         public async Task<FontImageData?> Parse(Stream input)

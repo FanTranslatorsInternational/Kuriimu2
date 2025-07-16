@@ -265,7 +265,7 @@ namespace plugin_grezzo.Archives
             writer.Write(header.fileTypeEntryOffset);
             writer.Write(header.fileEntryOffset);
             writer.Write(header.fileOffsetsOffset);
-            writer.Write(header.headerString);
+            writer.WriteString(header.headerString, writeNullTerminator: false);
         }
 
         private void WriteFileTypeEntry(ZarFileTypeEntry entry, BinaryWriterX writer)

@@ -1,5 +1,4 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
@@ -10,8 +9,8 @@ namespace plugin_atlus.N3DS.Archive
         public string magic;
         public int size;
         public int zero0;
-        public int zero1;
-        public int zero2;
+        public int extraDataOffset;
+        public int extraDataSize;
         public int dataStart;
     }
 
@@ -19,13 +18,6 @@ namespace plugin_atlus.N3DS.Archive
     {
         public string magic;
         public int size;
-    }
-
-    public class BamFileInfo
-    {
-        public int offset;
-        public int size;
-        public uint hash;
     }
 
     class BamSupport

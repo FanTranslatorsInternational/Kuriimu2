@@ -10,7 +10,7 @@ namespace plugin_level5.N3DS.Image
     public class Ztex
     {
         private const int HeaderSize_ = 8;
-        private const int EntrySize_ = 28;
+        private const int EntrySize_ = 0x56;
         private const int UnkEntrySize_ = 8;
 
         private ZtexHeader _header;
@@ -41,17 +41,23 @@ namespace plugin_level5.N3DS.Image
                 _unkEntries = ReadUnknownEntries(br, unkCount);
 
             // Add images
+            var encodingDefinition = ZtexSupport.GetEncodingDefinition();
+
             var result = new List<ImageFileInfo>();
             foreach (var entry in entries)
             {
+                var bitDepth = encodingDefinition.GetColorEncoding(entry.format)?.BitDepth ?? 1;
+
                 // Read image data
+                var imgDataSize = entry.width * entry.height * bitDepth / 8;
+
                 input.Position = entry.offset;
-                var imgData = br.ReadBytes(entry.dataSize);
+                var imgData = br.ReadBytes(imgDataSize);
 
                 // Read mip data
                 var mipData = new List<byte[]>();
                 for (var i = 1; i < entry.mipCount; i++)
-                    mipData.Add(br.ReadBytes(entry.dataSize >> (i * 2)));
+                    mipData.Add(br.ReadBytes(imgDataSize >> (i * 2)));
 
                 // Create image info
                 var imgInfo = new ImageFileInfo
@@ -158,7 +164,7 @@ namespace plugin_level5.N3DS.Image
                 height = reader.ReadInt16(),
                 mipCount = reader.ReadByte(),
                 format = reader.ReadByte(),
-                unk3 = reader.ReadByte()
+                unk3 = reader.ReadInt16()
             };
         }
 

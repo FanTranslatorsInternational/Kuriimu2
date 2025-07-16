@@ -10,7 +10,7 @@ namespace plugin_nintendo.Archives
         private const int HeaderSize_ = 0x1C;
         private const int FatoHeaderSize_ = 0xC;
         private const int FatbHeaderSize_ = 0xC;
-        private const int FatbEntrySize_ = 0xC;
+        private const int FatbEntrySize_ = 0x10;
         private const int FimbHeaderSize_ = 0xC;
 
         private ByteOrder _byteOrder;
@@ -78,7 +78,7 @@ namespace plugin_nintendo.Archives
             foreach (var file in files)
             {
                 var writtenSize = file.WriteFileData(output);
-                bw.WriteAlignment(4);
+                bw.WriteAlignment(4, 0xFF);
 
                 if (largestFileSize < writtenSize)
                     largestFileSize = (int)writtenSize;
@@ -229,7 +229,11 @@ namespace plugin_nintendo.Archives
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.headerSize);
+
+            writer.ByteOrder = ByteOrder.BigEndian;
             writer.Write(header.byteOrder);
+
+            writer.ByteOrder = (ByteOrder)header.byteOrder;
             writer.Write(header.minor);
             writer.Write(header.major);
             writer.Write(header.secCount);

@@ -101,9 +101,9 @@ namespace plugin_bandai_namco.Images
                 bw.Write(imageInfo.ImageInfo.ImageData);
 
                 // Add entry
-                imageInfo.Entry.paletteOffset = imageInfo.ImageInfo.PaletteData is null ? dataPosition : 0;
-                imageInfo.Entry.dataOffset = imageInfo.ImageInfo.PaletteData is null ? dataPosition + imageInfo.ImageInfo.PaletteData.Length : dataPosition;
-                imageInfo.Entry.dataSize = imageInfo.ImageInfo.ImageData.Length;
+                imageInfo.Entry.dataSize = imageInfo.ImageInfo.ImageData.Length + (imageInfo.ImageInfo.PaletteData?.Length ?? 0);
+                imageInfo.Entry.paletteOffset = imageInfo.ImageInfo.PaletteData is not null ? dataPosition : 0;
+                imageInfo.Entry.dataOffset = dataPosition + imageInfo.ImageInfo.PaletteData?.Length ?? dataPosition;
                 imageInfo.Entry.width = (short)imageInfo.ImageInfo.ImageSize.Width;
                 imageInfo.Entry.height = (short)imageInfo.ImageInfo.ImageSize.Height;
                 imageInfo.Entry.nameOffset = stringPosition;

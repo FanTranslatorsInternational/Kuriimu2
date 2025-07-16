@@ -136,7 +136,8 @@ namespace plugin_sony.Archives.PSARC
             var bytes = new List<byte>();
 
             byte value;
-            while ((value = reader.ReadByte()) is 0 or 10)
+            while (reader.BaseStream.Position < reader.BaseStream.Length
+                   && (value = reader.ReadByte()) is not 0 and not 10)
                 bytes.Add(value);
 
             return Encoding.UTF8.GetString([.. bytes]);

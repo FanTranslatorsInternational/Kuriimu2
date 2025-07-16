@@ -9,7 +9,7 @@ namespace plugin_bandai_namco.Archives
 {
     class IdxState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Idx _arc = new();
+        private readonly Idx _arc = new();
         private List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
@@ -27,7 +27,7 @@ namespace plugin_bandai_namco.Archives
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            var fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
             // Create new APK's where files are changed
             var apkStreams = new List<(UPath, Stream)>();

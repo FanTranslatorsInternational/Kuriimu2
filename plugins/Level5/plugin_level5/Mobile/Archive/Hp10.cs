@@ -75,6 +75,7 @@ namespace plugin_level5.Mobile.Archive
                 file.Entry.nameOffset = namePosition;
                 file.Entry.fileOffset = (uint)(dataPosition - dataOffset);
                 file.Entry.fileSize = (int)writtenSize;
+
                 entries.Add(file.Entry);
                 strings.Add(file.FilePath.ToRelative().FullName);
 

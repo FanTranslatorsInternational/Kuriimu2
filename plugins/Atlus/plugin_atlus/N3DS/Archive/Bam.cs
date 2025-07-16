@@ -7,9 +7,10 @@ namespace plugin_atlus.N3DS.Archive
 {
     class Bam
     {
-        private const int SubHeaderSize = 12;
+        private const int SubHeaderSize = 0xC;
 
         private BamHeader _header;
+        private byte[]? _extraData;
         private BamSubHeader _subHeader;
 
         public List<ArchiveFile> Load(Stream input)
@@ -18,6 +19,13 @@ namespace plugin_atlus.N3DS.Archive
 
             // Read the header
             _header = ReadHeader(binaryReader);
+
+            // Read extra data
+            if (_header.extraDataOffset is not 0)
+            {
+                input.Position = _header.extraDataOffset;
+                _extraData = binaryReader.ReadBytes(_header.extraDataSize);
+            }
 
             // Read the sub-header
             input.Position = _header.dataStart;
@@ -64,6 +72,13 @@ namespace plugin_atlus.N3DS.Archive
             output.Position = 0;
             _header.size = (int)output.Length;
             WriteHeader(_header, binaryWriter);
+
+            // Write extra data, if existing
+            if (_extraData is not null)
+            {
+                output.Position = _header.extraDataOffset;
+                binaryWriter.Write(_extraData);
+            }
         }
 
         private BamHeader ReadHeader(BinaryReaderX reader)
@@ -73,8 +88,8 @@ namespace plugin_atlus.N3DS.Archive
                 magic = reader.ReadString(4),
                 size = reader.ReadInt32(),
                 zero0 = reader.ReadInt32(),
-                zero1 = reader.ReadInt32(),
-                zero2 = reader.ReadInt32(),
+                extraDataOffset = reader.ReadInt32(),
+                extraDataSize = reader.ReadInt32(),
                 dataStart = reader.ReadInt32()
             };
         }
@@ -93,8 +108,8 @@ namespace plugin_atlus.N3DS.Archive
             writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.size);
             writer.Write(header.zero0);
-            writer.Write(header.zero1);
-            writer.Write(header.zero2);
+            writer.Write(header.extraDataOffset);
+            writer.Write(header.extraDataSize);
             writer.Write(header.dataStart);
         }
 

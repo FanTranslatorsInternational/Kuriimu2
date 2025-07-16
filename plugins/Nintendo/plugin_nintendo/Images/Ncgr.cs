@@ -35,8 +35,7 @@ namespace plugin_nintendo.Images
             var paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
 
             // Create image
-            var dataLength = _charHeader.tileCountX < 0 ? _charHeader.tileDataSize : _charHeader.tileCountX * _charHeader.tileCountY;
-            var data = ncgrBr.ReadBytes(dataLength);
+            var data = ncgrBr.ReadBytes(_charHeader.tileDataSize);
             var size = GetImageSize(_charHeader);
 
             var imageInfo = new ImageFileInfo

@@ -2,6 +2,7 @@
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
@@ -10,14 +11,18 @@ namespace plugin_level5.NDS.Archive
 {
     public class Gfsp
     {
-        private const int HeaderSize_ = 20;
+        private const int HeaderSize_ = 0x14;
+        private const int EntrySize_ = 0x8;
 
-        public List<ArchiveFile> Load(Stream input)
+        private int _type;
+
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
             var header = ReadHeader(br);
+            _type = header.ArchiveType;
 
             // Read entries
             input.Position = header.FileInfoOffset;
@@ -28,10 +33,10 @@ namespace plugin_level5.NDS.Archive
             using var nameBr = new BinaryReaderX(nameStream);
 
             // Add files
-            var result = new List<ArchiveFile>();
+            var result = new List<IArchiveFile>();
             foreach (var entry in entries)
             {
-                var fileStream = new SubStream(input, header.DataOffset + entry.FileOffset, entry.size);
+                var fileStream = new SubStream(input, header.DataOffset + entry.FileOffset, entry.FileSize);
 
                 nameBr.BaseStream.Position = entry.NameOffset;
                 var fileName = nameBr.ReadNullTerminatedString();
@@ -48,7 +53,7 @@ namespace plugin_level5.NDS.Archive
             return result;
         }
 
-        public void Save(Stream output, List<ArchiveFile> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
             var crc16 = Crc16.X25;
 
@@ -56,7 +61,7 @@ namespace plugin_level5.NDS.Archive
 
             // Calculate offsets
             var fileInfoOffset = HeaderSize_;
-            var nameOffset = fileInfoOffset + files.Count * HeaderSize_;
+            var nameOffset = fileInfoOffset + files.Count * EntrySize_;
             var dataOffset = (nameOffset + files.Sum(x => Encoding.ASCII.GetByteCount(x.FilePath.GetName()) + 1) + 3) & ~3;
 
             // Write files
@@ -76,7 +81,7 @@ namespace plugin_level5.NDS.Archive
                     hash = crc16.ComputeValue(file.FilePath.GetName()),
                     FileOffset = fileOffset,
                     NameOffset = stringOffset,
-                    size = (ushort)writtenSize
+                    FileSize = (int)writtenSize
                 });
 
                 fileOffset += (int)file.FileSize;
@@ -98,6 +103,7 @@ namespace plugin_level5.NDS.Archive
                 magic = "GFSP",
 
                 FileCount = (ushort)files.Count,
+                ArchiveType = _type,
 
                 FileInfoOffset = (ushort)fileInfoOffset,
                 FilenameTableOffset = (ushort)nameOffset,
@@ -119,12 +125,12 @@ namespace plugin_level5.NDS.Archive
                 magic = reader.ReadString(4),
                 fc1 = reader.ReadByte(),
                 fc2 = reader.ReadByte(),
-                infoOffsetUnshifted = reader.ReadByte(),
-                nameTableOffsetUnshifted = reader.ReadByte(),
-                dataOffsetUnshifted = reader.ReadByte(),
-                infoSizeUnshifted = reader.ReadByte(),
-                nameTableSizeUnshifted = reader.ReadByte(),
-                dataSizeUnshifted = reader.ReadByte()
+                infoOffsetUnshifted = reader.ReadUInt16(),
+                nameTableOffsetUnshifted = reader.ReadUInt16(),
+                dataOffsetUnshifted = reader.ReadUInt16(),
+                infoSizeUnshifted = reader.ReadUInt16(),
+                nameTableSizeUnshifted = reader.ReadUInt16(),
+                dataSizeUnshifted = reader.ReadUInt32()
             };
         }
 

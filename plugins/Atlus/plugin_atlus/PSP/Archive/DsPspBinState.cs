@@ -10,25 +10,22 @@ namespace plugin_atlus.PSP.Archive
     class DsPspBinState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private readonly DsPspBin _arc = new();
+        private List<IArchiveFile> _files;
 
-        public List<ArchiveFileInfo> _files;
-
-        public IReadOnlyList<IArchiveFile> Files => (IReadOnlyList<IArchiveFile>)_files;
+        public IReadOnlyList<IArchiveFile> Files => _files;
 
         public bool ContentChanged => _files.Any(x => x.ContentChanged);
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var fileStream = await fileSystem.OpenFileAsync(filePath);
+            Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             _files = _arc.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             _arc.Save(fileStream, _files);
-
-            return Task.CompletedTask;
         }
 
         public void ReplaceFile(IArchiveFile afi, Stream fileData)

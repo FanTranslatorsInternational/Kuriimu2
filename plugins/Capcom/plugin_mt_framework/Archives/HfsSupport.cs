@@ -48,6 +48,7 @@ namespace plugin_mt_framework.Archives
     class HfsStream : Stream
     {
         private readonly Stream _baseStream;
+        private readonly long _rawLength;
 
         private static readonly byte[] VerificationPlaceholder = new byte[VerificationSize];
         private static readonly IChecksum Hash = new HfsHash();
@@ -59,15 +60,16 @@ namespace plugin_mt_framework.Archives
         public override bool CanRead => _baseStream.CanRead;
         public override bool CanSeek => _baseStream.CanSeek;
         public override bool CanWrite => _baseStream.CanWrite;
-        public override long Length => GetLength();
+        public override long Length => _rawLength;
         public override long Position { get; set; }
 
-        public HfsStream(Stream baseStream)
+        public HfsStream(Stream baseStream, long rawLength)
         {
             if (!baseStream.CanRead)
                 throw new InvalidOperationException("This stream needs to be readable to update the hash blocks.");
 
             _baseStream = baseStream;
+            _rawLength = rawLength;
         }
 
         public override void Flush()

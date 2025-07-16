@@ -52,6 +52,7 @@ namespace plugin_dotemu.Images
             _header.width = imageInfo.ImageSize.Width;
             _header.height = imageInfo.ImageSize.Height;
 
+            bw.BaseStream.Position = 0;
             WriteHeader(_header, bw);
 
             // Write image data

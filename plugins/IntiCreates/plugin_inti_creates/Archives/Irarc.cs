@@ -47,7 +47,6 @@ namespace plugin_inti_creates.Archives
                 {
                     id = file.Entry.id,
                     flags = file.Entry.flags,
-
                     offset = (int)offset,
                     size = (int)writtenSize
                 });
@@ -113,7 +112,8 @@ namespace plugin_inti_creates.Archives
             {
                 id = reader.ReadInt32(),
                 offset = reader.ReadInt32(),
-                size = reader.ReadInt32()
+                size = reader.ReadInt32(),
+                flags = reader.ReadInt32()
             };
         }
 
@@ -128,6 +128,7 @@ namespace plugin_inti_creates.Archives
             writer.Write(entry.id);
             writer.Write(entry.offset);
             writer.Write(entry.size);
+            writer.Write(entry.flags);
         }
     }
 }

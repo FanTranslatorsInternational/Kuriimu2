@@ -7,7 +7,7 @@ namespace plugin_level5.Switch.Image
 {
     public class Nxtch
     {
-        private const int HeaderSize_ = 44;
+        private const int HeaderSize_ = 0x30;
 
         private NxtchHeader _header;
         private byte[] _unkData;
@@ -66,7 +66,7 @@ namespace plugin_level5.Switch.Image
             var dataOffset = 0x100;
 
             // Write image and mip data
-            var mipOffsets = new List<int> { dataOffset };
+            var mipOffsets = new List<int> { 0 };
 
             var dataPosition = dataOffset;
             output.Position = dataPosition;
@@ -75,7 +75,7 @@ namespace plugin_level5.Switch.Image
 
             if ((imageInfo.MipMapData?.Count ?? 0) > 0)
             {
-                foreach (byte[] mipData in imageInfo.MipMapData)
+                foreach (byte[] mipData in imageInfo.MipMapData!)
                 {
                     mipOffsets.Add(dataPosition - dataOffset);
                     bw.Write(mipData);
@@ -91,7 +91,7 @@ namespace plugin_level5.Switch.Image
             bw.Write(_unkData);
 
             // Write header
-            _header.mipMapCount = imageInfo.MipMapData?.Count ?? 0;
+            _header.mipMapCount = imageInfo.MipMapData?.Count + 1 ?? 1;
             _header.format = imageInfo.ImageFormat;
             _header.width = imageInfo.ImageSize.Width;
             _header.height = imageInfo.ImageSize.Height;

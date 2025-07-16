@@ -24,7 +24,7 @@ namespace plugin_grezzo.Archives
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             _gar.Save(output, _files);
         }
 

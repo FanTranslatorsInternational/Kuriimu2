@@ -1,12 +1,8 @@
 ﻿using System.Buffers.Binary;
-using Komponent.Contract.Aspects;
-using Komponent.Contract.Enums;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 using plugin_nintendo.Common.Compression;
-
-#pragma warning disable 649
 
 namespace plugin_nintendo.Archives
 {

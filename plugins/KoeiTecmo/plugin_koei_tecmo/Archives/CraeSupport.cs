@@ -6,7 +6,7 @@
         public int unk1;
         public int dataSize;
         public int entryOffset;
-        public int dataOffset;
+        public int entrySize;
         public int fileCount;
         public int unk2;
     }

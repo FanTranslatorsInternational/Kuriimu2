@@ -4,6 +4,7 @@ using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using SixLabors.ImageSharp;
+using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_spike_chunsoft.Images
 {
@@ -15,7 +16,7 @@ namespace plugin_spike_chunsoft.Images
 
         public List<ImageFileInfo> Load(Stream srdStream, Stream srdvStream)
         {
-            using var br = new BinaryReaderX(srdStream, Komponent.Contract.Enums.ByteOrder.BigEndian);
+            using var br = new BinaryReaderX(srdStream, ByteOrder.BigEndian);
 
             // Read sections
             var sections = new List<SrdSection>();
@@ -151,12 +152,17 @@ namespace plugin_spike_chunsoft.Images
 
                 var newTexSectionPosition = srdStream.Position;
                 srdStream.Position = texSectionPosition;
+
+                bw.ByteOrder = ByteOrder.BigEndian;
                 WriteHeader(imageInfo.Section.header, bw);
 
+                bw.ByteOrder = ByteOrder.LittleEndian;
                 texSectionPosition = (int)newTexSectionPosition;
             }
 
             srdStream.Position = srdStream.Length;
+
+            bw.ByteOrder = ByteOrder.BigEndian;
             WriteHeader(new SrdHeader { magic = "$CT0" }, bw);
 
             // Write file start

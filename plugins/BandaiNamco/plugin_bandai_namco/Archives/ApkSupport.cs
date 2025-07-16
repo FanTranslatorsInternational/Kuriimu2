@@ -187,6 +187,9 @@ namespace plugin_bandai_namco.Archives
 
     class ApkSupport
     {
+        private static long _largestFileOffset;
+        private static string _largestFileName;
+
         public static IEnumerable<IArchiveFile> EnumerateFiles(IList<Stream> streams, ApkTocEntry entry, UPath path, IList<ApkPackHeader> apkHeaders, IList<string> strings, IList<ApkTocEntry> entries)
         {
             var headerName = strings[apkHeaders[entry.headerIndex].stringIndex];
@@ -206,6 +209,12 @@ namespace plugin_bandai_namco.Archives
                 var stream = streams[entry.headerIndex];
                 if (stream == null)
                     yield break;
+
+                if (isCompressed && _largestFileOffset < entry.offset)
+                {
+                    _largestFileOffset = entry.offset;
+                    _largestFileName = (headerName / path.ToRelative() / name).FullName;
+                }
 
                 ArchiveFileInfo fileInfo;
                 if (isCompressed)

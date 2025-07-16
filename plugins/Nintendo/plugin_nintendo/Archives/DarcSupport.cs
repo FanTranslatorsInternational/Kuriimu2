@@ -113,7 +113,7 @@ namespace plugin_nintendo.Archives
                 // Write directory name
                 var directoryNameOffset = (int)_nameBw.BaseStream.Position;
                 var splittedDirectoryName = SplitPath(currentDirectory.Item1);
-                _nameBw.WriteString(splittedDirectoryName.Any() ? GetName(currentDirectory.Item1) : string.Empty, _nameEncoding, false);
+                _nameBw.WriteString(splittedDirectoryName.Any() ? GetName(currentDirectory.Item1) : string.Empty, _nameEncoding);
 
                 // Add directory entry
                 var currentDirectoryIndex = Entries.Count;
@@ -131,7 +131,7 @@ namespace plugin_nintendo.Archives
                 {
                     // Write file name
                     var nameOffset = (int)_nameBw.BaseStream.Position;
-                    _nameBw.WriteString(GetName(file.UnescapedPath), _nameEncoding, false);
+                    _nameBw.WriteString(GetName(file.UnescapedPath), _nameEncoding);
 
                     // Add file entry
                     var fileEntry = new DarcEntry

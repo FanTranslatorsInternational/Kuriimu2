@@ -1,7 +1,6 @@
 ﻿using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.FileSystem;
-using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File.Image;
@@ -11,26 +10,29 @@ namespace plugin_atlus.N3DS.Image
     class Spr3
     {
         private static readonly Guid CtpkId = Guid.Parse("5033920c-b6d9-4e44-8f3d-de8380cfce27");
-        private const int HeaderSize = 32;
-        private const int OffsetSize = 8;
+
+        private const int HeaderSize = 0x20;
+        private const int OffsetSize = 0x8;
+
+        private Spr3Header _header;
 
         private IList<byte[]> _entries;
         private IList<IFileState> _ctpkStates;
 
-        public IList<ImageFileInfo> Load(Stream input, IPluginFileManager manager)
+        public IReadOnlyList<IImageFile> Load(Stream input, IPluginFileManager manager)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header and offsets
-            var header = ReadHeader(br);
-            var ctpkOffsets = ReadOffsets(br, header.imgOffset, header.imgCount);
-            var entryOffsets = ReadOffsets(br, header.entryOffset, header.entryCount);
+            _header = ReadHeader(br);
+            var ctpkOffsets = ReadOffsets(br, _header.imgOffset, _header.imgCount);
+            var entryOffsets = ReadOffsets(br, _header.entryOffset, _header.entryCount);
 
             // Read entries and load CTPKs
             _entries = ReadEntries(br, entryOffsets);
             _ctpkStates = new List<IFileState>();
 
-            var images = new List<ImageFileInfo>();
+            var images = new List<IImageFile>();
             for (var i = 0; i < ctpkOffsets.Length; i++)
                 images.AddRange(LoadCtpk(input, manager, ctpkOffsets, i));
 
@@ -45,7 +47,7 @@ namespace plugin_atlus.N3DS.Image
             int imgOffset = HeaderSize;
             int entryOffsetsOffset = imgOffset + _ctpkStates.Count * OffsetSize;
             int entryOffset = entryOffsetsOffset + _entries.Count * OffsetSize;
-            int dataOffset = entryOffset + _entries.Sum(x => x.Length);
+            int dataOffset = (entryOffset + _entries.Sum(x => x.Length) + 0x3F) & ~0x3F;
 
             // Write CTPK data and capture their starting positions
             List<int> imgOffsets = WriteCtpkData(output, manager, dataOffset);
@@ -58,16 +60,13 @@ namespace plugin_atlus.N3DS.Image
             WriteOffsetTable(bw, imgOffset, imgOffsets);
 
             // Write header at the beginning of the stream
-            var header = new Spr3Header
-            {
-                entryOffset = entryOffsetsOffset,
-                entryCount = (short)_entries.Count,
-                imgOffset = imgOffset,
-                imgCount = (short)_ctpkStates.Count
-            };
+            _header.entryOffset = entryOffsetsOffset;
+            _header.entryCount = (short)_entries.Count;
+            _header.imgOffset = imgOffset;
+            _header.imgCount = (short)_ctpkStates.Count;
 
             output.Position = 0;
-            WriteHeader(header, bw);
+            WriteHeader(_header, bw);
         }
 
         private Spr3Header ReadHeader(BinaryReaderX reader)
@@ -82,7 +81,7 @@ namespace plugin_atlus.N3DS.Image
                 imgCount = reader.ReadInt16(),
                 entryCount = reader.ReadInt16(),
                 imgOffset = reader.ReadInt32(),
-                entryOffset = reader.ReadInt32(),
+                entryOffset = reader.ReadInt32()
             };
         }
 
@@ -130,7 +129,7 @@ namespace plugin_atlus.N3DS.Image
             return entries;
         }
 
-        private IEnumerable<ImageFileInfo> LoadCtpk(Stream input, IPluginFileManager manager, IList<Spr3Offset> ctpkOffsets, int index)
+        private IReadOnlyList<IImageFile> LoadCtpk(Stream input, IPluginFileManager manager, IList<Spr3Offset> ctpkOffsets, int index)
         {
             var currentOffset = ctpkOffsets[index].offset;
             long nextOffset = (index + 1) < ctpkOffsets.Count ? ctpkOffsets[index + 1].offset : input.Length;
@@ -139,13 +138,11 @@ namespace plugin_atlus.N3DS.Image
             using var ctpkStream = new SubStream(input, currentOffset, length);
             var loadResult = manager.LoadFile(new StreamFile { Stream = ctpkStream, Path = "file.ctpk" }, CtpkId).Result;
             if (loadResult.Status != LoadStatus.Successful)
-            {
                 throw new InvalidOperationException(loadResult.Status.ToString());
-            }
 
-            _ctpkStates.Add(loadResult.LoadedFileState);
+            _ctpkStates.Add(loadResult.LoadedFileState!);
             var pluginState = loadResult.LoadedFileState.PluginState as IImageFilePluginState;
-            return (IEnumerable<ImageFileInfo>)pluginState.Images;
+            return pluginState.Images;
         }
 
         private List<int> WriteCtpkData(Stream output, IPluginFileManager manager, int startingDataOffset)

@@ -23,7 +23,7 @@ namespace plugin_koei_tecmo.Archives
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             _x3.Save(fileStream, _files);
         }
 

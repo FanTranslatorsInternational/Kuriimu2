@@ -58,7 +58,7 @@ namespace plugin_nintendo.Images
 
         public void Save(Stream output, List<ImageFileInfo> imageInfos)
         {
-            using var bw = new BinaryWriterX(output);
+            using var bw = new BinaryWriterX(output, Encoding.Unicode);
 
             // Calculate offsets
             var dataOffset = (HeaderSize_ + _appTitles.Count * AppTitleSize_ + AppSettingsSize_ + 0xF) & ~0xF;
@@ -79,7 +79,7 @@ namespace plugin_nintendo.Images
         {
             return new SmdhHeader
             {
-                magic = reader.ReadString(4),
+                magic = reader.ReadString(4, Encoding.ASCII),
                 version = reader.ReadInt16(),
                 reserved = reader.ReadInt16()
             };
@@ -124,7 +124,7 @@ namespace plugin_nintendo.Images
 
         private void WriteHeader(SmdhHeader header, BinaryWriterX writer)
         {
-            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.WriteString(header.magic, Encoding.ASCII, writeNullTerminator: false);
             writer.Write(header.version);
             writer.Write(header.reserved);
         }

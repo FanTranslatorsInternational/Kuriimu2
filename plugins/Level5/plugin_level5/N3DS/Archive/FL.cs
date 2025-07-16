@@ -1,6 +1,7 @@
 ﻿using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Archive;
 using plugin_level5.Common.Compression;
 
 namespace plugin_level5.N3DS.Archive
@@ -8,9 +9,13 @@ namespace plugin_level5.N3DS.Archive
     public class FL
     {
         private int _fileCount;
-        private HashSet<int> _unusedIndexes = new();
 
-        public List<FLArchiveFile> Load(Stream input)
+        private int[] _offsets;
+        private int[] _uncompSizes;
+        private int[] _compSizes;
+        private bool[] _flags;
+
+        public List<IArchiveFile> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -19,45 +24,44 @@ namespace plugin_level5.N3DS.Archive
             input.Position += 4;
 
             // Read offsets
-            var offsets = ReadIntegers(br, _fileCount);
+            _offsets = ReadIntegers(br, _fileCount);
 
             // Read uncompressed sizes
-            var uncompSizes = ReadIntegers(br, _fileCount);
+            _uncompSizes = ReadIntegers(br, _fileCount);
 
             // Read compressed sizes
-            var compSizes = ReadIntegers(br, _fileCount);
+            _compSizes = ReadIntegers(br, _fileCount);
 
             // Read compression flags
-            var flags = ReadBooleans(br, _fileCount);
+            _flags = ReadBooleans(br, _fileCount);
 
             // Add files
             var index = 0;
 
-            var result = new List<FLArchiveFile>();
+            var result = new List<IArchiveFile>();
             for (var i = 0; i < _fileCount; i++)
             {
-                int fileSize = flags[i] ? compSizes[i] : uncompSizes[i];
+                int fileSize = _flags[i] ? _compSizes[i] : _uncompSizes[i];
+                int offset = _offsets[i];
+                int nextOffset = i + 1 >= _fileCount ? (int)input.Length : _offsets[i + 1];
 
                 // HINT: The archive can have the same offset multiple times in sequence.
                 // Only the last of those offsets is actually used, which would also mean, that the other offsets are left over from non-existent files
                 // Keep track of those repeating offsets for save integrity
-                if (fileSize == 0)
-                {
-                    _unusedIndexes.Add(i);
+                if (offset == nextOffset)
                     continue;
-                }
 
-                var fileStream = new SubStream(input, offsets[i], fileSize);
+                var fileStream = new SubStream(input, _offsets[i], fileSize);
                 var fileName = $"{index++:00000000}{FLSupport.DetermineExtension(fileStream)}";
 
                 ArchiveFileInfo fileInfo;
-                if (flags[i])
+                if (_flags[i])
                     fileInfo = new CompressedArchiveFileInfo
                     {
                         FileData = fileStream,
                         FilePath = fileName,
                         Compression = NintendoCompressor.GetConfiguration(NintendoCompressor.PeekCompressionMethod(fileStream)),
-                        DecompressedSize = uncompSizes[i]
+                        DecompressedSize = _uncompSizes[i]
                     };
                 else
                     fileInfo = new ArchiveFileInfo
@@ -72,7 +76,7 @@ namespace plugin_level5.N3DS.Archive
             return result;
         }
 
-        public void Save(Stream output, List<FLArchiveFile> files)
+        public void Save(Stream output, List<IArchiveFile> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -90,27 +94,30 @@ namespace plugin_level5.N3DS.Archive
             var compFlags = new bool[_fileCount];
 
             var dataPosition = dataOffset;
-            var lastIndex = 0;
 
-            for (var i = 0; i < _fileCount; i++)
+            var currentIndex = 0;
+            foreach (var file in files.Cast<FLArchiveFile>().OrderBy(f => f.Index))
             {
-                if (_unusedIndexes.Contains(i))
-                    continue;
-
                 // Write file data
                 output.Position = dataPosition;
-                var writtenSize = files[i].WriteFileData(output, true);
+                long writtenSize = file.WriteFileData(output, true);
                 bw.WriteAlignment(0x20);
 
-                while (lastIndex <= files[i].Index)
+                // Persist file info
+                while (currentIndex < file.Index)
                 {
-                    offsets[lastIndex] = dataPosition;
-                    uncompSizes[lastIndex] = (int)files[i].FileSize;
-                    compSizes[lastIndex] = (int)writtenSize;
-                    compFlags[lastIndex] = files[i].UsesCompression;
+                    offsets[currentIndex] = _offsets[currentIndex];
+                    uncompSizes[currentIndex] = _uncompSizes[currentIndex];
+                    compSizes[currentIndex] = _compSizes[currentIndex];
+                    compFlags[currentIndex] = _flags[currentIndex];
 
-                    lastIndex++;
+                    currentIndex++;
                 }
+
+                offsets[currentIndex] = dataPosition;
+                uncompSizes[currentIndex] = (int)file.FileSize;
+                compSizes[currentIndex] = (int)writtenSize;
+                compFlags[currentIndex] = file.UsesCompression;
 
                 dataPosition = (int)output.Position;
             }

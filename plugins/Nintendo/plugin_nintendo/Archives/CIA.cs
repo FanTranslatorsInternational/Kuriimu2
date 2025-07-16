@@ -539,7 +539,7 @@ namespace plugin_nintendo.Archives
             bw.Write(tmdHeader.reserved3);
             bw.Write(tmdHeader.accessRights);
             bw.Write(tmdHeader.titleVersion);
-            bw.Write(tmdHeader.titleVersion);
+            bw.Write(tmdHeader.contentCount);
             bw.Write(tmdHeader.bootContent);
             bw.Write(tmdHeader.padding);
             bw.Write(tmdHeader.sha256);

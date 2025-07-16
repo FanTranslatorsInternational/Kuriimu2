@@ -48,7 +48,7 @@ namespace plugin_shade.Images
                 ["PS Vita"] = PaletteEncodingsV2
             };
 
-        public static EncodingDefinition DetermineFormatMapping(IDialogManager dialogManager)
+        public static async Task<EncodingDefinition> DetermineFormatMapping(IDialogManager dialogManager)
         {
             // Re-uses some of the code used in the Imgc plugin
 
@@ -62,7 +62,7 @@ namespace plugin_shade.Images
                 Options = availablePlatforms
             };
 
-            dialogManager.ShowDialog([dialogField]);
+            await dialogManager.ShowDialog([dialogField]);
 
             var encodingDefinition = new EncodingDefinition();
             encodingDefinition.AddColorEncodings(EncodingsV1);

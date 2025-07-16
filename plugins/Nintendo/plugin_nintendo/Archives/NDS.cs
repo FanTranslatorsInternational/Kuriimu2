@@ -612,6 +612,7 @@ namespace plugin_nintendo.Archives
             writer.Write(header.arm7OverlayOffset);
             writer.Write(header.arm7OverlaySize);
             writer.Write(header.normalRegisterSettings);
+            writer.Write(header.secureRegisterSettings);
             writer.Write(header.iconOffset);
             writer.Write(header.secureAreaCrc);
             writer.Write(header.secureTransferTimeout);

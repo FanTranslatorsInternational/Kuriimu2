@@ -181,7 +181,7 @@ namespace plugin_nintendo.Archives
                 magic = reader.ReadString(4),
                 headerSize = reader.ReadInt16(),
                 entryCount = reader.ReadInt16(),
-                hashMultiplier = reader.ReadUInt16()
+                hashMultiplier = reader.ReadUInt32()
             };
         }
 
@@ -220,7 +220,11 @@ namespace plugin_nintendo.Archives
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.headerSize);
+
+            writer.ByteOrder = ByteOrder.BigEndian;
             writer.Write(header.byteOrder);
+
+            writer.ByteOrder = (ByteOrder)header.byteOrder;
             writer.Write(header.fileSize);
             writer.Write(header.dataOffset);
             writer.Write(header.unk1);

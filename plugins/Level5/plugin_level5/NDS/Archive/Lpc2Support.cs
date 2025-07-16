@@ -1,8 +1,4 @@
-﻿using Komponent.Contract.Aspects;
-
-#pragma warning disable 649
-
-namespace plugin_level5.NDS.Archive
+﻿namespace plugin_level5.NDS.Archive
 {
     struct Lpc2Header
     {

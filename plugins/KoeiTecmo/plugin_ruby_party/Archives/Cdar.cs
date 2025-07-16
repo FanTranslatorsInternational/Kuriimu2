@@ -61,15 +61,19 @@ namespace plugin_ruby_party.Archives
             // Write files
             output.Position = fileOffset;
 
+            var random = new Random();
+
             var entries = new List<CdarFileEntry>();
             foreach (var file in files)
             {
                 fileOffset = (int)output.Position;
                 var writtenSize = file.WriteFileData(output);
 
-                var random = new Random();
-                while (output.Position % 0x10 > 0)
-                    output.WriteByte((byte)random.Next());
+                if (files[^1] != file)
+                {
+                    while (output.Position % 0x10 > 0)
+                        output.WriteByte((byte)random.Next());
+                }
 
                 entries.Add(new CdarFileEntry
                 {

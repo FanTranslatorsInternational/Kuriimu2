@@ -78,10 +78,6 @@ namespace plugin_nintendo.Images
             output.Position = indexOffset;
             output.Write(imageInfo.ImageData);
 
-            // Write padding
-            output.Position = output.Length;
-            bw.WriteAlignment(0x200, 0xFF);
-
             // Update header
             UpdateHeaderHashes(output);
 

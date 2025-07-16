@@ -10,7 +10,7 @@ namespace plugin_level5.Switch.Archive
     // Game: Yo-kai Watch 4
     public class G4pk
     {
-        private const int HeaderSize_ = 54;
+        private const int HeaderSize_ = 64;
         private const int OffsetSize_ = 4;
         private const int LengthSize_ = 4;
         private const int HashSize_ = 4;
@@ -93,15 +93,16 @@ namespace plugin_level5.Switch.Archive
                 relativeStringOffset = (int)(bw.BaseStream.Position - stringOffsetPosition);
             }
 
-            var fileDataPosition = (bw.BaseStream.Position + 3) & ~3;
+            var fileDataPosition = (bw.BaseStream.Position + 15) & ~15;
 
             // Write file data
             bw.BaseStream.Position = fileDataPosition;
-            var fileOffset = new List<int>();
+
+            var fileOffsets = new List<int>();
             var fileSizes = new List<int>();
             foreach (var file in files)
             {
-                fileOffset.Add((int)((bw.BaseStream.Position - HeaderSize_) >> 2));
+                fileOffsets.Add((int)((bw.BaseStream.Position - HeaderSize_) >> 2));
 
                 var writtenSize = file.WriteFileData(bw.BaseStream, false);
                 bw.WriteAlignment(0x20);
@@ -111,7 +112,8 @@ namespace plugin_level5.Switch.Archive
 
             // Write file information
             bw.BaseStream.Position = fileOffsetsPosition;
-            WriteIntegers(fileOffset, bw);
+
+            WriteIntegers(fileOffsets, bw);
             WriteIntegers(fileSizes, bw);
             WriteUnsignedIntegers(fileHashes, bw);
 

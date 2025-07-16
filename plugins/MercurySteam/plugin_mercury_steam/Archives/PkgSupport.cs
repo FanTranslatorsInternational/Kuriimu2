@@ -53,10 +53,14 @@ namespace plugin_mercury_steam.Archives
 
         public static int DetermineAlignment(string magic)
         {
-            if (magic == "MMDL")
-                return 4;
+            switch (magic)
+            {
+                case "MTXT":
+                    return 0x80;
 
-            return 0x80;
+                default:
+                    return 0x4;
+            }
         }
     }
 }

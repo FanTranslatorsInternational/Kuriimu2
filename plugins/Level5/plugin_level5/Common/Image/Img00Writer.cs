@@ -16,16 +16,26 @@ namespace plugin_level5.Common.Image
             (int paddedWidth, int paddedHeight) = ((data.Width + 7) & ~7, (data.Height + 7) & ~7);
             int bitDepth = data.Data.Length * 8 / (paddedWidth * paddedHeight);
 
-            // Create tiles
-            (Stream dataStream, Stream tileStream) = SplitTiles(data.Data, data.LegacyData, bitDepth);
-
             // Compress palette data
             Stream? paletteStream = null;
             if (data.PaletteData != null)
                 paletteStream = _compressor.Compress(new MemoryStream(data.PaletteData), Level5CompressionMethod.Huffman4Bit);
 
-            // Compress tile data
-            tileStream = _compressor.Compress(tileStream, Level5CompressionMethod.Huffman4Bit);
+            // Create tile and image data
+            Stream dataStream;
+            Stream? tileStream = null;
+
+            if (data.Version.Platform is PlatformType.Android && data.Format is 0x2B)
+            {
+                dataStream = new MemoryStream(data.Data);
+            }
+            else
+            {
+                (dataStream, tileStream) = SplitTiles(data.Data, data.LegacyData, bitDepth);
+
+                // Compress tile data
+                tileStream = _compressor.Compress(tileStream, Level5CompressionMethod.Huffman4Bit);
+            }
 
             // Compress image data
             dataStream = _compressor.Compress(dataStream, Level5CompressionMethod.Lz10);
@@ -109,7 +119,7 @@ namespace plugin_level5.Common.Image
             ];
         }
 
-        private Img00ImageEntry[] CreateImageEntries(Img00PaletteEntry[] paletteEntries, Stream tileStream, Stream imageStream)
+        private Img00ImageEntry[] CreateImageEntries(Img00PaletteEntry[] paletteEntries, Stream? tileStream, Stream imageStream)
         {
             int tileOffset = paletteEntries.Length <= 0 ? 0 : paletteEntries[^1].offset + paletteEntries[^1].size;
             tileOffset = (tileOffset + 3) & ~3;
@@ -118,9 +128,9 @@ namespace plugin_level5.Common.Image
             [
                 new Img00ImageEntry
                 {
-                    tileOffset = tileOffset,
-                    tileSize = (int)tileStream.Length,
-                    dataOffset = (int)((tileOffset + tileStream.Length + 3) & ~3),
+                    tileOffset = tileStream is null ? 0 : tileOffset,
+                    tileSize = tileStream is null ? 0 : (int)tileStream.Length,
+                    dataOffset = tileStream is null ? 0 : (int)((tileOffset + tileStream.Length + 3) & ~3),
                     dataSize = (int)imageStream.Length
                 }
             ];
@@ -220,7 +230,7 @@ namespace plugin_level5.Common.Image
             writer.Write(imageEntry.dataSize);
         }
 
-        private void WriteData(Img00Header header, Stream? paletteStream, Stream tileStream, Stream dataStream, Stream output)
+        private void WriteData(Img00Header header, Stream? paletteStream, Stream? tileStream, Stream dataStream, Stream output)
         {
             using var writer = new BinaryWriterX(output, true);
 
@@ -232,8 +242,11 @@ namespace plugin_level5.Common.Image
                 writer.WriteAlignment(4);
             }
 
-            tileStream.CopyTo(output);
-            writer.WriteAlignment(4);
+            if (tileStream != null)
+            {
+                tileStream.CopyTo(output);
+                writer.WriteAlignment(4);
+            }
 
             dataStream.CopyTo(output);
             writer.WriteAlignment(4);
@@ -258,6 +271,8 @@ namespace plugin_level5.Common.Image
                     return 1;
 
                 case PlatformType.PsVita:
+                case PlatformType.Android:
+                case PlatformType.Switch:
                     return 0;
 
                 default:

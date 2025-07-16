@@ -17,7 +17,7 @@ namespace plugin_shade.Images
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
-            var encodingDefinition = ShtxSupport.DetermineFormatMapping(loadContext.DialogManager);
+            var encodingDefinition = await ShtxSupport.DetermineFormatMapping(loadContext.DialogManager!);
 
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             var img = _shtx.Load(fileStream);
@@ -27,7 +27,7 @@ namespace plugin_shade.Images
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.ReadWrite);
             _shtx.Save(fileStream, _images[0].ImageInfo);
         }
 

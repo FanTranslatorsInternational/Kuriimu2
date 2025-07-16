@@ -15,6 +15,11 @@ namespace plugin_level5.Common.Image
 
             // Header
             Img00Header header = ReadHeader(br);
+            var formatVersion = new FormatVersion
+            {
+                Platform = GetPlatform(header),
+                Version = GetVersion(header)
+            };
 
             // Palette entries
             input.Position = header.paletteInfoOffset;
@@ -29,36 +34,45 @@ namespace plugin_level5.Common.Image
             if (paletteEntries.Length > 0)
                 paletteData = DecompressPalette(br, header, paletteEntries[0]);
 
-            // Get tile table
-            Stream tileDataStream = DecompressTiles(br, header, imageEntries[0]);
-
             // Get image data
             Stream imageDataStream = DecompressImageData(br, header, imageEntries[0]);
 
-            // Combine tiles to full image data
-            (byte[] imageData, byte[]? legacyData) = CombineTiles(tileDataStream, imageDataStream, header.bitDepth);
-
-            // Split image data and mip map data
             var images = new byte[header.imageCount][];
 
-            var dataOffset = 0;
-            (int width, int height) = ((header.width + 7) & ~7, (header.height + 7) & ~7);
-            for (var i = 0; i < header.imageCount; i++)
-            {
-                images[i] = new byte[width * height * header.bitDepth / 8];
-                Array.Copy(imageData, dataOffset, images[i], 0, images[i].Length);
+            byte[]? legacyData = null;
 
-                (width, height) = (width >> 1, height >> 1);
-                dataOffset += images[i].Length;
+            if (formatVersion.Platform is PlatformType.Android && header.imageFormat is 0x2B)
+            {
+                images[0] = new byte[imageDataStream.Length];
+
+                var readData = 0;
+                while (readData < images[0].Length)
+                    readData += imageDataStream.Read(images[0], readData, Math.Min(2048, images[0].Length - readData));
+            }
+            else
+            {
+                // Get tile table
+                Stream tileDataStream = DecompressTiles(br, header, imageEntries[0]);
+
+                // Combine tiles to full image data
+                (byte[] imageData, legacyData) = CombineTiles(tileDataStream, imageDataStream, header.bitDepth);
+
+                // Split image data and mip map data
+                var dataOffset = 0;
+                (int width, int height) = ((header.width + 7) & ~7, (header.height + 7) & ~7);
+                for (var i = 0; i < header.imageCount; i++)
+                {
+                    images[i] = new byte[width * height * header.bitDepth / 8];
+                    Array.Copy(imageData, dataOffset, images[i], 0, images[i].Length);
+
+                    (width, height) = (width >> 1, height >> 1);
+                    dataOffset += images[i].Length;
+                }
             }
 
             var rawImageData = new ImageRawData
             {
-                Version = new FormatVersion
-                {
-                    Platform = GetPlatform(header),
-                    Version = GetVersion(header)
-                },
+                Version = formatVersion,
 
                 BitDepth = header.bitDepth,
                 Format = header.imageFormat,
@@ -69,7 +83,7 @@ namespace plugin_level5.Common.Image
                 LegacyData = legacyData,
 
                 Data = images[0],
-                MipMapData = images[1..],
+                MipMapData = images.Length > 1 ? images[1..] : [],
                 PaletteData = paletteData
             };
 
@@ -181,7 +195,7 @@ namespace plugin_level5.Common.Image
             using var tileDataReader = new BinaryReaderX(tileDataStream, true);
 
             int tileByteDepth = 64 * bitDepth / 8;
-            var entryByteLength = 2;
+            long tileEntryCount = tileDataStream.Length / 2;
             var readEntry = new Func<BinaryReaderX, int>(br => br.ReadInt16());
 
             // Read legacy head
@@ -193,11 +207,10 @@ namespace plugin_level5.Common.Image
             if (legacyIndicator == 0x453)
             {
                 tileLegacy = tileDataReader.ReadBytes(8);
-                entryByteLength = 4;
+                tileEntryCount = (tileDataStream.Length - 8) / 4;
                 readEntry = br => br.ReadInt32();
             }
 
-            long tileEntryCount = tileDataStream.Length / entryByteLength;
             var result = new byte[tileEntryCount * tileByteDepth];
 
             var tile = new byte[tileByteDepth];

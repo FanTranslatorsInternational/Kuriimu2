@@ -139,6 +139,7 @@ namespace plugin_arc_system_works.Archives
         private void WriteHeader(FPACHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.dataOffset);
             writer.Write(header.fileSize);
             writer.Write(header.fileCount);
             writer.Write(header.unk1);

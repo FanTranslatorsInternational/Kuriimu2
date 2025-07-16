@@ -175,7 +175,7 @@ namespace plugin_nintendo.Archives
             writer.Write(header.streamBufferSize);
             writer.Write(header.padding);
             writer.Write(header.magic);
-            writer.Write(header.gameName);
+            writer.WriteString(header.gameName, writeNullTerminator: false);
             writer.Write(header.dhOffset);
             writer.Write(header.dbgLoadAddress);
             writer.Write(header.unused1);

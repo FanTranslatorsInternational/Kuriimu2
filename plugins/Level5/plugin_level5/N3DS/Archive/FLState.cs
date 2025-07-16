@@ -9,8 +9,7 @@ namespace plugin_level5.N3DS.Archive
     class FLState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private readonly FL _arc = new();
-
-        private List<FLArchiveFile> _files;
+        private List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
         public bool ContentChanged => _files.Any(x => x.ContentChanged);

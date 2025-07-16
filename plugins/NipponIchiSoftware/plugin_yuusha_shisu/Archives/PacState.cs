@@ -23,7 +23,7 @@ namespace plugin_yuusha_shisu.Archives
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            Stream saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            Stream saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
             _pac.Save(saveStream, _files);
         }
 

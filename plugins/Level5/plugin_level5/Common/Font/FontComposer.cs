@@ -1,4 +1,5 @@
-﻿using plugin_level5.Common.Archive;
+﻿using Konnect.Contract.Management.Files;
+using plugin_level5.Common.Archive;
 using plugin_level5.Common.Archive.Models;
 using plugin_level5.Common.Font.Models;
 using plugin_level5.Common.Image;
@@ -8,11 +9,16 @@ namespace plugin_level5.Common.Font
 {
     internal class FontComposer
     {
-        private readonly ImageComposer _imageComposer = new();
+        private readonly IPluginFileManager _fileManager;
         private readonly FontWriterFactory _fontWriterFactory = new();
         private readonly ArchiveWriterFactory _archiveWriterFactory = new();
 
-        public void Compose(FontImageData data, Stream output)
+        public FontComposer(IPluginFileManager fileManager)
+        {
+            _fileManager = fileManager;
+        }
+
+        public async Task Compose(FontImageData data, Stream output)
         {
             var archiveData = new ArchiveData
             {
@@ -21,7 +27,7 @@ namespace plugin_level5.Common.Font
                 Files = new List<ArchiveNamedEntry>(2)
             };
 
-            AddImages(archiveData.Files, data);
+            await AddImages(archiveData.Files, data);
             AddFont(archiveData.Files, data);
 
             WriteFiles(archiveData, output);
@@ -34,13 +40,15 @@ namespace plugin_level5.Common.Font
             writer.Write(data, output);
         }
 
-        private void AddImages(IList<ArchiveNamedEntry> files, FontImageData fontData)
+        private async Task AddImages(IList<ArchiveNamedEntry> files, FontImageData fontData)
         {
             var index = 0;
             foreach (ImageData image in fontData.Images)
             {
+                var imageComposer = new ImageComposer(_fileManager);
+
                 var imageStream = new MemoryStream();
-                _imageComposer.Compose(image, imageStream);
+                await imageComposer.Compose(image, imageStream);
 
                 imageStream.Position = 0;
                 files.Add(new ArchiveNamedEntry

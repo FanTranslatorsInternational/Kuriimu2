@@ -68,6 +68,8 @@ namespace plugin_sega.Images
 
             bw.Write(imageInfo.PaletteData);
             bw.Write(imageInfo.ImageData);
+
+            WriteHeader(new HtexHeader { magic = "EOFC", data1 = 0x10 }, bw);
         }
 
         private HtexHeader ReadHeader(BinaryReaderX reader)

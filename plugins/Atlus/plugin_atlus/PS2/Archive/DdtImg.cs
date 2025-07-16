@@ -52,6 +52,7 @@ namespace plugin_atlus.PS2.Archive
             var entry = ReadEntry(reader);
 
             // Read name
+            reader.BaseStream.Position = entry.nameOffset;
             var name = reader.ReadNullTerminatedString();
 
             if (entry.entrySize >= 0)

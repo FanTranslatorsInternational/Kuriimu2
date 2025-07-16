@@ -16,12 +16,18 @@
 
         public ushort FileCount
         {
-            get => (ushort)((fc2 & 0xf) << 8 | fc1);
+            get => (ushort)((fc2 & 0x0F) << 8 | fc1);
             set
             {
                 fc2 = (byte)((fc2 & 0xF0) | ((value >> 8) & 0x0F));
                 fc1 = (byte)value;
             }
+        }
+
+        public int ArchiveType
+        {
+            get => fc2 >> 4;
+            set => fc2 = (byte)((value << 4) | (fc2 & 0xF));
         }
 
         public ushort FileInfoOffset
@@ -71,13 +77,23 @@
         public int NameOffset
         {
             get => tmp2 >> 4;
-            set => tmp2 = (ushort)(value << 4);
+            set => tmp2 = (ushort)((tmp2 & 0xF) | (value << 4));
         }
 
         public int FileOffset
         {
             get => tmp << 2;
             set => tmp = (ushort)(value >> 2);
+        }
+
+        public int FileSize
+        {
+            get => size | (((tmp2 >> 2) & 0x3) << 16);
+            set
+            {
+                size = (ushort)value;
+                tmp2 = (ushort)((tmp2 & 0xFFF3) | ((value >> 16) << 2));
+            }
         }
     }
 }

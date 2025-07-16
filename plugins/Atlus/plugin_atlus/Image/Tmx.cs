@@ -2,6 +2,7 @@
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using SixLabors.ImageSharp;
 using System.Text;
+using Kanvas.Contract.Encoding;
 
 namespace plugin_atlus.Image
 {
@@ -10,30 +11,32 @@ namespace plugin_atlus.Image
 
     class Tmx
     {
-        private static readonly int HeaderSize = 35;
+        private static readonly int HeaderSize = 0x24;
         private string _comment;
+
+        private TmxHeader _header;
 
         public ImageFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            TmxHeader header = ReadHeader(br);
+            _header = ReadHeader(br);
             _comment = br.ReadString(0x1C, Encoding.ASCII);
 
             // Read palette
-            var paletteSize = GetPaletteDataSize(header.paletteFormat, (TMXPixelFormat)header.imageFormat);
+            var paletteSize = GetPaletteDataSize(_header.paletteFormat, (TMXPixelFormat)_header.imageFormat);
             var paletteData = br.ReadBytes(paletteSize);
 
             // Read image data
-            var dataSize = GetImageDataSize(header.imageFormat, header.width, header.height);
+            var dataSize = GetImageDataSize(_header.imageFormat, _header.width, _header.height);
             var imageData = br.ReadBytes(dataSize);
 
             // Read mip data
             var mips = new List<byte[]>();
-            for (var i = 1; i <= header.mipmapCount; i++)
+            for (var i = 1; i <= _header.mipmapCount; i++)
             {
-                var mipSize = GetImageDataSize(header.imageFormat, header.width >> i, header.height >> i);
+                var mipSize = GetImageDataSize(_header.imageFormat, _header.width >> i, _header.height >> i);
                 mips.Add(br.ReadBytes(mipSize));
             }
 
@@ -42,19 +45,19 @@ namespace plugin_atlus.Image
             var imageInfo = new ImageFileInfo
             {
                 Name = "",
-                BitDepth = imageData.Length * 8 / (header.width * header.height),
+                BitDepth = imageData.Length * 8 / (_header.width * _header.height),
                 ImageData = imageData,
-                ImageFormat = header.imageFormat,
-                ImageSize = new Size(header.width, header.height),
-                MipMapData = header.mipmapCount > 0 ? mips : new List<byte[]>()
+                ImageFormat = _header.imageFormat,
+                ImageSize = new Size(_header.width, _header.height),
+                MipMapData = _header.mipmapCount > 0 ? mips : []
             };
 
             if (paletteData.Length > 0)
             {
-                SwizzlePaletteData(paletteData, header.paletteFormat);
+                var correctedPalette = SwizzlePaletteData(paletteData, _header.paletteFormat);
 
-                imageInfo.PaletteData = paletteData;
-                imageInfo.PaletteFormat = header.paletteFormat;
+                imageInfo.PaletteData = correctedPalette;
+                imageInfo.PaletteFormat = _header.paletteFormat;
             }
 
             return imageInfo;
@@ -80,28 +83,26 @@ namespace plugin_atlus.Image
             // Write palette data
             if (imageInfo.PaletteData != null)
             {
+                var correctedPalette = SwizzlePaletteData(imageInfo.PaletteData, imageInfo.PaletteFormat);
+
                 output.Position = paletteOffset;
-                output.Write(imageInfo.PaletteData);
+                output.Write(correctedPalette);
             }
 
             // Write comment
             output.Position = commentOffset;
-            bw.WriteString(_comment, Encoding.ASCII);
+            bw.WriteString(_comment, Encoding.ASCII, writeNullTerminator: false);
 
             // Write header
-            var header = new TmxHeader
-            {
-                magic = "TMX0",
-                imageFormat = (byte)imageInfo.ImageFormat,
-                paletteFormat = (byte)(imageInfo.PaletteData != null ? imageInfo.PaletteFormat : 0),
-                width = (short)imageInfo.ImageSize.Width,
-                height = (short)imageInfo.ImageSize.Height,
-                fileSize = (int)output.Length,
-                mipmapCount = (byte)imageInfo.MipMapData.Count,
-            };
+            _header.imageFormat = (byte)imageInfo.ImageFormat;
+            _header.paletteFormat = (byte)(imageInfo.PaletteData != null ? imageInfo.PaletteFormat : 0);
+            _header.width = (short)imageInfo.ImageSize.Width;
+            _header.height = (short)imageInfo.ImageSize.Height;
+            _header.fileSize = (int)output.Length;
+            _header.mipmapCount = (byte)imageInfo.MipMapData.Count;
 
             output.Position = 0;
-            WriteHeader(header, bw);
+            WriteHeader(_header, bw);
         }
 
         private TmxHeader ReadHeader(BinaryReaderX reader)
@@ -166,8 +167,8 @@ namespace plugin_atlus.Image
 
         private int GetImageDataSize(int imageFormat, int width, int height)
         {
-            var bitDepth = TmxSupport.ColorFormats.ContainsKey(imageFormat) ?
-                TmxSupport.ColorFormats[imageFormat].BitDepth :
+            var bitDepth = TmxSupport.ColorFormats.TryGetValue(imageFormat, out IColorEncoding? format) ?
+                format.BitDepth :
                 TmxSupport.IndexFormats[imageFormat].BitDepth;
 
             var dataSize = bitDepth * width * height / 8;
@@ -175,15 +176,18 @@ namespace plugin_atlus.Image
             return dataSize;
         }
 
-        private void SwizzlePaletteData(byte[] palette, int paletteFormat)
+        private byte[] SwizzlePaletteData(byte[] palette, int paletteFormat)
         {
+            var newPalette = new byte[palette.Length];
+            Array.Copy(palette, newPalette, palette.Length);
+
             var paletteEncoding = TmxSupport.ColorFormats[paletteFormat];
             var colorDepth = paletteEncoding.BitDepth / 8;
 
-            if (palette.Length <= 16 * colorDepth)
-                return;
+            if (newPalette.Length <= 16 * colorDepth)
+                return newPalette;
 
-            for (var i = 0; i < palette.Length; i += colorDepth * 32)
+            for (var i = 0; i < newPalette.Length; i += colorDepth * 32)
             {
                 var rowLength = colorDepth * 8;
 
@@ -191,11 +195,13 @@ namespace plugin_atlus.Image
                 var row2Index = i + rowLength * 2;
 
                 var tmp = new byte[rowLength];
-                Array.Copy(palette, row1Index, tmp, 0, rowLength);
+                Array.Copy(newPalette, row1Index, tmp, 0, rowLength);
 
-                Array.Copy(palette, row2Index, palette, row1Index, rowLength);
-                Array.Copy(tmp, 0, palette, row2Index, rowLength);
+                Array.Copy(newPalette, row2Index, newPalette, row1Index, rowLength);
+                Array.Copy(tmp, 0, newPalette, row2Index, rowLength);
             }
+
+            return newPalette;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace plugin_shade.Archives
 {
     class BinState : ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly Bin _bin=new();
+        private readonly Bin _bin = new();
         private List<IArchiveFile> _files;
 
         public IReadOnlyList<IArchiveFile> Files => _files;

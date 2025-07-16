@@ -55,13 +55,11 @@ namespace plugin_level5.NDS.Image
 
         public static EncodingDefinition GetEncodingDefinition()
         {
-            var encodingDefinition = new EncodingDefinition();
+            var encodingDefinition = new EncodingDefinition(); 
+            encodingDefinition.AddPaletteEncodings(PaletteFormats);
 
             foreach (int format in IndexFormats.Keys)
-                encodingDefinition.AddIndexEncoding(format, IndexFormats[format], new[] { 8 });
-
-            foreach (int format in PaletteFormats.Keys)
-                encodingDefinition.AddPaletteEncoding(format, PaletteFormats[format]);
+                encodingDefinition.AddIndexEncoding(format, IndexFormats[format], [8]);
 
             return encodingDefinition;
         }

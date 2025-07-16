@@ -20,7 +20,7 @@ namespace plugin_level5.Common.Archive
 
             // Write strings
             IDictionary<string, long> stringOffsets = CacheStrings(archiveData.Files);
-            Stream stringStream = WriteStrings(stringOffsets);
+            Stream stringStream = WriteStrings(stringOffsets, archiveData.StringCompression);
 
             long stringOffset = HeaderSize_ + archiveData.Files.Count * EntrySize_;
 
@@ -50,7 +50,7 @@ namespace plugin_level5.Common.Archive
             var result = new Dictionary<string, long>();
 
             var offset = 0;
-            foreach (ArchiveNamedEntry entry in entries)
+            foreach (ArchiveNamedEntry entry in entries.OrderBy(f => f.Name))
             {
                 if (!result.TryAdd(entry.Name, offset))
                     continue;
@@ -61,7 +61,7 @@ namespace plugin_level5.Common.Archive
             return result;
         }
 
-        private Stream WriteStrings(IDictionary<string, long> stringOffsets)
+        private Stream WriteStrings(IDictionary<string, long> stringOffsets, Level5CompressionMethod stringCompression)
         {
             var result = new MemoryStream();
 
@@ -76,7 +76,7 @@ namespace plugin_level5.Common.Archive
             }
 
             result.Position = 0;
-            Stream compressedResult = _compressor.Compress(result, Level5CompressionMethod.Lz10);
+            Stream compressedResult = _compressor.Compress(result, stringCompression);
 
             return compressedResult;
         }
@@ -86,37 +86,41 @@ namespace plugin_level5.Common.Archive
             var result = new XpckEntry[entries.Count];
 
             long localDataOffset = dataOffset;
-            for (var i = 0; i < entries.Count; i++)
+            var entryIndex = 0;
+
+            foreach (ArchiveNamedEntry entry in entries.OrderBy(f => f.Name))
             {
-                result[i] = new XpckEntry
+                Stream content = entry.Name == "RES.bin"
+                    ? _compressor.Compress(entry.Content, Level5CompressionMethod.Lz10)
+                    : entry.Content;
+
+                result[entryIndex++] = new XpckEntry
                 {
-                    hash = _crc32.ComputeValue(entries[i].Name),
-                    nameOffset = (ushort)stringOffsets[entries[i].Name],
+                    hash = _crc32.ComputeValue(entry.Name),
+                    nameOffset = (ushort)stringOffsets[entry.Name],
 
                     fileOffsetUpper = (byte)((localDataOffset - dataOffset) >> 18),
                     fileOffsetLower = (ushort)((localDataOffset - dataOffset) >> 2),
 
-                    fileSizeUpper = (byte)(entries[i].Content.Length >> 16),
-                    fileSizeLower = (ushort)entries[i].Content.Length
+                    fileSizeUpper = (byte)(content.Length >> 16),
+                    fileSizeLower = (ushort)content.Length
                 };
 
                 output.Position = localDataOffset;
 
-                entries[i].Content.Position = 0;
-                entries[i].Content.CopyTo(output);
+                content.Position = 0;
+                content.CopyTo(output);
 
-                // TODO: Recompress RES.bin
-
-                long lengthRemainder = entries[i].Content.Length % 4;
+                long lengthRemainder = content.Length % 4;
                 if (lengthRemainder > 0)
                 {
-                    output.Write(new byte[lengthRemainder]);
-                    localDataOffset += entries[i].Content.Length + lengthRemainder;
+                    output.Write(new byte[4 - lengthRemainder]);
+                    localDataOffset += (content.Length + 3) & ~3;
                 }
                 else
                 {
                     output.Write(new byte[4]);
-                    localDataOffset += entries[i].Content.Length + 4;
+                    localDataOffset += content.Length + 4;
                 }
             }
 
@@ -125,7 +129,7 @@ namespace plugin_level5.Common.Archive
 
         private void WriteEntries(IList<XpckEntry> entries, BinaryWriterX writer)
         {
-            foreach (XpckEntry entry in entries)
+            foreach (XpckEntry entry in entries.OrderBy(e => e.hash))
                 WriteEntry(entry, writer);
         }
 
@@ -133,10 +137,8 @@ namespace plugin_level5.Common.Archive
         {
             writer.Write(entry.hash);
             writer.Write(entry.nameOffset);
-
             writer.Write(entry.fileOffsetLower);
             writer.Write(entry.fileSizeLower);
-
             writer.Write(entry.fileOffsetUpper);
             writer.Write(entry.fileSizeUpper);
         }
@@ -154,19 +156,18 @@ namespace plugin_level5.Common.Archive
 
                 infoSize = (ushort)((entries.Count * EntrySize_) >> 2),
                 nameTableSize = (ushort)(nameSize >> 2),
-                dataSize = (ushort)(dataSize >> 2)
+                dataSize = (uint)(dataSize >> 2)
             };
         }
 
         private void WriteHeader(XpckHeader header, BinaryWriterX writer)
         {
-            writer.WriteString(header.magic, Encoding.ASCII, false, false);
+            writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.fileCountAndType);
 
             writer.Write(header.infoOffset);
             writer.Write(header.nameTableOffset);
             writer.Write(header.dataOffset);
-
             writer.Write(header.infoSize);
             writer.Write(header.nameTableSize);
             writer.Write(header.dataSize);

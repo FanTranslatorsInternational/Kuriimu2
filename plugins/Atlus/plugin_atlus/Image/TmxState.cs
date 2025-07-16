@@ -20,8 +20,8 @@ namespace plugin_atlus.Image
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
-            EncodingDefinition encodingDefinition = TmxSupport.GetEncodingDefinition();
-            _images = new List<ImageFile> { new ImageFile(_img.Load(fileStream), encodingDefinition) };
+
+            _images = [new ImageFile(_img.Load(fileStream), TmxSupport.GetEncodingDefinition())];
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

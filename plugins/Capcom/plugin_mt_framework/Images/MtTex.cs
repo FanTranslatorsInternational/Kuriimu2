@@ -479,7 +479,7 @@ namespace plugin_mt_framework.Images
                     if ((imageInfo.MipMapData?.Count ?? 0) <= 0)
                         continue;
 
-                    foreach (var mipData in imageInfo.MipMapData)
+                    foreach (var mipData in imageInfo.MipMapData!)
                     {
                         bw.Write(mipPosition);
                         mipPosition += mipData.Length;
@@ -492,8 +492,9 @@ namespace plugin_mt_framework.Images
             {
                 bw.Write(imageInfo.ImageData);
 
-                foreach (var mipData in imageInfo.MipMapData)
-                    bw.Write(mipData);
+                if (imageInfo.MipMapData is not null)
+                    foreach (var mipData in imageInfo.MipMapData)
+                        bw.Write(mipData);
             }
 
             // Update header
@@ -527,7 +528,7 @@ namespace plugin_mt_framework.Images
                 if ((imageInfo.MipMapData?.Count ?? 0) <= 0)
                     continue;
 
-                foreach (var mipData in imageInfo.MipMapData)
+                foreach (var mipData in imageInfo.MipMapData!)
                 {
                     bw.Write(mipPosition);
                     mipPosition += mipData.Length;
@@ -539,8 +540,9 @@ namespace plugin_mt_framework.Images
             {
                 bw.Write(imageInfo.ImageData);
 
-                foreach (var mipData in imageInfo.MipMapData)
-                    bw.Write(mipData);
+                if (imageInfo.MipMapData is not null)
+                    foreach (var mipData in imageInfo.MipMapData)
+                        bw.Write(mipData);
             }
 
             // Update header
@@ -559,25 +561,28 @@ namespace plugin_mt_framework.Images
             bw.BaseStream.Position = HeaderSize_;
 
             // Write total tex size
-            bw.Write(imageInfo.ImageData.Length + imageInfo.MipMapData.Sum(m => m.Length));
+            bw.Write(imageInfo.ImageData.Length + (imageInfo.MipMapData?.Sum(m => m.Length) ?? 0));
 
             // Write mip offsets
             var mipPosition = 0;
             bw.Write(mipPosition);
             mipPosition += imageInfo.ImageData.Length;
 
-            if ((imageInfo.MipMapData?.Count ?? 0) > 1)
-                foreach (var mipData in imageInfo.MipMapData)
+            if ((imageInfo.MipMapData?.Count ?? 0) > 0)
+            {
+                foreach (var mipData in imageInfo.MipMapData!)
                 {
                     bw.Write(mipPosition);
                     mipPosition += mipData.Length;
                 }
+            }
 
             // Write image data
             bw.Write(imageInfo.ImageData);
 
-            foreach (var mipData in imageInfo.MipMapData)
-                bw.Write(mipData);
+            if (imageInfo.MipMapData is not null)
+                foreach (var mipData in imageInfo.MipMapData)
+                    bw.Write(mipData);
 
             // Update header
             _header.format = (byte)imageInfo.ImageFormat;
@@ -607,18 +612,21 @@ namespace plugin_mt_framework.Images
             bw.Write(mipPosition);
             mipPosition += imageInfo.ImageData.Length;
 
-            if ((imageInfo.MipMapData?.Count ?? 0) > 1)
-                foreach (var mipData in imageInfo.MipMapData)
+            if ((imageInfo.MipMapData?.Count ?? 0) > 0)
+            {
+                foreach (var mipData in imageInfo.MipMapData!)
                 {
                     bw.Write(mipPosition);
                     mipPosition += mipData.Length;
                 }
+            }
 
             // Write image data
             bw.Write(imageInfo.ImageData);
 
-            foreach (var mipData in imageInfo.MipMapData)
-                bw.Write(mipData);
+            if (imageInfo.MipMapData is not null)
+                foreach (var mipData in imageInfo.MipMapData)
+                    bw.Write(mipData);
 
             // Update header
             if (version == 0x87)
@@ -664,8 +672,8 @@ namespace plugin_mt_framework.Images
                     bw.Write(imageInfo.ImageData);
 
                     // Write mip data
-                    if ((imageInfo.MipMapData?.Count ?? 0) > 1)
-                        foreach (var mipData in imageInfo.MipMapData)
+                    if ((imageInfo.MipMapData?.Count ?? 0) > 0)
+                        foreach (var mipData in imageInfo.MipMapData!)
                             bw.Write(mipData);
 
                     texOffsets.Add((int)texOffset);
@@ -682,6 +690,7 @@ namespace plugin_mt_framework.Images
                 bw.BaseStream.Position = HeaderSize_;
                 WriteIntegers(texOffsets, bw);
                 WriteIntegers(texSizes, bw);
+
                 // Update header format
                 _mobileHeader.format = imageInfos[0].ImageFormat == 0xFD ? (byte)0x0C : (byte)imageInfos[0].ImageFormat;
             }
@@ -692,8 +701,8 @@ namespace plugin_mt_framework.Images
                 bw.Write(imageInfos[0].ImageData);
 
                 // Write mip data
-                if ((imageInfos[0].MipMapData?.Count ?? 0) > 1)
-                    foreach (var mipData in imageInfos[0].MipMapData)
+                if ((imageInfos[0].MipMapData?.Count ?? 0) > 0)
+                    foreach (var mipData in imageInfos[0].MipMapData!)
                         bw.Write(mipData);
 
                 // Update header format

@@ -15,6 +15,7 @@ namespace plugin_kadokawa.Images
 
             // Read header
             _header = ReadHeader(br);
+            br.SeekAlignment(0x20);
 
             // Read image data
             var imageData = br.ReadBytes(_header.dataSize);

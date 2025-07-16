@@ -56,13 +56,13 @@ namespace plugin_inti_creates.Archives
             switch (savePath.GetExtensionWithDot())
             {
                 case ".irlst":
-                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create);
-                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create);
+                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create, FileAccess.Write);
+                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create, FileAccess.Write);
                     break;
 
                 default:
-                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create);
-                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create);
+                    lstStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / lstName, FileMode.Create, FileAccess.Write);
+                    arcStream = await fileSystem.OpenFileAsync(savePath.GetDirectory() / arcName, FileMode.Create, FileAccess.Write);
                     break;
             }
 

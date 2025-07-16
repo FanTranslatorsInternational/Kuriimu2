@@ -7,7 +7,7 @@ namespace plugin_dotemu.Archives
     class Sor4Entry
     {
         public string path;
-        public int offset;
+        public uint offset;
         public int flags;
         public int compSize;
     }
@@ -47,7 +47,7 @@ namespace plugin_dotemu.Archives
             return new Sor4Entry
             {
                 path = reader.ReadString(),
-                offset = reader.ReadInt32(),
+                offset = reader.ReadUInt32(),
                 flags = reader.ReadInt32(),
                 compSize = reader.ReadInt32()
             };

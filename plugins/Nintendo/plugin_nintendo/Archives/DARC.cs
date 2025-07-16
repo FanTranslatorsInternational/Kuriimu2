@@ -109,7 +109,9 @@ namespace plugin_nintendo.Archives
             foreach (var (darcEntry, afi) in entries.Where(x => x.Item2 != null))
             {
                 var alignment = 4;
-                if (afi.FilePath.GetExtensionWithDot() == ".bclim" || afi.FilePath.GetExtensionWithDot() == ".arc" || afi.FilePath.GetExtensionWithDot() == ".snd")
+                if (afi.FilePath.GetExtensionWithDot() == ".bclim"
+                    || afi.FilePath.GetExtensionWithDot() == ".arc"
+                    || afi.FilePath.GetExtensionWithDot() == ".snd")
                     alignment = 0x80;
 
                 bw.WriteAlignment(alignment);
@@ -132,10 +134,10 @@ namespace plugin_nintendo.Archives
                 byteOrder = (ushort)_byteOrder,
                 headerSize = 0x1C,
                 version = 0x1000000,
-                tableOffset = 0x1C,
-                dataOffset = entries.Where(x => x.Item2 != null).Select(x => x.Item1.offset).Min(),
                 fileSize = (int)bw.BaseStream.Length,
-                tableLength = entries.Count * EntrySize_ + (int)nameStream.Length
+                tableOffset = 0x1C,
+                tableLength = entries.Count * EntrySize_ + (int)nameStream.Length,
+                dataOffset = entries.Where(x => x.Item2 != null).Select(x => x.Item1.offset).Min()
             };
 
             bw.BaseStream.Position = 0;
@@ -180,7 +182,11 @@ namespace plugin_nintendo.Archives
         private void WriteHeader(DarcHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
+
+            writer.ByteOrder = ByteOrder.BigEndian;
             writer.Write(header.byteOrder);
+
+            writer.ByteOrder = (ByteOrder)header.byteOrder;
             writer.Write(header.headerSize);
             writer.Write(header.version);
             writer.Write(header.fileSize);

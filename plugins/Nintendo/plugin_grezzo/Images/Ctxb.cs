@@ -145,7 +145,7 @@ namespace plugin_grezzo.Images
             {
                 magic = reader.ReadString(4),
                 fileSize = reader.ReadInt32(),
-                chunkCount = reader.ReadInt32(),
+                chunkCount = reader.ReadInt64(),
                 chunkOffset = reader.ReadInt32(),
                 texDataOffset = reader.ReadInt32()
             };

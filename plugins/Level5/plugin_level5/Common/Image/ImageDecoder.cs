@@ -8,7 +8,6 @@ using Konnect.Contract.Management.Dialog;
 using Konnect.Contract.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
 using plugin_level5.Common.Image.Models;
-using plugin_level5.Common.Plugins;
 using SixLabors.ImageSharp;
 using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
@@ -35,7 +34,6 @@ namespace plugin_level5.Common.Image
             {
                 Version = imageData.Version,
                 Image = GetMainImage(imageData, definition),
-                Mipmaps = GetMipMaps(imageData, definition),
                 LegacyData = imageData.LegacyData
             };
         }
@@ -48,6 +46,7 @@ namespace plugin_level5.Common.Image
                 ImageSize = new Size(imageData.Width, imageData.Height),
                 ImageFormat = imageData.Format,
                 ImageData = imageData.Data,
+                MipMapData = imageData.MipMapData,
                 RemapPixels = options => new ImgSwizzle(options, imageData.Version.Platform)
             };
 
@@ -59,43 +58,6 @@ namespace plugin_level5.Common.Image
             }
 
             return new ImageFile(imageInfo, definition);
-        }
-
-        private IImageFile[] GetMipMaps(ImageRawData imageData, EncodingDefinition definition)
-        {
-            if ((imageData.MipMapData?.Length ?? 0) <= 0)
-                return [];
-
-            var result = new List<IImageFile>();
-
-            int width = imageData.Width >> 1;
-            int height = imageData.Height >> 1;
-
-            foreach (byte[] mipmap in imageData.MipMapData!)
-            {
-                var imageInfo = new ImageFileInfo
-                {
-                    BitDepth = imageData.BitDepth,
-                    ImageSize = new Size(width, height),
-                    ImageFormat = imageData.Format,
-                    ImageData = mipmap,
-                    RemapPixels = options => new ImgSwizzle(options, imageData.Version.Platform)
-                };
-
-                if (imageData.PaletteFormat >= 0)
-                {
-                    imageInfo.PaletteBitDepth = imageData.PaletteBitDepth;
-                    imageInfo.PaletteFormat = imageData.PaletteFormat;
-                    imageInfo.PaletteData = imageData.PaletteData;
-                }
-
-                result.Add(new ImageFile(imageInfo, definition));
-
-                width = imageData.Width >> 1;
-                height = imageData.Height >> 1;
-            }
-
-            return result.ToArray();
         }
 
         private async Task<EncodingDefinition> GetEncodingDefinition(ImageRawData imageData)
@@ -256,6 +218,7 @@ namespace plugin_level5.Common.Image
             var result = new EncodingDefinition();
 
             result.AddColorEncoding(0x00, new Rgba(8, 8, 8, 8, "ABGR"));
+            result.AddColorEncoding(0x0E, ImageFormats.A8());
 
             return result;
         }

@@ -16,7 +16,7 @@ namespace plugin_grezzo.Archives
         private const int Gar2FileEntrySize_ = 0xC;
 
         private const int Gar5FileTypeEntrySize_ = 0x20;
-        private const int Gar5FileTypeInfoSize_ = 0xc;
+        private const int Gar5FileTypeInfoSize_ = 0xC;
         private const int Gar5FileEntrySize_ = 0x10;
 
         private byte _headerVersion;
@@ -311,6 +311,7 @@ namespace plugin_grezzo.Archives
                 // Write file type entry
                 bw.BaseStream.Position = fileTypeEntryOffset;
                 WriteGar5FileTypeEntry(fileTypeEntry.Item1, bw);
+                bw.WriteAlignment(0x20);
 
                 fileTypeEntryOffset = (int)bw.BaseStream.Position;
             }
@@ -386,7 +387,7 @@ namespace plugin_grezzo.Archives
         {
             return new GarHeader
             {
-                magic = reader.ReadString(4),
+                magic = reader.ReadString(3),
                 version = reader.ReadByte(),
                 fileSize = reader.ReadUInt32(),
                 fileTypeCount = reader.ReadInt16(),
@@ -469,10 +470,7 @@ namespace plugin_grezzo.Archives
             var result = new Gar5FileEntry[count];
 
             for (var i = 0; i < count; i++)
-            {
                 result[i] = ReadGar5FileEntry(reader);
-                reader.SeekAlignment(0x20);
-            }
 
             return result;
         }

@@ -24,7 +24,7 @@ namespace plugin_nintendo.Archives
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+            Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.ReadWrite);
             _ncch.Save(output, _files);
         }
 

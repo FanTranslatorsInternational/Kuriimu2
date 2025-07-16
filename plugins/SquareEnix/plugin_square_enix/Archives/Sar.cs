@@ -88,7 +88,11 @@ namespace plugin_square_enix.Archives
                     dataStream.Position += HeaderSize * 2;
 
                 using var streamToWrite = new MemoryStream();
-                var length = file.WriteFileData(streamToWrite, true);
+                var length = file.WriteFileData(streamToWrite);
+
+                streamToWrite.Position = 0;
+                streamToWrite.CopyTo(dataStream);
+
                 var alignedSize = (length + 3) & ~3;
 
                 // Write compression headers
@@ -109,7 +113,12 @@ namespace plugin_square_enix.Archives
                 }
 
                 // Add entry
-                entries.Add(new SarEntry { offset = dataPosition - dataOffset, size = (int)(dataStream.Position - dataPosition) });
+                var entry = new SarEntry
+                {
+                    offset = dataPosition - dataOffset,
+                    size = (int)(dataStream.Position - dataPosition)
+                };
+                entries.Add(entry);
 
                 dataPosition = (int)dataStream.Position;
             }

@@ -67,10 +67,15 @@ namespace plugin_level5.Mobile.Archive
             {
                 // Write file data
                 Stream outputRegion = new SubStream(output, dataPosition, file.FileSize);
-                if (file.ContentChanged && file.FilePath.GetExtensionWithDot() != ".mp4")
-                    outputRegion = new Arc1CryptoStream(outputRegion, (uint)dataPosition);
 
-                file.GetFinalStream().CopyTo(outputRegion);
+                Stream finalStream = file.GetFinalStream();
+                if (finalStream is Arc1CryptoStream cryptoStream && cryptoStream.OriginalPosition == (uint)dataPosition)
+                    cryptoStream.BaseStream.CopyTo(outputRegion);
+                else
+                {
+                    outputRegion = new Arc1CryptoStream(outputRegion, (uint)dataPosition);
+                    finalStream.CopyTo(outputRegion);
+                }
 
                 // Add entry
                 entries.Add(new Arc1FileEntry

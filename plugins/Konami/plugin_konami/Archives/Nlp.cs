@@ -229,7 +229,7 @@ namespace plugin_konami.Archives
         private void WriteMetas(IList<NlpMeta> metas, BinaryWriterX writer)
         {
             foreach (NlpMeta meta in metas)
-                WriteMetas(metas, writer);
+                WriteMeta(meta, writer);
         }
 
         private void WriteMeta(NlpMeta entry, BinaryWriterX writer)

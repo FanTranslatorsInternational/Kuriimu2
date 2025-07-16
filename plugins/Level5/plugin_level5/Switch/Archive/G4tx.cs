@@ -10,9 +10,9 @@ namespace plugin_level5.Switch.Archive
     // Hash: Crc32.Default
     public class G4tx
     {
-        private const int HeaderSize_ = 96;
-        private const int EntrySize_ = 48;
-        private const int SubEntrySize_ = 24;
+        private const int HeaderSize_ = 0x60;
+        private const int EntrySize_ = 0x30;
+        private const int SubEntrySize_ = 0x18;
 
         private G4txHeader _header;
         private IList<G4txEntry> _entries;
@@ -166,7 +166,7 @@ namespace plugin_level5.Switch.Archive
 
             // Write header
             _header.textureCount = (short)files.Count;
-            _header.tableSize = stringContentPosition - HeaderSize_;
+            _header.tableSize = (stringContentPosition - HeaderSize_ + 3) & ~3;
             _header.textureDataSize = (int)output.Length - dataOffset;
             _header.subTextureCount = (byte)subEntries.Length;
             _header.totalCount = (short)(_header.textureCount + _header.subTextureCount);
@@ -274,7 +274,7 @@ namespace plugin_level5.Switch.Archive
         {
             return new NxtchHeader
             {
-                magic = reader.ReadString(4),
+                magic = reader.ReadString(8),
                 textureDataSize = reader.ReadInt32(),
                 unk1 = reader.ReadInt32(),
                 unk2 = reader.ReadInt32(),

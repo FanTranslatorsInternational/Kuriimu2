@@ -44,7 +44,7 @@ namespace plugin_level5.Common.Plugins
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new FntState();
+            return new FntState(pluginFileManager);
         }
     }
 }

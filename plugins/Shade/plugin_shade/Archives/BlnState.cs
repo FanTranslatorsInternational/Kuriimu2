@@ -48,13 +48,13 @@ namespace plugin_shade.Archives
             switch (savePath.GetName())
             {
                 case "mcb1.bln":
-                    dataOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
-                    indexOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb0.bln", FileMode.Create);
+                    dataOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.ReadWrite);
+                    indexOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb0.bln", FileMode.Create, FileAccess.ReadWrite);
                     break;
 
                 default:
-                    indexOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
-                    dataOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb1.bln", FileMode.Create);
+                    indexOutput = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.ReadWrite);
+                    dataOutput = await fileSystem.OpenFileAsync(savePath.GetDirectory() / "mcb1.bln", FileMode.Create, FileAccess.ReadWrite);
                     break;
             }
 

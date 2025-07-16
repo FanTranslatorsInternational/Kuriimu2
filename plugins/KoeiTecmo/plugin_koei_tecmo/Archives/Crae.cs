@@ -76,7 +76,7 @@ namespace plugin_koei_tecmo.Archives
             WriteEntries(entries, bw);
 
             // Write header
-            _header.dataOffset = dataOffset;
+            _header.entrySize = dataOffset - HeaderSize;
             _header.entryOffset = entryOffset;
             _header.fileCount = files.Count;
             _header.dataSize = (int)(output.Length - dataOffset);
@@ -93,7 +93,7 @@ namespace plugin_koei_tecmo.Archives
                 unk1 = reader.ReadInt32(),
                 dataSize = reader.ReadInt32(),
                 entryOffset = reader.ReadInt32(),
-                dataOffset = reader.ReadInt32(),
+                entrySize = reader.ReadInt32(),
                 fileCount = reader.ReadInt32(),
                 unk2 = reader.ReadInt32()
             };
@@ -125,7 +125,7 @@ namespace plugin_koei_tecmo.Archives
             writer.Write(header.unk1);
             writer.Write(header.dataSize);
             writer.Write(header.entryOffset);
-            writer.Write(header.dataOffset);
+            writer.Write(header.entrySize);
             writer.Write(header.fileCount);
             writer.Write(header.unk2);
         }
@@ -140,7 +140,7 @@ namespace plugin_koei_tecmo.Archives
         {
             writer.Write(entry.offset);
             writer.Write(entry.size);
-            writer.Write(entry.name);
+            writer.WriteString(entry.name, writeNullTerminator: false);
         }
     }
 }

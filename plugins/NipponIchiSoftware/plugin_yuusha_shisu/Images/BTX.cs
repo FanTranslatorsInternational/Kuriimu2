@@ -90,8 +90,9 @@ namespace plugin_yuusha_shisu.Images
             bw.Write(imageInfo.ImageData);
 
             // Write mip levels
-            foreach (var mipData in imageInfo.MipMapData)
-                bw.Write(mipData);
+            if (imageInfo.MipMapData is not null)
+                foreach (var mipData in imageInfo.MipMapData)
+                    bw.Write(mipData);
 
             // Write palette data
             if (imageInfo.PaletteData is not null)

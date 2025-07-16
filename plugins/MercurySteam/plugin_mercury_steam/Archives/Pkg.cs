@@ -42,9 +42,8 @@ namespace plugin_mercury_steam.Archives
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
-            var dataAlignment = PkgSupport.DetermineAlignment((files[0] as PkgArchiveFile).Type);
             var entryOffset = HeaderSize;
-            var dataOffset = (entryOffset + files.Count * EntrySize + dataAlignment - 1) & ~(dataAlignment - 1);
+            var dataOffset = (entryOffset + files.Count * EntrySize + 0x7F) & ~0x7F;
 
             // Write files
             var entries = new List<PkgEntry>();

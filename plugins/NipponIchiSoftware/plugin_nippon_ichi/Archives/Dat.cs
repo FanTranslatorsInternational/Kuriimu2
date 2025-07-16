@@ -61,7 +61,7 @@ namespace plugin_nippon_ichi.Archives
                 {
                     offset = dataPosition,
                     size = (int)file.FileSize,
-                    name = file.FilePath.GetName(),
+                    name = file.FilePath.GetName().PadRight(0x20, '\0'),
                     unk1 = file.Entry.unk1
                 });
 
@@ -82,8 +82,8 @@ namespace plugin_nippon_ichi.Archives
             return new DatHeader
             {
                 magic = reader.ReadString(8),
-                fileCount = reader.ReadInt32(),
-                zero0 = reader.ReadInt32()
+                zero0 = reader.ReadInt32(),
+                fileCount = reader.ReadInt32()
             };
         }
 
@@ -111,8 +111,8 @@ namespace plugin_nippon_ichi.Archives
         private void WriteHeader(DatHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
-            writer.Write(header.fileCount);
             writer.Write(header.zero0);
+            writer.Write(header.fileCount);
         }
 
         private void WriteEntries(IList<DatEntry> entries, BinaryWriterX writer)

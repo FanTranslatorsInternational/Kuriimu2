@@ -1,6 +1,4 @@
-﻿using Komponent.Contract.Aspects;
-
-namespace plugin_grezzo.Archives
+﻿namespace plugin_grezzo.Archives
 {
     struct GarHeader
     {

@@ -1,11 +1,9 @@
 ﻿using Kanvas;
-using Komponent.Contract.Aspects;
 using Konnect.Plugin.File.Image;
 using Komponent.Contract.Enums;
 
 namespace plugin_nintendo.Images
 {
-    [Alignment(0x20)]
     struct BnrHeader
     {
         public short version;

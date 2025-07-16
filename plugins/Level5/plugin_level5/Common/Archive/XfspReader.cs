@@ -19,6 +19,7 @@ namespace plugin_level5.Common.Archive
             XfspEntry[] entries = ReadEntries(br, header.fileCountAndType & 0xFFF);
 
             Stream compressedNameStream = new SubStream(input, header.nameTableOffset << 2, header.nameTableSize << 2);
+            Level5CompressionMethod compression = _decompressor.PeekCompressionType(compressedNameStream, 0);
             Stream nameStream = _decompressor.Decompress(compressedNameStream, 0);
 
             using var nameReader = new BinaryReaderX(nameStream);
@@ -28,6 +29,7 @@ namespace plugin_level5.Common.Archive
             {
                 ArchiveType = ArchiveType.Xfsp,
                 ContentType = (byte)(header.fileCountAndType >> 0xC),
+                StringCompression = compression,
                 Files = files
             };
         }

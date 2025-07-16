@@ -67,6 +67,7 @@ namespace plugin_mt_framework.Archives
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, MtArcPlatform.LittleEndian);
                 file.Entry.CompSize = (int)fileStream.Length;
+                
                 entries.Add(file.Entry);
 
                 filePosition += (int)fileStream.Length;

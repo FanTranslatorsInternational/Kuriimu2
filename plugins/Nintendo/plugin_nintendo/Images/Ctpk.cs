@@ -50,7 +50,7 @@ namespace plugin_nintendo.Images
             {
                 // Read image data
                 br.BaseStream.Position = _header.texSecOffset + texEntries[i].texOffset;
-                var imageData = br.ReadBytes(texEntries[i].texDataSize);
+                var imageData = br.ReadBytes(dataSizes[i][0]);
 
                 // Read mip maps
                 var mipMaps = Enumerable.Range(1, texEntries[i].mipLvl - 1)
@@ -114,7 +114,7 @@ namespace plugin_nintendo.Images
                     imageFormat = info.ImageFormat,
                     mipLvl = (byte)((info.MipMapData?.Count ?? 0) + 1),
                     nameOffset = namePosition,
-                    texDataSize = info.ImageData.Length,
+                    texDataSize = info.ImageData.Length + info.MipMapData.Sum(x => x.Length),
                     texOffset = texSecPosition,
                     timeStamp = info.Entry.timeStamp,
                     sizeOffset = sizePosition >> 2,

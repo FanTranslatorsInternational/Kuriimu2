@@ -91,7 +91,7 @@ namespace plugin_mt_framework.Archives
         public override string FileName
         {
             get => fileName.TrimEnd('\0');
-            set => fileName = value;
+            set => fileName = value.Replace('/', '\\').PadRight(0x40, '\0');
         }
 
         public override uint ExtensionHash
@@ -131,7 +131,7 @@ namespace plugin_mt_framework.Archives
         public override string FileName
         {
             get => fileName.TrimEnd('\0');
-            set => fileName = value;
+            set => fileName = value.Replace('/', '\\').PadRight(0x80, '\0');
         }
 
         public override uint ExtensionHash
@@ -172,7 +172,7 @@ namespace plugin_mt_framework.Archives
         public override string FileName
         {
             get => fileName.TrimEnd('\0');
-            set => fileName = value;
+            set => fileName = value.Replace('/', '\\').PadRight(0x40, '\0');
         }
 
         public override uint ExtensionHash

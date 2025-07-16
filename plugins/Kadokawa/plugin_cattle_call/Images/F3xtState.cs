@@ -58,6 +58,8 @@ namespace plugin_cattle_call.Images
 
             if (magic != "F3XT")
             {
+                input.Position = 0;
+
                 _wasCompressed = false;
                 return input;
             }

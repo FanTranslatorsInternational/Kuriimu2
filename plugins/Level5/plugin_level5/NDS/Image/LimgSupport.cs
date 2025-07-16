@@ -36,9 +36,9 @@ namespace plugin_level5.NDS.Image
     {
         public static IDictionary<int, (IIndexEncoding, int[])> LimgFormats = new Dictionary<int, (IIndexEncoding, int[])>
         {
-            [0] = (new Kanvas.Encoding.Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 }),
-            [1] = (new Kanvas.Encoding.Index(8), new[] { 0 }),
-            [2] = (new Kanvas.Encoding.Index(5, 3), new[] { 0 }),
+            [0] = (new Kanvas.Encoding.Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), [0]),
+            [1] = (new Kanvas.Encoding.Index(8), [0]),
+            [2] = (new Kanvas.Encoding.Index(5, 3), [0]),
         };
 
         public static IDictionary<int, IColorEncoding> LimgPaletteFormats = new Dictionary<int, IColorEncoding>
@@ -49,12 +49,10 @@ namespace plugin_level5.NDS.Image
         public static EncodingDefinition GetEncodingDefinition()
         {
             var encodingDefinition = new EncodingDefinition();
+            encodingDefinition.AddPaletteEncodings(LimgPaletteFormats);
 
             foreach (int format in LimgFormats.Keys)
                 encodingDefinition.AddIndexEncoding(format, LimgFormats[format].Item1, LimgFormats[format].Item2);
-
-            foreach (int format in LimgPaletteFormats.Keys)
-                encodingDefinition.AddPaletteEncoding(format, LimgPaletteFormats[format]);
 
             return encodingDefinition;
         }

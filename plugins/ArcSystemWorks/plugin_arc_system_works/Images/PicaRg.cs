@@ -54,8 +54,8 @@ namespace plugin_arc_system_works.Images
             _header.height = (short)imageInfo.ImageSize.Height;
 
             var paddedSize = Kanvas.SizePadding.PowerOfTwo(imageInfo.ImageSize);
-            _header.width = (short)paddedSize.Width;
-            _header.height = (short)paddedSize.Height;
+            _header.paddedWidth = (short)paddedSize.Width;
+            _header.paddedHeight = (short)paddedSize.Height;
 
             output.Position = 0;
             WriteHeader(_header, bw);
