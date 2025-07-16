@@ -1,28 +1,26 @@
 ﻿using System.Buffers.Binary;
 
-// https://stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
-// Online tool to check implementation: https://crccalc.com
-//      This tool seems to utilize a different approach to applying the polynomial.
-//      There are 2 ways a polynomial can be read and applied, read from LSB to MSB, or vice versa
-//      Therefore, depending on the implementation, e.g X25 can have a valid polynomial of 0x8404 or 0x1021
-//      If the polynomials of any CRC16 implementation from the link above is used, its bits have to be reversed, to work properly with this algorithm.
 namespace Kryptography.Checksum.Crc
 {
     public class Crc16 : Checksum<ushort>
     {
         // https://crccalc.com
-        public static Crc16 X25 => new Crc16(0x8408, 0xFFFF, 0xFFFF);
-        public static Crc16 ModBus => new Crc16(0xA001, 0xFFFF, 0x0000);
+        public static Crc16 X25 => new Crc16(0x1021, 0xFFFF, 0xFFFF, true, true);
+        public static Crc16 ModBus => new Crc16(0x8005, 0xFFFF, 0x0000, true, true);
 
         private readonly ushort _polynomial;
         private readonly ushort _initial;
         private readonly ushort _xorOut;
+        private readonly bool _reflectIn;
+        private readonly bool _reflectOut;
 
-        private Crc16(ushort polynomial, ushort initial, ushort xorOut)
+        private Crc16(ushort polynomial, ushort initial, ushort xorOut, bool reflectIn, bool reflectOut)
         {
             _polynomial = polynomial;
             _initial = initial;
             _xorOut = xorOut;
+            _reflectIn = reflectIn;
+            _reflectOut = reflectOut;
         }
 
         protected override ushort CreateInitialValue()
@@ -37,14 +35,22 @@ namespace Kryptography.Checksum.Crc
 
         protected override void ComputeInternal(Span<byte> input, ref ushort result)
         {
-            foreach (var value in input)
+            foreach (byte value in input)
             {
-                result ^= value;
-                for (var k = 0; k < 8; k++)
-                    result = (result & 1) > 0 ?
-                        (ushort)(result >> 1 ^ _polynomial) :
-                        (ushort)(result >> 1);
+                byte curByte = _reflectIn ? ReflectByte(value) : value;
+                result ^= (ushort)(curByte << 8);
+
+                for (var i = 0; i < 8; i++)
+                {
+                    if ((result & 0x8000) != 0)
+                        result = (ushort)((result << 1) ^ _polynomial);
+                    else
+                        result <<= 1;
+                }
             }
+
+            if (_reflectOut)
+                result = ReflectUShort(result);
         }
 
         protected override byte[] ConvertResult(ushort result)
@@ -53,6 +59,28 @@ namespace Kryptography.Checksum.Crc
             BinaryPrimitives.WriteUInt16BigEndian(buffer, result);
 
             return buffer;
+        }
+
+        private static byte ReflectByte(byte b)
+        {
+            byte result = 0;
+            for (var i = 0; i < 8; i++)
+            {
+                if ((b & (1 << i)) != 0)
+                    result |= (byte)(1 << (7 - i));
+            }
+            return result;
+        }
+
+        private static ushort ReflectUShort(ushort value)
+        {
+            ushort result = 0;
+            for (var i = 0; i < 16; i++)
+            {
+                if ((value & (1 << i)) != 0)
+                    result |= (ushort)(1 << (15 - i));
+            }
+            return result;
         }
     }
 }

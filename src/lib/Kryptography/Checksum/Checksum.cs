@@ -74,12 +74,10 @@ namespace Kryptography.Checksum
             var result = CreateInitialValue();
 
             var buffer = new byte[4096];
+
             int readSize;
-            do
-            {
-                readSize = input.Read(buffer);
-                ComputeInternal(buffer, ref result);
-            } while (readSize > 0);
+            while ((readSize = input.Read(buffer)) > 0)
+                ComputeInternal(buffer.AsSpan(0, readSize), ref result);
 
             FinalizeResult(ref result);
 
