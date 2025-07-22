@@ -15,31 +15,26 @@ namespace plugin_atlus.PSP.Archive
 
             var sizeList = new List<int>();
 
-            // Read fileCount
+            // Read file count
             int fileCount = br.ReadInt32();
 
-            // Read pointers
-            int entryPosition = fileCount * 4;
-
             // Read sizes
-            for (int i = 0; i < fileCount; i++)
-            {
+            for (var i = 0; i < fileCount; i++)
                 sizeList.Add(br.ReadInt32());
-            }
 
             // Add files
+            int dataPosition = (fileCount * 4 + 4 + 0xF) & ~0xF;
+
             var result = new List<IArchiveFile>();
-            for (int i = 0; i < fileCount; i++)
+            for (var i = 0; i < fileCount; i++)
             {
-                var fileStream = new SubStream(input, entryPosition, sizeList[i]);
-                string name = $"{i:X8}.bin";
-                entryPosition += sizeList[i];
-                
                 result.Add(new ArchiveFile(new ArchiveFileInfo
                 {
-                    FilePath = name,
-                    FileData = fileStream
+                    FilePath = $"{i:X8}.bin",
+                    FileData = new SubStream(input, dataPosition, sizeList[i])
                 }));
+
+                dataPosition = (dataPosition + sizeList[i] + 0xF) & ~0xF;
             }
 
             return result;
@@ -49,27 +44,25 @@ namespace plugin_atlus.PSP.Archive
         {
             using var bw = new BinaryWriterX(output);
 
-            // Calculations
-            int entryPosition = files.Count * 4;
-
-            // Write fileCount
-            bw.Write(files.Count);
-
             // Write data
-            output.Position = entryPosition;
+            output.Position = (files.Count * 4 + 4 + 0xF) & ~0xF;
+
             var sizeList = new List<int>();
             foreach (IArchiveFile file in files)
             {
-                var writtenSize = file.WriteFileData(bw.BaseStream, false);
-                sizeList.Add((int)writtenSize);
+                var writtenSize = (int)file.WriteFileData(bw.BaseStream, false);
+                sizeList.Add(writtenSize);
+
+                bw.WriteAlignment(0x10);
             }
 
+            // Write fileCount
+            output.Position = 0;
+            bw.Write(files.Count);
+
             // Write sizes
-            output.Position = 0x4;
             foreach (int size in sizeList)
-            {
                 bw.Write(size);
-            }
         }
     }
 }

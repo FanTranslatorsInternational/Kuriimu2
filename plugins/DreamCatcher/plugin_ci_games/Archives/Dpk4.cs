@@ -6,7 +6,7 @@ using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 
-namespace plugin_lemon_interactive.Archives
+namespace plugin_ci_games.Archives
 {
     public class Dpk4
     {

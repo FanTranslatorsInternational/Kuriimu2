@@ -20,7 +20,7 @@ namespace plugin_mt_framework.Images
         {
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            var platform = MtTexSupport.DeterminePlatform(fileStream, loadContext.DialogManager);
+            var platform = await MtTexSupport.DeterminePlatform(fileStream, loadContext.DialogManager);
 
             _images = _tex.Load(fileStream, platform)
                 .Select(IImageFile (x) => new ImageFile(x, ShouldLock(platform), MtTexSupport.GetEncodingDefinition(platform))).ToList();

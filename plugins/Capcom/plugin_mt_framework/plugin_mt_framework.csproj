@@ -15,9 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.1.12" />
-    <PackageReference Include="Konnect" Version="2.1.30" />
-    <PackageReference Include="Kryptography" Version="2.1.6" />
+    <PackageReference Include="Kaligraphy" Version="2.1.13" />
+    <PackageReference Include="Kanvas" Version="2.1.14" />
+    <PackageReference Include="Konnect" Version="2.1.32" />
+    <PackageReference Include="Kryptography" Version="2.1.9" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 
-namespace plugin_lemon_interactive.Archives
+namespace plugin_ci_games.Archives
 {
     class Dpk4State : ILoadFiles, ISaveFiles, IReplaceFiles
     {

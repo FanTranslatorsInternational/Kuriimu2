@@ -258,7 +258,7 @@ namespace plugin_mt_framework.Images
             };
         }
 
-        public static MtTexPlatform DeterminePlatform(Stream file, IDialogManager dialogManager)
+        public static async Task<MtTexPlatform> DeterminePlatform(Stream file, IDialogManager dialogManager)
         {
             using var br = new BinaryReaderX(file, true);
 
@@ -308,7 +308,7 @@ namespace plugin_mt_framework.Images
                         DefaultValue = MtTexPlatform.Pc.ToString(),
                         Options = [MtTexPlatform.Pc.ToString(), MtTexPlatform.Switch.ToString()]
                     };
-                    dialogManager.ShowDialog([selection]);
+                    await dialogManager.ShowDialog([selection]);
 
                     return Enum.Parse<MtTexPlatform>(selection.Result);
 

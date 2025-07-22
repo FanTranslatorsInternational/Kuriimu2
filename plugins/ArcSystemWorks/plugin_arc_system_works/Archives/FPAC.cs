@@ -3,14 +3,14 @@ using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Extensions;
-using Konnect.Plugin.File.Archive;
+using static ICSharpCode.SharpZipLib.Zip.ExtendedUnixData;
 
 namespace plugin_arc_system_works.Archives
 {
     class FPAC
     {
         private static readonly int HeaderSize = 0x20;
-        private static readonly int EntrySizeWithoutName = 0xC;
+        private static readonly int EntrySize = 0xC;
 
         private FPACTableStructure _tableStruct;
 
@@ -26,11 +26,11 @@ namespace plugin_arc_system_works.Archives
             foreach (var entry in _tableStruct.entries)
             {
                 var subStream = new SubStream(input, _tableStruct.header.dataOffset + entry.offset, entry.size);
-                result.Add(new ArchiveFile(new ArchiveFileInfo
+                result.Add(new FpacArchiveFile(new ArchiveFileInfo
                 {
-                    FilePath = entry.fileName.Trim('\0'),
+                    FilePath = entry.fileName is null ? $"{entry.fileId:X8}.bin" : entry.fileName.Trim('\0'),
                     FileData = subStream
-                }));
+                }, entry));
             }
 
             return result;
@@ -40,30 +40,26 @@ namespace plugin_arc_system_works.Archives
         {
             using var bw = new BinaryWriterX(output);
 
-            var maxNameLength = files.Max(x => x.FilePath.ToRelative().GetName().Length + 1);
-            maxNameLength = maxNameLength % 4 == 0 ? maxNameLength + 4 : (maxNameLength + 3) & ~3;
-
             // Calculate offsets
-            var fileOffset = HeaderSize + files.Count * ((maxNameLength + EntrySizeWithoutName + 0xF) & ~0xF);
+            var entrySize = EntrySize;
+            if ((_tableStruct.header.flags & FpacFlags.HasHash) != 0)
+                entrySize += 4;
+
+            var fileOffset = HeaderSize + files.Count * ((_tableStruct.header.nameBufferSize + entrySize + 0xF) & ~0xF);
 
             // Write files
             var entries = new List<FPACEntry>();
 
             var filePosition = fileOffset;
-            for (var i = 0; i < files.Count; i++)
+            foreach (FpacArchiveFile file in files.Cast<FpacArchiveFile>())
             {
-                var file = files[i];
-
                 output.Position = filePosition;
-                var writtenSize = file.WriteFileData(output);
+                var writtenSize = file.WriteFileData(output, true);
 
-                entries.Add(new FPACEntry
-                {
-                    fileName = file.FilePath.GetName().PadRight(maxNameLength, '\0'),
-                    fileId = i,
-                    offset = filePosition - fileOffset,
-                    size = (int)writtenSize
-                });
+                file.Entry.offset = filePosition - fileOffset;
+                file.Entry.size = (int)writtenSize;
+
+                entries.Add(file.Entry);
 
                 filePosition += (int)writtenSize;
             }
@@ -73,7 +69,6 @@ namespace plugin_arc_system_works.Archives
             _tableStruct.header.dataOffset = fileOffset;
             _tableStruct.header.fileCount = files.Count;
             _tableStruct.header.fileSize = (int)output.Length;
-            _tableStruct.header.nameBufferSize = maxNameLength;
 
             output.Position = 0;
             WriteStruct(_tableStruct, bw);
@@ -87,7 +82,7 @@ namespace plugin_arc_system_works.Archives
             return new FPACTableStructure
             {
                 header = header,
-                entries = ReadEntries(reader, header.fileCount, header.nameBufferSize)
+                entries = ReadEntries(reader, header.fileCount, header.nameBufferSize, header.flags)
             };
         }
 
@@ -99,33 +94,42 @@ namespace plugin_arc_system_works.Archives
                 dataOffset = reader.ReadInt32(),
                 fileSize = reader.ReadInt32(),
                 fileCount = reader.ReadInt32(),
-                unk1 = reader.ReadInt32(),
+                flags = (FpacFlags)reader.ReadUInt32(),
                 nameBufferSize = reader.ReadInt32()
             };
         }
 
-        private FPACEntry[] ReadEntries(BinaryReaderX reader, int count, int bufferSize)
+        private FPACEntry[] ReadEntries(BinaryReaderX reader, int count, int bufferSize, FpacFlags flags)
         {
             var result = new FPACEntry[count];
 
             for (var i = 0; i < count; i++)
             {
-                result[i] = ReadEntry(reader, bufferSize);
+                result[i] = ReadEntry(reader, bufferSize, flags);
                 reader.SeekAlignment();
             }
 
             return result;
         }
 
-        private FPACEntry ReadEntry(BinaryReaderX reader, int bufferSize)
+        private FPACEntry ReadEntry(BinaryReaderX reader, int bufferSize, FpacFlags flags)
         {
-            return new FPACEntry
+            string? fileName = null;
+            if ((flags & FpacFlags.HasNoName) == 0)
+                fileName = reader.ReadString(bufferSize);
+
+            var entry = new FPACEntry
             {
-                fileName = reader.ReadString(bufferSize),
+                fileName = fileName,
                 fileId = reader.ReadInt32(),
                 offset = reader.ReadInt32(),
                 size = reader.ReadInt32()
             };
+
+            if ((flags & FpacFlags.HasHash) != 0)
+                entry.hash = reader.ReadUInt32();
+
+            return entry;
         }
 
         private void WriteStruct(FPACTableStructure table, BinaryWriterX writer)
@@ -133,7 +137,7 @@ namespace plugin_arc_system_works.Archives
             WriteHeader(table.header, writer);
             writer.WriteAlignment(0x10);
 
-            WriteEntries(table.entries, writer);
+            WriteEntries(table.entries, writer, table.header.flags);
         }
 
         private void WriteHeader(FPACHeader header, BinaryWriterX writer)
@@ -142,25 +146,30 @@ namespace plugin_arc_system_works.Archives
             writer.Write(header.dataOffset);
             writer.Write(header.fileSize);
             writer.Write(header.fileCount);
-            writer.Write(header.unk1);
+            writer.Write((uint)header.flags);
             writer.Write(header.nameBufferSize);
         }
 
-        private void WriteEntries(FPACEntry[] entries, BinaryWriterX writer)
+        private void WriteEntries(FPACEntry[] entries, BinaryWriterX writer, FpacFlags flags)
         {
             foreach (FPACEntry entry in entries)
             {
-                WriteEntry(entry, writer);
+                WriteEntry(entry, writer, flags);
                 writer.WriteAlignment(0x10);
             }
         }
 
-        private void WriteEntry(FPACEntry entry, BinaryWriterX writer)
+        private void WriteEntry(FPACEntry entry, BinaryWriterX writer, FpacFlags flags)
         {
-            writer.WriteString(entry.fileName, writeNullTerminator: false);
+            if ((flags & FpacFlags.HasNoName) == 0)
+                writer.WriteString(entry.fileName!, writeNullTerminator: false);
+
             writer.Write(entry.fileId);
             writer.Write(entry.offset);
             writer.Write(entry.size);
+
+            if ((flags & FpacFlags.HasHash) != 0)
+                writer.Write(entry.hash);
         }
     }
 }

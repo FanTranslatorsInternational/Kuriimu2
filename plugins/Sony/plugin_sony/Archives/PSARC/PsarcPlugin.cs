@@ -19,7 +19,7 @@ namespace plugin_sony.Archives.PSARC
 
         public PluginMetadata Metadata { get; } = new()
         {
-            Author = ["IcySon5"],
+            Author = ["IcySon55"],
             Name = "PSARC",
             Publisher = "Sony",
             Developer = "Sony",

@@ -7,7 +7,7 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.File;
 
-namespace plugin_lemon_interactive.Archives
+namespace plugin_ci_games.Archives
 {
     public class Dpk4Plugin : IIdentifyFiles
     {

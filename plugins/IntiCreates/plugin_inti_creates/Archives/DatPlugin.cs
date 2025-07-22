@@ -19,7 +19,7 @@ namespace plugin_inti_creates.Archives
             Publisher = "Inti Creates",
             Developer = "Inti Creates",
             Platform = ["3DS"],
-            LongDescription = "A data resource found in Azure Strikers Gunvokt."
+            LongDescription = "A data resource found in Azure Strikers Gunvolt."
         };
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
