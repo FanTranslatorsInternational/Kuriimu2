@@ -124,12 +124,12 @@ namespace Kaligraphy.Generation.Packing
         {
             node.IsOccupied = true;
 
-            node.BottomNode = new BinPackerNode
+            node.RightNode = new BinPackerNode
             {
                 Position = new Point(node.Position.X + boxSize.Width, node.Position.Y),
-                Size = new Size(node.Size.Width - boxSize.Width, node.Size.Height),
+                Size = new Size(node.Size.Width - boxSize.Width, node.Size.Height)
             };
-            node.RightNode = new BinPackerNode
+            node.BottomNode = new BinPackerNode
             {
                 Position = new Point(node.Position.X, node.Position.Y + boxSize.Height),
                 Size = new Size(boxSize.Width, node.Size.Height - boxSize.Height)

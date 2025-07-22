@@ -19,7 +19,7 @@ namespace Konnect.FileSystem
 
         private readonly IDictionary<UPath, IArchiveFile> _fileDictionary;
         private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> _directoryDictionary;
-        
+
         protected IArchiveFilePluginState ArchiveState => _fileState.PluginState as IArchiveFilePluginState;
 
         protected UPath SubPath => _fileState.AbsoluteDirectory / _fileState.FilePath.ToRelative();
@@ -460,14 +460,14 @@ namespace Konnect.FileSystem
             // Enumerate files of current path
             if (enumerateFiles)
             {
-                foreach (var file in files.Where(x => searchPattern.Match(x.FilePath)))
+                foreach (var file in files.Where(x => searchPattern.Match(x.FilePath.GetName())))
                     yield return file.FilePath;
             }
 
             // Enumerate directories of current path
             if (enumerateDirectories)
             {
-                foreach (var directory in directories.Where(searchPattern.Match))
+                foreach (var directory in directories.Where(x => searchPattern.Match(x.GetName())))
                     yield return directory;
             }
 
