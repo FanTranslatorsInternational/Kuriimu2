@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Kaligraphy</id>
-    <version>2.1.14</version>
+    <version>2.1.15</version>
     <description>A library containing font loading and generation algorithms usable in the Kuriimu2 eco-system.</description>
 
     <authors>onepiecefreak;IcySon55</authors>

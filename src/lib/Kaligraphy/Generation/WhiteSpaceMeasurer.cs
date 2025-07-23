@@ -53,7 +53,7 @@ namespace Kaligraphy.Generation
         {
             for (int y = cropRect.Top; y < cropRect.Bottom; y++)
                 for (int x = cropRect.Left; x < cropRect.Right; x++)
-                    if ((Color)glyph[x, y] != Color.Transparent)
+                    if (glyph[x, y].A > 0)
                         return y;
 
             return cropRect.Bottom;
@@ -63,7 +63,7 @@ namespace Kaligraphy.Generation
         {
             for (int x = cropRect.Left; x < cropRect.Right; x++)
                 for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-                    if ((Color)glyph[x, y] != Color.Transparent)
+                    if (glyph[x, y].A > 0)
                         return x;
 
             return cropRect.Right;
@@ -73,7 +73,7 @@ namespace Kaligraphy.Generation
         {
             for (int y = cropRect.Bottom - 1; y >= cropRect.Top; y--)
                 for (int x = cropRect.Left; x < cropRect.Right; x++)
-                    if ((Color)glyph[x, y] != Color.Transparent)
+                    if (glyph[x, y].A > 0)
                         return y + 1;
 
             return cropRect.Top;
@@ -83,7 +83,7 @@ namespace Kaligraphy.Generation
         {
             for (int x = cropRect.Right - 1; x >= cropRect.Left; x--)
                 for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-                    if ((Color)glyph[x, y] != Color.Transparent)
+                    if (glyph[x, y].A > 0)
                         return x + 1;
 
             return cropRect.Left;
