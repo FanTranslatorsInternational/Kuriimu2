@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Kaligraphy" Version="2.1.15" />
     <PackageReference Include="Konnect" Version="2.1.33" />
   </ItemGroup>
 
