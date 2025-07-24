@@ -45,7 +45,7 @@ jobs:
 
     - name: Setup NuGet sources
       run: |
-        dotnet nuget add source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --name Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }}
+        dotnet nuget add source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --name Kuriimu2 --username "" --password ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish plugins
       run: |
