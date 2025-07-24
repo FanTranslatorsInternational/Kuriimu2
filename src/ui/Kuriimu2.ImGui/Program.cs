@@ -9,5 +9,4 @@ FontResources.RegisterFonts();
 
 form.DefaultFont = FontResources.GetFont(FontType.Application, 15);
 
-
 app.Execute(form);
