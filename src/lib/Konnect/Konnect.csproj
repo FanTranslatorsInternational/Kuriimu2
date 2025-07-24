@@ -23,7 +23,6 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
   </ItemGroup>
 
-
   <ItemGroup>
     <ProjectReference Include="..\Konnect.Contract\Konnect.Contract.csproj" />
   </ItemGroup>

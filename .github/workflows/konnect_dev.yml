@@ -40,5 +40,5 @@ jobs:
     - name: Publish Nuget
       run: |
         foreach($file in (Get-ChildItem "nuget" -Recurse -Include *.nupkg)) {
-          dotnet nuget push $file --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --skip-duplicate
+          dotnet nuget push $file --api-key ${{ secrets.NUGET_UPDATE }} --source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --skip-duplicate
         }
