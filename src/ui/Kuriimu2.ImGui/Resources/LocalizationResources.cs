@@ -118,13 +118,13 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString StatusFileSaveClosing(UPath path) => LocalizedString.FromId("Status.File.Save.Closing", () => path);
         public static LocalizedString StatusFileSaveNotLoaded => LocalizedString.FromId("Status.File.Save.NotLoaded");
         public static LocalizedString StatusFileSaveNoChanges => LocalizedString.FromId("Status.File.Save.NoChanges");
+        public static LocalizedString StatusFileSaveNotSupported => LocalizedString.FromId("Status.File.Save.NotSupported");
         public static LocalizedString StatusFileSaveStateError => LocalizedString.FromId("Status.File.Save.State.Error");
         public static LocalizedString StatusFileSaveStateReloadError => LocalizedString.FromId("Status.File.Save.State.Reload.Error");
         public static LocalizedString StatusFileSaveReplaceError => LocalizedString.FromId("Status.File.Save.Replace.Error");
         public static LocalizedString StatusFileSaveCopyError => LocalizedString.FromId("Status.File.Save.Copy.Error");
         public static LocalizedString StatusFileSaveDestinationNotExist => LocalizedString.FromId("Status.File.Save.DestinationNotExist");
         public static LocalizedString StatusFileSaveSuccess => LocalizedString.FromId("Status.File.Save.Success");
-        public static LocalizedString StatusFileSaveError => LocalizedString.FromId("Status.File.Save.Error");
         public static LocalizedString StatusFileCloseStart(UPath path) => LocalizedString.FromId("Status.File.Close.Start", () => path);
         public static LocalizedString StatusFileCloseCancel => LocalizedString.FromId("Status.File.Close.Cancel");
         public static LocalizedString StatusFileCloseSaving(UPath path) => LocalizedString.FromId("Status.File.Close.Saving", () => path);
@@ -144,6 +144,8 @@ namespace Kuriimu2.ImGui.Resources
         // Archive Form
 
         // File Operations
+        public static LocalizedString ArchiveFileOpen => LocalizedString.FromId("Archive.File.Open");
+        public static LocalizedString ArchiveFileOpenWith => LocalizedString.FromId("Archive.File.OpenWith");
         public static LocalizedString ArchiveFileExtract => LocalizedString.FromId("Archive.File.Extract");
         public static LocalizedString ArchiveFileReplace => LocalizedString.FromId("Archive.File.Replace");
         public static LocalizedString ArchiveFileRename => LocalizedString.FromId("Archive.File.Rename");
@@ -237,6 +239,7 @@ namespace Kuriimu2.ImGui.Resources
         // Labels
         public static LocalizedString FontLabelBaseLine => LocalizedString.FromId("Font.Label.BaseLine");
         public static LocalizedString FontLabelDescentLine => LocalizedString.FromId("Font.Label.DescentLine");
+        public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
 
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");

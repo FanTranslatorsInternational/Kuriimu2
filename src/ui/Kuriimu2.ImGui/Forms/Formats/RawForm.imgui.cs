@@ -10,5 +10,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             _hexBox = new HexBox();
         }
+
+        protected override void SetTabInactiveCore()
+        {
+            _hexBox.SetTabInactive();
+        }
     }
 }

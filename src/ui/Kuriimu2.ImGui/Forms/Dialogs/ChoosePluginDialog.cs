@@ -4,6 +4,7 @@ using System.Linq;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Modals;
+using ImGui.Forms.Models;
 using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
@@ -62,7 +63,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? string.Empty))
                     pluginElements.Add(new DataTableRow<ChoosePluginElement>(new ChoosePluginElement(plugin)));
 
-                _pluginList.Items.Add(new Expander(CreateDataTable(pluginElements), groupedPlugins.Key.ManifestModule.Name));
+                _pluginList.Items.Add(new Expander(CreateDataTable(pluginElements), groupedPlugins.Key.ManifestModule.Name)
+                {
+                    Size = Size.WidthAlign,
+                    WidthIndent = 0
+                });
             }
         }
 
@@ -73,11 +78,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Columns =
                 {
                     new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.DialogChoosePluginPluginsTableName),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Type.ToString(), LocalizationResources.DialogChoosePluginPluginsTableType),
+                    new DataTableColumn<ChoosePluginElement>(e => LocalizationResources.MenuPluginsType(e.Type), LocalizationResources.DialogChoosePluginPluginsTableType),
                     new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.DialogChoosePluginPluginsTableDescription),
                     new DataTableColumn<ChoosePluginElement>(e => e.PluginId.ToString("N"), LocalizationResources.DialogChoosePluginPluginsTableId)
                 },
-                Rows = plugins
+                Rows = plugins,
+                Size = Size.WidthAlign
             };
 
 
@@ -144,7 +150,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         public IFilePlugin Plugin { get; }
 
         public string Name => Plugin.Metadata?.Name ?? "<undefined>";
-        public string Description => Plugin.Metadata?.ShortDescription ?? "<undefined>";
+        public string Description => Plugin.Metadata?.LongDescription ?? "<undefined>";
 
         public PluginType Type => Plugin.PluginType;
 

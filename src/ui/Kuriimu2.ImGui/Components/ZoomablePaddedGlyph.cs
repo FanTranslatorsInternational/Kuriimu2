@@ -3,13 +3,14 @@ using System.Numerics;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
+using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using SixLabors.ImageSharp;
 using Rectangle = Veldrid.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
-    internal class PaddedGlyphPictureBox : ZoomableComponent
+    internal class ZoomablePaddedGlyph : ZoomableComponent
     {
         private PaddedGlyph? _paddedGlyph;
         private ImageResource? _paddedGlyphResource;
@@ -27,14 +28,15 @@ namespace Kuriimu2.ImGui.Components
 
             int boundingX = Math.Min(_paddedGlyph.GlyphPosition.X, 0);
             int boundingY = Math.Min(_paddedGlyph.GlyphPosition.Y, 0);
-            int boundingWidth = Math.Max(_paddedGlyph.GlyphPosition.X + _paddedGlyph.Glyph.Width, _paddedGlyph.BoundingBox.Width);
-            int boundingHeight = Math.Max(_paddedGlyph.GlyphPosition.Y + _paddedGlyph.Glyph.Height, _paddedGlyph.BoundingBox.Height);
+            int boundingWidth = Math.Max(_paddedGlyph.GlyphPosition.X, 0) + Math.Max(_paddedGlyph.Glyph?.Width ?? 0, _paddedGlyph.BoundingBox.Width);
+            int boundingHeight = Math.Max(_paddedGlyph.GlyphPosition.Y, 0) + Math.Max(_paddedGlyph.Glyph?.Height ?? 0, _paddedGlyph.BoundingBox.Height);
 
             var totalBoundingBox = new Rectangle(boundingX, boundingY, boundingWidth - boundingX, boundingHeight - boundingY);
 
             DrawGlyph(contentRect);
             DrawBoundingBox(contentRect);
             DrawTotalBoundingBox(contentRect, totalBoundingBox);
+
             DrawBaseline(contentRect, totalBoundingBox);
         }
 
@@ -43,7 +45,7 @@ namespace Kuriimu2.ImGui.Components
             if (_paddedGlyph == null || _paddedGlyphResource == null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + _paddedGlyph.GlyphPosition;
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + new Vector2(Math.Max(_paddedGlyph.GlyphPosition.X, 0), Math.Max(_paddedGlyph.GlyphPosition.Y, 0));
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyphResource.Width, _paddedGlyphResource.Height);
             imageRect = Transform(contentRect, imageRect);
 
@@ -55,7 +57,7 @@ namespace Kuriimu2.ImGui.Components
             if (_paddedGlyph == null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2);
+            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + new Vector2(Math.Max(_paddedGlyph.GlyphPosition.X, 0), Math.Max(_paddedGlyph.GlyphPosition.Y, 0));
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
@@ -67,7 +69,7 @@ namespace Kuriimu2.ImGui.Components
             if (_paddedGlyph == null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + totalBoundingBox.Position;
+            Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2);
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, totalBoundingBox.Width, totalBoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
@@ -76,8 +78,8 @@ namespace Kuriimu2.ImGui.Components
 
         private void DrawBaseline(Rectangle contentRect, Rectangle totalBoundingBox)
         {
-            Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + totalBoundingBox.Position;
-            var baseLineRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y + _paddedGlyph.Baseline, totalBoundingBox.Width, 0);
+            Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2);
+            var baseLineRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y + _paddedGlyph!.Baseline, totalBoundingBox.Width, 0);
             var baseLineRectTransformed = Transform(contentRect, baseLineRect);
 
             ImGuiNET.ImGui.GetWindowDrawList().AddLine(baseLineRectTransformed.Position, baseLineRectTransformed.Position + baseLineRectTransformed.Size,

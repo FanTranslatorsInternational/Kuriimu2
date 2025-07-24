@@ -8,6 +8,7 @@ using ImGui.Forms.Models;
 using ImGuiNET;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms
 {
@@ -47,9 +48,22 @@ namespace Kuriimu2.ImGui.Forms
         {
             #region Controls
 
-            _openButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen };
-            _openWithButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpenWith };
-            _saveAllButton = new MenuBarButton { Text = LocalizationResources.MenuFileSaveAll, Enabled = false };
+            _openButton = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuFileOpen,
+                KeyAction = new(ModifierKeys.Control, Key.O)
+            };
+            _openWithButton = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuFileOpenWith,
+                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.O)
+            };
+            _saveAllButton = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuFileSaveAll,
+                Enabled = false,
+                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.S)
+            };
 
             _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor };
             _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector };

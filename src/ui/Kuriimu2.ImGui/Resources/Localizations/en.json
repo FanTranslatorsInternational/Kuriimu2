@@ -28,11 +28,11 @@
   "Menu.Help": "Help",
 
   // File Menu
-  "Menu.File.Open": "Open",
-  "Menu.File.OpenWith": "Open with...",
-  "Menu.File.Save": "Save",
-  "Menu.File.SaveAs": "Save as...",
-  "Menu.File.SaveAll": "Save All",
+  "Menu.File.Open": "Open (Ctrl+O)",
+  "Menu.File.OpenWith": "Open with... (Ctrl+Shift+O)",
+  "Menu.File.Save": "Save (Ctrl+S)",
+  "Menu.File.SaveAs": "Save as... (F12)",
+  "Menu.File.SaveAll": "Save All (Ctrl+Shift+S)",
   "Menu.File.Close": "Close",
 
   // Tools Menu
@@ -52,7 +52,7 @@
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Include Developer Builds",
-  "Menu.Settings.ChangeLanguage": "Change language",
+  "Menu.Settings.ChangeLanguage": "Change Language",
   "Menu.Settings.ChangeTheme": "Change Theme",
 
   // Theme Menu
@@ -110,21 +110,22 @@
   "Status.File.Load.Opening": "{0} is already opening.",
   "Status.File.Load.Saving": "{0} is already saving.",
   "Status.File.Load.Success": "File loaded successfully.",
-  "Status.File.Load.Failure": "File not loaded successfully.",
-  "Status.File.Load.FailureWithPlugin": "File not loaded successfully with plugin {0}.",
+  "Status.File.Load.Error": "File not loaded successfully.",
+  "Status.File.Load.Error.Plugin": "File not loaded successfully with plugin {0}.",
   "Status.File.Save.Start": "Now saving file {0}",
   "Status.File.Save.Closed": "The given file is already closed.",
   "Status.File.Save.Saving": "File {0} is already saving.",
   "Status.File.Save.Closing": "File {0} is currently closing.",
   "Status.File.Save.NotLoaded": "The given file is not loaded anymore.",
   "Status.File.Save.NoChanges": "The file had no changes and was not saved.",
+  "Status.File.Save.NotSupported": "Plugin does not support saving.",
   "Status.File.Save.State.Error": "The file could not be saved.",
   "Status.File.Save.State.Reload.Error": "The file could not be reloaded after saving.",
   "Status.File.Save.Replace.Error": "Some files could not be replaced.",
   "Status.File.Save.Copy.Error": "Some files could not be copied.",
   "Status.File.Save.DestinationNotExist": "New files can't be created when saving.",
   "Status.File.Save.Success": "File saved successfully.",
-  "Status.File.Save.Failure": "File not saved successfully.",
+  "Status.File.Save.Error": "File not saved successfully.",
   "Status.File.Close.Start": "Now closing file {0}.",
   "Status.File.Close.Cancel": "Closing cancelled.",
   "Status.File.Close.Saving": "File {0} is currently saving.",
@@ -143,16 +144,18 @@
   // Archive Form
 
   // File Operations
+  "Archive.File.Open": "Open",
+  "Archive.File.OpenWith": "Open with...",
   "Archive.File.Extract": "Extract",
   "Archive.File.Replace": "Replace",
   "Archive.File.Rename": "Rename",
-  "Archive.File.Delete": "Delete",
+  "Archive.File.Delete": "Delete (Del)",
 
   // Folder Operations
   "Archive.Directory.Extract": "Extract",
   "Archive.Directory.Replace": "Replace",
   "Archive.Directory.Rename": "Rename",
-  "Archive.Directory.Delete": "Delete",
+  "Archive.Directory.Delete": "Delete (Del)",
   "Archive.Directory.Add": "Add",
 
   // Status
@@ -236,6 +239,7 @@
   // Labels
   "Font.Label.BaseLine": "Baseline:",
   "Font.Label.DescentLine": "Descent:",
+  "Font.Search.Placeholder": "Search: ¥, \\uFFE3",
 
   // Generate
   "Font.Generate.Caption": "Generate Font",

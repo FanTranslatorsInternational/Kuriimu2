@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGui.Forms.Controls;
@@ -10,6 +11,7 @@ using Konnect.Contract.Plugin.File.Image;
 using Konnect.Contract.Progress;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 using ImageResources = Kuriimu2.ImGui.Resources.ImageResources;
 using Size = ImGui.Forms.Models.Size;
 
@@ -62,8 +64,24 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 IsSelectable = true
             };
 
-            _saveBtn = new ImageButton { Image = ImageResources.Save, Tooltip = LocalizationResources.MenuFileSave, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
-            _saveAsBtn = new ImageButton { Image = ImageResources.SaveAs, Tooltip = LocalizationResources.MenuFileSaveAs, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
+            _saveBtn = new ImageButton
+            {
+                Image = ImageResources.Save,
+                Tooltip = LocalizationResources.MenuFileSave,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(ModifierKeys.Control, Key.S)
+            };
+            _saveAsBtn = new ImageButton
+            {
+                Image = ImageResources.SaveAs,
+                Tooltip = LocalizationResources.MenuFileSaveAs,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(Key.F12)
+            };
             _imgExportBtn = new ImageButton { Image = ImageResources.ImageExport, Tooltip = LocalizationResources.ImageMenuExport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _imgImportBtn = new ImageButton { Image = ImageResources.ImageImport, Tooltip = LocalizationResources.ImageMenuImport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _batchImgExportBtn = new ImageButton { Image = ImageResources.BatchImageExport, Tooltip = LocalizationResources.ImageMenuExportBatch, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
@@ -160,7 +178,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             for (var i = 0; i < images.Count; i++)
             {
                 var img = images[i];
-                var scopeProgress = progress.CreateScope(LocalizationResources.ImageProgressDecode, perStart, perStart + perPart);
+                var scopeProgress = progress.CreateScope(LocalizationResources.ImageProgressDecode, perStart, Math.Min(100f, perStart + perPart));
 
                 _imgList.Items.Add(new ImageThumbnail(img, i, img.GetImage(scopeProgress)));
 
@@ -211,6 +229,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     _formatBox.Items.Add(new DropDownItem<int>(indexEnc.Key, indexEnc.Value.IndexEncoding.FormatName));
 
             _formatBox.SelectedItem = _formatBox.Items.FirstOrDefault(x => x.Content == img.ImageInfo.ImageFormat);
+
+            _formatBox.MaxShowItems = (uint)Math.Min(4, _formatBox.Items.Count);
         }
 
         private void SetPaletteFormats(IImageFile img)
@@ -239,6 +259,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             _paletteBox.SelectedItem = _paletteBox.Items.FirstOrDefault(x => x.Content == img.ImageInfo.PaletteFormat);
+
+            _paletteBox.MaxShowItems = (uint)Math.Min(4, _paletteBox.Items.Count);
+        }
+
+        protected override void SetTabInactiveCore()
+        {
+            _imgList.SetTabInactive();
         }
     }
 }

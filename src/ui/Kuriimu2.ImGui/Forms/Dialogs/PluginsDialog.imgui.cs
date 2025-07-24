@@ -46,7 +46,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 typeList.Items.Add(new Expander(typePluginTable, LocalizationResources.MenuPluginsType(typeGroup.Key))
                 {
                     Size = Size.WidthAlign,
-                    Expanded = true
+                    Expanded = true,
+                    WidthIndent = 0
                 });
             }
 

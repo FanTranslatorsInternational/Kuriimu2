@@ -10,6 +10,7 @@ using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
+using ImGui.Forms.Models.IO;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
@@ -25,6 +26,7 @@ using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
+using Veldrid;
 using Rectangle = Veldrid.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
@@ -32,6 +34,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class ArchiveForm : Component, IKuriimuForm
     {
+        private static readonly KeyCommand _deleteCommand = new(Key.Delete);
+
         private readonly ArchiveFormInfo _formInfo;
         private readonly IPluginManager _pluginManager;
         private readonly IFileManager _fileManager;
@@ -47,6 +51,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly AsyncOperation _asyncOperation;
         private readonly SearchTerm _searchTerm;
         private bool _saveLock;
+
+        private Component? _lastSelectedComponent;
 
         private const string CouldNotAddFileLog_ = "Could not add file: {0}";
 
@@ -80,6 +86,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _treeView.NodeExpanded += _treeView_NodeExpanded;
             _treeView.NodeCollapsed += _treeView_NodeCollapsed;
 
+            _fileView.SelectedRowsChanged += _fileView_SelectedRowsChanged;
             _fileView.DoubleClicked += _fileView_DoubleClicked;
 
             _directoryContext.Show += _directoryContext_Show;
@@ -110,7 +117,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFileTree();
             _treeView.SelectedNode = _treeView.Nodes.FirstOrDefault();
 
+            UpdateForm();
+
             #endregion
+        }
+
+        private void _fileView_SelectedRowsChanged(object? sender, EventArgs e)
+        {
+            _lastSelectedComponent = _fileView;
         }
 
         #region Events
@@ -153,6 +167,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _selectedPath = _treeView.SelectedNode.Data.AbsolutePath;
 
             UpdateFileView(_treeView.SelectedNode?.Data);
+
+            _lastSelectedComponent = _treeView;
         }
 
         private void _treeView_NodeCollapsed(object sender, NodeEventArgs<DirectoryEntry> e)
@@ -194,12 +210,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var canExtractFiles = !isStateLocked && !_asyncOperation.IsRunning && !_saveLock;
             var canReplaceFiles = _formInfo.CanReplaceFiles && !_saveLock && !isLoadLocked && !_asyncOperation.IsRunning;
             var canRenameFiles = _formInfo.CanRenameFiles && !_saveLock && !_asyncOperation.IsRunning;
-            var canDeleteFiles = _formInfo.CanDeleteFiles && !_saveLock && !_asyncOperation.IsRunning;
+            var canDeleteFiles = CanDeleteFiles();
 
             // Update Open With menu node
             _openWithFileMenu.Items.Clear();
 
-            foreach (var pluginId in selectedItem.Data.File.PluginIds ?? Array.Empty<Guid>())
+            foreach (var pluginId in selectedItem.Data.File.PluginIds ?? [])
             {
                 var filePlugin = _pluginManager.GetPlugin<IFilePlugin>(pluginId);
 
@@ -231,7 +247,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var canExtractDirectories = !_asyncOperation.IsRunning && !_saveLock;
             var canReplaceDirectories = _formInfo.CanReplaceFiles && !_saveLock && !_asyncOperation.IsRunning;
             var canRenameDirectories = _formInfo.CanRenameFiles && !_saveLock && !_asyncOperation.IsRunning;
-            var canDeleteDirectories = _formInfo.CanDeleteFiles && !_saveLock && !_asyncOperation.IsRunning && _treeView.SelectedNode != _treeView.Nodes[0];
+            var canDeleteDirectories = CanDeleteDirectories();
             var canAddDirectories = _formInfo.CanAddFiles && !_saveLock && !_asyncOperation.IsRunning;
 
             _extractDirectoryButton.Enabled = canExtractDirectories;
@@ -287,7 +303,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _addDirectoryButton_Clicked(object sender, EventArgs e)
         {
-            await AddFilesToSelectedNode();
+            await AddFolderToSelectedNode();
         }
 
         private async void _deleteDirectoryButton_Clicked(object sender, EventArgs e)
@@ -333,7 +349,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             foreach (var file in fileElements.Select(x => x.File))
             {
-                var pluginIds = file.PluginIds ?? Array.Empty<Guid>();
+                var pluginIds = file.PluginIds ?? [];
 
                 if (pluginIds.Any())
                 {
@@ -378,11 +394,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
         }
 
-        private Task<bool> OpenFile(IArchiveFile afi, Guid pluginId = default)
+        private async Task<bool> OpenFile(IArchiveFile afi, Guid pluginId = default)
         {
             return pluginId == default ?
-                _formInfo.FormCommunicator.Open(afi) :
-                _formInfo.FormCommunicator.Open(afi, pluginId);
+                await _formInfo.FormCommunicator.Open(afi) :
+                await _formInfo.FormCommunicator.Open(afi, pluginId);
         }
 
         #endregion
@@ -864,25 +880,31 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Task AddFilesToSelectedNode()
         {
-            return AddFiles(_treeView.SelectedNode);
+            //return AddFiles(_treeView.SelectedNode);
+            return Task.CompletedTask;
         }
 
-        private async Task AddFiles(TreeNode<DirectoryEntry> node)
+        private Task AddFolderToSelectedNode()
+        {
+            return AddFolder(_treeView.SelectedNode);
+        }
+
+        private async Task AddFolder(TreeNode<DirectoryEntry> node)
         {
             // Select folder
-            var selectedPath = await SelectFolder();
-            if (selectedPath.IsNull || selectedPath.IsEmpty)
+            var selectedFolder = await SelectFolder();
+            if (selectedFolder.IsEmpty)
             {
                 _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusSelectNone);
                 return;
             }
 
-            // Add elements
+            // Add files
             var subFolder = node.Data.AbsolutePath.ToAbsolute();
-            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedPath.FullName, _formInfo.FileState.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedFolder.FullName, _formInfo.FileState.StreamManager);
 
-            var elements = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
-            if (elements.Length <= 0)
+            var files = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
+            if (files.Length <= 0)
             {
                 _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusAddNone);
                 return;
@@ -895,12 +917,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             await _asyncOperation.StartAsync(async cts =>
             {
                 var count = 0;
-                foreach (var filePath in elements)
+                foreach (var filePath in files)
                 {
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress(LocalizationResources.ArchiveProgressAdd, count++, elements.Length);
+                    _formInfo.Progress.ReportProgress(LocalizationResources.ArchiveProgressAdd, count++, files.Length);
 
                     // Do not add file if it already exists
                     // This would be replacement and is not part of this operation
@@ -978,6 +1000,16 @@ namespace Kuriimu2.ImGui.Forms.Formats
         #endregion
 
         #region Delete methods
+
+        private bool CanDeleteDirectories()
+        {
+            return _formInfo.CanDeleteFiles && !_saveLock && !_asyncOperation.IsRunning && _treeView.SelectedNode != _treeView.Nodes[0];
+        }
+
+        private bool CanDeleteFiles()
+        {
+            return _formInfo.CanDeleteFiles && !_saveLock && !_asyncOperation.IsRunning;
+        }
 
         private Task DeleteSelectedFiles()
         {
@@ -1280,9 +1312,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return Size.Parent;
         }
 
-        protected override void UpdateInternal(Rectangle contentRect)
+        protected override async void UpdateInternal(Rectangle contentRect)
         {
             _mainLayout.Update(contentRect);
+
+            if (_deleteCommand.IsPressed())
+            {
+                if (CanDeleteDirectories() && _lastSelectedComponent == _treeView)
+                    await DeleteSelectedDirectory();
+                else if (CanDeleteFiles() && _lastSelectedComponent == _fileView)
+                    await DeleteSelectedFiles();
+            }
         }
 
         #endregion

@@ -4,7 +4,6 @@ using ImGui.Forms;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
-using ImGuiNET;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using SixLabors.ImageSharp;
 using Rectangle = Veldrid.Rectangle;
@@ -34,14 +33,15 @@ namespace Kuriimu2.ImGui.Components
 
             int boundingX = Math.Min(CharacterInfo.GlyphPosition.X, 0);
             int boundingY = Math.Min(CharacterInfo.GlyphPosition.Y, 0);
-            int boundingWidth = Math.Max(CharacterInfo.GlyphPosition.X + (CharacterInfo.Glyph?.Width ?? 0), CharacterInfo.BoundingBox.Width);
-            int boundingHeight = Math.Max(CharacterInfo.GlyphPosition.Y + (CharacterInfo.Glyph?.Height ?? 0), CharacterInfo.BoundingBox.Height);
+            int boundingWidth = Math.Max(CharacterInfo.GlyphPosition.X, 0) + Math.Max(CharacterInfo.Glyph?.Width ?? 0, CharacterInfo.BoundingBox.Width);
+            int boundingHeight = Math.Max(CharacterInfo.GlyphPosition.Y, 0) + Math.Max(CharacterInfo.Glyph?.Height ?? 0, CharacterInfo.BoundingBox.Height);
 
             var totalBoundingBox = new Rectangle(boundingX, boundingY, boundingWidth - boundingX, boundingHeight - boundingY);
 
             DrawBackground(contentRect);
-            DrawGlyph(contentRect);
-            DrawBoundingBox(contentRect);
+
+            DrawGlyph(contentRect, totalBoundingBox);
+            DrawBoundingBox(contentRect, totalBoundingBox);
             DrawTotalBoundingBox(contentRect, totalBoundingBox);
         }
 
@@ -50,24 +50,24 @@ namespace Kuriimu2.ImGui.Components
             ImGuiNET.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + contentRect.Size, BackgroundColor.ToUInt32());
         }
 
-        private void DrawGlyph(Rectangle contentRect)
+        private void DrawGlyph(Rectangle contentRect, Rectangle totalBoundingBox)
         {
             if (CharacterInfo is null || _glyphResource is null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(CharacterInfo.BoundingBox.Width, CharacterInfo.BoundingBox.Height) / 2) + CharacterInfo.GlyphPosition;
+            Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2) + new Vector2(Math.Max(CharacterInfo.GlyphPosition.X, 0), Math.Max(CharacterInfo.GlyphPosition.Y, 0));
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _glyphResource.Width, _glyphResource.Height);
             imageRect = Transform(contentRect, imageRect);
 
             ImGuiNET.ImGui.GetWindowDrawList().AddImage((nint)_glyphResource, imageRect.Position, imageRect.Position + imageRect.Size);
         }
 
-        private void DrawBoundingBox(Rectangle contentRect)
+        private void DrawBoundingBox(Rectangle contentRect, Rectangle totalBoundingBox)
         {
             if (CharacterInfo == null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(CharacterInfo.BoundingBox.Width, CharacterInfo.BoundingBox.Height) / 2);
+            Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2) + new Vector2(Math.Max(CharacterInfo.GlyphPosition.X, 0), Math.Max(CharacterInfo.GlyphPosition.Y, 0));
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, CharacterInfo.BoundingBox.Width, CharacterInfo.BoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 
@@ -79,7 +79,7 @@ namespace Kuriimu2.ImGui.Components
             if (CharacterInfo == null)
                 return;
 
-            Vector2 boundingStartPosition = -(new Vector2(CharacterInfo.BoundingBox.Width, CharacterInfo.BoundingBox.Height) / 2) + totalBoundingBox.Position;
+            Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2);
             var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, totalBoundingBox.Width, totalBoundingBox.Height);
             imageRect = Transform(contentRect, imageRect);
 

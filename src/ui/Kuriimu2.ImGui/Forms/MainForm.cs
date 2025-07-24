@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +34,7 @@ using Konnect.Management.Files;
 using Konnect.Management.Plugin;
 using Konnect.Management.Plugin.Loaders;
 using Konnect.Progress;
+using Kryptography.Checksum.Crc;
 using Kuriimu2.ImGui.Forms.Dialogs;
 using Kuriimu2.ImGui.Forms.Formats;
 using Kuriimu2.ImGui.Interfaces;
@@ -43,12 +43,16 @@ using Kuriimu2.ImGui.Progress;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.Update;
 using Serilog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
+using Color = System.Drawing.Color;
 
 namespace Kuriimu2.ImGui.Forms
 {
     partial class MainForm : Form, IMainForm
     {
-        private readonly Random _rand = new Random();
+        private readonly Random _rand = new();
 
         private readonly Manifest _localManifest;
 
@@ -175,8 +179,8 @@ namespace Kuriimu2.ImGui.Forms
 
         private async void MainForm_DragDrop(object sender, Veldrid.Sdl2.DragDropEvent[] e)
         {
-            foreach (var dropEvent in e)
-                await OpenPhysicalFiles(new List<string> { dropEvent.File }, false);
+            foreach (Veldrid.Sdl2.DragDropEvent dropEvent in e)
+                await OpenPhysicalFiles([dropEvent.File], false);
         }
 
         #endregion
@@ -235,9 +239,13 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task FileManagerOnManualSelection(ManualSelectionEventArgs e)
         {
+            DragDrop -= MainForm_DragDrop;
+
             var selectedPlugin = await ChoosePlugin(e.FilePlugins.ToArray(), e.FilteredFilePlugins.ToArray(), e.SelectionStatus);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
+
+            DragDrop += MainForm_DragDrop;
         }
 
         #endregion
@@ -338,16 +346,24 @@ namespace Kuriimu2.ImGui.Forms
                 return;
             }
 
-            await OpenPhysicalFiles(new[] { fileToOpen }, manualIdentification);
+            await OpenPhysicalFiles([fileToOpen], manualIdentification);
         }
 
         private async Task OpenPhysicalFiles(IList<string> filesToOpen, bool manualIdentification)
         {
-            foreach (var fileToOpen in filesToOpen)
+            foreach (string fileToOpen in filesToOpen)
             {
+                // If currently visible form is an ImageForm, try importing file to ImageForm
+                if (_tabControl.SelectedPage is not null && _tabDictionary[_tabControl.SelectedPage].Form is ImageForm imageForm)
+                {
+                    // If file could not be imported to ImageForm, try open it normally
+                    if (await imageForm.Import(fileToOpen))
+                        continue;
+                }
+
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                     _fileManager.LoadFile(fileToOpen, plugin?.PluginId ?? Guid.Empty));
-                var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
+                Color tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
                 await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
             }
@@ -496,6 +512,12 @@ namespace Kuriimu2.ImGui.Forms
 
             if (!saveResult.IsSuccessful)
             {
+                if (saveResult.Reason is SaveErrorReason.NoChanges)
+                {
+                    ReportStatus(StatusKind.Info, GetReasonString(fileState.FilePath.ToRelative(), saveResult.Reason));
+                    return false;
+                }
+
                 ReportStatus(StatusKind.Failure, GetReasonString(fileState.FilePath.ToRelative(), saveResult.Reason));
                 return false;
             }
@@ -532,6 +554,9 @@ namespace Kuriimu2.ImGui.Forms
 
                 case SaveErrorReason.NoChanges:
                     return LocalizationResources.StatusFileSaveNoChanges;
+
+                case SaveErrorReason.SaveNotSupported:
+                    return LocalizationResources.StatusFileSaveNotSupported;
 
                 case SaveErrorReason.StateSaveError:
                     return LocalizationResources.StatusFileSaveStateError;
@@ -964,14 +989,14 @@ namespace Kuriimu2.ImGui.Forms
 
         #region IMainForm implementation
 
-        public Task<bool> OpenFile(IFileState fileState, IArchiveFile file, Guid pluginId)
+        public async Task<bool> OpenFile(IFileState fileState, IArchiveFile file, Guid pluginId)
         {
             var absoluteFilePath = fileState.AbsoluteDirectory / fileState.FilePath.ToRelative() / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(_ =>
                 _fileManager.LoadFile(fileState, file, pluginId));
             var tabColor = _stateDictionary[fileState].TabColor;
 
-            return OpenFile(absoluteFilePath, false, loadAction, tabColor);
+            return await OpenFile(absoluteFilePath, false, loadAction, tabColor);
         }
 
         public Task<bool> SaveFile(IFileState fileState, bool saveAs)

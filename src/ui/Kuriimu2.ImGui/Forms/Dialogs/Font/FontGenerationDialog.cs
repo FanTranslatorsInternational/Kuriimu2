@@ -54,7 +54,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         private readonly FontProfileManager _profileManager = new();
         private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
 
-        private PaddedGlyphPictureBox _glyphBox;
+        private ZoomablePaddedGlyph _glyphBox;
         private TextBox _paddingLeftBox;
         private TextBox _paddingRightBox;
         private ComboBox<FontFamily> _fontFamilyBox;
@@ -131,10 +131,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
         private void InitializeComponent()
         {
-            _glyphBox = new PaddedGlyphPictureBox { ShowBorder = true };
+            _glyphBox = new ZoomablePaddedGlyph { ShowBorder = true };
             _paddingLeftBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
             _paddingRightBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _fontFamilyBox = new ComboBox<FontFamily>();
+            _fontFamilyBox = new ComboBox<FontFamily> { MaxShowItems = 5 };
             _boldCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleBold);
             _italicCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleItalic);
             _fontSizeBox = new TextBox { Text = $"{DefaultFontSize_}", AllowedCharacters = CharacterRestriction.Decimal };

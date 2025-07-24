@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using ImGui.Forms;
-using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
-using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
 using ImGuiNET;
@@ -18,12 +16,8 @@ namespace Kuriimu2.ImGui.Components
     {
         private static readonly Vector2 GlyphMaxSize = new(36, 36);
 
-        private readonly FontResource _mainFont;
-        private readonly FontResource _codeFont;
-
-        private readonly PictureBox _glyphBox;
-        private readonly StackLayout _codePointLayout;
-        private readonly StackLayout _mainLayout;
+        private readonly FontResource _mainFont = FontResources.GetFont(FontType.Application, 15);
+        private readonly FontResource _codeFont = FontResources.GetFont(FontType.Hexadecimal, 11);
 
         private readonly CharacterInfo _charInfo;
         private readonly ThemedImageResource? _glyph;
@@ -38,51 +32,15 @@ namespace Kuriimu2.ImGui.Components
 
         public GlyphElement(CharacterInfo charInfo)
         {
-            _mainFont = FontResources.GetFont(FontType.Application, 15);
-            _codeFont = FontResources.GetFont(FontType.Hexadecimal, 11);
-
             CharacterInfo = charInfo;
-
-            #region Layout
 
             _charInfo = charInfo;
             if (charInfo.Glyph != null)
                 _glyph = ImageResource.FromImage(charInfo.Glyph);
 
-            _glyphBox = new PictureBox
-            {
-                Size = new Size(64, 64)
-            };
-
-            _codePointLayout = new StackLayout
-            {
-                Alignment = Alignment.Horizontal,
-                ItemSpacing = 4,
-                Size = Size.Content,
-                Items =
-                {
-                    new Label($"{charInfo.CodePoint}"),
-                    new Label($"0x{charInfo.CodePoint:X4}")
-                }
-            };
-
-            _mainLayout = new StackLayout
-            {
-                Alignment = Alignment.Vertical,
-                ItemSpacing = 4,
-                Size = Size.Content,
-                ShowBorder = true,
-                Items =
-                {
-                    _glyphBox,
-                    _codePointLayout
-                }
-            };
-
-            #endregion
         }
 
-        public override Size GetSize() => _mainLayout.Size;
+        public override Size GetSize() => Size.Content;
 
         protected override void UpdateInternal(Rectangle contentRect)
         {

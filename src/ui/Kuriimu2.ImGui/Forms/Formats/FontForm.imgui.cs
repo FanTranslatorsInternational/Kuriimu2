@@ -2,12 +2,14 @@
 using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Models;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Forms.Dialogs.Font;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 using Rectangle = Veldrid.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
@@ -15,7 +17,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class FontForm
     {
-        private readonly Dictionary<CharacterInfo, GlyphElement> _charLookup = new();
+        private readonly Dictionary<CharacterInfo, GlyphElement> _infoLookup = new();
+        private readonly Dictionary<char, GlyphElement> _charLookup = new();
 
         private StackLayout _mainLayout;
 
@@ -30,7 +33,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private ZoomableCharacterInfo _glyphBox;
 
-        private ZLayout _glyphsLayout;
+        private StackLayout _glyphLayout;
+        private TextBox _searchCharBox;
+        private UniformZLayout _glyphsLayout;
         private GlyphElement? _selectedElement;
 
         private FontGenerationDialog _generationDialog;
@@ -47,14 +52,47 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 BackgroundColor = ColorResources.GlyphBackground
             };
 
-            _glyphsLayout = new ZLayout
+            _searchCharBox = new TextBox
+            {
+                Width = SizeValue.Absolute(150),
+                Placeholder = LocalizationResources.FontSearchPlaceholder,
+            };
+
+            _glyphsLayout = new UniformZLayout(new Vector2(36, 61))
             {
                 ItemSpacing = new Vector2(4, 4),
                 Size = Size.Parent
             };
+            _glyphLayout = new StackLayout
+            {
+                ItemSpacing = 4,
+                Size = Size.Parent,
+                Alignment = Alignment.Vertical,
+                Items =
+                {
+                    new StackItem(_searchCharBox) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right },
+                    _glyphsLayout
+                }
+            };
 
-            _saveBtn = new ImageButton { Image = Resources.ImageResources.Save, Tooltip = LocalizationResources.MenuFileSave, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
-            _saveAsBtn = new ImageButton { Image = Resources.ImageResources.SaveAs, Tooltip = LocalizationResources.MenuFileSaveAs, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
+            _saveBtn = new ImageButton
+            {
+                Image = ImageResources.Save,
+                Tooltip = LocalizationResources.MenuFileSave,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(ModifierKeys.Control, Key.S)
+            };
+            _saveAsBtn = new ImageButton
+            {
+                Image = ImageResources.SaveAs,
+                Tooltip = LocalizationResources.MenuFileSaveAs,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(Key.F12)
+            };
 
             _generateBtn = new Button { Text = LocalizationResources.FontGenerateCaption, Width = SizeValue.Absolute(100), Enabled = fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
 
@@ -123,7 +161,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Items =
                 {
                     fontDataLayout,
-                    _glyphsLayout
+                    _glyphLayout
                 }
             };
 
@@ -147,7 +185,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void SetGlyphs(IReadOnlyList<CharacterInfo> characters)
         {
             _glyphsLayout.Items.Clear();
-            _charLookup.Clear();
+            _infoLookup.Clear();
 
             foreach (CharacterInfo character in characters)
             {
@@ -159,13 +197,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                 _glyphsLayout.Items.Add(element);
 
-                _charLookup[character] = element;
+                _infoLookup[character] = element;
+                _charLookup[character.CodePoint] = element;
             }
         }
 
         private void SetSelectedGlyph(CharacterInfo charInfo)
         {
-            if (!_charLookup.TryGetValue(charInfo, out GlyphElement? element))
+            if (!_infoLookup.TryGetValue(charInfo, out GlyphElement? element))
                 return;
 
             SetSelectedGlyph(element);
@@ -186,6 +225,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             _baseLineTextLbl.Text = $"{state.Baseline}";
             _descentLineTextLbl.Text = $"{state.DescentLine}";
+        }
+
+        protected override void SetTabInactiveCore()
+        {
+            _glyphsLayout.SetTabInactive();
         }
     }
 }

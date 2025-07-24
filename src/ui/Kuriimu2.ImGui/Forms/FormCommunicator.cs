@@ -31,19 +31,19 @@ namespace Kuriimu2.ImGui.Forms
             return _mainForm.SaveFile(_fileState, saveAs);
         }
 
-        public Task<bool> Open(IArchiveFile file)
+        public async Task<bool> Open(IArchiveFile file)
         {
-            return Open(file, Guid.Empty);
+            return await Open(file, Guid.Empty);
         }
 
-        public Task<bool> Open(IArchiveFile file, Guid pluginId)
+        public async Task<bool> Open(IArchiveFile file, Guid pluginId)
         {
-            return _mainForm.OpenFile(_fileState, file, pluginId);
+            return await _mainForm.OpenFile(_fileState, file, pluginId);
         }
 
-        public Task<bool> Close(IArchiveFile file)
+        public async Task<bool> Close(IArchiveFile file)
         {
-            return _mainForm.CloseFile(_fileState, file);
+            return await _mainForm.CloseFile(_fileState, file);
         }
 
         #endregion

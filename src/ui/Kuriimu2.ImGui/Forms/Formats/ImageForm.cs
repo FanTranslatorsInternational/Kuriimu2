@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls;
@@ -92,7 +93,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _saveBtn_Clicked(object sender, EventArgs e)
         {
-            await Save(true);
+            await Save(false);
         }
 
         private async void _saveAsBtn_Clicked(object sender, EventArgs e)
@@ -174,6 +175,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 Title = LocalizationResources.ImageMenuImportPng,
                 InitialDirectory = GetLastDirectory(),
+                InitialFileName = GetImageName(selectedItem) + ".png",
                 Filters = { new FileFilter(LocalizationResources.FilterPng, "*.png") }
             };
 
@@ -209,6 +211,42 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusImportSuccess);
         }
 
+        public async Task<bool> Import(string filePath)
+        {
+            DisableForm();
+
+            var selectedItem = GetSelectedImageItem();
+
+            _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusImportStart(selectedItem.Name));
+
+            if (!TryLoadImage(filePath, out Image<Rgba32>? loadedImage))
+            {
+                UpdateFormInternal();
+
+                return false;
+            }
+
+            await _asyncOperation.StartAsync(_ => selectedItem.ImageFile.SetImage(loadedImage, _state.Progress));
+
+            UpdateFormInternal();
+
+            if (!_asyncOperation.WasSuccessful)
+            {
+                _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusImportFailure);
+
+                return false;
+            }
+
+            // Set image
+            SetImage(selectedItem.ImageFile, _state.Progress);
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusImportSuccess);
+
+            return true;
+        }
+
         #region Support
 
         private string GetImageName(ImageThumbnail item)
@@ -233,6 +271,23 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             var clampedIndex = Math.Clamp(_selectedImgIndex, 0, _imgList.Items.Count - 1);
             return _imgList.Items[clampedIndex];
+        }
+
+        private bool TryLoadImage(string filePath, [NotNullWhen(true)] out Image<Rgba32>? loadedImage)
+        {
+            loadedImage = null;
+
+            try
+            {
+                _ = Image.DetectFormat(filePath);
+
+                loadedImage = Image.Load<Rgba32>(filePath);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         #endregion

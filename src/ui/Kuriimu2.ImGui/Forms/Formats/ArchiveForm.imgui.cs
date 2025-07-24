@@ -9,6 +9,7 @@ using ImGui.Forms.Models;
 using Konnect.DataClasses.FileSystem;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -55,8 +56,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _addDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryAdd };
             _deleteDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryDelete };
 
-            _openFileButton = new MenuBarButton { Text = LocalizationResources.MenuFileOpen };
-            _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.MenuFileOpenWith };
+            _openFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileOpen };
+            _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.ArchiveFileOpenWith };
             _extractFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileExtract };
             _replaceFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileReplace };
             _renameFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileRename };
@@ -88,8 +89,24 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
             };
 
-            _saveBtn = new ImageButton { Image = ImageResources.Save, Tooltip = LocalizationResources.MenuFileSave, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
-            _saveAsBtn = new ImageButton { Image = ImageResources.SaveAs, Tooltip = LocalizationResources.MenuFileSaveAs, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5), Enabled = false };
+            _saveBtn = new ImageButton
+            {
+                Image = ImageResources.Save,
+                Tooltip = LocalizationResources.MenuFileSave,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(ModifierKeys.Control, Key.S)
+            };
+            _saveAsBtn = new ImageButton
+            {
+                Image = ImageResources.SaveAs,
+                Tooltip = LocalizationResources.MenuFileSaveAs,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = false,
+                KeyAction = new(Key.F12)
+            };
 
             _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder };
             _clearButton = new ImageButton { Image = ImageResources.Close };
@@ -102,6 +119,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     new DataTableColumn<ArchiveFile>(a => a.Name,LocalizationResources.ArchiveTableFilesName),
                     new DataTableColumn<ArchiveFile>(a => $"{a.Size}",LocalizationResources.ArchiveTableFilesSize)
                 },
+                CanSelectMultiple = true,
                 ContextMenu = _fileContext
             };
 
@@ -191,6 +209,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             };
 
             #endregion
+        }
+
+        protected override void SetTabInactiveCore()
+        {
+            _treeView.SetTabInactive();
+            _fileView.SetTabInactive();
         }
     }
 }
