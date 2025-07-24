@@ -1,5 +1,6 @@
 ﻿using Kanvas;
 using Kanvas.Contract.Encoding;
+using Konnect.Plugin.File.Image;
 
 namespace plugin_grezzo.Fonts
 {
@@ -31,5 +32,13 @@ namespace plugin_grezzo.Fonts
             [2] = ImageFormats.A4(),
             [4] = ImageFormats.La44()
         };
+
+        public static EncodingDefinition GetEncodingDefinition()
+        {
+            var definition = new EncodingDefinition();
+            definition.AddColorEncodings(Formats);
+
+            return definition;
+        }
     }
 }

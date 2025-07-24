@@ -1,10 +1,10 @@
 ﻿using Kaligraphy.Contract.DataClasses;
 using Kaligraphy.Generation;
-using Kanvas;
-using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Encoding;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
+using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Plugin.File.Image;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -28,8 +28,10 @@ namespace plugin_grezzo.Fonts
             int glyphLength = _header.bitsPerPixel * _header.glyphWidth * _header.glyphHeight / 8;
             byte[][] glyphs = ReadGlyphs(br, _header.glyphCount, glyphLength);
 
+            EncodingDefinition encodingDefinition = QbfSupport.GetEncodingDefinition();
+
             var characters = new List<CharacterInfo>();
-            foreach (var entry in entries)
+            foreach (QbfEntry entry in entries)
             {
                 if (entry.unk3 != 0)
                 {
@@ -43,9 +45,15 @@ namespace plugin_grezzo.Fonts
                 }
 
                 IColorEncoding encoding = QbfSupport.Formats[_header.imgFormat];
-                var size = new Size(_header.glyphWidth, _header.glyphHeight);
+                var imageInfo = new ImageFileInfo
+                {
+                    BitDepth = encoding.BitDepth,
+                    ImageData = glyphs[entry.index],
+                    ImageFormat = _header.imgFormat,
+                    ImageSize = new Size(_header.glyphWidth, _header.glyphHeight)
+                };
 
-                Image<Rgba32> rawGlyph = encoding.Load(glyphs[entry.index], new EncodingOptions { Size = size, TaskCount = 1 }).ToImage(size);
+                Image<Rgba32> rawGlyph = ImageFile.Decode(imageInfo, encodingDefinition);
                 GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(rawGlyph);
 
                 if (glyphDescription.Size is { Width: > 0, Height: > 0 })
@@ -104,6 +112,8 @@ namespace plugin_grezzo.Fonts
             _header.glyphWidth = (byte)((characters.Max(x => x.Glyph?.Width ?? 0) + 7) & ~7);
             _header.glyphHeight = (byte)((characters.Max(x => x.Glyph?.Height ?? 0) + 7) & ~7);
 
+            EncodingDefinition encodingDefinition = QbfSupport.GetEncodingDefinition();
+
             var result = new List<QbfEntry>();
 
             var emptyIndex = 0;
@@ -137,9 +147,17 @@ namespace plugin_grezzo.Fonts
                     glyph.Mutate(context => context.DrawImage(character.Glyph, new Point(leftPos, character.GlyphPosition.Y), 1f));
 
                     IColorEncoding encoding = QbfSupport.Formats[_header.imgFormat];
-                    byte[] rawGlyph = encoding.Save(glyph.ToColors(), new EncodingOptions { Size = glyph.Size, TaskCount = 1 });
+                    var imageInfo = new ImageFileInfo
+                    {
+                        BitDepth = encoding.BitDepth,
+                        ImageData = [],
+                        ImageFormat = _header.imgFormat,
+                        ImageSize = Size.Empty
+                    };
 
-                    glyphs.Add(rawGlyph);
+                    ImageFile.Encode(glyph, imageInfo, encodingDefinition);
+
+                    glyphs.Add(imageInfo.ImageData);
                 }
             }
 
