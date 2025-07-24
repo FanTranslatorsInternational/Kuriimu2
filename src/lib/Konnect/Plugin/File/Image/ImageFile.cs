@@ -110,6 +110,28 @@ namespace Konnect.Plugin.File.Image
             return new(imageInfo, encodingDefinition);
         }
 
+        /// <summary>
+        /// Decodes an image from a <see cref="ImageFileInfo"/>.
+        /// </summary>
+        /// <param name="imageInfo">The image info containing all necessary image data and settings.</param>
+        /// <param name="encodingDefinition">The encodings available for the image data.</param>
+        /// <returns>The decoded image.</returns>
+        public static Image<Rgba32> Decode(ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition)
+        {
+            return new ImageFile(imageInfo, encodingDefinition).GetImage();
+        }
+
+        /// <summary>
+        /// Encodes an image to a <see cref="ImageFileInfo"/>.
+        /// </summary>
+        /// <param name="image">The image to encode into <paramref name="imageInfo"/>.</param>
+        /// <param name="imageInfo">The image info that will receive all the encoded image data.</param>
+        /// <param name="encodingDefinition">The encodings available for the image data.</param>
+        public static void Encode(Image<Rgba32> image, ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition)
+        {
+            new ImageFile(imageInfo, encodingDefinition).SetImage(image);
+        }
+
         #endregion
 
         #region Interface
