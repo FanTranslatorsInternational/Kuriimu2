@@ -27,12 +27,6 @@
     <None Remove="Resources\Images\light\image_import.png" />
     <None Remove="Resources\Images\light\save.png" />
     <None Remove="Resources\Images\light\save_as.png" />
-    <None Remove="Resources\Localizations\da.json" />
-    <None Remove="Resources\Localizations\de.json" />
-    <None Remove="Resources\Localizations\en.json" />
-    <None Remove="Resources\Localizations\ko.json" />
-    <None Remove="Resources\Localizations\ru.json" />
-    <None Remove="Resources\Localizations\zh.json" />
     <None Remove="Resources\version.json" />
   </ItemGroup>
 
@@ -67,13 +61,34 @@
     <EmbeddedResource Include="Resources\Images\light\image_import.png" />
     <EmbeddedResource Include="Resources\Images\light\save.png" />
     <EmbeddedResource Include="Resources\Images\light\save_as.png" />
-    <EmbeddedResource Include="Resources\Localizations\da.json" />
-    <EmbeddedResource Include="Resources\Localizations\de.json" />
-    <EmbeddedResource Include="Resources\Localizations\en.json" />
-    <EmbeddedResource Include="Resources\Localizations\ko.json" />
-    <EmbeddedResource Include="Resources\Localizations\ru.json" />
-    <EmbeddedResource Include="Resources\Localizations\zh.json" />
     <EmbeddedResource Include="Resources\version.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Localizations\da.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\da.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\de.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\de.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\en.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\en.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\ko.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\ko.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\ru.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\ru.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\zh.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\zh.json</TargetPath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -98,11 +113,5 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\..\dist\Release\</OutputPath>
   </PropertyGroup>
-
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" />
-    </VisualStudio>
-  </ProjectExtensions>
 
 </Project>

@@ -1,16 +1,14 @@
 ﻿using ImGui.Forms.Localization;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.Json;
 
 namespace Kuriimu2.ImGui.Resources
 {
     internal class Localizer : BaseLocalizer
     {
-        private const string NameSpace_ = "Kuriimu2.ImGui.Resources.Localizations.";
+        private const string LocalizationFolder_ = "resources/langs";
 
         protected override string DefaultLocale => "en";
         protected override string UndefinedValue => "<undefined>";
@@ -22,43 +20,41 @@ namespace Kuriimu2.ImGui.Resources
 
         protected override IList<LanguageInfo> InitializeLocalizations()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var localNames = assembly.GetManifestResourceNames().Where(n => n.StartsWith(NameSpace_));
+            var result = new List<LanguageInfo>();
+
+            string applicationDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            string localeDirectory = Path.Combine(applicationDirectory, LocalizationFolder_);
+
+            if (!Directory.Exists(localeDirectory))
+                return result;
+
+            string[] localeFiles = Directory.GetFiles(localeDirectory);
 
             var jsonOptions = new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip };
-
-            var result = new List<LanguageInfo>();
-            foreach (string localName in localNames)
+            foreach (string localeFile in localeFiles)
             {
-                var locStream = assembly.GetManifestResourceStream(localName);
-                if (locStream == null)
-                    continue;
-
                 // Read text from stream
-                var reader = new StreamReader(locStream, Encoding.UTF8);
-                var json = reader.ReadToEnd();
+                string json = File.ReadAllText(localeFile);
 
                 // Deserialize JSON
                 var translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json, jsonOptions);
-                if (!translations.TryGetValue("Name", out string localeName))
+                if (translations is null || !translations.TryGetValue("Name", out string? localeName))
                     continue;
 
-                var languageInfo = new LanguageInfo(GetLocale(localName), localeName, translations);
-
-                result.Add(languageInfo);
+                result.Add(new LanguageInfo(GetLocale(localeFile), localeName, translations));
             }
 
             return result;
         }
 
+        private string GetLocale(string localeFile)
+        {
+            return Path.GetFileNameWithoutExtension(localeFile);
+        }
+
         protected override string InitializeLocale()
         {
             return SettingsResources.Locale;
-        }
-
-        private string GetLocale(string resourceName)
-        {
-            return resourceName.Replace(NameSpace_, string.Empty).Replace(".json", string.Empty);
         }
     }
 }

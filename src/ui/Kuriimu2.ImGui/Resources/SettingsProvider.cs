@@ -72,5 +72,5 @@ namespace Kuriimu2.ImGui.Resources
     }
 
     [JsonSerializable(typeof(Dictionary<string, string>))]
-    partial class DictionaryJsonContext : JsonSerializerContext { }
+    partial class DictionaryJsonContext : JsonSerializerContext;
 }
