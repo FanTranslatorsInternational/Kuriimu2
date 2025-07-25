@@ -106,7 +106,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             IList<CharacterData> parsedText = _parser.Parse(text);
 
-            var layouter = new TextLayoutCreator(_state.PluginState.Characters, new LayoutOptions{HorizontalAlignment = HorizontalTextAlignment.Center});
+            var layouter = new TextLayoutCreator(_state.PluginState.Characters, new LayoutOptions());
             IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 
             int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
