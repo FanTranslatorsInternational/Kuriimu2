@@ -240,6 +240,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString FontLabelBaseLine => LocalizedString.FromId("Font.Label.BaseLine");
         public static LocalizedString FontLabelDescentLine => LocalizedString.FromId("Font.Label.DescentLine");
         public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
+        public static LocalizedString FontPreviewPlaceholder=> LocalizedString.FromId("Font.Preview.Placeholder");
 
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");

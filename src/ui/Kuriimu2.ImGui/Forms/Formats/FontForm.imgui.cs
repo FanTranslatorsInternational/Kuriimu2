@@ -3,6 +3,7 @@ using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
+using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Models;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
@@ -26,10 +27,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ImageButton _saveAsBtn;
         private Button _generateBtn;
 
-        private Label _baseLineLbl;
-        private Label _baseLineTextLbl;
-        private Label _descentLineLbl;
-        private Label _descentLineTextLbl;
+        private TextEditor _previewTextEditor;
+        private ZoomablePictureBox _textPreview;
 
         private ZoomableCharacterInfo _glyphBox;
 
@@ -49,7 +48,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _glyphBox = new ZoomableCharacterInfo
             {
                 ShowBorder = true,
-                BackgroundColor = ColorResources.GlyphBackground
+                BackgroundColor = ColorResources.GlyphBackground,
+                Size = new Size(SizeValue.Parent, .75f)
             };
 
             _searchCharBox = new TextBox
@@ -96,11 +96,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _generateBtn = new Button { Text = LocalizationResources.FontGenerateCaption, Width = SizeValue.Absolute(100), Enabled = fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
 
-            _baseLineLbl = new Label { Text = LocalizationResources.FontLabelBaseLine };
-            _descentLineLbl = new Label { Text = LocalizationResources.FontLabelDescentLine };
-
-            _baseLineTextLbl = new Label();
-            _descentLineTextLbl = new Label();
+            _previewTextEditor = new TextEditor();
+            _textPreview = new ZoomablePictureBox
+            {
+                ShowBorder = true
+            };
 
             #endregion
 
@@ -117,28 +117,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
             };
 
-            var fontInfoLayout = new TableLayout
+            var textPreviewLayout = new StackLayout
             {
-                Spacing = new Vector2(4, 4),
-                Size = Size.WidthAlign,
-                Rows =
+                Alignment = Alignment.Horizontal,
+                Size = new Size(SizeValue.Parent, .25f),
+                ItemSpacing = 4,
+                Items =
                 {
-                    new TableRow
-                    {
-                        Cells =
-                        {
-                            _baseLineLbl,
-                            _descentLineLbl
-                        }
-                    },
-                    new TableRow
-                    {
-                        Cells =
-                        {
-                            _baseLineTextLbl,
-                            _descentLineTextLbl
-                        }
-                    }
+                    _previewTextEditor,
+                    _textPreview
                 }
             };
 
@@ -150,7 +137,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 {
                     toolbarLayout,
                     _glyphBox,
-                    fontInfoLayout
+                    textPreviewLayout
                 }
             };
 
@@ -164,8 +151,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     _glyphLayout
                 }
             };
-
-            _glyphBox.Zoom(20f);
         }
 
         #region Component implementation
@@ -219,12 +204,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
             element.IsSelected = true;
 
             _glyphBox.SetCharacterInfo(element.CharacterInfo);
-        }
-
-        private void SetFontInformation(IFontFilePluginState state)
-        {
-            _baseLineTextLbl.Text = $"{state.Baseline}";
-            _descentLineTextLbl.Text = $"{state.DescentLine}";
         }
 
         protected override void SetTabInactiveCore()

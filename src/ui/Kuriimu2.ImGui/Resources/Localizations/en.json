@@ -240,6 +240,7 @@
   "Font.Label.BaseLine": "Baseline:",
   "Font.Label.DescentLine": "Descent:",
   "Font.Search.Placeholder": "Search: ¥, \\uFFE3",
+  "Font.Preview.Placeholder": "Preview",
 
   // Generate
   "Font.Generate.Caption": "Generate Font",
