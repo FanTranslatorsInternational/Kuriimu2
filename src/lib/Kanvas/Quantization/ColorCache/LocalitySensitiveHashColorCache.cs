@@ -44,8 +44,8 @@ namespace Kanvas.Quantization.ColorCache
         public LocalitySensitiveHashColorCache(IList<Rgba32> palette, ColorModel colorModel) :
             base(palette)
         {
-            CreateBuckets(palette);
             Quality = DefaultQuality;
+            CreateBuckets(palette);
 
             _colorModel = colorModel;
         }
