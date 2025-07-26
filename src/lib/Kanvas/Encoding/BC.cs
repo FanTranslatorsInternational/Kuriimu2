@@ -164,6 +164,9 @@ namespace Kanvas.Encoding
                 case BcFormat.Ati2AL:
                     return CompressionFormat.Bc5;
 
+                case BcFormat.Bc6H:
+                    return CompressionFormat.Bc6U;
+
                 case BcFormat.Bc7:
                     return CompressionFormat.Bc7;
 

@@ -53,6 +53,7 @@ namespace Kanvas
         public static IColorEncoding AtcExplicit() => new Atc(AtcFormat.Atc_Explicit);
         public static IColorEncoding AtcInterpolated() => new Atc(AtcFormat.Atc_Interpolated);
 
+        public static IColorEncoding Bc6H() => new Bc(BcFormat.Bc6H);
         public static IColorEncoding Bc7() => new Bc(BcFormat.Bc7);
 
         public static IColorEncoding Pvrtc_2bpp() => new PVRTC(PvrtcFormat.PVRTCI_2bpp_RGB);
