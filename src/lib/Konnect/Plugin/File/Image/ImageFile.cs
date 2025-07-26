@@ -506,10 +506,6 @@ namespace Konnect.Plugin.File.Image
 
         private void TranscodeImage(int imageFormat, int paletteFormat)
         {
-            if (ImageInfo.ImageFormat == imageFormat &&
-                ImageInfo.PaletteFormat == paletteFormat)
-                return;
-
             // Decode image
             Image<Rgba32> decodedImage = _bestImage ?? GetDecodedImage();
 
