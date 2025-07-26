@@ -126,7 +126,7 @@ namespace Kanvas
 
         public (byte[] imageData, byte[]? paletteData) Encode(Image<Rgba32> image)
         {
-            if (_options.EncodingOptions is { IndexEncoding: { }, PaletteEncoding: { } })
+            if (_options.EncodingOptions is { IndexEncoding: not null, PaletteEncoding: not null })
                 return EncodeIndex(image);
 
             return (EncodeColor(image), null);
@@ -146,6 +146,9 @@ namespace Kanvas
             IEnumerable<Rgba32> colors;
             if (_options.QuantizationOptions != null)
             {
+                if (_options.QuantizationOptions.ColorCount < 0)
+                    _options.QuantizationOptions.ColorCount = 256;
+
                 // If we have quantization enabled
                 IQuantizer quantizer = new Quantizer(_options.QuantizationOptions);
 
@@ -195,6 +198,9 @@ namespace Kanvas
             Size paddedSize = GetPaddedSize(image.Size);
             IImageSwizzle? swizzle = GetPixelRemapper(indexEncoding, paddedSize);
             Size finalSize = GetFinalSize(paddedSize, swizzle);
+
+            if (quantizationOptions.ColorCount < 0)
+                quantizationOptions.ColorCount = indexEncoding.MaxColors;
 
             IQuantizer quantizer = new Quantizer(quantizationOptions);
             (IEnumerable<int> indices, IList<Rgba32> palette) = QuantizeImage(image, finalSize, quantizer, swizzle);

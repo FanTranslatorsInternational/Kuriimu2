@@ -50,7 +50,7 @@ namespace Kanvas.Quantization
             else
             {
                 // Create a new palette through quantization
-                IColorQuantizer quantizer = _options.ColorQuanitzerDelegate(_options.ColorCount, _options.TaskCount);
+                IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount);
                 IList<Rgba32> palette = quantizer.CreatePalette(colors);
 
                 return quantizer.IsColorCacheFixed ?

@@ -113,7 +113,7 @@ namespace Kanvas.Configuration
                     PaletteDelegate = _options.QuantizationOptions.PaletteDelegate,
                     ColorCacheDelegate = _options.QuantizationOptions.ColorCacheDelegate,
                     ColorDithererDelegate = _options.QuantizationOptions.ColorDithererDelegate,
-                    ColorQuanitzerDelegate = _options.QuantizationOptions.ColorQuanitzerDelegate
+                    ColorQuantizerDelegate = _options.QuantizationOptions.ColorQuantizerDelegate
                 };
             }
 

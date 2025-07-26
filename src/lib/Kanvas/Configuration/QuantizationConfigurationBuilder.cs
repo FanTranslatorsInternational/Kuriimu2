@@ -40,7 +40,7 @@ namespace Kanvas.Configuration
 
         public IQuantizationConfigurationBuilder WithColorQuantizer(CreateColorQuantizerDelegate quantizerDelegate)
         {
-            _options.ColorQuanitzerDelegate = quantizerDelegate;
+            _options.ColorQuantizerDelegate = quantizerDelegate;
             return this;
         }
 
@@ -49,8 +49,6 @@ namespace Kanvas.Configuration
             _options.ColorDithererDelegate = dithererDelegate;
             return this;
         }
-
-        public IQuantizer Build() => new Quantizer(_options);
 
         public IQuantizationConfigurationBuilder Clone()
         {
@@ -61,7 +59,7 @@ namespace Kanvas.Configuration
                 PaletteDelegate = _options.PaletteDelegate,
                 ColorCacheDelegate = _options.ColorCacheDelegate,
                 ColorDithererDelegate = _options.ColorDithererDelegate,
-                ColorQuanitzerDelegate = _options.ColorQuanitzerDelegate
+                ColorQuantizerDelegate = _options.ColorQuantizerDelegate
             };
 
             return new QuantizationConfigurationBuilder(options);

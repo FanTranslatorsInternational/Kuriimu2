@@ -1,5 +1,4 @@
-﻿using Kanvas.Contract.Quantization;
-using Kanvas.Contract.Quantization.ColorCache;
+﻿using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorDitherer;
 using Kanvas.Contract.Quantization.ColorQuantizer;
 using SixLabors.ImageSharp;
@@ -26,8 +25,6 @@ namespace Kanvas.Contract.Configuration
         IQuantizationConfigurationBuilder WithColorQuantizer(CreateColorQuantizerDelegate quantizerDelegate);
 
         IQuantizationConfigurationBuilder WithColorDitherer(CreateColorDithererDelegate dithererDelegate);
-
-        IQuantizer Build();
 
         IQuantizationConfigurationBuilder Clone();
     }
