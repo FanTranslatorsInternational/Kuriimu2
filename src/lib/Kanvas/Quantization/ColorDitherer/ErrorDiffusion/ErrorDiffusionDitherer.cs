@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using System.Drawing;
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorDitherer;
 using Kanvas.DataClasses.Quantization.Ditherer;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion

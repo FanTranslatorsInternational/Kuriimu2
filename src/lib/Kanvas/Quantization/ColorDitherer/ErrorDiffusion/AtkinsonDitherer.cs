@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
 
 namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
