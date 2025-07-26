@@ -12,6 +12,8 @@ namespace Kanvas.Contract.Configuration
     public delegate IColorQuantizer CreateColorQuantizerDelegate(int colorCount, int taskCount);
     public delegate IColorDitherer CreateColorDithererDelegate(Size imageSize, int taskCount);
 
+    public delegate IQuantizationConfigurationBuilder CreateQuantizationDelegate(IQuantizationConfigurationBuilder options);
+
     public interface IQuantizationConfigurationBuilder
     {
         IQuantizationConfigurationBuilder WithDegreeOfParallelism(int taskCount);

@@ -16,7 +16,7 @@ namespace Kanvas.Contract.Configuration
 
         IImageConfigurationBuilder WithDegreeOfParallelism(int taskCount);
 
-        IImageConfigurationBuilder ConfigureQuantization(Action<IQuantizationConfigurationBuilder> configure);
+        IImageConfigurationBuilder ConfigureQuantization(CreateQuantizationDelegate configure);
         IImageConfigurationBuilder WithoutQuantization();
 
         IImageTranscoder Build();

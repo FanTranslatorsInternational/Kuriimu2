@@ -54,7 +54,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IImageConfigurationBuilder ConfigureQuantization(Action<IQuantizationConfigurationBuilder> configure)
+        public IImageConfigurationBuilder ConfigureQuantization(CreateQuantizationDelegate configure)
         {
             _options.QuantizationOptions ??= new QuantizationConfigurationOptions();
             _quantizationConfigurationBuilder ??= new QuantizationConfigurationBuilder(_options.QuantizationOptions);
