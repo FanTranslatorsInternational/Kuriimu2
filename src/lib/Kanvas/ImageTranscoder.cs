@@ -199,8 +199,9 @@ namespace Kanvas
             IImageSwizzle? swizzle = GetPixelRemapper(indexEncoding, paddedSize);
             Size finalSize = GetFinalSize(paddedSize, swizzle);
 
-            if (quantizationOptions.ColorCount < 0)
-                quantizationOptions.ColorCount = indexEncoding.MaxColors;
+            quantizationOptions.ColorCount = quantizationOptions.ColorCount < 0 
+                ? indexEncoding.MaxColors 
+                : Math.Min(quantizationOptions.ColorCount, indexEncoding.MaxColors);
 
             IQuantizer quantizer = new Quantizer(quantizationOptions);
             (IEnumerable<int> indices, IList<Rgba32> palette) = QuantizeImage(image, finalSize, quantizer, swizzle);
