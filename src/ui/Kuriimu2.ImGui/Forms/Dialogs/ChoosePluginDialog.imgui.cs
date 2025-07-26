@@ -65,9 +65,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             #region Properties
 
-            var width = (int)Math.Ceiling(Application.Instance.MainForm.Width * .4f);
-            var height = (int)Math.Ceiling(Application.Instance.MainForm.Height * .8f);
-            Size = new Size(width, height);
+            Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
 
             Caption = LocalizationResources.DialogChoosePluginCaption;
             Content = mainLayout;

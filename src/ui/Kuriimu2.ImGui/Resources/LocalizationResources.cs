@@ -12,6 +12,7 @@ namespace Kuriimu2.ImGui.Resources
         public static ILocalizer Instance => Lazy.Value;
 
         // Kuriimu2
+        public static LocalizedString ApplicationName => LocalizedString.FromId("Application.Name");
 
         // Menus
         public static LocalizedString MenuFile => LocalizedString.FromId("Menu.File");
@@ -237,13 +238,12 @@ namespace Kuriimu2.ImGui.Resources
         // Font Form
 
         // Labels
-        public static LocalizedString FontLabelBaseLine => LocalizedString.FromId("Font.Label.BaseLine");
-        public static LocalizedString FontLabelDescentLine => LocalizedString.FromId("Font.Label.DescentLine");
         public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
         public static LocalizedString FontPreviewPlaceholder=> LocalizedString.FromId("Font.Preview.Placeholder");
 
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
+        public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
 
         // Dialogs
 

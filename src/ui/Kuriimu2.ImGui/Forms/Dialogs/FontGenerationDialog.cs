@@ -6,11 +6,9 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
-using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Extensions;
@@ -30,17 +28,15 @@ using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using HorizontalAlignment = ImGui.Forms.Controls.Layouts.HorizontalAlignment;
 using Image = SixLabors.ImageSharp.Image;
 using Point = SixLabors.ImageSharp.Point;
 using PointF = System.Drawing.PointF;
 using Rectangle = SixLabors.ImageSharp.Rectangle;
-using Size = ImGui.Forms.Models.Size;
 using SolidBrush = System.Drawing.SolidBrush;
 
-namespace Kuriimu2.ImGui.Forms.Dialogs.Font
+namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    internal class FontGenerationDialog : Modal
+    internal partial class FontGenerationDialog
     {
         private const int DefaultFontSize_ = 12;
         private const int DefaultBaseline_ = 18;
@@ -48,27 +44,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
         private const int DefaultSpaceWidth_ = 4;
         private const int DefaultPaddingLeft_ = 0;
         private const int DefaultPaddingRight_ = 0;
-        private const string DefaultCharacters_ = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789";
 
         private readonly IFontFilePluginState _fontState;
         private readonly FontProfileManager _profileManager = new();
         private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
-
-        private ZoomablePaddedGlyph _glyphBox;
-        private TextBox _paddingLeftBox;
-        private TextBox _paddingRightBox;
-        private ComboBox<FontFamily> _fontFamilyBox;
-        private CheckBox _boldCheckBox;
-        private CheckBox _italicCheckBox;
-        private TextBox _fontSizeBox;
-        private TextBox _baselineBox;
-        private TextBox _glyphHeightBox;
-        private TextBox _spaceWidthBox;
-        private TextEditor _characterEditor;
-
-        private Button _loadBtn;
-        private Button _saveBtn;
-        private Button _generateBtn;
 
         private bool _isProfile;
         private FontProfile _profile;
@@ -103,7 +82,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
                 Baseline = DefaultBaseline_,
                 GlyphHeight = DefaultGlyphHeight_,
                 SpaceWidth = DefaultSpaceWidth_,
-                Characters = DefaultCharacters_,
+                Characters = LocalizationResources.FontGenerateDefaultCharacters,
                 Paddings = new Dictionary<char, (int, int)>()
             };
         }
@@ -127,166 +106,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
             if (TryGetCurrentCharacter(out char character))
                 SetCurrentCharacter(character);
-        }
-
-        private void InitializeComponent()
-        {
-            _glyphBox = new ZoomablePaddedGlyph { ShowBorder = true };
-            _paddingLeftBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _paddingRightBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _fontFamilyBox = new ComboBox<FontFamily> { MaxShowItems = 5 };
-            _boldCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleBold);
-            _italicCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleItalic);
-            _fontSizeBox = new TextBox { Text = $"{DefaultFontSize_}", AllowedCharacters = CharacterRestriction.Decimal };
-            _baselineBox = new TextBox { Text = $"{DefaultBaseline_}", AllowedCharacters = CharacterRestriction.Decimal };
-            _glyphHeightBox = new TextBox { Text = $"{DefaultGlyphHeight_}", AllowedCharacters = CharacterRestriction.Decimal };
-            _spaceWidthBox = new TextBox { Text = $"{DefaultSpaceWidth_}", AllowedCharacters = CharacterRestriction.Decimal };
-
-            _characterEditor = new TextEditor { IsShowingLineNumbers = false };
-            _characterEditor.SetText(DefaultCharacters_);
-
-            _loadBtn = new Button(LocalizationResources.DialogGenerateFontLoad) { Width = 75 };
-            _saveBtn = new Button(LocalizationResources.DialogGenerateFontSave) { Width = 75 };
-            _generateBtn = new Button(LocalizationResources.DialogGenerateFontGenerate) { Width = 75, Enabled = _fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
-
-            Size = new Size(SizeValue.Relative(.5f), SizeValue.Relative(.7f));
-            Caption = LocalizationResources.DialogGenerateFontCaption;
-            Content = new StackLayout
-            {
-                Alignment = Alignment.Horizontal,
-                ItemSpacing = 4,
-                Items =
-                {
-                    new StackLayout
-                    {
-                        Alignment = Alignment.Vertical,
-                        ItemSpacing = 4,
-                        Items =
-                        {
-                            _glyphBox,
-                            new TableLayout
-                            {
-                                Size = Size.WidthAlign,
-                                Spacing = new Vector2(4),
-                                Rows =
-                                {
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateFontPaddingLeft),
-                                            new Label(LocalizationResources.DialogGenerateFontPaddingRight)
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            _paddingLeftBox,
-                                            _paddingRightBox
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    new StackLayout
-                    {
-                        Alignment = Alignment.Vertical,
-                        ItemSpacing = 4,
-                        Items =
-                        {
-                            new TableLayout
-                            {
-                                Spacing = new Vector2(4),
-                                Rows =
-                                {
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateFontFamily),
-                                            _fontFamilyBox
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateFontStyle),
-                                            new StackLayout
-                                            {
-                                                Alignment = Alignment.Horizontal,
-                                                Size = Size.WidthAlign,
-                                                ItemSpacing = 4,
-                                                Items =
-                                                {
-                                                    new StackItem(_boldCheckBox){Size = Size.WidthAlign},
-                                                    new StackItem(_italicCheckBox){Size = Size.WidthAlign}
-                                                }
-                                            }
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateFontSize),
-                                            _fontSizeBox
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateBaseline),
-                                            _baselineBox
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateGlyphHeight),
-                                            _glyphHeightBox
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateSpaceWidth),
-                                            _spaceWidthBox
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            new Label(LocalizationResources.DialogGenerateCharacters),
-                                            _characterEditor
-                                        }
-                                    }
-                                }
-                            },
-                            new StackLayout
-                            {
-                                Alignment = Alignment.Horizontal,
-                                Size = Size.WidthAlign,
-                                ItemSpacing = 4,
-                                Items =
-                                {
-                                    _loadBtn,
-                                    _saveBtn,
-                                    new StackItem(_generateBtn) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-
-            _glyphBox.Zoom(20f);
         }
 
         protected override Task<bool> ShouldCancelClose()
@@ -364,7 +183,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
 
             removeState.RemoveAll();
 
-            System.Drawing.Font font = GetFont();
+            Font font = GetFont();
             foreach (char character in _characterEditor.GetText().Distinct().Order())
             {
                 if (char.IsWhiteSpace(character) && _profile.SpaceWidth <= 0)
@@ -594,7 +413,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             _glyphBox.SetPaddedGlyph(paddedGlyph);
         }
 
-        private System.Drawing.Font GetFont()
+        private Font GetFont()
         {
             var fontStyle = FontStyle.Regular;
             if (_profile.IsBold)
@@ -602,10 +421,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             if (_profile.IsItalic)
                 fontStyle |= FontStyle.Italic;
 
-            return new System.Drawing.Font(_fontFamilyBox.SelectedItem.Content, _profile.FontSize, fontStyle);
+            return new Font(_fontFamilyBox.SelectedItem.Content, _profile.FontSize, fontStyle);
         }
 
-        private PaddedGlyph GetPaddedGlyph(char character, System.Drawing.Font font)
+        private PaddedGlyph GetPaddedGlyph(char character, Font font)
         {
             if (!_profile.Paddings.TryGetValue(character, out (int, int) padding))
                 padding = (DefaultPaddingLeft_, DefaultPaddingRight_);
@@ -621,7 +440,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             };
         }
 
-        private Image<Rgba32> GetGlyph(char character, System.Drawing.Font font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition)
+        private Image<Rgba32> GetGlyph(char character, Font font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition)
         {
             System.Drawing.Image glyphImage = GetNativeGlyph(character, font);
 
@@ -647,7 +466,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             return glyph;
         }
 
-        private System.Drawing.Image GetNativeGlyph(char character, System.Drawing.Font font)
+        private System.Drawing.Image GetNativeGlyph(char character, Font font)
         {
             int measuredWidth = _profile.SpaceWidth;
             if (!char.IsWhiteSpace(character))
@@ -666,9 +485,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs.Font
             return glyphImage;
         }
 
-        private System.Drawing.SizeF MeasureCharacter(char character, System.Drawing.Font font)
+        private System.Drawing.SizeF MeasureCharacter(char character, Font font)
         {
-            var gfx = Graphics.FromHwnd(IntPtr.Zero);
+            var gfx = Graphics.FromHwnd(nint.Zero);
             return gfx.MeasureString($"{character}", font, PointF.Empty, StringFormat.GenericTypographic);
         }
 

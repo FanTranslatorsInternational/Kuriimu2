@@ -134,10 +134,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             public DialogManagerModal(Component content)
             {
-                var layoutWidth = content.GetWidth(Application.Instance.MainForm.Width, Application.Instance.MainForm.Height);
-                var layoutHeight = content.GetHeight(Application.Instance.MainForm.Width, Application.Instance.MainForm.Height);
-
-                Size = new Size(layoutWidth, layoutHeight);
+                Size = Size.Content;
                 Content = content;
             }
         }

@@ -19,6 +19,8 @@
 
   // Kuriimu2
 
+  "Application.Name": "Kuriimu2",
+
   // Menu
   "Menu.File": "File",
   "Menu.Tools": "Tools",
@@ -244,6 +246,7 @@
 
   // Generate
   "Font.Generate.Caption": "Generate Font",
+  "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Dialogs
 

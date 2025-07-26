@@ -1,0 +1,193 @@
+﻿using System.Drawing;
+using System.Numerics;
+using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Text.Editor;
+using ImGui.Forms.Controls.Text;
+using ImGui.Forms.Controls;
+using ImGui.Forms.Modals;
+using ImGui.Forms.Models;
+using Kuriimu2.ImGui.Components;
+using Kuriimu2.ImGui.Resources;
+using Size = ImGui.Forms.Models.Size;
+
+namespace Kuriimu2.ImGui.Forms.Dialogs
+{
+    partial class FontGenerationDialog : Modal
+    {
+        private ZoomablePaddedGlyph _glyphBox;
+        private TextBox _paddingLeftBox;
+        private TextBox _paddingRightBox;
+        private ComboBox<FontFamily> _fontFamilyBox;
+        private CheckBox _boldCheckBox;
+        private CheckBox _italicCheckBox;
+        private TextBox _fontSizeBox;
+        private TextBox _baselineBox;
+        private TextBox _glyphHeightBox;
+        private TextBox _spaceWidthBox;
+        private TextEditor _characterEditor;
+
+        private Button _loadBtn;
+        private Button _saveBtn;
+        private Button _generateBtn;
+
+        private void InitializeComponent()
+        {
+            _glyphBox = new ZoomablePaddedGlyph { ShowBorder = true };
+            _paddingLeftBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
+            _paddingRightBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
+            _fontFamilyBox = new ComboBox<FontFamily> { MaxShowItems = 5 };
+            _boldCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleBold);
+            _italicCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleItalic);
+            _fontSizeBox = new TextBox { Text = $"{DefaultFontSize_}", AllowedCharacters = CharacterRestriction.Decimal };
+            _baselineBox = new TextBox { Text = $"{DefaultBaseline_}", AllowedCharacters = CharacterRestriction.Decimal };
+            _glyphHeightBox = new TextBox { Text = $"{DefaultGlyphHeight_}", AllowedCharacters = CharacterRestriction.Decimal };
+            _spaceWidthBox = new TextBox { Text = $"{DefaultSpaceWidth_}", AllowedCharacters = CharacterRestriction.Decimal };
+
+            _characterEditor = new TextEditor { IsShowingLineNumbers = false };
+            _characterEditor.SetText(LocalizationResources.FontGenerateDefaultCharacters);
+
+            _loadBtn = new Button(LocalizationResources.DialogGenerateFontLoad) { Width = 75 };
+            _saveBtn = new Button(LocalizationResources.DialogGenerateFontSave) { Width = 75 };
+            _generateBtn = new Button(LocalizationResources.DialogGenerateFontGenerate) { Width = 75, Enabled = _fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
+
+            Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
+            Caption = LocalizationResources.DialogGenerateFontCaption;
+            Content = new StackLayout
+            {
+                Alignment = Alignment.Horizontal,
+                ItemSpacing = 4,
+                Items =
+                {
+                    new StackLayout
+                    {
+                        Alignment = Alignment.Vertical,
+                        ItemSpacing = 4,
+                        Items =
+                        {
+                            _glyphBox,
+                            new TableLayout
+                            {
+                                Size = Size.WidthAlign,
+                                Spacing = new Vector2(4),
+                                Rows =
+                                {
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateFontPaddingLeft),
+                                            new Label(LocalizationResources.DialogGenerateFontPaddingRight)
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            _paddingLeftBox,
+                                            _paddingRightBox
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    new StackLayout
+                    {
+                        Alignment = Alignment.Vertical,
+                        ItemSpacing = 4,
+                        Items =
+                        {
+                            new TableLayout
+                            {
+                                Spacing = new Vector2(4),
+                                Rows =
+                                {
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateFontFamily),
+                                            _fontFamilyBox
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateFontStyle),
+                                            new StackLayout
+                                            {
+                                                Alignment = Alignment.Horizontal,
+                                                Size = Size.WidthAlign,
+                                                ItemSpacing = 4,
+                                                Items =
+                                                {
+                                                    new StackItem(_boldCheckBox){Size = Size.WidthAlign},
+                                                    new StackItem(_italicCheckBox){Size = Size.WidthAlign}
+                                                }
+                                            }
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateFontSize),
+                                            _fontSizeBox
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateBaseline),
+                                            _baselineBox
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateGlyphHeight),
+                                            _glyphHeightBox
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateSpaceWidth),
+                                            _spaceWidthBox
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(LocalizationResources.DialogGenerateCharacters),
+                                            _characterEditor
+                                        }
+                                    }
+                                }
+                            },
+                            new StackLayout
+                            {
+                                Alignment = Alignment.Horizontal,
+                                Size = Size.WidthAlign,
+                                ItemSpacing = 4,
+                                Items =
+                                {
+                                    _loadBtn,
+                                    _saveBtn,
+                                    new StackItem(_generateBtn) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            _glyphBox.Zoom(20f);
+        }
+    }
+}

@@ -8,7 +8,7 @@ using ImGui.Forms.Models;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
-using Kuriimu2.ImGui.Forms.Dialogs.Font;
+using Kuriimu2.ImGui.Forms.Dialogs;
 using Kuriimu2.ImGui.Resources;
 using Veldrid;
 using Rectangle = Veldrid.Rectangle;
