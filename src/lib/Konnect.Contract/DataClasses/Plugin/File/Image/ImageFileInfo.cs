@@ -70,6 +70,11 @@ namespace Konnect.Contract.DataClasses.Plugin.File.Image
         public CreatePixelRemapperDelegate? RemapPixels { get; set; } = null;
 
         /// <summary>
+        /// The delegate to define the quantization configuration for the image.
+        /// </summary>
+        public CreateQuantizationDelegate? Quantize { get; set; } = null;
+
+        /// <summary>
         /// Determines of the content of this instance changed.
         /// </summary>
         public bool ContentChanged { get; set; }

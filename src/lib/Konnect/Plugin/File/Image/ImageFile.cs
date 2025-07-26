@@ -588,8 +588,6 @@ namespace Konnect.Plugin.File.Image
             IColorEncoding paletteEncoding = GetPaletteEncoding(paletteFormat);
             indexConfig.TranscodePalette.With(paletteEncoding);
 
-            config.ConfigureQuantization(options => options.WithColorCount(encoding.MaxColors));
-
             return config;
         }
 
@@ -604,6 +602,9 @@ namespace Konnect.Plugin.File.Image
 
             if (ImageInfo.RemapPixels != null)
                 config.RemapPixels.With(ImageInfo.RemapPixels);
+
+            if (ImageInfo.Quantize != null)
+                config.ConfigureQuantization(options => ImageInfo.Quantize(options));
 
             return config;
         }
