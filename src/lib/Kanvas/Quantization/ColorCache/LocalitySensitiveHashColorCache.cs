@@ -45,9 +45,9 @@ namespace Kanvas.Quantization.ColorCache
             base(palette)
         {
             Quality = DefaultQuality;
-            CreateBuckets(palette);
-
             _colorModel = colorModel;
+
+            CreateBuckets(palette);
         }
 
         /// <inheritdoc />
@@ -138,8 +138,7 @@ namespace Kanvas.Quantization.ColorCache
                 case ColorModel.Rgba: return NormalizedDistanceRgba;
                 //case ColorModel.HSL: return NormalizedDistanceHsl;
                 //case ColorModel.Lab: return NormalizedDistanceLab;
-                default:
-                    throw new InvalidOperationException($"ColorModel {_colorModel} not supported.");
+                default: return 0;
             }
         }
     }
