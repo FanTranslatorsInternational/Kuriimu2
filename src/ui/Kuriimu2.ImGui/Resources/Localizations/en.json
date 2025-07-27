@@ -71,6 +71,17 @@
   "Menu.Tools.ImageTranscoder.Ditherer": "Ditherer",
   "Menu.Tools.ImageTranscoder.ColorCount": "Color Count",
 
+  // Raw Image Viewer
+  "Menu.Tools.RawImageViewer.Caption": "Raw Image Viewer",
+  "Menu.Tools.RawImageViewer.Width": "Width",
+  "Menu.Tools.RawImageViewer.Height": "Height",
+  "Menu.Tools.RawImageViewer.Offset": "Offset",
+  "Menu.Tools.RawImageViewer.PaletteOffset": "Palette Offset",
+  "Menu.Tools.RawImageViewer.Encoding": "Encoding",
+  "Menu.Tools.RawImageViewer.PaletteEncoding": "Palette Encoding",
+  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Components",
+  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Palette Components",
+
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",
   "Menu.Plugins.Name": "Name",

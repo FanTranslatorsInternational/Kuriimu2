@@ -147,7 +147,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             InitializePaletteEncodings(_encodingDefinition);
             InitializeEncodings(_encodingDefinition);
 
-            _paletteFormats.SelectedItem = _formats.Items.FirstOrDefault()!;
+            _paletteFormats.SelectedItem = _paletteFormats.Items.FirstOrDefault()!;
             _formats.SelectedItem = _formats.Items.FirstOrDefault()!;
         }
 

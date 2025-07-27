@@ -64,6 +64,17 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsImageTranscoderDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Ditherer");
         public static LocalizedString MenuToolsImageTranscoderColorCount => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCount");
 
+        // Raw Image Viewer
+        public static LocalizedString MenuToolsRawImageViewerCaption => LocalizedString.FromId("Menu.Tools.RawImageViewer.Caption");
+        public static LocalizedString MenuToolsRawImageViewerWidth => LocalizedString.FromId("Menu.Tools.RawImageViewer.Width");
+        public static LocalizedString MenuToolsRawImageViewerHeight => LocalizedString.FromId("Menu.Tools.RawImageViewer.Height");
+        public static LocalizedString MenuToolsRawImageViewerOffset => LocalizedString.FromId("Menu.Tools.RawImageViewer.Offset");
+        public static LocalizedString MenuToolsRawImageViewerPaletteOffset => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteOffset");
+        public static LocalizedString MenuToolsRawImageViewerEncoding => LocalizedString.FromId("Menu.Tools.RawImageViewer.Encoding");
+        public static LocalizedString MenuToolsRawImageViewerPaletteEncoding => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncoding");
+        public static LocalizedString MenuToolsRawImageViewerEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.EncodingComponentOrder");
+        public static LocalizedString MenuToolsRawImageViewerPaletteEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder");
+
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
         public static LocalizedString MenuPluginsName => LocalizedString.FromId("Menu.Plugins.Name");

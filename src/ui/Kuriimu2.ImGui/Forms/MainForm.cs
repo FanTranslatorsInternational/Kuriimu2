@@ -34,7 +34,6 @@ using Konnect.Management.Files;
 using Konnect.Management.Plugin;
 using Konnect.Management.Plugin.Loaders;
 using Konnect.Progress;
-using Kryptography.Checksum.Crc;
 using Kuriimu2.ImGui.Forms.Dialogs;
 using Kuriimu2.ImGui.Forms.Formats;
 using Kuriimu2.ImGui.Interfaces;
@@ -43,9 +42,6 @@ using Kuriimu2.ImGui.Progress;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.Update;
 using Serilog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.PixelFormats;
 using Color = System.Drawing.Color;
 
 namespace Kuriimu2.ImGui.Forms
@@ -106,6 +102,7 @@ namespace Kuriimu2.ImGui.Forms
             _saveAllButton.Clicked += _saveAllButton_Clicked;
 
             _imageTranscoderButton.Clicked += _imageTranscoderButton_Clicked;
+            _rawImageViewerButton.Clicked += _rawImageViewerButton_Clicked;
 
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
@@ -286,6 +283,11 @@ namespace Kuriimu2.ImGui.Forms
         private async void _imageTranscoderButton_Clicked(object? sender, EventArgs e)
         {
             await ShowImageTranscoderDialog();
+        }
+
+        private async void _rawImageViewerButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowRawImageViewerDialog();
         }
 
         private async void _pluginsButton_Clicked(object? sender, EventArgs e)
@@ -718,6 +720,12 @@ namespace Kuriimu2.ImGui.Forms
         private async Task ShowImageTranscoderDialog()
         {
             var imageTranscoderDialog = new ImageTranscoderDialog();
+            await imageTranscoderDialog.ShowAsync();
+        }
+
+        private async Task ShowRawImageViewerDialog()
+        {
+            var imageTranscoderDialog = new RawImageViewerDialog();
             await imageTranscoderDialog.ShowAsync();
         }
 

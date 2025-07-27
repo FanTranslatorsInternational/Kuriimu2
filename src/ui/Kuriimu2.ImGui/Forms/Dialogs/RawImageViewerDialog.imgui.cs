@@ -1,0 +1,293 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using ImGui.Forms.Controls;
+using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Text;
+using ImGui.Forms.Modals;
+using ImGui.Forms.Models;
+using Kanvas;
+using Kanvas.Contract.Encoding;
+using Kanvas.Encoding;
+using Konnect.Plugin.File.Image;
+using Kuriimu2.ImGui.Resources;
+
+namespace Kuriimu2.ImGui.Forms.Dialogs
+{
+    partial class RawImageViewerDialog : Modal
+    {
+        private StackLayout _mainLayout;
+        private TableLayout _settingsLayout;
+
+        private TextBox _widthTextBox;
+        private TextBox _heightTextBox;
+        private TextBox _offsetTextBox;
+        private TextBox _paletteOffsetTextBox;
+        private ComboBox<int> _formats;
+        private ComboBox<int> _paletteFormats;
+        private TextBox _componentsTextBox;
+        private TextBox _paletteComponentsTextBox;
+
+        private ZoomablePictureBox _imageBox;
+
+        private EncodingDefinition _encodingDefinition;
+        private Dictionary<int, string> _components = new();
+        private Dictionary<int, string> _paletteComponents = new();
+
+        private void InitializeComponent()
+        {
+            #region Components
+
+            _imageBox = new ZoomablePictureBox();
+
+            _widthTextBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
+            _heightTextBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
+            _offsetTextBox = new TextBox();
+            _paletteOffsetTextBox = new TextBox();
+            _formats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top };
+            _paletteFormats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top };
+            _componentsTextBox = new TextBox();
+            _paletteComponentsTextBox = new TextBox();
+
+            #endregion
+
+            #region Layouts
+
+            _settingsLayout = new TableLayout
+            {
+                Size = Size.Content,
+                Spacing = new Vector2(4, 4),
+                Rows =
+                {
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerWidth)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerOffset)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncoding)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncodingComponentOrder))
+                        }
+                    },
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(_widthTextBox),
+                            new TableCell(_offsetTextBox),
+                            new TableCell(_formats),
+                            new TableCell(_componentsTextBox)
+                        }
+                    },
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerHeight)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteOffset)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteEncoding)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteEncodingComponentOrder))
+                        }
+                    },
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(_heightTextBox),
+                            new TableCell(_paletteOffsetTextBox),
+                            new TableCell(_paletteFormats),
+                            new TableCell(_paletteComponentsTextBox)
+                        }
+                    }
+                }
+            };
+
+            _mainLayout = new StackLayout
+            {
+                Alignment = Alignment.Vertical,
+                ItemSpacing = 4,
+                Items =
+                {
+                    _imageBox,
+                    _settingsLayout
+                }
+            };
+
+            #endregion
+
+            InitializeFormats();
+
+            Caption = LocalizationResources.MenuToolsRawImageViewerCaption;
+
+            Content = _mainLayout;
+            Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
+
+            AllowDragDrop = true;
+        }
+
+        private void InitializeFormats()
+        {
+            _encodingDefinition = new EncodingDefinition();
+
+            InitializePaletteEncodings(_encodingDefinition);
+            InitializeEncodings(_encodingDefinition);
+
+            _paletteFormats.SelectedItem = _paletteFormats.Items.FirstOrDefault()!;
+            _formats.SelectedItem = _formats.Items.FirstOrDefault()!;
+        }
+
+        private void UpdateFormats()
+        {
+            _encodingDefinition = new EncodingDefinition();
+
+            int selectedPalette = _paletteFormats.Items.IndexOf(_paletteFormats.SelectedItem);
+            int selectedFormat = _formats.Items.IndexOf(_formats.SelectedItem);
+
+            _paletteFormats.Items.Clear();
+            _formats.Items.Clear();
+
+            InitializePaletteEncodings(_encodingDefinition, true);
+            InitializeEncodings(_encodingDefinition, true);
+
+            _paletteFormats.SelectedItem = _paletteFormats.Items[selectedPalette];
+            _formats.SelectedItem = _formats.Items[selectedFormat];
+        }
+
+        private void InitializePaletteEncodings(EncodingDefinition encodingDefinition, bool isUpdate = false)
+        {
+            string components = isUpdate ? _paletteComponents[00] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, 00, new Rgba(8, 8, 8, 8, components), components);
+
+            components = isUpdate ? _paletteComponents[01] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, 01, new Rgba(10, 10, 10, 2, components), components);
+
+            components = isUpdate ? _paletteComponents[02] : "RGB";
+            AddPaletteEncoding(encodingDefinition, 02, new Rgba(8, 8, 8, 0, components), components);
+
+            components = isUpdate ? _paletteComponents[03] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, 03, new Rgba(5, 5, 5, 1, components), components);
+
+            components = isUpdate ? _paletteComponents[04] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, 04, new Rgba(4, 4, 4, 4, components), components);
+
+            components = isUpdate ? _paletteComponents[05] : "RGB";
+            AddPaletteEncoding(encodingDefinition, 05, new Rgba(5, 6, 5, 0, components), components);
+
+            components = isUpdate ? _paletteComponents[06] : "RGB";
+            AddPaletteEncoding(encodingDefinition, 06, new Rgba(5, 5, 5, 0, components), components);
+
+            components = isUpdate ? _paletteComponents[07] : "RG";
+            AddPaletteEncoding(encodingDefinition, 07, new Rgba(8, 8, 0, 0, components), components);
+
+            components = isUpdate ? _paletteComponents[08] : "LA";
+            AddPaletteEncoding(encodingDefinition, 08, new La(8, 8, components), components);
+
+            components = isUpdate ? _paletteComponents[09] : "LA";
+            AddPaletteEncoding(encodingDefinition, 09, new La(4, 4, components), components);
+
+            AddPaletteEncoding(encodingDefinition, 10, ImageFormats.L8());
+            AddPaletteEncoding(encodingDefinition, 11, ImageFormats.A8());
+            AddPaletteEncoding(encodingDefinition, 12, ImageFormats.L4());
+        }
+
+        private void InitializeEncodings(EncodingDefinition encodingDefinition, bool isUpdate = false)
+        {
+            string components = isUpdate ? _components[00] : "RGBA";
+            AddEncoding(encodingDefinition, 00, new Rgba(8, 8, 8, 8, components), components);
+
+            components = isUpdate ? _components[01] : "RGBA";
+            AddEncoding(encodingDefinition, 01, new Rgba(10, 10, 10, 2, components), components);
+
+            components = isUpdate ? _components[02] : "RGB";
+            AddEncoding(encodingDefinition, 02, new Rgba(8, 8, 8, 0, components), components);
+
+            components = isUpdate ? _components[03] : "RGBA";
+            AddEncoding(encodingDefinition, 03, new Rgba(5, 5, 5, 1, components), components);
+
+            components = isUpdate ? _components[04] : "RGBA";
+            AddEncoding(encodingDefinition, 04, new Rgba(4, 4, 4, 4, components), components);
+
+            components = isUpdate ? _components[05] : "RGB";
+            AddEncoding(encodingDefinition, 05, new Rgba(5, 6, 5, 0, components), components);
+
+            components = isUpdate ? _components[06] : "RGB";
+            AddEncoding(encodingDefinition, 06, new Rgba(5, 5, 5, 0, components), components);
+
+            components = isUpdate ? _components[07] : "RG";
+            AddEncoding(encodingDefinition, 07, new Rgba(8, 8, 0, 0, components), components);
+
+            components = isUpdate ? _components[08] : "LA";
+            AddEncoding(encodingDefinition, 08, new La(8, 8, components), components);
+
+            components = isUpdate ? _components[09] : "LA";
+            AddEncoding(encodingDefinition, 09, new La(4, 4, components), components);
+
+            AddEncoding(encodingDefinition, 10, ImageFormats.L8());
+            AddEncoding(encodingDefinition, 11, ImageFormats.A8());
+            AddEncoding(encodingDefinition, 12, ImageFormats.L4());
+            AddIndexEncoding(encodingDefinition, 13, ImageFormats.I8());
+            AddIndexEncoding(encodingDefinition, 14, ImageFormats.I4());
+            AddIndexEncoding(encodingDefinition, 15, ImageFormats.I2());
+
+            components = isUpdate ? _components[16] : "IA";
+            AddIndexEncoding(encodingDefinition, 16, new Index(5, 3, components), components);
+
+            components = isUpdate ? _components[17] : "IA";
+            AddIndexEncoding(encodingDefinition, 17, new Index(3, 5, components), components);
+
+            AddEncoding(encodingDefinition, 18, ImageFormats.Dxt1());
+            AddEncoding(encodingDefinition, 19, ImageFormats.Dxt3());
+            AddEncoding(encodingDefinition, 20, ImageFormats.Dxt5());
+            AddEncoding(encodingDefinition, 21, ImageFormats.Ati1());
+            AddEncoding(encodingDefinition, 22, ImageFormats.Ati2());
+            AddEncoding(encodingDefinition, 23, ImageFormats.Ati1A());
+            AddEncoding(encodingDefinition, 24, ImageFormats.Ati1L());
+            AddEncoding(encodingDefinition, 25, ImageFormats.Ati2AL());
+            AddEncoding(encodingDefinition, 26, ImageFormats.Bc6H());
+            AddEncoding(encodingDefinition, 27, ImageFormats.Bc7());
+            AddEncoding(encodingDefinition, 28, ImageFormats.Atc());
+            AddEncoding(encodingDefinition, 29, ImageFormats.AtcExplicit());
+            AddEncoding(encodingDefinition, 30, ImageFormats.AtcInterpolated());
+            AddEncoding(encodingDefinition, 31, ImageFormats.Etc1(false));
+            AddEncoding(encodingDefinition, 32, ImageFormats.Etc1A4(false));
+            AddEncoding(encodingDefinition, 33, ImageFormats.Etc2());
+            AddEncoding(encodingDefinition, 34, ImageFormats.Etc2A());
+            AddEncoding(encodingDefinition, 35, ImageFormats.Etc2A1());
+            AddEncoding(encodingDefinition, 36, ImageFormats.EacR11());
+            AddEncoding(encodingDefinition, 37, ImageFormats.EacRG11());
+            AddEncoding(encodingDefinition, 38, ImageFormats.Pvrtc_4bpp());
+            AddEncoding(encodingDefinition, 39, ImageFormats.Pvrtc_2bpp());
+            AddEncoding(encodingDefinition, 40, ImageFormats.PvrtcA_4bpp());
+            AddEncoding(encodingDefinition, 41, ImageFormats.PvrtcA_2bpp());
+            AddEncoding(encodingDefinition, 42, ImageFormats.Pvrtc2_4bpp());
+            AddEncoding(encodingDefinition, 43, ImageFormats.Pvrtc2_2bpp());
+        }
+
+        private void AddPaletteEncoding(EncodingDefinition encodingDefinition, int format, IColorEncoding encoding, string? components = null)
+        {
+            if (components is not null)
+                _paletteComponents[format] = components;
+
+            encodingDefinition.AddPaletteEncoding(format, encoding);
+            _paletteFormats.Items.Add(new DropDownItem<int>(format, encoding.FormatName));
+        }
+
+        private void AddEncoding(EncodingDefinition encodingDefinition, int format, IColorEncoding encoding, string? components = null)
+        {
+            if (components is not null)
+                _components[format] = components;
+
+            encodingDefinition.AddColorEncoding(format, encoding);
+            _formats.Items.Add(new DropDownItem<int>(format, encoding.FormatName));
+        }
+
+        private void AddIndexEncoding(EncodingDefinition encodingDefinition, int format, IIndexEncoding encoding, string? components = null)
+        {
+            if (components is not null)
+                _components[format] = components;
+
+            encodingDefinition.AddIndexEncoding(format, encoding, _paletteFormats.Items.Select(f => f.Content).ToArray());
+            _formats.Items.Add(new DropDownItem<int>(format, encoding.FormatName));
+        }
+    }
+}

@@ -125,7 +125,7 @@ namespace Kuriimu2.ImGui.Forms
                         Items =
                         {
                             _imageTranscoderButton,
-                            //_rawImageViewerButton
+                            _rawImageViewerButton
                         }
                     },
                     //new MenuBarMenu{Text = LocalizationResources.MenuTools, Items =
