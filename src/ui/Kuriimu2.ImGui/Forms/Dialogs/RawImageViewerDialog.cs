@@ -1,22 +1,29 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Text;
+using ImGui.Forms.Modals.IO.Windows;
+using ImGui.Forms.Modals;
 using ImGui.Forms.Resources;
 using Kanvas.Contract.Encoding;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
+using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class RawImageViewerDialog
     {
-        private Stream? _fileStream;
+        private FileStream? _fileStream;
+        private ImageFile? _imageFile;
 
         public RawImageViewerDialog()
         {
             InitializeComponent();
+
+            _exportBtn.Clicked += _exportBtn_Clicked;
 
             _widthTextBox.TextChanged += _widthTextBox_TextChanged;
             _heightTextBox.TextChanged += _heightTextBox_TextChanged;
@@ -48,6 +55,25 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             UpdatePreview();
             UpdateFormInternal();
+        }
+
+        private async void _exportBtn_Clicked(object? sender, EventArgs e)
+        {
+            if (_fileStream is null || _imageFile is null)
+                return;
+
+            var sfd = new WindowsSaveFileDialog
+            {
+                Title = LocalizationResources.ImageMenuExportPng,
+                InitialDirectory = Path.GetDirectoryName(_fileStream.Name),
+                InitialFileName = Path.GetFileNameWithoutExtension(_fileStream.Name) + ".png"
+            };
+
+            DialogResult result = await sfd.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            await _imageFile.GetImage().SaveAsPngAsync(sfd.Files[0]);
         }
 
         private void _widthTextBox_TextChanged(object? sender, System.EventArgs e)
@@ -152,14 +178,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             try
             {
-                var image = new ImageFile(imageInfo, _encodingDefinition);
-                _imageBox.Image = ImageResource.FromImage(image.GetImage());
+                _imageFile = new ImageFile(imageInfo, _encodingDefinition);
+                _imageBox.Image = ImageResource.FromImage(_imageFile.GetImage());
             }
-            catch { }
+            catch
+            {
+                _imageFile = null;
+                _imageBox.Image = null;
+            }
         }
 
         private void UpdateFormInternal()
         {
+            _exportBtn.Enabled = _fileStream is not null && _imageFile is not null;
+
             bool isIndexEncoding = IsSelectedIndexEncoding();
 
             _paletteOffsetTextBox.Enabled = isIndexEncoding;

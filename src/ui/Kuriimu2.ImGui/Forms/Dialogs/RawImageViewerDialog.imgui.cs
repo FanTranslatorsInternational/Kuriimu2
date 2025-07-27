@@ -19,6 +19,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private StackLayout _mainLayout;
         private TableLayout _settingsLayout;
 
+        private ImageButton _exportBtn;
+
         private TextBox _widthTextBox;
         private TextBox _heightTextBox;
         private TextBox _offsetTextBox;
@@ -38,7 +40,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             #region Components
 
-            _imageBox = new ZoomablePictureBox();
+            _exportBtn = new ImageButton(ImageResources.ImageExport)
+            {
+                Tooltip = LocalizationResources.ImageMenuExport,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5)
+            };
+
+            _imageBox = new ZoomablePictureBox
+            {
+                ShowBorder = true
+            };
 
             _widthTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
             _heightTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
@@ -108,6 +120,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ItemSpacing = 4,
                 Items =
                 {
+                    new StackItem(_exportBtn){HorizontalAlignment = HorizontalAlignment.Right},
                     _imageBox,
                     _settingsLayout
                 }
