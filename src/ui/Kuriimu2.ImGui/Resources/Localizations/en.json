@@ -38,11 +38,12 @@
   "Menu.File.Close": "Close",
 
   // Tools Menu
+  "Menu.Tools.ImageTranscoder": "Image Transcoder",
+  "Menu.Tools.RawImageViewer": "Raw Image Viewer",
   "Menu.Tools.TextSequenceSearcher": "Text Searcher",
   "Menu.Tools.BatchExtractor": "Extract All",
   "Menu.Tools.BatchInjector": "Replace All",
   "Menu.Tools.Hashes": "Hashes",
-  "Menu.Tools.RawImageViewer": "Raw Image Viewer",
 
   // Ciphers Menu
   "Menu.Ciphers.Encrypt": "Encrypt",
@@ -60,6 +61,15 @@
   // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Dark",
   "Menu.Settings.ChangeTheme.Light": "Light",
+
+  // Image Transcoder
+  "Menu.Tools.ImageTranscoder.Caption": "Image Transcoder",
+  "Menu.Tools.ImageTranscoder.Encoding": "Encoding",
+  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Palette Encoding",
+  "Menu.Tools.ImageTranscoder.Quantizer": "Quantizer",
+  "Menu.Tools.ImageTranscoder.ColorCache": "Color Cache",
+  "Menu.Tools.ImageTranscoder.Ditherer": "Ditherer",
+  "Menu.Tools.ImageTranscoder.ColorCount": "Color Count",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",

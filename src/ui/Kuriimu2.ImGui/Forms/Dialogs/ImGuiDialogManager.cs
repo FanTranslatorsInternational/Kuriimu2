@@ -116,13 +116,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private ComboBox<string> CreateComboBox(DialogField field)
         {
-            var comboBox = new ComboBox<string>();
+            var comboBox = new ComboBox<string> { MaxShowItems = 3 };
             comboBox.SelectedItemChanged += (s, e) => field.Result = comboBox.SelectedItem.Content;
 
             foreach (var option in field.Options)
                 comboBox.Items.Add(option);
-
-            comboBox.MaxShowItems = (uint)Math.Min(3, comboBox.Items.Count);
 
             field.Result = field.DefaultValue;
             comboBox.SelectedItem = new DropDownItem<string>(field.DefaultValue);

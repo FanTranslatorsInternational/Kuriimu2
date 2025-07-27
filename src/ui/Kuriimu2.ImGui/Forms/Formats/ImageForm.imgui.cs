@@ -53,8 +53,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _formatTextLbl = new Label(LocalizationResources.ImageLabelFormat);
             _paletteTextLbl = new Label(LocalizationResources.ImageLabelPalette);
-            _formatBox = new ComboBox<int>();
-            _paletteBox = new ComboBox<int>();
+            _formatBox = new ComboBox<int> { MaxShowItems = 10 };
+            _paletteBox = new ComboBox<int> { MaxShowItems = 10 };
 
             _imageBox = new ZoomablePictureBox { ShowBorder = true };
 
@@ -229,8 +229,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     _formatBox.Items.Add(new DropDownItem<int>(indexEnc.Key, indexEnc.Value.IndexEncoding.FormatName));
 
             _formatBox.SelectedItem = _formatBox.Items.FirstOrDefault(x => x.Content == img.ImageInfo.ImageFormat);
-
-            _formatBox.MaxShowItems = (uint)Math.Min(4, _formatBox.Items.Count);
         }
 
         private void SetPaletteFormats(IImageFile img)
@@ -259,8 +257,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             _paletteBox.SelectedItem = _paletteBox.Items.FirstOrDefault(x => x.Content == img.ImageInfo.PaletteFormat);
-
-            _paletteBox.MaxShowItems = (uint)Math.Min(4, _paletteBox.Items.Count);
         }
 
         protected override void SetTabInactiveCore()

@@ -105,6 +105,8 @@ namespace Kuriimu2.ImGui.Forms
             _openWithButton.Clicked += _openWithButton_Clicked;
             _saveAllButton.Clicked += _saveAllButton_Clicked;
 
+            _imageTranscoderButton.Clicked += _imageTranscoderButton_Clicked;
+
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
 
@@ -280,6 +282,11 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async void _imageTranscoderButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowImageTranscoderDialog();
+        }
 
         private async void _pluginsButton_Clicked(object? sender, EventArgs e)
         {
@@ -707,6 +714,12 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async Task ShowImageTranscoderDialog()
+        {
+            var imageTranscoderDialog = new ImageTranscoderDialog();
+            await imageTranscoderDialog.ShowAsync();
+        }
 
         private async Task ShowPluginsDialog()
         {

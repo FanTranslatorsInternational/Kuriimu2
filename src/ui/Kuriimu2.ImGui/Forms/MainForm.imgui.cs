@@ -18,11 +18,13 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarButton _openWithButton;
         private MenuBarButton _saveAllButton;
 
+        private MenuBarButton _imageTranscoderButton;
+        private MenuBarButton _rawImageViewerButton;
+
         private MenuBarButton _batchExtractButton;
         private MenuBarButton _batchInjectButton;
         private MenuBarButton _textSequencerButton;
         private MenuBarButton _hashesButton;
-        private MenuBarButton _rawImageViewerButton;
 
         private MenuBarButton _encryptButton;
         private MenuBarButton _decryptButton;
@@ -65,6 +67,15 @@ namespace Kuriimu2.ImGui.Forms
                 KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.S)
             };
 
+            _imageTranscoderButton = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuToolsImageTranscoder
+            };
+            _rawImageViewerButton = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuToolsRawImageViewer
+            };
+
             _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor };
             _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector };
             _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher };
@@ -97,13 +108,26 @@ namespace Kuriimu2.ImGui.Forms
             {
                 Items =
                 {
-                    new MenuBarMenu{Text = LocalizationResources.MenuFile, Items =
+                    new MenuBarMenu
                     {
-                        _openButton,
-                        _openWithButton,
-                        new MenuBarSplitter(),
-                        _saveAllButton
-                    }},
+                        Text = LocalizationResources.MenuFile,
+                        Items =
+                        {
+                            _openButton,
+                            _openWithButton,
+                            new MenuBarSplitter(),
+                            _saveAllButton
+                        }
+                    },
+                    new MenuBarMenu
+                    {
+                        Text = LocalizationResources.MenuTools,
+                        Items =
+                        {
+                            _imageTranscoderButton,
+                            //_rawImageViewerButton
+                        }
+                    },
                     //new MenuBarMenu{Text = LocalizationResources.MenuTools, Items =
                     //{
                     //    _batchExtractButton,
@@ -122,17 +146,23 @@ namespace Kuriimu2.ImGui.Forms
                     //    _compressButton,
                     //    _decompressButton
                     //}},
-                    new MenuBarMenu{Text = LocalizationResources.MenuSettings, Items =
+                    new MenuBarMenu
                     {
-                        _includeDevBuildsButton,
-                        _changeLanguageMenu,
-                        _changeThemeMenu
-                    }},
-                    new MenuBarMenu{Text = LocalizationResources.MenuHelp, Items =
+                        Text = LocalizationResources.MenuSettings, Items =
+                        {
+                            _includeDevBuildsButton,
+                            _changeLanguageMenu,
+                            _changeThemeMenu
+                        }
+                    },
+                    new MenuBarMenu
                     {
-                        _pluginsButton,
-                        _aboutButton
-                    }}
+                        Text = LocalizationResources.MenuHelp, Items =
+                        {
+                            _pluginsButton,
+                            _aboutButton
+                        }
+                    }
                 }
             };
 

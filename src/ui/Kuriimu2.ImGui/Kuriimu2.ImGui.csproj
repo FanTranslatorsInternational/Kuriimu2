@@ -14,19 +14,23 @@
     <None Remove="Resources\Fonts\notokr.ttf" />
     <None Remove="Resources\Fonts\roboto.ttf" />
     <None Remove="Resources\Images\close.png" />
+    <None Remove="Resources\Images\dark\arrow_right.png" />
     <None Remove="Resources\Images\dark\batch_image_export.png" />
     <None Remove="Resources\Images\dark\batch_image_import.png" />
     <None Remove="Resources\Images\dark\image_export.png" />
     <None Remove="Resources\Images\dark\image_import.png" />
     <None Remove="Resources\Images\dark\save.png" />
     <None Remove="Resources\Images\dark\save_as.png" />
+    <None Remove="Resources\Images\dark\arrow_right.png" />
     <None Remove="Resources\Images\kuriimu2.png" />
+    <None Remove="Resources\Images\light\arrow_right.png" />
     <None Remove="Resources\Images\light\batch_image_export.png" />
     <None Remove="Resources\Images\light\batch_image_import.png" />
     <None Remove="Resources\Images\light\image_export.png" />
     <None Remove="Resources\Images\light\image_import.png" />
     <None Remove="Resources\Images\light\save.png" />
     <None Remove="Resources\Images\light\save_as.png" />
+    <None Remove="Resources\Images\light\arrow_right.png" />
     <None Remove="Resources\version.json" />
   </ItemGroup>
 
@@ -48,6 +52,7 @@
       <LogicalName>roboto.ttf</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Images\close.png" />
+    <EmbeddedResource Include="Resources\Images\dark\arrow_right.png" />
     <EmbeddedResource Include="Resources\Images\dark\batch_image_export.png" />
     <EmbeddedResource Include="Resources\Images\dark\batch_image_import.png" />
     <EmbeddedResource Include="Resources\Images\dark\image_export.png" />
@@ -55,6 +60,7 @@
     <EmbeddedResource Include="Resources\Images\dark\save.png" />
     <EmbeddedResource Include="Resources\Images\dark\save_as.png" />
     <EmbeddedResource Include="Resources\Images\kuriimu2.png" />
+    <EmbeddedResource Include="Resources\Images\light\arrow_right.png" />
     <EmbeddedResource Include="Resources\Images\light\batch_image_export.png" />
     <EmbeddedResource Include="Resources\Images\light\batch_image_import.png" />
     <EmbeddedResource Include="Resources\Images\light\image_export.png" />
@@ -92,12 +98,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Imgui.Forms" Version="1.4.7" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy.Contract\Kaligraphy.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy\Kaligraphy.csproj" />
     <ProjectReference Include="..\..\lib\Konnect.Contract\Konnect.Contract.csproj" />

@@ -31,11 +31,12 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuFileClose => LocalizedString.FromId("Menu.File.Close");
 
         // Tools Menu
+        public static LocalizedString MenuToolsImageTranscoder => LocalizedString.FromId("Menu.Tools.ImageTranscoder");
+        public static LocalizedString MenuToolsRawImageViewer => LocalizedString.FromId("Menu.Tools.RawImageViewer");
         public static LocalizedString MenuToolsTextSequenceSearcher => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher");
         public static LocalizedString MenuToolsBatchExtractor => LocalizedString.FromId("Menu.Tools.BatchExtractor");
         public static LocalizedString MenuToolsBatchInjector => LocalizedString.FromId("Menu.Tools.BatchInjector");
         public static LocalizedString MenuToolsHashes => LocalizedString.FromId("Menu.Tools.Hashes");
-        public static LocalizedString MenuToolsRawImageViewer => LocalizedString.FromId("Menu.Tools.RawImageViewer");
 
         // Ciphers Menu
         public static LocalizedString MenuCiphersEncrypt => LocalizedString.FromId("Menu.Ciphers.Encrypt");
@@ -53,6 +54,15 @@ namespace Kuriimu2.ImGui.Resources
         // Theme Menu
         public static LocalizedString MenuSettingsChangeThemeDark => LocalizedString.FromId("Menu.Settings.ChangeTheme.Dark");
         public static LocalizedString MenuSettingsChangeThemeLight => LocalizedString.FromId("Menu.Settings.ChangeTheme.Light");
+
+        // Image Transcoder
+        public static LocalizedString MenuToolsImageTranscoderCaption => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Caption");
+        public static LocalizedString MenuToolsImageTranscoderEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Encoding");
+        public static LocalizedString MenuToolsImageTranscoderPaletteEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.PaletteEncoding");
+        public static LocalizedString MenuToolsImageTranscoderQuantizer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Quantizer");
+        public static LocalizedString MenuToolsImageTranscoderColorCache => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCache");
+        public static LocalizedString MenuToolsImageTranscoderDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Ditherer");
+        public static LocalizedString MenuToolsImageTranscoderColorCount => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCount");
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
