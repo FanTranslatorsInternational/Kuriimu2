@@ -98,12 +98,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Imgui.Forms" Version="1.4.10" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy.Contract\Kaligraphy.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Kaligraphy\Kaligraphy.csproj" />
     <ProjectReference Include="..\..\lib\Konnect.Contract\Konnect.Contract.csproj" />
