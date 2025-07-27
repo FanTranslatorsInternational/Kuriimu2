@@ -31,8 +31,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private ZoomablePictureBox _imageBox;
 
         private EncodingDefinition _encodingDefinition;
-        private Dictionary<int, string> _components = new();
-        private Dictionary<int, string> _paletteComponents = new();
+        private readonly Dictionary<int, string> _components = new();
+        private readonly Dictionary<int, string> _paletteComponents = new();
 
         private void InitializeComponent()
         {
@@ -40,12 +40,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _imageBox = new ZoomablePictureBox();
 
-            _widthTextBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _heightTextBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
-            _offsetTextBox = new TextBox();
-            _paletteOffsetTextBox = new TextBox();
-            _formats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top };
-            _paletteFormats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top };
+            _widthTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _heightTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _offsetTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _paletteOffsetTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _formats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
+            _paletteFormats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
             _componentsTextBox = new TextBox();
             _paletteComponentsTextBox = new TextBox();
 

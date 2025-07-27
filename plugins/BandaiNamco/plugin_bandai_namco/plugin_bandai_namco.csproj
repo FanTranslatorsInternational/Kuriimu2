@@ -15,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.1.14" />
+    <PackageReference Include="Kanvas" Version="2.1.21" />
     <PackageReference Include="Kompression" Version="2.1.9" />
-    <PackageReference Include="Konnect" Version="2.1.34" />
+    <PackageReference Include="Konnect" Version="2.1.39" />
     <PackageReference Include="Kryptography" Version="2.1.9" />
   </ItemGroup>
 

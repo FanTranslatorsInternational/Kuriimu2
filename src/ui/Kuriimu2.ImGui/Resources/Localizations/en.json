@@ -73,6 +73,7 @@
 
   // Raw Image Viewer
   "Menu.Tools.RawImageViewer.Caption": "Raw Image Viewer",
+  "Menu.Tools.RawImageViewer.Placeholder": "Value: 128, 0x80",
   "Menu.Tools.RawImageViewer.Width": "Width",
   "Menu.Tools.RawImageViewer.Height": "Height",
   "Menu.Tools.RawImageViewer.Offset": "Offset",

@@ -66,6 +66,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Raw Image Viewer
         public static LocalizedString MenuToolsRawImageViewerCaption => LocalizedString.FromId("Menu.Tools.RawImageViewer.Caption");
+        public static LocalizedString MenuToolsRawImageViewerPlaceholder => LocalizedString.FromId("Menu.Tools.RawImageViewer.Placeholder");
         public static LocalizedString MenuToolsRawImageViewerWidth => LocalizedString.FromId("Menu.Tools.RawImageViewer.Width");
         public static LocalizedString MenuToolsRawImageViewerHeight => LocalizedString.FromId("Menu.Tools.RawImageViewer.Height");
         public static LocalizedString MenuToolsRawImageViewerOffset => LocalizedString.FromId("Menu.Tools.RawImageViewer.Offset");
