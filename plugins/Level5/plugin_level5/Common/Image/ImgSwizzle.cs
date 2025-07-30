@@ -9,8 +9,17 @@ namespace plugin_level5.Common.Image
     {
         private readonly MasterSwizzle _swizzle;
 
+        /// <inheritdoc />
         public int Width { get; }
+
+        /// <inheritdoc />
         public int Height { get; }
+
+        /// <inheritdoc />
+        public int MacroTileWidth => _swizzle.MacroTileWidth;
+
+        /// <inheritdoc />
+        public int MacroTileHeight => _swizzle.MacroTileHeight;
 
         public ImgSwizzle(SwizzleOptions options, PlatformType platform)
         {
@@ -20,7 +29,11 @@ namespace plugin_level5.Common.Image
             _swizzle = GetMasterSwizzle(options, platform);
         }
 
-        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => Get(point.Y * Width + point.X);
+
+        /// <inheritdoc />
+        public Point Get(int pointCount) => _swizzle.Get(pointCount);
 
         private MasterSwizzle GetMasterSwizzle(SwizzleOptions options, PlatformType platform)
         {
