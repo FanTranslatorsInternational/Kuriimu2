@@ -47,7 +47,7 @@ namespace Kanvas.Swizzle
         private Func<int, Point> EmitTransformationMethod(Point initPoint, (int, int)[] bitField, (int, int)[] initPointTransformOnY, int widthInTiles)
         {
             // Create public static method to transform the point
-            var dynamicMethod = new DynamicMethod("Get", typeof(Point), new[] {typeof(int)});
+            var dynamicMethod = new DynamicMethod("Get", typeof(Point), [typeof(int)]);
             var method = dynamicMethod.GetILGenerator();
 
             // Prepare some variables
@@ -125,7 +125,7 @@ namespace Kanvas.Swizzle
             }
 
             // Create result
-            method.Emit(OpCodes.Newobj, typeof(Point).GetConstructor(new[] { typeof(int), typeof(int) }));
+            method.Emit(OpCodes.Newobj, typeof(Point).GetConstructor([typeof(int), typeof(int)]));
 
             // Return
             method.Emit(OpCodes.Ret);

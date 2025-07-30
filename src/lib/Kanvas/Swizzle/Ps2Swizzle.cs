@@ -9,8 +9,17 @@ namespace Kanvas.Swizzle
     {
         private readonly MasterSwizzle _swizzle;
 
+        /// <inheritdoc />
         public int Width { get; }
+
+        /// <inheritdoc />
         public int Height { get; }
+
+        /// <inheritdoc />
+        public int MacroTileWidth => _swizzle.MacroTileWidth;
+
+        /// <inheritdoc />
+        public int MacroTileHeight => _swizzle.MacroTileHeight;
 
         public Ps2Swizzle(SwizzleOptions context)
         {
@@ -27,13 +36,17 @@ namespace Kanvas.Swizzle
                     var seq = new List<(int, int)> { (4, 2), (8, 0), (1, 0), (2, 0), (4, 0) };
                     for (var i = 16; i < Width; i *= 2) 
                         seq.Add((i, 0));
-                    seq.AddRange(new[] { (0, 1), (4, 4) });
+                    seq.AddRange([(0, 1), (4, 4)]);
 
                     _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, seq.ToArray());
                     break;
             }
         }
 
-        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => Get(point.Y * Width + point.X);
+
+        /// <inheritdoc />
+        public Point Get(int pointCount) => _swizzle.Get(pointCount);
     }
 }

@@ -13,23 +13,34 @@ namespace Kanvas.Swizzle
         private readonly MasterSwizzle _swizzle;
         private readonly CtrTransformation _transform;
 
+        /// <inheritdoc />
         public int Width { get; }
+
+        /// <inheritdoc />
         public int Height { get; }
+
+        /// <inheritdoc />
+        public int MacroTileWidth => _swizzle.MacroTileWidth;
+
+        /// <inheritdoc />
+        public int MacroTileHeight => _swizzle.MacroTileHeight;
 
         public CtrSwizzle(SwizzleOptions context, CtrTransformation transform = CtrTransformation.None)
         {
             _transform = transform;
 
-            var stride = _transform == CtrTransformation.None || _transform == CtrTransformation.YFlip ? context.Size.Width : context.Size.Height;
-            _swizzle = new MasterSwizzle(stride, new Point(0, 0), new[] { (1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4) });
+            var stride = _transform is CtrTransformation.None or CtrTransformation.YFlip ? context.Size.Width : context.Size.Height;
+            _swizzle = new MasterSwizzle(stride, new Point(0, 0), [(1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4)]);
 
             (Width, Height) = ((context.Size.Width + 7) & ~7, (context.Size.Height + 7) & ~7);
         }
 
         /// <inheritdoc />
-        public Point Transform(Point point)
+        public Point Transform(Point point) => Get(point.Y * Width + point.X);
+
+        /// <inheritdoc />
+        public Point Get(int pointCount)
         {
-            int pointCount = point.Y * Width + point.X;
             var newPoint = _swizzle.Get(pointCount);
 
             switch (_transform)
@@ -46,7 +57,8 @@ namespace Kanvas.Swizzle
                 case CtrTransformation.YFlip:
                     return new Point(newPoint.X, Height - 1 - newPoint.Y);
 
-                default: return newPoint;
+                default:
+                    return newPoint;
             }
         }
     }

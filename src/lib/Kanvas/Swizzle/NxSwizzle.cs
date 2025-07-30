@@ -27,7 +27,7 @@ namespace Kanvas.Swizzle
         private const int BlockYExtensionStart_ = 32;
         private const int RegularYExtensionStart_ = 8;
 
-        private static readonly Dictionary<string, (int, int)> AstcBlock = new Dictionary<string, (int, int)>
+        private static readonly Dictionary<string, (int, int)> AstcBlock = new()
         {
             ["ASTC 4x4"] = (4, 4),
             ["ASTC 5x4"] = (5, 4),
@@ -46,23 +46,32 @@ namespace Kanvas.Swizzle
         };
 
         // TODO: Coords for block based encodings are prepended by the preparation method
-        private static readonly Dictionary<int, (int, int)[]> CoordsBlock = new Dictionary<int, (int, int)[]>
+        private static readonly Dictionary<int, (int, int)[]> CoordsBlock = new()
         {
-            [04] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (0, 4), (8, 0), (0, 8), (0, 16), (16, 0) },
-            [08] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (0, 4), (4, 0), (0, 8), (0, 16), (8, 0) }
+            [04] = [(1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (0, 4), (8, 0), (0, 8), (0, 16), (16, 0)],
+            [08] = [(1, 0), (2, 0), (0, 1), (0, 2), (0, 4), (4, 0), (0, 8), (0, 16), (8, 0)]
         };
 
-        private static readonly Dictionary<int, (int, int)[]> CoordsRegular = new Dictionary<int, (int, int)[]>
+        private static readonly Dictionary<int, (int, int)[]> CoordsRegular = new()
         {
-            [08] = new[] { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (16, 0), (0, 2), (0, 4), (32, 0) },
-            [16] = new[] { (1, 0), (2, 0), (4, 0), (0, 1), (8, 0), (0, 2), (0, 4), (16, 0) },
-            [32] = new[] { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0) },
+            [08] = [(1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (16, 0), (0, 2), (0, 4), (32, 0)],
+            [16] = [(1, 0), (2, 0), (4, 0), (0, 1), (8, 0), (0, 2), (0, 4), (16, 0)],
+            [32] = [(1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0)],
         };
 
         private readonly MasterSwizzle _swizzle;
 
+        /// <inheritdoc />
         public int Width { get; }
+
+        /// <inheritdoc />
         public int Height { get; }
+
+        /// <inheritdoc />
+        public int MacroTileWidth => _swizzle.MacroTileWidth;
+
+        /// <inheritdoc />
+        public int MacroTileHeight => _swizzle.MacroTileHeight;
 
         public NxSwizzle(SwizzleOptions context, int swizzleMode = -1)
         {
@@ -93,7 +102,10 @@ namespace Kanvas.Swizzle
         }
 
         /// <inheritdoc />
-        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        public Point Transform(Point point) => Get(point.Y * Width + point.X);
+
+        /// <inheritdoc />
+        public Point Get(int pointCount) => _swizzle.Get(pointCount);
 
         private (int, int) PadSizeToBlocks(int width, int height, IEncodingInfo encodingInfo)
         {
@@ -101,15 +113,14 @@ namespace Kanvas.Swizzle
             var maxHeight = isBlockCompression ? BlockMaxSize_ : RegularMaxSize_;
             var maxWidth = 16;
 
-            var newWidth = width > maxWidth ? ToMultiple(width, maxWidth) : ToPowerOfTwo(width);
-            var newHeight = height > maxHeight ? ToMultiple(height, maxHeight) : ToPowerOfTwo(height);
+            var newWidth = width > maxWidth ? SizePadding.Multiple(width, maxWidth) : SizePadding.PowerOfTwo(width);
+            var newHeight = height > maxHeight ? SizePadding.Multiple(height, maxHeight) : SizePadding.PowerOfTwo(height);
 
             // Default case
-            if (!AstcBlock.ContainsKey(encodingInfo.FormatName))
+            if (!AstcBlock.TryGetValue(encodingInfo.FormatName, out (int, int) astcBlock))
                 return (newWidth, newHeight);
 
             // Pad for ASTC
-            var astcBlock = AstcBlock[encodingInfo.FormatName];
 
             var restWidth = width % astcBlock.Item1;
             newWidth = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
@@ -119,16 +130,6 @@ namespace Kanvas.Swizzle
 
             return (newWidth, newHeight);
 
-        }
-
-        private int ToPowerOfTwo(int value)
-        {
-            return 2 << (int)Math.Log(value - 1, 2);
-        }
-
-        private int ToMultiple(int value, int multiple)
-        {
-            return (value + (multiple - 1)) / multiple * multiple;
         }
     }
 }

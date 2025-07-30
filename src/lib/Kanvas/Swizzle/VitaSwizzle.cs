@@ -8,8 +8,17 @@ namespace Kanvas.Swizzle
     {
         private readonly MasterSwizzle _swizzle;
 
+        /// <inheritdoc />
         public int Width { get; }
+
+        /// <inheritdoc />
         public int Height { get; }
+
+        /// <inheritdoc />
+        public int MacroTileWidth => _swizzle.MacroTileWidth;
+
+        /// <inheritdoc />
+        public int MacroTileHeight => _swizzle.MacroTileHeight;
 
         public VitaSwizzle(SwizzleOptions context)
         {
@@ -31,6 +40,10 @@ namespace Kanvas.Swizzle
             _swizzle = new MasterSwizzle(Width, Point.Empty, bitField.ToArray());
         }
 
-        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => Get(point.Y * Width + point.X);
+
+        /// <inheritdoc />
+        public Point Get(int pointCount) => _swizzle.Get(pointCount);
     }
 }
