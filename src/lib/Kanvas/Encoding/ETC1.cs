@@ -37,6 +37,8 @@ namespace Kanvas.Encoding
             BitDepth = useAlpha ? 8 : 4;
 
             FormatName = "ETC1" + (useAlpha ? "A4" : "");
+            if (useZOrder)
+                FormatName += " (Z-Order)";
         }
 
         protected override Etc1PixelData ReadBlock(BinaryReaderX br)

@@ -28,10 +28,6 @@ namespace Kanvas.Swizzle
 
             switch (context.EncodingInfo.BitDepth)
             {
-                case 4:
-                case 16:
-                    throw new InvalidOperationException($"Unsupported PS2 swizzle for bit depth {context.EncodingInfo.BitDepth}");
-
                 case 8:
                     var seq = new List<(int, int)> { (4, 2), (8, 0), (1, 0), (2, 0), (4, 0) };
                     for (var i = 16; i < Width; i *= 2) 
@@ -40,6 +36,9 @@ namespace Kanvas.Swizzle
 
                     _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, seq.ToArray());
                     break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported PS2 swizzle for bit depth {context.EncodingInfo.BitDepth}");
             }
         }
 
