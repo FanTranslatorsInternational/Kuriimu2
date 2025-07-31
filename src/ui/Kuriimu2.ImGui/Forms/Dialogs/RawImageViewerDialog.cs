@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -29,6 +28,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         public RawImageViewerDialog()
         {
             InitializeComponent();
+
+            _openBtn.Clicked += _openBtn_Clicked;
 
             _renderSwizzleBox.CheckChanged += _renderSwizzleBox_CheckChanged;
             _exportBtn.Clicked += _exportBtn_Clicked;
@@ -61,6 +62,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             if (_fileStream is not null)
                 await _fileStream.DisposeAsync();
+        }
+
+        private async void _openBtn_Clicked(object? sender, EventArgs e)
+        {
+            string? selectedFile = await SelectFile();
+            if (selectedFile is null)
+                return;
+
+            _fileStream?.Dispose();
+
+            _fileStream = File.OpenRead(selectedFile);
+
+            UpdatePreview();
+            UpdateFormInternal();
         }
 
         private void _imageBox_ContentZoomed(object? sender, EventArgs e)
@@ -393,6 +408,21 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _ = _fileStream.Read(buffer);
 
             return buffer;
+        }
+
+        private async Task<string?> SelectFile()
+        {
+            var ofd = new WindowsOpenFileDialog { InitialDirectory = SettingsResources.LastDirectory };
+
+            // Show dialog and wait for result
+            var result = await ofd.ShowAsync();
+            if (result != DialogResult.Ok)
+                return null;
+
+            // Set last visited directory
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+
+            return ofd.Files[0];
         }
     }
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Resources;
 using Kanvas.Contract.Configuration;
@@ -24,6 +26,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             InitializeComponent();
 
+            _openBtn.Clicked += _openBtn_Clicked;
+
             _exportBtn.Clicked += _exportBtn_Clicked;
 
             _formats.SelectedItemChanged += _formats_SelectedItemChanged;
@@ -41,6 +45,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             DragDrop += ImageTranscoderDialog_DragDrop;
 
+            UpdateFormInternal();
+        }
+
+        private async void _openBtn_Clicked(object? sender, EventArgs e)
+        {
+            string? selectedFile = await SelectFile();
+            if (selectedFile is null)
+                return;
+
+            InitializeImages(selectedFile);
+
+            UpdateImages();
             UpdateFormInternal();
         }
 
@@ -258,6 +274,25 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private bool IsSelectedIndexEncoding()
         {
             return _encodingDefinition.ContainsIndexEncoding(_formats.SelectedItem.Content);
+        }
+
+        private async Task<string?> SelectFile()
+        {
+            var ofd = new WindowsOpenFileDialog
+            {
+                InitialDirectory = SettingsResources.LastDirectory,
+                Filters = [new FileFilter(LocalizationResources.FilterPng, "png")]
+            };
+
+            // Show dialog and wait for result
+            var result = await ofd.ShowAsync();
+            if (result != DialogResult.Ok)
+                return null;
+
+            // Set last visited directory
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+
+            return ofd.Files[0];
         }
     }
 }

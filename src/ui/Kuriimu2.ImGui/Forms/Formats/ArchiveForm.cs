@@ -203,6 +203,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (selectedItem == null)
                 return;
 
+            _lastSelectedComponent = _fileView;
+
             // Get current state arguments
             var isLoadLocked = IsFileLocked(selectedItem.Data.File, true);
             var isStateLocked = IsFileLocked(selectedItem.Data.File, false);
@@ -244,6 +246,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void _directoryContext_Show(object sender, EventArgs e)
         {
+            _lastSelectedComponent = _treeView;
+
             var canExtractDirectories = !_asyncOperation.IsRunning && !_saveLock;
             var canReplaceDirectories = _formInfo.CanReplaceFiles && !_saveLock && !_asyncOperation.IsRunning;
             var canRenameDirectories = _formInfo.CanRenameFiles && !_saveLock && !_asyncOperation.IsRunning;
@@ -283,7 +287,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _deleteFileButton_Clicked(object sender, EventArgs e)
         {
-            await DeleteSelectedFiles();
+            if (CanDeleteFiles() && _lastSelectedComponent == _fileView)
+                await DeleteSelectedFiles();
         }
 
         private async void _extractDirectoryButton_Clicked(object sender, EventArgs e)
@@ -308,7 +313,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _deleteDirectoryButton_Clicked(object sender, EventArgs e)
         {
-            await DeleteSelectedDirectory();
+            if (CanDeleteDirectories() && _lastSelectedComponent == _treeView)
+                await DeleteSelectedDirectory();
         }
 
         #endregion

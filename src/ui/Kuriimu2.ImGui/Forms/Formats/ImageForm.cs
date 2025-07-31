@@ -176,7 +176,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Title = LocalizationResources.ImageMenuImportPng,
                 InitialDirectory = GetLastDirectory(),
                 InitialFileName = GetImageName(selectedItem) + ".png",
-                Filters = { new FileFilter(LocalizationResources.FilterPng, "*.png") }
+                Filters = { new FileFilter(LocalizationResources.FilterPng, "png") }
             };
 
             if (await ofd.ShowAsync() != DialogResult.Ok)

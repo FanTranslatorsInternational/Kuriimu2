@@ -53,18 +53,18 @@ namespace Kuriimu2.ImGui.Forms
             _openButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpen,
-                KeyAction = new(ModifierKeys.Control, Key.O)
+                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuFileOpenShortcut)
             };
             _openWithButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpenWith,
-                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.O)
+                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.O, LocalizationResources.MenuFileOpenWithShortcut)
             };
             _saveAllButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileSaveAll,
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.S)
+                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.S, LocalizationResources.MenuFileSaveAllShortcut)
             };
 
             _imageTranscoderButton = new MenuBarButton

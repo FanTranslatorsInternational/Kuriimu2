@@ -24,10 +24,15 @@ namespace Kuriimu2.ImGui.Resources
 
         // File Menu
         public static LocalizedString MenuFileOpen => LocalizedString.FromId("Menu.File.Open");
+        public static LocalizedString MenuFileOpenShortcut => LocalizedString.FromId("Menu.File.Open.Shortcut");
         public static LocalizedString MenuFileOpenWith => LocalizedString.FromId("Menu.File.OpenWith");
+        public static LocalizedString MenuFileOpenWithShortcut => LocalizedString.FromId("Menu.File.OpenWith.Shortcut");
         public static LocalizedString MenuFileSave => LocalizedString.FromId("Menu.File.Save");
+        public static LocalizedString MenuFileSaveShortcut => LocalizedString.FromId("Menu.File.Save.Shortcut");
         public static LocalizedString MenuFileSaveAs => LocalizedString.FromId("Menu.File.SaveAs");
+        public static LocalizedString MenuFileSaveAsShortcut => LocalizedString.FromId("Menu.File.SaveAs.Shortcut");
         public static LocalizedString MenuFileSaveAll => LocalizedString.FromId("Menu.File.SaveAll");
+        public static LocalizedString MenuFileSaveAllShortcut => LocalizedString.FromId("Menu.File.SaveAll.Shortcut");
         public static LocalizedString MenuFileClose => LocalizedString.FromId("Menu.File.Close");
 
         // Tools Menu
@@ -57,6 +62,9 @@ namespace Kuriimu2.ImGui.Resources
 
         // Image Transcoder
         public static LocalizedString MenuToolsImageTranscoderCaption => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Caption");
+        public static LocalizedString MenuToolsImageTranscoderFile => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File");
+        public static LocalizedString MenuToolsImageTranscoderFileOpen => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File.Open");
+        public static LocalizedString MenuToolsImageTranscoderFileOpenShortcut => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File.Open.Shortcut");
         public static LocalizedString MenuToolsImageTranscoderEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Encoding");
         public static LocalizedString MenuToolsImageTranscoderPaletteEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.PaletteEncoding");
         public static LocalizedString MenuToolsImageTranscoderQuantizer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Quantizer");
@@ -67,6 +75,9 @@ namespace Kuriimu2.ImGui.Resources
 
         // Raw Image Viewer
         public static LocalizedString MenuToolsRawImageViewerCaption => LocalizedString.FromId("Menu.Tools.RawImageViewer.Caption");
+        public static LocalizedString MenuToolsRawImageViewerFile => LocalizedString.FromId("Menu.Tools.RawImageViewer.File");
+        public static LocalizedString MenuToolsRawImageViewerFileOpen => LocalizedString.FromId("Menu.Tools.RawImageViewer.File.Open");
+        public static LocalizedString MenuToolsRawImageViewerFileOpenShortcut => LocalizedString.FromId("Menu.Tools.RawImageViewer.File.Open.Shortcut");
         public static LocalizedString MenuToolsRawImageViewerPlaceholder => LocalizedString.FromId("Menu.Tools.RawImageViewer.Placeholder");
         public static LocalizedString MenuToolsRawImageViewerWidth => LocalizedString.FromId("Menu.Tools.RawImageViewer.Width");
         public static LocalizedString MenuToolsRawImageViewerHeight => LocalizedString.FromId("Menu.Tools.RawImageViewer.Height");
@@ -181,12 +192,14 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ArchiveFileReplace => LocalizedString.FromId("Archive.File.Replace");
         public static LocalizedString ArchiveFileRename => LocalizedString.FromId("Archive.File.Rename");
         public static LocalizedString ArchiveFileDelete => LocalizedString.FromId("Archive.File.Delete");
+        public static LocalizedString ArchiveFileDeleteShortcut => LocalizedString.FromId("Archive.File.Delete.Shortcut");
 
         // Folder Operations
         public static LocalizedString ArchiveDirectoryExtract => LocalizedString.FromId("Archive.Directory.Extract");
         public static LocalizedString ArchiveDirectoryReplace => LocalizedString.FromId("Archive.Directory.Replace");
         public static LocalizedString ArchiveDirectoryRename => LocalizedString.FromId("Archive.Directory.Rename");
         public static LocalizedString ArchiveDirectoryDelete => LocalizedString.FromId("Archive.Directory.Delete");
+        public static LocalizedString ArchiveDirectoryDeleteShortcut => LocalizedString.FromId("Archive.Directory.Delete.Shortcut");
         public static LocalizedString ArchiveDirectoryAdd => LocalizedString.FromId("Archive.Directory.Add");
 
         // Archive Status

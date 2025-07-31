@@ -6,6 +6,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using Konnect.DataClasses.FileSystem;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
@@ -54,14 +55,22 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _replaceDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryReplace };
             _renameDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryRename };
             _addDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryAdd };
-            _deleteDirectoryButton = new MenuBarButton { Text = LocalizationResources.ArchiveDirectoryDelete };
+            _deleteDirectoryButton = new MenuBarButton
+            {
+                Text = LocalizationResources.ArchiveDirectoryDelete,
+                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.ArchiveDirectoryDeleteShortcut)
+            };
 
             _openFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileOpen };
             _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.ArchiveFileOpenWith };
             _extractFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileExtract };
             _replaceFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileReplace };
             _renameFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileRename };
-            _deleteFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileDelete };
+            _deleteFileButton = new MenuBarButton
+            {
+                Text = LocalizationResources.ArchiveFileDelete,
+                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.ArchiveFileDeleteShortcut)
+            };
 
             _directoryContext = new ContextMenu
             {
@@ -96,7 +105,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control, Key.S)
+                KeyAction = new(ModifierKeys.Control, Key.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -105,11 +114,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(Key.F12)
+                KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
 
             _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder };
-            _clearButton = new ImageButton { Image = ImageResources.Close };
+            _clearButton = new ImageButton { Image = ImageResources.Close, Tooltip = LocalizationResources.ArchiveSearchClear };
 
             _treeView = new TreeView<DirectoryEntry> { ContextMenu = _directoryContext };
             _fileView = new DataTable<ArchiveFile>

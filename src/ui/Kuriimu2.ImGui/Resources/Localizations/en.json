@@ -18,7 +18,6 @@
   "ImGui.FileDialog.CreateFolder.Text": "New folder name:",
 
   // Kuriimu2
-
   "Application.Name": "Kuriimu2",
 
   // Menu
@@ -30,11 +29,16 @@
   "Menu.Help": "Help",
 
   // File Menu
-  "Menu.File.Open": "Open (Ctrl+O)",
-  "Menu.File.OpenWith": "Open with... (Ctrl+Shift+O)",
-  "Menu.File.Save": "Save (Ctrl+S)",
-  "Menu.File.SaveAs": "Save as... (F12)",
-  "Menu.File.SaveAll": "Save All (Ctrl+Shift+S)",
+  "Menu.File.Open": "Open",
+  "Menu.File.Open.Shortcut": "Ctrl+O",
+  "Menu.File.OpenWith": "Open with...",
+  "Menu.File.OpenWith.Shortcut": "Ctrl+Shift+O",
+  "Menu.File.Save": "Save",
+  "Menu.File.Save.Shortcut": "Ctrl+S",
+  "Menu.File.SaveAs": "Save as...",
+  "Menu.File.SaveAs.Shortcut": "F12",
+  "Menu.File.SaveAll": "Save All",
+  "Menu.File.SaveAll.Shortcut": "Ctrl+Shift+S",
   "Menu.File.Close": "Close",
 
   // Tools Menu
@@ -64,6 +68,9 @@
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Image Transcoder",
+  "Menu.Tools.ImageTranscoder.File": "File",
+  "Menu.Tools.ImageTranscoder.File.Open": "Open",
+  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
   "Menu.Tools.ImageTranscoder.Encoding": "Encoding",
   "Menu.Tools.ImageTranscoder.PaletteEncoding": "Palette Encoding",
   "Menu.Tools.ImageTranscoder.Quantizer": "Quantizer",
@@ -74,6 +81,9 @@
 
   // Raw Image Viewer
   "Menu.Tools.RawImageViewer.Caption": "Raw Image Viewer",
+  "Menu.Tools.RawImageViewer.File": "File",
+  "Menu.Tools.RawImageViewer.File.Open": "Open",
+  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
   "Menu.Tools.RawImageViewer.Placeholder": "Value: 128, 0x80",
   "Menu.Tools.RawImageViewer.Width": "Width",
   "Menu.Tools.RawImageViewer.Height": "Height",
@@ -171,7 +181,7 @@
 
   // File Filters
   "Filter.All": "All Files",
-  "Filter.Png": "Portable Network Graphics (*.png)",
+  "Filter.Png": "Portable Network Graphics",
 
   // Archive Form
 
@@ -181,13 +191,15 @@
   "Archive.File.Extract": "Extract",
   "Archive.File.Replace": "Replace",
   "Archive.File.Rename": "Rename",
-  "Archive.File.Delete": "Delete (Del)",
+  "Archive.File.Delete": "Delete",
+  "Archive.File.Delete.Shortcut": "Del",
 
   // Folder Operations
   "Archive.Directory.Extract": "Extract",
   "Archive.Directory.Replace": "Replace",
   "Archive.Directory.Rename": "Rename",
-  "Archive.Directory.Delete": "Delete (Del)",
+  "Archive.Directory.Delete": "Delete",
+  "Archive.Directory.Delete.Shortcut": "Del",
   "Archive.Directory.Add": "Add",
 
   // Status

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
@@ -14,11 +15,14 @@ using Kanvas.Swizzle;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class RawImageViewerDialog : Modal
     {
+        private MenuBarButton _openBtn;
+
         private StackLayout _mainLayout;
         private TableLayout _settingsLayout;
 
@@ -51,6 +55,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void InitializeComponent()
         {
             #region Components
+
+            _openBtn = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuToolsRawImageViewerFileOpen,
+                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuToolsRawImageViewerFileOpenShortcut)
+            };
 
             _renderSwizzleBox = new CheckBox
             {
@@ -165,6 +175,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
             };
 
+            var mainMenu = new ModalMenuBar
+            {
+                Items =
+                {
+                    new MenuBarMenu(LocalizationResources.MenuToolsRawImageViewerFile)
+                    {
+                        Items =
+                        {
+                            _openBtn
+                        }
+                    }
+                }
+            };
+
             #endregion
 
             InitializeFormats();
@@ -172,6 +196,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             Caption = LocalizationResources.MenuToolsRawImageViewerCaption;
 
+            MenuBar = mainMenu;
             Content = _mainLayout;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
 

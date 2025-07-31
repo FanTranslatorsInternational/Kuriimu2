@@ -2,6 +2,7 @@
 using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
@@ -15,12 +16,15 @@ using Kanvas.Quantization.ColorDitherer.Ordered;
 using Kanvas.Quantization.ColorQuantizer;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Resources;
+using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class ImageTranscoderDialog : Modal
     {
         private StackLayout _mainLayout;
+
+        private MenuBarButton _openBtn;
 
         private StackLayout _imageCompareLayout;
         private TableLayout _transcodingSettingsLayout;
@@ -43,6 +47,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void InitializeComponent()
         {
             #region Components
+
+            _openBtn = new MenuBarButton
+            {
+                Text = LocalizationResources.MenuToolsImageTranscoderFileOpen,
+                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuToolsImageTranscoderFileOpenShortcut)
+            };
 
             _exportBtn = new ImageButton(ImageResources.ImageExport)
             {
@@ -125,6 +135,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
             };
 
+            var mainMenu = new ModalMenuBar
+            {
+                Items =
+                {
+                    new MenuBarMenu(LocalizationResources.MenuToolsImageTranscoderFile)
+                    {
+                        Items =
+                        {
+                            _openBtn
+                        }
+                    }
+                }
+            };
+
             #endregion
 
             InitializeFormats();
@@ -134,6 +158,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             Caption = LocalizationResources.MenuToolsImageTranscoderCaption;
 
+            MenuBar = mainMenu;
             Content = _mainLayout;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
 
