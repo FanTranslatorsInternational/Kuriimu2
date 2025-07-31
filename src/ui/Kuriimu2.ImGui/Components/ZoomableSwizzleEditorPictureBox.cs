@@ -5,8 +5,10 @@ using System.Numerics;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Extensions;
+using ImGui.Forms.Resources;
 using ImGuiNET;
 using Kanvas.Swizzle;
+using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using EventArgs = System.EventArgs;
 using Rectangle = Veldrid.Rectangle;
@@ -34,7 +36,10 @@ namespace Kuriimu2.ImGui.Components
             base.DrawInternal(contentRect);
 
             if (!HasValidImage())
+            {
+                DrawControlLegend(contentRect);
                 return;
+            }
 
             // Render image border
             Rectangle imageRect = GetTransformedImageRect(contentRect);
@@ -149,6 +154,15 @@ namespace Kuriimu2.ImGui.Components
                     }
                 }
             }
+
+            DrawControlLegend(contentRect);
+        }
+
+        private void DrawControlLegend(Rectangle contentRect)
+        {
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position, ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorAddControl);
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorRemoveControl);
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorMoveControl);
         }
 
         private void DrawPixelBorder(Rectangle contentRect, Vector2 pixelPos, Color color, float thickness)

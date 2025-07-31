@@ -87,6 +87,9 @@
   "Menu.Tools.RawImageViewer.NoSwizzle": "None",
   "Menu.Tools.RawImageViewer.CustomSwizzle": "Custom",
   "Menu.Tools.RawImageViewer.RenderSwizzle": "Render Swizzle",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Add: Left Mouse Click",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Left Mouse Click",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Move: Left Mouse Hold + Drag",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",

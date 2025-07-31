@@ -80,6 +80,9 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsRawImageViewerNoSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.NoSwizzle");
         public static LocalizedString MenuToolsRawImageViewerCustomSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.CustomSwizzle");
         public static LocalizedString MenuToolsRawImageViewerRenderSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.RenderSwizzle");
+        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorAddControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.AddControl");
+        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorRemoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl");
+        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorMoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl");
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
