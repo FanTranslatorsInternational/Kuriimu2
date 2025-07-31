@@ -62,6 +62,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsImageTranscoderQuantizer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Quantizer");
         public static LocalizedString MenuToolsImageTranscoderColorCache => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCache");
         public static LocalizedString MenuToolsImageTranscoderDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Ditherer");
+        public static LocalizedString MenuToolsImageTranscoderNoDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.NoDitherer");
         public static LocalizedString MenuToolsImageTranscoderColorCount => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCount");
 
         // Raw Image Viewer
@@ -75,6 +76,10 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsRawImageViewerPaletteEncoding => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncoding");
         public static LocalizedString MenuToolsRawImageViewerEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.EncodingComponentOrder");
         public static LocalizedString MenuToolsRawImageViewerPaletteEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder");
+        public static LocalizedString MenuToolsRawImageViewerSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.Swizzle");
+        public static LocalizedString MenuToolsRawImageViewerNoSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.NoSwizzle");
+        public static LocalizedString MenuToolsRawImageViewerCustomSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.CustomSwizzle");
+        public static LocalizedString MenuToolsRawImageViewerRenderSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.RenderSwizzle");
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");

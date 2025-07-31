@@ -175,7 +175,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializeColorDitherers()
         {
-            _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>(null, "None"));
+            _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>(null, LocalizationResources.MenuToolsImageTranscoderNoDitherer));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer8Ditherer(size, count), "Bayer 8"));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer4Ditherer(size, count), "Bayer 4"));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer2Ditherer(size, count), "Bayer 2"));

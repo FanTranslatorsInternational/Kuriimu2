@@ -69,6 +69,7 @@
   "Menu.Tools.ImageTranscoder.Quantizer": "Quantizer",
   "Menu.Tools.ImageTranscoder.ColorCache": "Color Cache",
   "Menu.Tools.ImageTranscoder.Ditherer": "Ditherer",
+  "Menu.Tools.ImageTranscoder.NoDitherer": "None",
   "Menu.Tools.ImageTranscoder.ColorCount": "Color Count",
 
   // Raw Image Viewer
@@ -82,6 +83,10 @@
   "Menu.Tools.RawImageViewer.PaletteEncoding": "Palette Encoding",
   "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Components",
   "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Palette Components",
+  "Menu.Tools.RawImageViewer.Swizzle": "Swizzles",
+  "Menu.Tools.RawImageViewer.NoSwizzle": "None",
+  "Menu.Tools.RawImageViewer.CustomSwizzle": "Custom",
+  "Menu.Tools.RawImageViewer.RenderSwizzle": "Render Swizzle",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",

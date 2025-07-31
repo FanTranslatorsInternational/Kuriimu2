@@ -7,9 +7,12 @@ using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
 using Kanvas;
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
+using Kanvas.Swizzle;
 using Konnect.Plugin.File.Image;
+using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
@@ -19,6 +22,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private StackLayout _mainLayout;
         private TableLayout _settingsLayout;
 
+        private CheckBox _renderSwizzleBox;
         private ImageButton _exportBtn;
 
         private TextBox _widthTextBox;
@@ -30,16 +34,29 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private TextBox _componentsTextBox;
         private TextBox _paletteComponentsTextBox;
 
-        private ZoomablePictureBox _imageBox;
+        private ComboBox<CreatePixelRemapperDelegate?> _swizzles;
+        private TextBox _swizzleTextBox;
+
+        private ZoomableSwizzlePictureBox _imageBox;
+        private ZoomableSwizzleEditorPictureBox _imageEditorBox;
 
         private EncodingDefinition _encodingDefinition;
+
+        private DropDownItem<CreatePixelRemapperDelegate?> _customSwizzleItem;
+
         private readonly Dictionary<int, string> _components = new();
         private readonly Dictionary<int, string> _paletteComponents = new();
+        private readonly HashSet<DropDownItem<CreatePixelRemapperDelegate?>> _swizzleParameterItems = new();
 
         private void InitializeComponent()
         {
             #region Components
 
+            _renderSwizzleBox = new CheckBox
+            {
+                Text = LocalizationResources.MenuToolsRawImageViewerRenderSwizzle,
+                Checked = true
+            };
             _exportBtn = new ImageButton(ImageResources.ImageExport)
             {
                 Tooltip = LocalizationResources.ImageMenuExport,
@@ -47,8 +64,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Padding = new Vector2(5, 5)
             };
 
-            _imageBox = new ZoomablePictureBox
+            _imageBox = new ZoomableSwizzlePictureBox
             {
+                RenderSwizzle = true,
+                ShowBorder = true
+            };
+            _imageEditorBox = new ZoomableSwizzleEditorPictureBox
+            {
+                RenderSwizzle = true,
                 ShowBorder = true
             };
 
@@ -61,13 +84,16 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _componentsTextBox = new TextBox();
             _paletteComponentsTextBox = new TextBox();
 
+            _swizzles = new ComboBox<CreatePixelRemapperDelegate?> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
+            _swizzleTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+
             #endregion
 
             #region Layouts
 
             _settingsLayout = new TableLayout
             {
-                Size = Size.Content,
+                Size = Size.WidthAlign,
                 Spacing = new Vector2(4, 4),
                 Rows =
                 {
@@ -78,7 +104,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                             new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerWidth)),
                             new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerOffset)),
                             new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncoding)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncodingComponentOrder))
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncodingComponentOrder)),
+                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerSwizzle))
                         }
                     },
                     new TableRow
@@ -88,7 +115,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                             new TableCell(_widthTextBox),
                             new TableCell(_offsetTextBox),
                             new TableCell(_formats),
-                            new TableCell(_componentsTextBox)
+                            new TableCell(_componentsTextBox),
+                            new TableCell(_swizzles),
                         }
                     },
                     new TableRow
@@ -108,7 +136,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                             new TableCell(_heightTextBox),
                             new TableCell(_paletteOffsetTextBox),
                             new TableCell(_paletteFormats),
-                            new TableCell(_paletteComponentsTextBox)
+                            new TableCell(_paletteComponentsTextBox),
+                            new TableCell(_swizzleTextBox)
                         }
                     }
                 }
@@ -120,7 +149,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ItemSpacing = 4,
                 Items =
                 {
-                    new StackItem(_exportBtn){HorizontalAlignment = HorizontalAlignment.Right},
+                    new StackLayout
+                    {
+                        Alignment = Alignment.Horizontal,
+                        Size = Size.WidthAlign,
+                        ItemSpacing = 4,
+                        Items =
+                        {
+                            _renderSwizzleBox,
+                            new StackItem(_exportBtn){HorizontalAlignment = HorizontalAlignment.Right, Size = Size.WidthAlign}
+                        }
+                    },
                     _imageBox,
                     _settingsLayout
                 }
@@ -129,6 +168,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             #endregion
 
             InitializeFormats();
+            InitializeSwizzles();
 
             Caption = LocalizationResources.MenuToolsRawImageViewerCaption;
 
@@ -147,6 +187,30 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _paletteFormats.SelectedItem = _paletteFormats.Items.FirstOrDefault()!;
             _formats.SelectedItem = _formats.Items.FirstOrDefault()!;
+        }
+
+        private void InitializeSwizzles()
+        {
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.MenuToolsRawImageViewerNoSwizzle));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new BcSwizzle(context), "Bc"));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new NitroSwizzle(context), "NDS"));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new CtrSwizzle(context), "3DS"));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new DolphinSwizzle(context), "Gamecube"));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new RevolutionSwizzle(context), "Wii"));
+
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new CafeSwizzle(context, (byte)GetValue(_swizzleTextBox)), "WiiU"));
+            _swizzleParameterItems.Add(_swizzles.Items[^1]);
+
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new NxSwizzle(context, GetValue(_swizzleTextBox)), "Switch"));
+            _swizzleParameterItems.Add(_swizzles.Items[^1]);
+
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new Ps2Swizzle(context), "PS2"));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new VitaSwizzle(context), "Vita"));
+
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.MenuToolsRawImageViewerCustomSwizzle));
+            _customSwizzleItem = _swizzles.Items[^1];
+
+            _swizzles.SelectedItem = _swizzles.Items.FirstOrDefault()!;
         }
 
         private void UpdateFormats()
@@ -201,6 +265,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             AddPaletteEncoding(encodingDefinition, 10, ImageFormats.L8());
             AddPaletteEncoding(encodingDefinition, 11, ImageFormats.A8());
             AddPaletteEncoding(encodingDefinition, 12, ImageFormats.L4());
+            AddPaletteEncoding(encodingDefinition, 13, ImageFormats.A4());
         }
 
         private void InitializeEncodings(EncodingDefinition encodingDefinition, bool isUpdate = false)
@@ -238,42 +303,45 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             AddEncoding(encodingDefinition, 10, ImageFormats.L8());
             AddEncoding(encodingDefinition, 11, ImageFormats.A8());
             AddEncoding(encodingDefinition, 12, ImageFormats.L4());
-            AddIndexEncoding(encodingDefinition, 13, ImageFormats.I8());
-            AddIndexEncoding(encodingDefinition, 14, ImageFormats.I4());
-            AddIndexEncoding(encodingDefinition, 15, ImageFormats.I2());
-
-            components = isUpdate ? _components[16] : "IA";
-            AddIndexEncoding(encodingDefinition, 16, new Index(5, 3, components), components);
+            AddEncoding(encodingDefinition, 13, ImageFormats.A4());
+            AddIndexEncoding(encodingDefinition, 14, ImageFormats.I8());
+            AddIndexEncoding(encodingDefinition, 15, ImageFormats.I4());
+            AddIndexEncoding(encodingDefinition, 16, ImageFormats.I2());
 
             components = isUpdate ? _components[17] : "IA";
-            AddIndexEncoding(encodingDefinition, 17, new Index(3, 5, components), components);
+            AddIndexEncoding(encodingDefinition, 17, new Index(5, 3, components), components);
 
-            AddEncoding(encodingDefinition, 18, ImageFormats.Dxt1());
-            AddEncoding(encodingDefinition, 19, ImageFormats.Dxt3());
-            AddEncoding(encodingDefinition, 20, ImageFormats.Dxt5());
-            AddEncoding(encodingDefinition, 21, ImageFormats.Ati1());
-            AddEncoding(encodingDefinition, 22, ImageFormats.Ati2());
-            AddEncoding(encodingDefinition, 23, ImageFormats.Ati1A());
-            AddEncoding(encodingDefinition, 24, ImageFormats.Ati1L());
-            AddEncoding(encodingDefinition, 25, ImageFormats.Ati2AL());
-            AddEncoding(encodingDefinition, 26, ImageFormats.Bc6H());
-            AddEncoding(encodingDefinition, 27, ImageFormats.Bc7());
-            AddEncoding(encodingDefinition, 28, ImageFormats.Atc());
-            AddEncoding(encodingDefinition, 29, ImageFormats.AtcExplicit());
-            AddEncoding(encodingDefinition, 30, ImageFormats.AtcInterpolated());
-            AddEncoding(encodingDefinition, 31, ImageFormats.Etc1(false));
-            AddEncoding(encodingDefinition, 32, ImageFormats.Etc1A4(false));
-            AddEncoding(encodingDefinition, 33, ImageFormats.Etc2());
-            AddEncoding(encodingDefinition, 34, ImageFormats.Etc2A());
-            AddEncoding(encodingDefinition, 35, ImageFormats.Etc2A1());
-            AddEncoding(encodingDefinition, 36, ImageFormats.EacR11());
-            AddEncoding(encodingDefinition, 37, ImageFormats.EacRG11());
-            AddEncoding(encodingDefinition, 38, ImageFormats.Pvrtc_4bpp());
-            AddEncoding(encodingDefinition, 39, ImageFormats.Pvrtc_2bpp());
-            AddEncoding(encodingDefinition, 40, ImageFormats.PvrtcA_4bpp());
-            AddEncoding(encodingDefinition, 41, ImageFormats.PvrtcA_2bpp());
-            AddEncoding(encodingDefinition, 42, ImageFormats.Pvrtc2_4bpp());
-            AddEncoding(encodingDefinition, 43, ImageFormats.Pvrtc2_2bpp());
+            components = isUpdate ? _components[18] : "IA";
+            AddIndexEncoding(encodingDefinition, 18, new Index(3, 5, components), components);
+
+            AddEncoding(encodingDefinition, 19, ImageFormats.Dxt1());
+            AddEncoding(encodingDefinition, 20, ImageFormats.Dxt3());
+            AddEncoding(encodingDefinition, 21, ImageFormats.Dxt5());
+            AddEncoding(encodingDefinition, 22, ImageFormats.Ati1());
+            AddEncoding(encodingDefinition, 23, ImageFormats.Ati2());
+            AddEncoding(encodingDefinition, 24, ImageFormats.Ati1A());
+            AddEncoding(encodingDefinition, 25, ImageFormats.Ati1L());
+            AddEncoding(encodingDefinition, 26, ImageFormats.Ati2AL());
+            AddEncoding(encodingDefinition, 27, ImageFormats.Bc6H());
+            AddEncoding(encodingDefinition, 28, ImageFormats.Bc7());
+            AddEncoding(encodingDefinition, 29, ImageFormats.Atc());
+            AddEncoding(encodingDefinition, 30, ImageFormats.AtcExplicit());
+            AddEncoding(encodingDefinition, 31, ImageFormats.AtcInterpolated());
+            AddEncoding(encodingDefinition, 32, ImageFormats.Etc1(false));
+            AddEncoding(encodingDefinition, 33, ImageFormats.Etc1A4(false));
+            AddEncoding(encodingDefinition, 34, ImageFormats.Etc1(true));
+            AddEncoding(encodingDefinition, 35, ImageFormats.Etc1A4(true));
+            AddEncoding(encodingDefinition, 36, ImageFormats.Etc2());
+            AddEncoding(encodingDefinition, 37, ImageFormats.Etc2A());
+            AddEncoding(encodingDefinition, 38, ImageFormats.Etc2A1());
+            AddEncoding(encodingDefinition, 39, ImageFormats.EacR11());
+            AddEncoding(encodingDefinition, 40, ImageFormats.EacRG11());
+            AddEncoding(encodingDefinition, 41, ImageFormats.Pvrtc_4bpp());
+            AddEncoding(encodingDefinition, 42, ImageFormats.Pvrtc_2bpp());
+            AddEncoding(encodingDefinition, 43, ImageFormats.PvrtcA_4bpp());
+            AddEncoding(encodingDefinition, 44, ImageFormats.PvrtcA_2bpp());
+            AddEncoding(encodingDefinition, 45, ImageFormats.Pvrtc2_4bpp());
+            AddEncoding(encodingDefinition, 46, ImageFormats.Pvrtc2_2bpp());
         }
 
         private void AddPaletteEncoding(EncodingDefinition encodingDefinition, int format, IColorEncoding encoding, string? components = null)
