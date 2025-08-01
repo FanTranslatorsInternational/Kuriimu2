@@ -7,7 +7,9 @@ using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Resources;
+using Kanvas;
 using Kanvas.Contract;
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Encoding;
 using Kanvas.Swizzle;
@@ -230,11 +232,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             try
             {
-                IEncodingInfo encoding = _encodingDefinition.ContainsColorEncoding(_formats.SelectedItem.Content)
-                    ? _encodingDefinition.GetColorEncoding(_formats.SelectedItem.Content)!
-                    : _encodingDefinition.GetIndexEncoding(_formats.SelectedItem.Content)!.IndexEncoding;
-                var options = new SwizzleOptions { EncodingInfo = encoding, Size = GetImageSize() };
-                IImageSwizzle? swizzle = _swizzles.SelectedItem.Content?.Invoke(options);
+                IImageSwizzle? swizzle = CreateSwizzle(_swizzles.SelectedItem.Content);
 
                 _imageBox.SetSwizzle(swizzle);
             }
@@ -255,7 +253,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             int offset = GetValue(_offsetTextBox);
             Size imageSize = GetImageSize();
 
-            byte[] imageData = ReadImageData(offset, imageSize, bitDepth);
+            CreatePixelRemapperDelegate? swizzleDelegate = null;
+            if (_swizzles.SelectedItem.Content is not null)
+            {
+                swizzleDelegate = _swizzles.SelectedItem.Content;
+            }
+            else if (IsCustomSwizzle())
+            {
+                (int, int)[] coords = _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
+                swizzleDelegate = context => new CustomSwizzle(context, new MasterSwizzle(context.Size.Width, Point.Empty, coords));
+            }
+
+            byte[] imageData = ReadImageData(offset, imageSize, bitDepth, swizzleDelegate);
 
             var imageInfo = new ImageFileInfo
             {
@@ -263,18 +272,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ImageData = imageData,
                 ImageFormat = _formats.SelectedItem.Content,
                 ImageSize = imageSize,
-                RemapPixels = _swizzles.SelectedItem.Content
+                RemapPixels = swizzleDelegate
             };
-
-            if (_swizzles.SelectedItem.Content is not null)
-            {
-                imageInfo.RemapPixels = _swizzles.SelectedItem.Content;
-            }
-            else if (IsCustomSwizzle())
-            {
-                (int, int)[] coords = _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
-                imageInfo.RemapPixels = context => new CustomSwizzle(context, new MasterSwizzle(context.Size.Width, Point.Empty, coords));
-            }
 
             if (IsSelectedIndexEncoding())
             {
@@ -374,10 +373,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return int.TryParse(textBox.Text[2..], NumberStyles.HexNumber, null, out dimension) ? dimension : 0;
         }
 
-        private byte[] ReadImageData(int offset, Size size, int bitDepth)
+        private byte[] ReadImageData(int offset, Size size, int bitDepth, CreatePixelRemapperDelegate? swizzleDelegate)
         {
             if (_fileStream is null)
                 return [];
+
+            IImageSwizzle? swizzle = CreateSwizzle(swizzleDelegate);
+            if (swizzle is not null)
+                size = new Size(SizePadding.Multiple(size.Width, swizzle.MacroTileWidth), SizePadding.Multiple(size.Height, swizzle.MacroTileHeight));
 
             int dataLength = size.Width * size.Height * bitDepth / 8;
 
@@ -408,6 +411,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _ = _fileStream.Read(buffer);
 
             return buffer;
+        }
+
+        private IImageSwizzle? CreateSwizzle(CreatePixelRemapperDelegate? swizzleDelegate)
+        {
+            IEncodingInfo encoding = _encodingDefinition.ContainsColorEncoding(_formats.SelectedItem.Content)
+                ? _encodingDefinition.GetColorEncoding(_formats.SelectedItem.Content)!
+                : _encodingDefinition.GetIndexEncoding(_formats.SelectedItem.Content)!.IndexEncoding;
+            var options = new SwizzleOptions { EncodingInfo = encoding, Size = GetImageSize() };
+            return swizzleDelegate?.Invoke(options);
         }
 
         private async Task<string?> SelectFile()
