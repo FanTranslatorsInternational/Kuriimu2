@@ -99,7 +99,7 @@ namespace plugin_level5.Switch.Archive
             var hashOffset = (subEntryOffset + subEntryCount * SubEntrySize_ + 0xF) & ~0xF;
             var idOffset = hashOffset + (files.Count + subEntryCount) * 4;
             var stringOffset = (idOffset + (files.Count + subEntryCount) + 0x3) & ~0x3;
-            var stringContentOffset = (stringOffset + (files.Count + subEntryCount) * 2 + 0x7) & ~0x7;
+            var stringContentOffset = (stringOffset + (files.Count + subEntryCount) * 2 + 0x7) & ~0x3;
             var dataOffset = (stringContentOffset + files
                 .Sum(x => x.FilePath.GetNameWithoutExtension().Length + 1 + x.Entries.Sum(y => y.Name.Length + 1)) + 0xF) & ~0xF;
 
