@@ -17,8 +17,6 @@ namespace Kuriimu2.ImGui.Resources
         // Menus
         public static LocalizedString MenuFile => LocalizedString.FromId("Menu.File");
         public static LocalizedString MenuTools => LocalizedString.FromId("Menu.Tools");
-        public static LocalizedString MenuCiphers => LocalizedString.FromId("Menu.Ciphers");
-        public static LocalizedString MenuCompressions => LocalizedString.FromId("Menu.Compressions");
         public static LocalizedString MenuSettings => LocalizedString.FromId("Menu.Settings");
         public static LocalizedString MenuHelp => LocalizedString.FromId("Menu.Help");
 
@@ -36,20 +34,14 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuFileClose => LocalizedString.FromId("Menu.File.Close");
 
         // Tools Menu
+        public static LocalizedString MenuToolsCiphers => LocalizedString.FromId("Menu.Tools.Ciphers");
+        public static LocalizedString MenuToolsCompressions => LocalizedString.FromId("Menu.Tools.Compressions");
         public static LocalizedString MenuToolsImageTranscoder => LocalizedString.FromId("Menu.Tools.ImageTranscoder");
         public static LocalizedString MenuToolsRawImageViewer => LocalizedString.FromId("Menu.Tools.RawImageViewer");
         public static LocalizedString MenuToolsTextSequenceSearcher => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher");
         public static LocalizedString MenuToolsBatchExtractor => LocalizedString.FromId("Menu.Tools.BatchExtractor");
         public static LocalizedString MenuToolsBatchInjector => LocalizedString.FromId("Menu.Tools.BatchInjector");
         public static LocalizedString MenuToolsHashes => LocalizedString.FromId("Menu.Tools.Hashes");
-
-        // Ciphers Menu
-        public static LocalizedString MenuCiphersEncrypt => LocalizedString.FromId("Menu.Ciphers.Encrypt");
-        public static LocalizedString MenuCiphersDecrypt => LocalizedString.FromId("Menu.Ciphers.Decrypt");
-
-        // Compressions Menu
-        public static LocalizedString MenuCompressionsDecompress => LocalizedString.FromId("Menu.Compressions.Decompress");
-        public static LocalizedString MenuCompressionsCompress => LocalizedString.FromId("Menu.Compressions.Compress");
 
         // Settings Menu
         public static LocalizedString MenuSettingsIncludeDevBuilds => LocalizedString.FromId("Menu.Settings.IncludeDevBuilds");
@@ -59,6 +51,25 @@ namespace Kuriimu2.ImGui.Resources
         // Theme Menu
         public static LocalizedString MenuSettingsChangeThemeDark => LocalizedString.FromId("Menu.Settings.ChangeTheme.Dark");
         public static LocalizedString MenuSettingsChangeThemeLight => LocalizedString.FromId("Menu.Settings.ChangeTheme.Light");
+
+        // Ciphers Menu
+        public static LocalizedString MenuToolsCiphersCaption => LocalizedString.FromId("Menu.Tools.Ciphers.Caption");
+        public static LocalizedString MenuToolsCiphersEncrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Encrypt");
+        public static LocalizedString MenuToolsCiphersDecrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Decrypt");
+
+        // Compressions Menu
+        public static LocalizedString MenuToolsCompressionsCaption => LocalizedString.FromId("Menu.Tools.Compressions.Caption");
+        public static LocalizedString MenuToolsCompressionsDecompress => LocalizedString.FromId("Menu.Tools.Compressions.Decompress");
+        public static LocalizedString MenuToolsCompressionsCompress => LocalizedString.FromId("Menu.Tools.Compressions.Compress");
+        public static LocalizedString MenuToolsCompressionsExecute => LocalizedString.FromId("Menu.Tools.Compressions.Execute");
+        public static LocalizedString MenuToolsCompressionsInputFolder => LocalizedString.FromId("Menu.Tools.Compressions.Input.Folder");
+        public static LocalizedString MenuToolsCompressionsInputFile => LocalizedString.FromId("Menu.Tools.Compressions.Input.File");
+        public static LocalizedString MenuToolsCompressionsInputSubDirectories => LocalizedString.FromId("Menu.Tools.Compressions.Input.SubDirectories");
+        public static LocalizedString MenuToolsCompressionsLogProcess(string filePath) 
+            => LocalizedString.FromId("Menu.Tools.Compressions.Log.Process", () => filePath);
+        public static LocalizedString MenuToolsCompressionsLogError(string filePath)
+            => LocalizedString.FromId("Menu.Tools.Compressions.Log.Error", () => filePath);
+        public static LocalizedString MenuToolsCompressionsProgress => LocalizedString.FromId("Menu.Tools.Compressions.Progress");
 
         // Image Transcoder
         public static LocalizedString MenuToolsImageTranscoderCaption => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Caption");

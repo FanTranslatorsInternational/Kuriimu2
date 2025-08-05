@@ -26,11 +26,8 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarButton _textSequencerButton;
         private MenuBarButton _hashesButton;
 
-        private MenuBarButton _encryptButton;
-        private MenuBarButton _decryptButton;
-
-        private MenuBarButton _compressButton;
-        private MenuBarButton _decompressButton;
+        private MenuBarButton _ciphersButton;
+        private MenuBarButton _compressionsButton;
 
         private MenuBarCheckBox _includeDevBuildsButton;
         private MenuBarRadio _changeLanguageMenu;
@@ -82,11 +79,8 @@ namespace Kuriimu2.ImGui.Forms
             _hashesButton = new MenuBarButton { Text = LocalizationResources.MenuToolsHashes };
             _rawImageViewerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsRawImageViewer };
 
-            _encryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersEncrypt };
-            _decryptButton = new MenuBarButton { Text = LocalizationResources.MenuCiphersDecrypt };
-
-            _compressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsDecompress };
-            _decompressButton = new MenuBarButton { Text = LocalizationResources.MenuCompressionsCompress };
+            _ciphersButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCiphers };
+            _compressionsButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCompressions };
 
             _includeDevBuildsButton = new MenuBarCheckBox
             {
@@ -124,6 +118,9 @@ namespace Kuriimu2.ImGui.Forms
                         Text = LocalizationResources.MenuTools,
                         Items =
                         {
+                            _ciphersButton,
+                            _compressionsButton,
+                            new MenuBarSplitter(),
                             _imageTranscoderButton,
                             _rawImageViewerButton
                         }
@@ -135,16 +132,6 @@ namespace Kuriimu2.ImGui.Forms
                     //    _textSequencerButton,
                     //    _hashesButton,
                     //    _rawImageViewerButton
-                    //}},
-                    //new MenuBarMenu{Text = LocalizationResources.MenuCiphers, Items =
-                    //{
-                    //    _encryptButton,
-                    //    _decryptButton
-                    //}},
-                    //new MenuBarMenu{Text = LocalizationResources.MenuCompressions, Items =
-                    //{
-                    //    _compressButton,
-                    //    _decompressButton
                     //}},
                     new MenuBarMenu
                     {

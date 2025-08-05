@@ -38,7 +38,7 @@ namespace plugin_level5.NDS.Image
         {
             [0] = (new Kanvas.Encoding.Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), [0]),
             [1] = (new Kanvas.Encoding.Index(8), [0]),
-            [2] = (new Kanvas.Encoding.Index(5, 3), [0]),
+            [2] = (new Kanvas.Encoding.Index(3, 5), [0]),
         };
 
         public static IDictionary<int, IColorEncoding> LimgPaletteFormats = new Dictionary<int, IColorEncoding>

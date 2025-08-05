@@ -101,6 +101,8 @@ namespace Kuriimu2.ImGui.Forms
             _openWithButton.Clicked += _openWithButton_Clicked;
             _saveAllButton.Clicked += _saveAllButton_Clicked;
 
+            _ciphersButton.Clicked += _ciphersButton_Clicked;
+            _compressionsButton.Clicked += _compressionsButton_Clicked;
             _imageTranscoderButton.Clicked += _imageTranscoderButton_Clicked;
             _rawImageViewerButton.Clicked += _rawImageViewerButton_Clicked;
 
@@ -279,6 +281,16 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async void _ciphersButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowCiphersDialog();
+        }
+
+        private async void _compressionsButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowCompressionsDialog();
+        }
 
         private async void _imageTranscoderButton_Clicked(object? sender, EventArgs e)
         {
@@ -716,6 +728,18 @@ namespace Kuriimu2.ImGui.Forms
         }
 
         #endregion
+
+        private async Task ShowCiphersDialog()
+        {
+            //var imageTranscoderDialog = new ImageTranscoderDialog();
+            //await imageTranscoderDialog.ShowAsync();
+        }
+
+        private async Task ShowCompressionsDialog()
+        {
+            var compressionsDialog = new CompressionsDialog();
+            await compressionsDialog.ShowAsync();
+        }
 
         private async Task ShowImageTranscoderDialog()
         {

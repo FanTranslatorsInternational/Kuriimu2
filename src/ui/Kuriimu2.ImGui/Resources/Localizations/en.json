@@ -23,8 +23,6 @@
   // Menu
   "Menu.File": "File",
   "Menu.Tools": "Tools",
-  "Menu.Ciphers": "Ciphers",
-  "Menu.Compressions": "Compressions",
   "Menu.Settings": "Settings",
   "Menu.Help": "Help",
 
@@ -42,20 +40,14 @@
   "Menu.File.Close": "Close",
 
   // Tools Menu
+  "Menu.Tools.Ciphers": "Ciphers",
+  "Menu.Tools.Compressions": "Compressions",
   "Menu.Tools.ImageTranscoder": "Image Transcoder",
   "Menu.Tools.RawImageViewer": "Raw Image Viewer",
   "Menu.Tools.TextSequenceSearcher": "Text Searcher",
   "Menu.Tools.BatchExtractor": "Extract All",
   "Menu.Tools.BatchInjector": "Replace All",
   "Menu.Tools.Hashes": "Hashes",
-
-  // Ciphers Menu
-  "Menu.Ciphers.Encrypt": "Encrypt",
-  "Menu.Ciphers.Decrypt": "Decrypt",
-
-  // Compressions Menu
-  "Menu.Compressions.Decompress": "Decompress",
-  "Menu.Compressions.Compress": "Compress",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Include Developer Builds",
@@ -65,6 +57,23 @@
   // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Dark",
   "Menu.Settings.ChangeTheme.Light": "Light",
+
+  // Ciphers Menu
+  "Menu.Tools.Ciphers.Caption": "Ciphers",
+  "Menu.Tools.Ciphers.Encrypt": "Encrypt",
+  "Menu.Tools.Ciphers.Decrypt": "Decrypt",
+
+  // Compressions Menu
+  "Menu.Tools.Compressions.Caption": "Compressions",
+  "Menu.Tools.Compressions.Decompress": "Decompress",
+  "Menu.Tools.Compressions.Compress": "Compress",
+  "Menu.Tools.Compressions.Execute": "Execute",
+  "Menu.Tools.Compressions.Input.Folder": "Select folder",
+  "Menu.Tools.Compressions.Input.File": "Select file",
+  "Menu.Tools.Compressions.Input.SubDirectories": "Subdirectories",
+  "Menu.Tools.Compressions.Log.Process": "Process file {0}.",
+  "Menu.Tools.Compressions.Log.Error": "Error processing file {0}.",
+  "Menu.Tools.Compressions.Progress": "Process",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Image Transcoder",

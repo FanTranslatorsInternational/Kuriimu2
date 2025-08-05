@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Konnect" Version="2.1.41" />
+    <PackageReference Include="Konnect" Version="2.1.42" />
     <PackageReference Include="Kryptography" Version="2.1.9" />
   </ItemGroup>
 
