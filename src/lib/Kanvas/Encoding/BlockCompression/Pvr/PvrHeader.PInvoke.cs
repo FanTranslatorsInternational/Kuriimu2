@@ -4,7 +4,7 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
 {
     partial class PvrHeader
     {
-        private const string DllName_ = @"pvr_lib";
+        private const string DllName_ = "pvr_lib";
 
         [DllImport(DllName_, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr PVRTexLib_CreateTextureHeader(PvrCreateParams attributes);

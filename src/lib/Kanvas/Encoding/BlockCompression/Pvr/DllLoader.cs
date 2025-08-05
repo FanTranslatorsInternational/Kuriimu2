@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Kanvas.Encoding.BlockCompression.Pvr
@@ -10,24 +9,32 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
 
         public static void PreloadDll(string dllName)
         {
-            var dllDir = GetDirectedDllDirectory();
+            var dllDirs = GetDirectedDllDirectories();
 
             // Not using OperatingSystem.Platform.
             // See: https://www.mono-project.com/docs/faq/technical/#how-to-detect-the-execution-platform
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Win32.LoadDll(dllDir, dllName);
+                Win32.LoadDll(dllDirs, dllName);
             }
             else
             {
-                Posix.LoadDll(dllDir, dllName);
+                Posix.LoadDll(dllDirs, dllName);
             }
         }
 
-        private static string GetDirectedDllDirectory()
+        private static string[] GetDirectedDllDirectories()
         {
-            var localPath = Process.GetCurrentProcess().MainModule.FileName;
-            var localDir = Path.GetDirectoryName(localPath);
+            return
+            [
+                AppDomain.CurrentDomain.BaseDirectory,
+                GetPlatformDependantDllDirectory()
+            ];
+        }
+
+        private static string GetPlatformDependantDllDirectory()
+        {
+            string localDir = AppDomain.CurrentDomain.BaseDirectory;
 
             string platform;
 
@@ -40,30 +47,41 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
             else
                 throw new NotSupportedException();
 
-            var subDir = Environment.Is64BitProcess ? string.Format(NativePath_, platform, "x64") : string.Format(NativePath_, platform, "x86");
+            string subDir = Environment.Is64BitProcess ? string.Format(NativePath_, platform, "x64") : string.Format(NativePath_, platform, "x86");
 
-            var directedDllDir = Path.Combine(localDir, subDir);
+            string directedDllDir = Path.Combine(localDir, subDir);
 
             return directedDllDir;
         }
 
         private static class Win32
         {
-            internal static void LoadDll(string dllDir, string dllName)
+            internal static void LoadDll(string[] dllDirs, string dllName)
             {
                 var dllFileName = $"{dllName}.dll";
-                var directedDllPath = Path.Combine(dllDir, dllFileName);
 
-                // Specify SEARCH_DLL_LOAD_DIR to load dependent libraries located in the same platform-specific directory.
-                var hLibrary = LoadLibraryEx(directedDllPath, nint.Zero, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
-
-                if (hLibrary == nint.Zero)
+                foreach (string dllDir in dllDirs)
                 {
-                    var errorCode = Marshal.GetLastWin32Error();
-                    var exception = new Win32Exception(errorCode);
+                    var directedDllPath = Path.Combine(dllDir, dllFileName);
 
-                    throw new DllNotFoundException(exception.Message, exception);
+                    if (!File.Exists(directedDllPath))
+                        continue;
+
+                    // Specify SEARCH_DLL_LOAD_DIR to load dependent libraries located in the same platform-specific directory.
+                    var hLibrary = LoadLibraryEx(directedDllPath, nint.Zero, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+
+                    if (hLibrary == nint.Zero)
+                    {
+                        var errorCode = Marshal.GetLastWin32Error();
+                        var exception = new Win32Exception(errorCode);
+
+                        throw new DllNotFoundException(exception.Message, exception);
+                    }
+
+                    return;
                 }
+
+                throw new DllNotFoundException($"Could not find {dllFileName} in any of the specified directories.");
             }
 
             // HMODULE LoadLibraryExA(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
@@ -77,7 +95,7 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
 
         private static class Posix
         {
-            internal static void LoadDll(string dllDir, string dllName)
+            internal static void LoadDll(string[] dllDirs, string dllName)
             {
                 string dllExtension;
 
@@ -94,22 +112,33 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
                     throw new NotSupportedException();
                 }
 
-                var dllFileName = $"lib{dllName}{dllExtension}";
-                var directedDllPath = Path.Combine(dllDir, dllFileName);
+                var dllFileName = $"{dllName}{dllExtension}";
 
-                const int ldFlags = RTLD_NOW | RTLD_GLOBAL;
-                var hLibrary = DlOpen(directedDllPath, ldFlags);
-
-                if (hLibrary == nint.Zero)
+                foreach (string dllDir in dllDirs)
                 {
-                    var pErrStr = DlError();
-                    // `PtrToStringAnsi` always uses the specific constructor of `String` (see dotnet/core#2325),
-                    // which in turn interprets the byte sequence with system default codepage. On OSX and Linux
-                    // the codepage is UTF-8 so the error message should be handled correctly.
-                    var errorMessage = Marshal.PtrToStringAnsi(pErrStr);
+                    var directedDllPath = Path.Combine(dllDir, dllFileName);
 
-                    throw new DllNotFoundException(errorMessage);
+                    if (!File.Exists(directedDllPath))
+                        continue;
+
+                    const int ldFlags = RTLD_NOW | RTLD_GLOBAL;
+                    var hLibrary = DlOpen(directedDllPath, ldFlags);
+
+                    if (hLibrary == nint.Zero)
+                    {
+                        var pErrStr = DlError();
+                        // `PtrToStringAnsi` always uses the specific constructor of `String` (see dotnet/core#2325),
+                        // which in turn interprets the byte sequence with system default codepage. On OSX and Linux
+                        // the codepage is UTF-8 so the error message should be handled correctly.
+                        var errorMessage = Marshal.PtrToStringAnsi(pErrStr);
+
+                        throw new DllNotFoundException(errorMessage);
+                    }
+
+                    return;
                 }
+
+                throw new DllNotFoundException($"Could not find {dllFileName} in any of the specified directories.");
             }
 
             // OSX and most Linux OS use LP64 so `int` is still 32-bit even on 64-bit platforms.
