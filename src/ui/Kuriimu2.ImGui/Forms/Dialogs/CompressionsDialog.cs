@@ -62,7 +62,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateFormInternal()
         {
-            _executeBtn.Enabled = !string.IsNullOrEmpty(_inputTextBox.Text);
+            _executeBtn.Enabled = _operations.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
         }
 
         private async Task<string?> SelectFile()
@@ -70,7 +70,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var ofd = new WindowsOpenFileDialog
             {
                 InitialDirectory = SettingsResources.LastDirectory,
-                Filters = [new FileFilter(LocalizationResources.FilterPng, "png")]
+                Filters = [new FileFilter(LocalizationResources.FilterAll, string.Empty)]
             };
 
             // Show dialog and wait for result
