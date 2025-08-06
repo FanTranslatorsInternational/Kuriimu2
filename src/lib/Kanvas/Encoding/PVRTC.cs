@@ -2,6 +2,7 @@
 using Kanvas.Contract.Encoding;
 using Kanvas.Encoding.BlockCompression.Pvr;
 using Kanvas.Swizzle;
+using PVRTexLib;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -41,10 +42,12 @@ namespace Kanvas.Encoding
         public IEnumerable<Rgba32> Load(byte[] tex, EncodingOptions options)
         {
             // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(tex, (uint)options.Size.Width, (uint)options.Size.Height, 1, (PixelFormat)_format, ChannelType.UnsignedByte, ColorSpace.Linear);
+            PVRTexture? texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)_format, options.Size);
+            if (texture is null)
+                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to RGBA8888
-            var successful = pvrTexture.Transcode(PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
+            bool successful = texture.Transcode(PvrTextureWrapper.RGBA8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
             if (!successful)
                 throw new InvalidOperationException("Transcoding with PVRTexLib was not successful.");
 
@@ -53,7 +56,7 @@ namespace Kanvas.Encoding
             var paddedWidth = GetPaddedWidth(options.Size.Width);
             var swizzle = GetSwizzle(options.Size.Width);
 
-            var textureData = pvrTexture.GetData();
+            var textureData = PvrTextureWrapper.GetData(texture);
             for (var y = 0; y < options.Size.Height; y++)
                 for (var x = 0; x < options.Size.Width; x++)
                 {
@@ -88,12 +91,14 @@ namespace Kanvas.Encoding
             }
 
             // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(colorData, (uint)options.Size.Width, (uint)options.Size.Height, 1, PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear);
+            PVRTexture? texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.RGBA8888, options.Size);
+            if (texture is null)
+                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to PVRTC
-            pvrTexture.Transcode((PixelFormat)_format, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
+            texture.Transcode((ulong)_format, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
 
-            return pvrTexture.GetData();
+            return PvrTextureWrapper.GetData(texture);
         }
 
         private int GetPaddedWidth(int width)
@@ -107,8 +112,8 @@ namespace Kanvas.Encoding
             var paddedWidth = GetPaddedWidth(width);
 
             return BitDepth == 4 ?
-                new MasterSwizzle(paddedWidth, Point.Empty, new[] { (1, 0), (2, 0), (0, 1), (0, 2) }) :
-                new MasterSwizzle(paddedWidth, Point.Empty, new[] { (1, 0), (2, 0), (4, 0), (0, 1), (0, 2) });
+                new MasterSwizzle(paddedWidth, Point.Empty, [(1, 0), (2, 0), (0, 1), (0, 2)]) :
+                new MasterSwizzle(paddedWidth, Point.Empty, [(1, 0), (2, 0), (4, 0), (0, 1), (0, 2)]);
         }
     }
 

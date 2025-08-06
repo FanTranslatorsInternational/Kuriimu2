@@ -1,6 +1,7 @@
 ﻿using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Encoding;
 using Kanvas.Encoding.BlockCompression.Pvr;
+using PVRTexLib;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding
@@ -36,15 +37,17 @@ namespace Kanvas.Encoding
         public IEnumerable<Rgba32> Load(byte[] tex, EncodingOptions options)
         {
             // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(tex, (uint)options.Size.Width, (uint)options.Size.Height, 1, (PixelFormat)_format, ChannelType.UnsignedByte, ColorSpace.Linear);
+            PVRTexture? texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)_format, options.Size);
+            if (texture is null)
+                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to RGBA8888
-            var successful = pvrTexture.Transcode(PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
+            bool successful = texture.Transcode(PvrTextureWrapper.RGBA8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
             if (!successful)
                 throw new InvalidOperationException("Transcoding with PVRTexLib was not successful.");
 
             // Yield colors
-            var textureData = pvrTexture.GetData();
+            var textureData = PvrTextureWrapper.GetData(texture);
             for (var i = 0L; i < textureData.Length; i += 4)
                 yield return new Rgba32(textureData[i], textureData[i + 1], textureData[i + 2], textureData[i + 3]);
         }
@@ -64,12 +67,14 @@ namespace Kanvas.Encoding
             }
 
             // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(colorData, (uint)options.Size.Width, (uint)options.Size.Height, 1, PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear);
+            PVRTexture? texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.RGBA8888, options.Size);
+            if (texture is null)
+                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
-            // Transcode texture to ETC2
-            pvrTexture.Transcode((PixelFormat)_format, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
+            // Transcode texture to PVRTC
+            texture.Transcode((ulong)_format, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
 
-            return pvrTexture.GetData();
+            return PvrTextureWrapper.GetData(texture);
         }
     }
 
