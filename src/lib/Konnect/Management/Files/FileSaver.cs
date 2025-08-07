@@ -57,7 +57,7 @@ namespace Konnect.Management.Files
             {
                 var childDestination = archiveChild.FileSystem.Clone(archiveChild.StreamManager);
                 var saveChildResult = await SaveInternalAsync(archiveChild, childDestination, archiveChild.FilePath, saveInfo, false);
-                if (!saveChildResult.IsSuccessful)
+                if (saveChildResult is { IsSuccessful: false, Reason: not SaveErrorReason.NoChanges })
                     return saveChildResult;
             }
 
