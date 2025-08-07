@@ -6,6 +6,7 @@ on:
       - imgui
     paths:
       - 'src/ui/Kuriimu2.ImGui/**'
+      - 'plugins/**'
 
 jobs:
   build:
