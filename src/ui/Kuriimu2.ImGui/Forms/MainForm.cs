@@ -731,8 +731,8 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task ShowCiphersDialog()
         {
-            //var imageTranscoderDialog = new ImageTranscoderDialog();
-            //await imageTranscoderDialog.ShowAsync();
+            var ciphersDialog = new CiphersDialog();
+            await ciphersDialog.ShowAsync();
         }
 
         private async Task ShowCompressionsDialog()

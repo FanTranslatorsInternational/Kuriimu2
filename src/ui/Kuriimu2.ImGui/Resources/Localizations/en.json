@@ -62,6 +62,14 @@
   "Menu.Tools.Ciphers.Caption": "Ciphers",
   "Menu.Tools.Ciphers.Encrypt": "Encrypt",
   "Menu.Tools.Ciphers.Decrypt": "Decrypt",
+  "Menu.Tools.Ciphers.Execute": "Execute",
+  "Menu.Tools.Ciphers.Input.Folder": "Select folder",
+  "Menu.Tools.Ciphers.Input.File": "Select file",
+  "Menu.Tools.Ciphers.Input.SubDirectories": "Subdirectories",
+  "Menu.Tools.Ciphers.Input.Parameters": "Parameters",
+  "Menu.Tools.Ciphers.Log.Process": "Process file {0}.",
+  "Menu.Tools.Ciphers.Log.Error": "Error processing file {0}.",
+  "Menu.Tools.Ciphers.Progress": "Process",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Compressions",

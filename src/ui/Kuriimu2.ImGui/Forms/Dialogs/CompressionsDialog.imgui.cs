@@ -104,7 +104,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             #endregion
 
             Caption = LocalizationResources.MenuToolsCompressionsCaption;
-            Size = new Size(SizeValue.Relative(.5f), SizeValue.Relative(.4f));
+            Size = new Size(SizeValue.Relative(.5f), SizeValue.Relative(.6f));
 
             Content = _mainLayout;
 

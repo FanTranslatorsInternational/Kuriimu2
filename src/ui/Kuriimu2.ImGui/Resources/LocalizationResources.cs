@@ -56,6 +56,16 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsCiphersCaption => LocalizedString.FromId("Menu.Tools.Ciphers.Caption");
         public static LocalizedString MenuToolsCiphersEncrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Encrypt");
         public static LocalizedString MenuToolsCiphersDecrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Decrypt");
+        public static LocalizedString MenuToolsCiphersExecute => LocalizedString.FromId("Menu.Tools.Ciphers.Execute");
+        public static LocalizedString MenuToolsCiphersInputFolder => LocalizedString.FromId("Menu.Tools.Ciphers.Input.Folder");
+        public static LocalizedString MenuToolsCiphersInputFile => LocalizedString.FromId("Menu.Tools.Ciphers.Input.File");
+        public static LocalizedString MenuToolsCiphersInputSubDirectories => LocalizedString.FromId("Menu.Tools.Ciphers.Input.SubDirectories");
+        public static LocalizedString MenuToolsCiphersInputParameters => LocalizedString.FromId("Menu.Tools.Ciphers.Input.Parameters");
+        public static LocalizedString MenuToolsCiphersLogProcess(string filePath)
+            => LocalizedString.FromId("Menu.Tools.Ciphers.Log.Process", () => filePath);
+        public static LocalizedString MenuToolsCiphersLogError(string filePath)
+            => LocalizedString.FromId("Menu.Tools.Ciphers.Log.Error", () => filePath);
+        public static LocalizedString MenuToolsCiphersProgress => LocalizedString.FromId("Menu.Tools.Ciphers.Progress");
 
         // Compressions Menu
         public static LocalizedString MenuToolsCompressionsCaption => LocalizedString.FromId("Menu.Tools.Compressions.Caption");
