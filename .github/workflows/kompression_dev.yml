@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Kompression/*.nuspec'
       - 'src/lib/Kompression/*.csproj'
-      - 'src/lib/Kompression/*.cs'
+      - 'src/lib/Kompression/**/*.cs'
       - 'src/lib/Kompression.Contract/*.csproj'
-      - 'src/lib/Kompression.Contract/*.cs'
+      - 'src/lib/Kompression.Contract/**/*.cs'
 
 jobs:
   build:

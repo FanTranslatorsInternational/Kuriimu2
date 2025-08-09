@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Kanvas/*.nuspec'
       - 'src/lib/Kanvas/*.csproj'
-      - 'src/lib/Kanvas/*.cs'
+      - 'src/lib/Kanvas/**/*.cs'
       - 'src/lib/Kanvas.Contract/*.csproj'
-      - 'src/lib/Kanvas.Contract/*.cs'
+      - 'src/lib/Kanvas.Contract/**/*.cs'
 
 jobs:
   build:

@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Kaligraphy/*.nuspec'
       - 'src/lib/Kaligraphy/*.csproj'
-      - 'src/lib/Kaligraphy/*.cs'
+      - 'src/lib/Kaligraphy/**/*.cs'
       - 'src/lib/Kaligraphy.Contract/*.csproj'
-      - 'src/lib/Kaligraphy.Contract/*.cs'
+      - 'src/lib/Kaligraphy.Contract/**/*.cs'
 
 jobs:
   build:

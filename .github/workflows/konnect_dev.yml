@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Konnect/*.nuspec'
       - 'src/lib/Konnect/*.csproj'
-      - 'src/lib/Konnect/*.cs'
+      - 'src/lib/Konnect/**/*.cs'
       - 'src/lib/Konnect.Contract/*.csproj'
-      - 'src/lib/Konnect.Contract/*.cs'
+      - 'src/lib/Konnect.Contract/**/*.cs'
 
 jobs:
   build:

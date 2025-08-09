@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Komponent/*.nuspec'
       - 'src/lib/Komponent/*.csproj'
-      - 'src/lib/Komponent/*.cs'
+      - 'src/lib/Komponent/**/*.cs'
       - 'src/lib/Komponent.Contract/*.csproj'
-      - 'src/lib/Komponent.Contract/*.cs'
+      - 'src/lib/Komponent.Contract/**/*.cs'
 
 jobs:
   build:

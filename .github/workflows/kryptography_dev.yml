@@ -7,9 +7,9 @@ on:
     paths:
       - 'src/lib/Kryptography/*.nuspec'
       - 'src/lib/Kryptography/*.csproj'
-      - 'src/lib/Kryptography/*.cs'
+      - 'src/lib/Kryptography/**/*.cs'
       - 'src/lib/Kryptography.Contract/*.csproj'
-      - 'src/lib/Kryptography.Contract/*.cs'
+      - 'src/lib/Kryptography.Contract/**/*.cs'
 
 jobs:
   build:
