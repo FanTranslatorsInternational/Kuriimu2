@@ -3,8 +3,8 @@ using Kaligraphy.Contract.DataClasses.Parsing;
 
 namespace Kaligraphy.Contract.Parsing
 {
-    public interface ICharacterParser
+    public interface ICharacterComposer
     {
-        IList<CharacterData> Parse(byte[] data, Encoding encoding);
+        byte[] Compose(IList<CharacterData> characters, Encoding encoding);
     }
 }

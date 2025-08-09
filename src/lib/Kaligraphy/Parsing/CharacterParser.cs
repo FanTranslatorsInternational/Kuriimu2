@@ -7,14 +7,6 @@ namespace Kaligraphy.Parsing
 {
     public class CharacterParser : ICharacterParser
     {
-        public IList<CharacterData> Parse(string text)
-        {
-            Encoding encoding = Encoding.Unicode;
-            IList<CharacterData> parsedCharacters = Parse(encoding.GetBytes(text), encoding);
-
-            return parsedCharacters;
-        }
-
         public IList<CharacterData> Parse(byte[] data, Encoding encoding)
         {
             var result = new List<CharacterData>();
@@ -30,7 +22,7 @@ namespace Kaligraphy.Parsing
             var position = 0;
             while (position < data.Length)
             {
-                CharacterData? character = ParseCharacter(context, position, out int length);
+                CharacterData? character = ParseCharacterData(context, position, out int length);
                 if (character is not null)
                     result.Add(character);
 
@@ -40,15 +32,42 @@ namespace Kaligraphy.Parsing
             return result;
         }
 
-        protected virtual CharacterData? ParseCharacter(ParseContext context, int position, out int length)
+        private CharacterData? ParseCharacterData(ParseContext context, int position, out int length)
         {
+            if (TryParseControlCode(context, position, out length, out ControlCodeCharacterData? controlCode))
+                return controlCode;
+
+            if (TryParseCharacter(context, position, out length, out TextCharacterData? textCharacter))
+                return textCharacter;
+
+            return null;
+        }
+
+        protected virtual bool TryParseControlCode(ParseContext context, int position, out int length,
+            out ControlCodeCharacterData? controlCode)
+        {
+            length = 0;
+            controlCode = null;
+
+            return false;
+        }
+
+        protected virtual bool TryParseCharacter(ParseContext context, int position, out int length,
+            out TextCharacterData? textCharacter)
+        {
+            textCharacter = null;
+
             if (IsLineBreak(context, position, out length))
-                return new LineBreakCharacterData();
+            {
+                textCharacter = new LineBreakCharacterData();
+                return true;
+            }
 
             if (!TryReadCharacter(context, position, out length, out char character))
-                return null;
+                return false;
 
-            return new FontCharacterData { Character = character };
+            textCharacter = new FontCharacterData { Character = character };
+            return true;
         }
 
         protected virtual bool IsLineBreak(ParseContext context, int position, out int length)

@@ -1,6 +1,6 @@
-﻿namespace Kaligraphy.Contract.DataClasses.Parsing
+﻿namespace Kaligraphy.DataClasses.Parsing
 {
-    public class FontCharacterData : CharacterData
+    public class FontCharacterData : TextCharacterData
     {
         public required ushort Character { get; init; }
         public override bool IsVisible => true;

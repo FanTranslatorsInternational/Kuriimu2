@@ -1,7 +1,7 @@
 ﻿using Kaligraphy.Contract.DataClasses.Layout;
-using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Contract.DataClasses.Rendering;
 using Kaligraphy.Contract.Rendering;
+using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Rendering;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -80,7 +80,7 @@ namespace Kaligraphy.Rendering
 
             switch (character.Character)
             {
-                case FontCharacterData fontCharacter:
+                case TextCharacterData fontCharacter:
                     CharacterInfo? glyph = _glyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;
@@ -96,7 +96,7 @@ namespace Kaligraphy.Rendering
         {
             switch (character.Character)
             {
-                case FontCharacterData fontCharacter:
+                case TextCharacterData fontCharacter:
                     CharacterInfo? glyph = _glyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;

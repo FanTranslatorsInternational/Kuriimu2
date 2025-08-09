@@ -4,6 +4,7 @@ using Kaligraphy.Contract.DataClasses.Rendering;
 using Kaligraphy.Contract.Layout;
 using Kaligraphy.Contract.Rendering;
 using Kaligraphy.DataClasses.Layout;
+using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.Enums.Layout;
 using SixLabors.ImageSharp;
 
@@ -232,7 +233,7 @@ namespace Kaligraphy.Layout
 
             switch (character)
             {
-                case FontCharacterData fontCharacter:
+                case TextCharacterData fontCharacter:
                     CharacterInfo? glyph = GlyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph == null)
                         break;
@@ -250,7 +251,7 @@ namespace Kaligraphy.Layout
         {
             switch (character)
             {
-                case FontCharacterData fontCharacter:
+                case TextCharacterData fontCharacter:
                     CharacterInfo? glyph = GlyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;
