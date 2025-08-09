@@ -6,6 +6,6 @@ namespace Kaligraphy.Contract.Rendering
     {
         CharacterInfo? GetOrDefault(ushort codePoint);
 
-        int GetMaxHeight(); // _characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height)
+        int GetMaxHeight();
     }
 }
