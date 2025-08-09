@@ -104,8 +104,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\Kaligraphy.Contract\Kaligraphy.Contract.csproj" />
-    <ProjectReference Include="..\..\lib\Kaligraphy\Kaligraphy.csproj" />
     <ProjectReference Include="..\..\lib\Konnect.Contract\Konnect.Contract.csproj" />
     <ProjectReference Include="..\..\lib\Konnect\Konnect.csproj" />
     <ProjectReference Include="..\..\lib\Kryptography.Contract\Kryptography.Contract.csproj" />

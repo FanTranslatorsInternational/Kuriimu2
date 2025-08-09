@@ -16,7 +16,6 @@ namespace plugin_nintendo.Font
 {
     class CfntReader
     {
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
         private readonly CfntEncodingProvider _encodingProvider = new();
 
         public CfntData Read(Stream input)
@@ -149,7 +148,7 @@ namespace plugin_nintendo.Font
                     imageSection.cellHeight);
 
                 Image<Rgba32> image = images[imageIndex].GetImage();
-                GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(image, srcRect);
+                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, srcRect);
                 Image<Rgba32>? glyph = glyphDescription.Size is { Width: > 0, Height: > 0 }
                     ? image.Clone(context => context.Crop(new Rectangle(glyphDescription.Position, glyphDescription.Size)))
                     : null;

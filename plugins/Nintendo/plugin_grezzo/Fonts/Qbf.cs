@@ -13,8 +13,6 @@ namespace plugin_grezzo.Fonts
 {
     class Qbf
     {
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
-
         private QbfHeader _header;
 
         public List<CharacterInfo> Load(Stream input)
@@ -54,7 +52,7 @@ namespace plugin_grezzo.Fonts
                 };
 
                 Image<Rgba32> rawGlyph = ImageFile.Decode(imageInfo, encodingDefinition);
-                GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(rawGlyph);
+                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(rawGlyph);
 
                 if (glyphDescription.Size is { Width: > 0, Height: > 0 })
                 {

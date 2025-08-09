@@ -7,21 +7,28 @@ using System.Threading.Tasks;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Resources;
+using Kaligraphy.Contract.DataClasses.Layout;
+using Kaligraphy.Contract.DataClasses.Parsing;
+using Kaligraphy.DataClasses.Layout;
+using Kaligraphy.DataClasses.Rendering;
+using Kaligraphy.Layout;
+using Kaligraphy.Rendering;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.TextParsing;
-using Kuriimu2.ImGui.TextParsing.Models;
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using FontStyle = System.Drawing.FontStyle;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class FontForm : Component, IKuriimuForm
     {
-        private readonly CharacterParser _parser = new();
+        private readonly UnicodeCharacterParser _parser = new();
         private readonly FormInfo<IFontFilePluginState> _state;
 
         public FontForm(FormInfo<IFontFilePluginState> state)
@@ -106,7 +113,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             IList<CharacterData> parsedText = _parser.Parse(text);
 
-            var layouter = new TextLayoutCreator(_state.PluginState.Characters, new LayoutOptions());
+            var glyphProvider = new FontPluginGlyphProvider(_state.PluginState.Characters);
+            
+            var layouter = new TextLayouter(new LayoutOptions(), glyphProvider);
             IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 
             int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
@@ -117,7 +126,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
             TextLayoutData layout = layouter.Create(layoutLines, image.Size);
 
-            var renderer = new TextRenderer(_state.PluginState.Characters, new RenderOptions());
+            var renderer = new Kaligraphy.Rendering.TextRenderer(new RenderOptions(), glyphProvider);
             renderer.Render(image, layout);
 
             return image;

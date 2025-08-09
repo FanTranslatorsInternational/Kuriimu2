@@ -14,8 +14,6 @@ namespace plugin_grezzo.Fonts
 {
     class Gzf
     {
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
-
         private GzfHeader _header;
 
         public List<CharacterInfo> Load(Stream input)
@@ -63,7 +61,7 @@ namespace plugin_grezzo.Fonts
                 int y = entry.row * _header.glyphHeight;
 
                 Image<Rgba32> image = images[entry.imageIndex];
-                GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(image, new Rectangle(x, y, _header.glyphWidth, _header.glyphHeight));
+                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, new Rectangle(x, y, _header.glyphWidth, _header.glyphHeight));
 
                 if (glyphDescription.Size is { Width: > 0, Height: > 0 })
                 {

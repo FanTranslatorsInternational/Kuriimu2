@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
-using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Modals;
@@ -22,7 +21,6 @@ using Konnect.Contract.DataClasses.Management.Font;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Management.Font;
-using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
@@ -47,7 +45,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private readonly IFontFilePluginState _fontState;
         private readonly FontProfileManager _profileManager = new();
-        private readonly WhiteSpaceMeasurer _whitespaceMeasurer = new();
 
         private bool _isProfile;
         private FontProfile _profile;
@@ -455,7 +452,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             ms.Position = 0;
             Image<Rgba32> glyph = Image.Load<Rgba32>(ms);
 
-            GlyphDescriptionData glyphDescription = _whitespaceMeasurer.MeasureWhiteSpace(glyph);
+            GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
 
             boundingBox = new SixLabors.ImageSharp.Size(glyphImage.Width, glyphImage.Height);
             glyphPosition = glyphDescription.Position with { Y = (int)(glyphDescription.Position.Y + glyphY) };
