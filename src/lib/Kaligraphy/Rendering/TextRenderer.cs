@@ -80,7 +80,7 @@ namespace Kaligraphy.Rendering
 
             switch (character.Character)
             {
-                case TextCharacterData fontCharacter:
+                case FontCharacterData fontCharacter:
                     CharacterInfo? glyph = _glyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;
@@ -96,7 +96,7 @@ namespace Kaligraphy.Rendering
         {
             switch (character.Character)
             {
-                case TextCharacterData fontCharacter:
+                case FontCharacterData fontCharacter:
                     CharacterInfo? glyph = _glyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;

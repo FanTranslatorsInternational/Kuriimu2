@@ -233,7 +233,7 @@ namespace Kaligraphy.Layout
 
             switch (character)
             {
-                case TextCharacterData fontCharacter:
+                case FontCharacterData fontCharacter:
                     CharacterInfo? glyph = GlyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph == null)
                         break;
@@ -251,7 +251,7 @@ namespace Kaligraphy.Layout
         {
             switch (character)
             {
-                case TextCharacterData fontCharacter:
+                case FontCharacterData fontCharacter:
                     CharacterInfo? glyph = GlyphProvider.GetOrDefault(fontCharacter.Character);
                     if (glyph?.Glyph == null)
                         break;
