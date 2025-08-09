@@ -6,6 +6,7 @@ namespace Kaligraphy.DataClasses.Rendering
     {
         public bool DrawBoundingBoxes { get; set; }
 
+
         public int VisibleLines { get; set; }
         public int OutlineRadius { get; set; }
 
