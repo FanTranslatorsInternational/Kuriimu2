@@ -1,10 +1,13 @@
-﻿using Konnect.Contract.DataClasses.Plugin.File.Text;
+﻿using Kaligraphy.Contract.Parsing;
+using Konnect.Contract.DataClasses.Plugin.File.Text;
 
 namespace Konnect.Contract.Plugin.File.Text
 {
     public interface ITextFilePluginState : IFilePluginState
     {
         IReadOnlyList<TextEntry> Texts { get; }
+
+        ICharacterParser? Parser { get; }
 
         #region Optional feature checks
 
