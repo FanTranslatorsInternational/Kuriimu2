@@ -8,6 +8,9 @@ namespace Konnect.Contract.Plugin.File.Text
         IReadOnlyList<TextEntry> Texts { get; }
 
         ICharacterParser? Parser { get; }
+        ICharacterComposer? Composer { get; }
+        ICharacterSerializer? Serializer { get; }
+        ICharacterDeserializer? Deserializer { get; }
 
         #region Optional feature checks
 
