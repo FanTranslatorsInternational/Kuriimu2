@@ -7,13 +7,13 @@ namespace Kaligraphy.Parsing
 {
     public class CharacterSerializer : ICharacterSerializer
     {
-        public string Serialize(IList<CharacterData> characters)
+        public string Serialize(IList<CharacterData> characters, bool includeControlCodes)
         {
             var result = new StringBuilder();
 
             foreach (CharacterData character in characters)
             {
-                string? data = SerializeCharacterData(character);
+                string? data = SerializeCharacterData(character, includeControlCodes);
                 if (data is null)
                     continue;
 
@@ -23,11 +23,11 @@ namespace Kaligraphy.Parsing
             return result.ToString();
         }
 
-        private string? SerializeCharacterData(CharacterData character)
+        private string? SerializeCharacterData(CharacterData character, bool includeControlCodes)
         {
             switch (character)
             {
-                case ControlCodeCharacterData controlCode:
+                case ControlCodeCharacterData controlCode when includeControlCodes:
                     return SerializeControlCode(controlCode);
 
                 case TextCharacterData textCharacter:
