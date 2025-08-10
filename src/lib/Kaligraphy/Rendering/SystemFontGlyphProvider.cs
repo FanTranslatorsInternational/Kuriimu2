@@ -19,14 +19,12 @@ namespace Kaligraphy.Rendering
     public class SystemFontGlyphProvider : IGlyphProvider
     {
         private readonly Font _font;
-        private readonly FontStyle _style;
 
         private readonly Dictionary<ushort, CharacterInfo> _glyphs = [];
 
-        public SystemFontGlyphProvider(Font font, FontStyle style)
+        public SystemFontGlyphProvider(Font font)
         {
             _font = font;
-            _style = style;
         }
 
         public CharacterInfo? GetOrDefault(ushort codePoint)
@@ -62,7 +60,7 @@ namespace Kaligraphy.Rendering
             if (glyphDescription.Size is { Width: > 0, Height: > 0 })
                 glyph = glyph.Clone(context => context.Crop(new SixLabors.ImageSharp.Rectangle(glyphDescription.Position, glyphDescription.Size)));
 
-            float glyphY = GetBaseline(_font, _style, gfx.DpiY) - GetAscent(_font, _style, gfx.DpiY) + 0.475f;
+            float glyphY = GetBaseline(_font, gfx.DpiY) - GetAscent(_font, gfx.DpiY) + 0.475f;
 
             return _glyphs[codePoint] = new CharacterInfo
             {
@@ -85,23 +83,23 @@ namespace Kaligraphy.Rendering
             return gfx.MeasureString($"{character}", font, PointF.Empty, fmt);
         }
 
-        private static float GetBaseline(Font font, FontStyle style, float dpiY)
+        private static float GetBaseline(Font font, float dpiY)
         {
-            return font.GetHeight() - GetDescent(font, style, dpiY);
+            return font.GetHeight() - GetDescent(font, dpiY);
         }
 
-        private static float GetAscent(Font font, FontStyle style, float dpiY)
+        private static float GetAscent(Font font, float dpiY)
         {
             return dpiY / 72f *
-                   (font.SizeInPoints / font.FontFamily.GetEmHeight(style) *
-                    font.FontFamily.GetCellAscent(style));
+                   (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
+                    font.FontFamily.GetCellAscent(font.Style));
         }
 
-        private static float GetDescent(Font font, FontStyle style, float dpiY)
+        private static float GetDescent(Font font, float dpiY)
         {
             return dpiY / 72f *
-                   (font.SizeInPoints / font.FontFamily.GetEmHeight(style) *
-                    font.FontFamily.GetCellDescent(style));
+                   (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
+                    font.FontFamily.GetCellDescent(font.Style));
         }
 
         private static Image<Rgba32> ConvertSystemDrawing(Bitmap bitmap)
