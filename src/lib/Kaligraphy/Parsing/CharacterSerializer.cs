@@ -50,7 +50,7 @@ namespace Kaligraphy.Parsing
                     return "\n";
 
                 case FontCharacterData fontCharacter:
-                    return $"{fontCharacter.Character}";
+                    return $"{(char)fontCharacter.Character}";
             }
 
             return null;

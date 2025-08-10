@@ -50,7 +50,7 @@ namespace Kaligraphy.Parsing
                     return encoding.GetBytes("\n");
 
                 case FontCharacterData fontCharacter:
-                    return encoding.GetBytes($"{fontCharacter.Character}");
+                    return encoding.GetBytes($"{(char)fontCharacter.Character}");
             }
 
             return null;
