@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Base;
@@ -12,17 +13,15 @@ using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
-using Kaligraphy.Rendering;
 using Konnect.Contract.Plugin.File.Font;
+using Konnect.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.TextParsing;
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using FontStyle = System.Drawing.FontStyle;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -111,10 +110,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             string text = _previewTextEditor.GetText();
 
-            IList<CharacterData> parsedText = _parser.Parse(text);
+            IList<CharacterData> parsedText = _parser.Parse(Encoding.UTF8.GetBytes(text), Encoding.UTF8);
 
             var glyphProvider = new FontPluginGlyphProvider(_state.PluginState.Characters);
-            
+
             var layouter = new TextLayouter(new LayoutOptions(), glyphProvider);
             IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 

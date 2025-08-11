@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.Parsing;
 
@@ -8,15 +7,17 @@ namespace Kuriimu2.ImGui.TextParsing
 {
     class UnicodeCharacterParser : CharacterParser
     {
-        protected override CharacterData? ParseCharacter(ParseContext context, int position, out int length)
+        protected override bool TryParseCharacter(ParseContext context, int position, out int length, out TextCharacterData? textCharacter)
         {
             if (IsUnicode(context, position, out int unicodeLength, out length))
             {
                 Span<byte> data = context.Data.AsSpan(position + (length - unicodeLength), unicodeLength);
-                return new FontCharacterData { Character = ushort.Parse(context.Encoding.GetString(data), NumberStyles.HexNumber) };
+                textCharacter = new FontCharacterData { Character = ushort.Parse(context.Encoding.GetString(data), NumberStyles.HexNumber) };
+
+                return true;
             }
 
-            return base.ParseCharacter(context, position, out length);
+            return base.TryParseCharacter(context, position, out length, out textCharacter);
         }
 
         private static bool IsUnicode(ParseContext context, int position, out int unicodeLength, out int length)

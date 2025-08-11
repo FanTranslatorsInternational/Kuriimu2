@@ -24,7 +24,7 @@ namespace Kuriimu2.ImGui.Models
 
         public FormInfo(IFileState fileState, IFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
         {
-            if(!(fileState.PluginState is TState))
+            if (!(fileState.PluginState is TState))
                 throw new InvalidOperationException($"The given plugin state is not of type {typeof(TState).Name}");
 
             FileState = fileState;
@@ -38,7 +38,8 @@ namespace Kuriimu2.ImGui.Models
     {
         public new IArchiveFormCommunicator FormCommunicator => (IArchiveFormCommunicator)base.FormCommunicator;
 
-        public ArchiveFormInfo(IFileState fileState, IArchiveFormCommunicator formCommunicator, IProgressContext progress, ILogger logger) : base(fileState, formCommunicator, progress, logger)
+        public ArchiveFormInfo(IFileState fileState, IArchiveFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
+            : base(fileState, formCommunicator, progress, logger)
         {
         }
 

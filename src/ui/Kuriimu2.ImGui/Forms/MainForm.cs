@@ -28,6 +28,8 @@ using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Hex;
 using Konnect.Contract.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Text;
+using Konnect.Contract.Plugin.Game;
 using Konnect.Contract.Progress;
 using Konnect.Extensions;
 using Konnect.Management.Files;
@@ -336,7 +338,7 @@ namespace Kuriimu2.ImGui.Forms
         {
             string pluginPath = Path.Combine(GetBaseDirectory(), "plugins");
 
-            return new PluginManager(new FilePluginLoader(pluginPath));
+            return new PluginManager(new PluginLoader<IFilePlugin>(pluginPath), new PluginLoader<IGamePlugin>(pluginPath));
         }
 
         private IFileManager LoadFileManager(ILogger logger, IPluginManager pluginManager, IProgressContext progress)
@@ -973,10 +975,9 @@ namespace Kuriimu2.ImGui.Forms
             {
                 switch (fileState.PluginState)
                 {
-                    // TODO: Implement state forms
-                    //case ITextState _:
-                    //    kuriimuForm = new TextForm(new FormInfo<ITextState>(fileState, communicator, _progress, _logger));
-                    //    break;
+                    case ITextFilePluginState _:
+                        kuriimuForm = new TextForm(new FormInfo<ITextFilePluginState>(fileState, communicator, _progress, _logger), _pluginManager, _fileManager);
+                        break;
 
                     case IImageFilePluginState _:
                         kuriimuForm = new ImageForm(new FormInfo<IImageFilePluginState>(fileState, communicator, _progress, _logger));
