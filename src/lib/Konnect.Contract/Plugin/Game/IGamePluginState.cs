@@ -12,6 +12,6 @@ namespace Konnect.Contract.Plugin.Game
         ICharacterSerializer? Serializer { get; }
         ICharacterDeserializer? Deserializer { get; }
 
-        Image<Rgba32>? CreatePreview(IList<CharacterData> characters);
+        Task<Image<Rgba32>?> CreatePreview(IList<CharacterData> characters);
     }
 }
