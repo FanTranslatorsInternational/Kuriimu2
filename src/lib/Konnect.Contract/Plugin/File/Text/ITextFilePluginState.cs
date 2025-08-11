@@ -1,5 +1,4 @@
-﻿using Kaligraphy.Contract.Parsing;
-using Konnect.Contract.DataClasses.Plugin.File.Text;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Text;
 
 namespace Konnect.Contract.Plugin.File.Text
 {
@@ -7,10 +6,7 @@ namespace Konnect.Contract.Plugin.File.Text
     {
         IReadOnlyList<TextEntry> Texts { get; }
 
-        ICharacterParser? Parser { get; }
-        ICharacterComposer? Composer { get; }
-        ICharacterSerializer? Serializer { get; }
-        ICharacterDeserializer? Deserializer { get; }
+        IReadOnlyList<Guid>? Previews { get; }
 
         #region Optional feature checks
 

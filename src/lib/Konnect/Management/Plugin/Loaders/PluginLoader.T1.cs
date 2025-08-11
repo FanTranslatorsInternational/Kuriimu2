@@ -1,36 +1,37 @@
 ﻿using Konnect.Contract.DataClasses.Management.Plugin.Loaders;
 using Konnect.Contract.Management.Plugin.Loaders;
-using Konnect.Contract.Plugin.File;
 using System.Reflection;
+using Konnect.Contract.Plugin;
 
 namespace Konnect.Management.Plugin.Loaders
 {
-    public class FilePluginLoader : PluginLoader, IPluginLoader<IFilePlugin>
+    public class PluginLoader<TPlugin> : PluginLoader, IPluginLoader<TPlugin>
+        where TPlugin : IPlugin
     {
         /// <inheritdoc />
         public override IReadOnlyList<PluginLoadError> LoadErrors { get; }
 
         /// <inheritdoc />
-        public IReadOnlyList<IFilePlugin> Plugins { get; }
+        public IReadOnlyList<TPlugin> Plugins { get; }
 
-        public FilePluginLoader(params string[] pluginPaths)
+        public PluginLoader(params string[] pluginPaths)
         {
-            if (!TryLoadPlugins<IFilePlugin>(pluginPaths, out var plugins, out var errors))
+            if (!TryLoadPlugins<TPlugin>(pluginPaths, out var plugins, out var errors))
             {
                 errors = new List<PluginLoadError>();
-                plugins = new List<IFilePlugin>();
+                plugins = new List<TPlugin>();
             }
 
             LoadErrors = errors;
             Plugins = plugins;
         }
 
-        public FilePluginLoader(params Assembly[] pluginAssemblies)
+        public PluginLoader(params Assembly[] pluginAssemblies)
         {
-            if (!TryLoadPlugins<IFilePlugin>(pluginAssemblies, out var plugins, out var errors))
+            if (!TryLoadPlugins<TPlugin>(pluginAssemblies, out var plugins, out var errors))
             {
                 errors = new List<PluginLoadError>();
-                plugins = new List<IFilePlugin>();
+                plugins = new List<TPlugin>();
             }
 
             LoadErrors = errors;
@@ -44,7 +45,7 @@ namespace Konnect.Management.Plugin.Loaders
         }
 
         /// <inheritdoc />
-        public IFilePlugin? GetPlugin(Guid pluginId)
+        public TPlugin? GetPlugin(Guid pluginId)
         {
             return Plugins.FirstOrDefault(ep => ep.PluginId == pluginId);
         }
