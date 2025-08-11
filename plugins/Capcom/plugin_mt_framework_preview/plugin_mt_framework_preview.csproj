@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -16,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.1.25" />
+    <PackageReference Include="Kaligraphy" Version="2.1.21" />
     <PackageReference Include="Konnect" Version="2.1.52" />
   </ItemGroup>
 

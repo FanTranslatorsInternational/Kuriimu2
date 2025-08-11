@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30309.148
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_mt_framework", "plugin_mt_framework\plugin_mt_framework.csproj", "{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_capcom", "plugin_capcom\plugin_capcom.csproj", "{574012D9-72B0-427D-8998-42E8B52AAD6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_mt_framework_preview", "plugin_mt_framework_preview\plugin_mt_framework_preview.csproj", "{980A0C57-545E-B67A-C24E-4C6D081BA34E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,10 +15,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -25,6 +23,10 @@ Global
 		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{980A0C57-545E-B67A-C24E-4C6D081BA34E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{980A0C57-545E-B67A-C24E-4C6D081BA34E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{980A0C57-545E-B67A-C24E-4C6D081BA34E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{980A0C57-545E-B67A-C24E-4C6D081BA34E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
