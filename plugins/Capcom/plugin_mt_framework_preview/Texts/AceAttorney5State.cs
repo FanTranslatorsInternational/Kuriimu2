@@ -1,7 +1,9 @@
-﻿using Kaligraphy.Contract.DataClasses.Layout;
+﻿using System.Reflection;
+using Kaligraphy.Contract.DataClasses.Layout;
 using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Layout;
+using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
 using Kaligraphy.Rendering;
@@ -14,6 +16,7 @@ using Konnect.Contract.Plugin.Game;
 using Konnect.FileSystem;
 using Konnect.Management.Streams;
 using Konnect.Plugin.File.Font;
+using plugin_mt_framework_preview.Characters;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -33,29 +36,62 @@ namespace plugin_mt_framework_preview.Texts
             _pluginManager = pluginFileManager;
         }
 
-        public async Task<Image<Rgba32>?> CreatePreview(IList<CharacterData> characters)
+        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<CharacterData> characters)
         {
             IReadOnlyList<CharacterInfo>? font = await GetFont();
             if (font is null)
                 return null;
 
-            var glyphProvider = new FontPluginGlyphProvider(font);
-            var layouter = new TextLayouter(new LayoutOptions(), glyphProvider);
-            var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
-
-            IList<TextLayoutLineData> layoutLines = layouter.Create(characters);
-
-            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
-            int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(l => l.BoundingBox.Height);
-            if (imageWidth <= 0 || imageHeight <= 0)
+            Image<Rgba32>? dialogueBox = GetDialogueBox();
+            if (dialogueBox is null)
                 return null;
 
-            var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
-            TextLayoutData layout = layouter.Create(layoutLines, image.Size);
+            var glyphProvider = new FontPluginGlyphProvider(font);
+            var layouter = new TextLayouter(new LayoutOptions { InitPoint = new(16, 29), LineHeight = 24 }, glyphProvider);
+            var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
 
-            renderer.Render(image, layout);
+            var result = new List<Image<Rgba32>>();
 
-            return image;
+            List<IList<CharacterData>> pages = GetPageCharacters(characters);
+            foreach (IList<CharacterData> page in pages)
+            {
+                Image<Rgba32> image = dialogueBox.Clone();
+                TextLayoutData layout = layouter.Create(page, dialogueBox.Size);
+
+                renderer.Render(image, layout);
+
+                result.Add(image);
+            }
+
+            return result;
+        }
+
+        private static List<IList<CharacterData>> GetPageCharacters(IList<CharacterData> characters)
+        {
+            var result = new List<IList<CharacterData>>();
+            result.Add([]);
+
+            var hasText = false;
+            foreach (CharacterData character in characters)
+            {
+                if (character is GmdControlCodeCharacterData { Code: "PAGE" })
+                {
+                    result.Add([]);
+                    hasText = false;
+
+                    continue;
+                }
+
+                if (character is LineBreakCharacterData && !hasText)
+                    continue;
+
+                if (character is FontCharacterData)
+                    hasText = true;
+
+                result[^1].Add(character);
+            }
+
+            return result;
         }
 
         private async Task<IReadOnlyList<CharacterInfo>?> GetFont()
@@ -75,6 +111,15 @@ namespace plugin_mt_framework_preview.Texts
             _pluginManager.Close(loadResult.LoadedFileState!);
 
             return characters;
+        }
+
+        private Image<Rgba32>? GetDialogueBox()
+        {
+            Stream? boxStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("aa5_box.png");
+            if (boxStream is null)
+                return null;
+
+            return Image.Load<Rgba32>(boxStream);
         }
     }
 }

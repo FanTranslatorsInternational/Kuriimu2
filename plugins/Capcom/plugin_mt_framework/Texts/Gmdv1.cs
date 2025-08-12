@@ -21,8 +21,8 @@ namespace plugin_mt_framework.Texts
 
             _header = ReadHeader(br);
             _name = br.ReadString(_header.nameSize);
+            input.Position++;
 
-            br.SeekAlignment(0x4);
             _labelEntries = ReadLabelEntries(br, _header.labelCount);
 
             long labelDataOffset = br.BaseStream.Position;

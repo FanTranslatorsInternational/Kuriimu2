@@ -15,8 +15,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\aa5_box.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\aa5_box.png">
+      <LogicalName>aa5_box.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Kaligraphy" Version="2.1.21" />
-    <PackageReference Include="Konnect" Version="2.1.52" />
+    <PackageReference Include="Konnect" Version="2.1.53" />
   </ItemGroup>
 
 </Project>

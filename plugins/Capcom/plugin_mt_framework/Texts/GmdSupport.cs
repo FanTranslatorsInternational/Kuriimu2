@@ -106,10 +106,9 @@ namespace plugin_mt_framework.Texts
         {
             for (var i = 0; i < _key1.Length; i++)
             {
-                var key1Value = (int)((length - 1) % _key1[i].Length);
-                var key2Value = (int)((length - 1) % _key2[i].Length);
+                var keyPos = (int)((length - 1) % _key1[i].Length);
 
-                if ((checkValue ^ _key1[i][key1Value] ^ _key2[i][key2Value]) != 0)
+                if ((checkValue ^ _key1[i][keyPos] ^ _key2[i][keyPos]) is not 0)
                     continue;
 
                 return (_key1[i], _key2[i]);
