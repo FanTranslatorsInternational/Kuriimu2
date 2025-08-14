@@ -73,10 +73,8 @@ namespace Kanvas.Swizzle
         /// <inheritdoc />
         public int MacroTileHeight => _swizzle.MacroTileHeight;
 
-        public NxSwizzle(SwizzleOptions context, int swizzleMode = -1)
+        public NxSwizzle(SwizzleOptions context, int maxBitExtensionCount = -1)
         {
-            (Width, Height) = PadSizeToBlocks(context.Size.Width, context.Size.Height, context.EncodingInfo);
-
             var isBlockCompression = context.EncodingInfo is Bc;
             var bitDepth = context.EncodingInfo.BitDepth;
             var baseBitField = isBlockCompression ? CoordsBlock[bitDepth] : CoordsRegular[bitDepth];
@@ -86,19 +84,26 @@ namespace Kanvas.Swizzle
             var startY = isBlockCompression ? BlockYExtensionStart_ : RegularYExtensionStart_;
 
             var bitFieldExtension = new List<(int, int)>();
-            if (swizzleMode == -1)
+            if (maxBitExtensionCount < 0)
             {
-                for (var i = startY; i < Math.Min(Height, maxSize); i *= 2)
+                for (var i = startY; i < Math.Min(context.Size.Height, maxSize); i *= 2)
                     bitFieldExtension.Add((0, i));
             }
             else
             {
-                var y = startY;
-                for (var j = 0; j < swizzleMode; y *= 2, j++)
-                    bitFieldExtension.Add((0, y));
+                for (var j = 0; j < maxBitExtensionCount; j++)
+                {
+                    if (startY >= Math.Min(context.Size.Height, maxSize))
+                        break;
+
+                    bitFieldExtension.Add((0, startY));
+                    startY *= 2;
+                }
             }
 
             _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, baseBitField.Concat(bitFieldExtension).ToArray());
+
+            (Width, Height) = PadSize(context, _swizzle);
         }
 
         /// <inheritdoc />
@@ -107,28 +112,23 @@ namespace Kanvas.Swizzle
         /// <inheritdoc />
         public Point Get(int pointCount) => _swizzle.Get(pointCount);
 
-        private (int, int) PadSizeToBlocks(int width, int height, IEncodingInfo encodingInfo)
+        private (int, int) PadSize(SwizzleOptions options, MasterSwizzle swizzle)
         {
-            var isBlockCompression = encodingInfo is Bc;
-            var maxHeight = isBlockCompression ? BlockMaxSize_ : RegularMaxSize_;
-            var maxWidth = 16;
-
-            var newWidth = width > maxWidth ? SizePadding.Multiple(width, maxWidth) : SizePadding.PowerOfTwo(width);
-            var newHeight = height > maxHeight ? SizePadding.Multiple(height, maxHeight) : SizePadding.PowerOfTwo(height);
+            var width = SizePadding.Multiple(options.Size.Width, swizzle.MacroTileWidth);
+            var height = SizePadding.Multiple(options.Size.Height, swizzle.MacroTileHeight);
 
             // Default case
-            if (!AstcBlock.TryGetValue(encodingInfo.FormatName, out (int, int) astcBlock))
-                return (newWidth, newHeight);
+            if (!AstcBlock.TryGetValue(options.EncodingInfo.FormatName, out (int, int) astcBlock))
+                return (width, height);
 
             // Pad for ASTC
-
             var restWidth = width % astcBlock.Item1;
-            newWidth = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
+            width = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
 
             var restHeight = height % astcBlock.Item2;
-            newHeight = height + (restHeight != 0 ? astcBlock.Item2 - restHeight : 0);
+            height = height + (restHeight != 0 ? astcBlock.Item2 - restHeight : 0);
 
-            return (newWidth, newHeight);
+            return (width, height);
 
         }
     }
