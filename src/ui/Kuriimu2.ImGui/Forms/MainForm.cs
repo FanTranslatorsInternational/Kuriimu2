@@ -16,6 +16,7 @@ using ImGui.Forms.Localization;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
+using ImGuiNET;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
@@ -125,6 +126,9 @@ namespace Kuriimu2.ImGui.Forms
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
+            ImGuiNET.ImGui.GetWindowDrawList().Flags |= ImDrawListFlags.AntiAliasedLines;
+            ImGuiNET.ImGui.GetWindowDrawList().Flags &= ~ImDrawListFlags.AntiAliasedLinesUseTex;
+
 #if !DEBUG
             // Check if updates are available
             await CheckForUpdate();

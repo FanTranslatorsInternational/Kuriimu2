@@ -115,6 +115,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorAddControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.AddControl");
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorRemoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl");
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorMoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl");
+        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorCopyControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl");
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");

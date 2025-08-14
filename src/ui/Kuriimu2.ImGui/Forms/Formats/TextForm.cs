@@ -37,6 +37,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private IList<CharacterData>? _selectedParsedTranslatedText;
 
+        private IList<Image<Rgba32>>? _previewPages;
+        private int _previewPageIndex = -1;
+
         public TextForm(FormInfo<ITextFilePluginState> state, IPluginManager pluginManager, IFileManager fileManager)
         {
             _state = state;
@@ -51,13 +54,35 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _fontFamilyBox.SelectedItemChanged += _fontFamilyBox_SelectedItemChanged;
             _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
             _treeView.SelectedNodeChanged += _treeView_SelectedNodeChanged;
+            _previousPageBtn.Clicked += _previousPageBtn_Clicked;
+            _nextPageBtn.Clicked += _nextPageBtn_Clicked;
 
             UpdateTextAndPreview();
+            UpdateFormInternal();
+        }
+
+        private void _previousPageBtn_Clicked(object? sender, EventArgs e)
+        {
+            _previewPageIndex = Math.Max(0, _previewPageIndex - 1);
+
+            UpdatePreview();
+            UpdateFormInternal();
+        }
+
+        private void _nextPageBtn_Clicked(object? sender, EventArgs e)
+        {
+            _previewPageIndex = Math.Min((_previewPages?.Count ?? 0) - 1, _previewPageIndex + 1);
+
+            UpdatePreview();
+            UpdateFormInternal();
         }
 
         private void _treeView_SelectedNodeChanged(object? sender, EventArgs e)
         {
             UpdateTextAndPreview();
+            UpdateFormInternal();
+
+            _textPreview.Reset();
         }
 
         private void _editTextEditor_TextChanged(object? sender, string e)
@@ -80,10 +105,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _parsedTranslatedTexts[entry] = deserializedText;
             _serializedControlTexts[entry] = serializedControlText;
 
+            _selectedParsedTranslatedText = deserializedText;
+
+            _previewPages = GeneratePreviews(_selectedParsedTranslatedText);
+            _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
+
             entry.Entry.TextData = translatedData;
             entry.Entry.ContentChanged = true;
 
-            UpdatePreview(deserializedText);
+            UpdatePreview();
             UpdateFormInternal();
         }
 
@@ -95,6 +125,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void _previewBox_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
+            UpdateFormInternal();
         }
 
         private async void _saveBtn_Clicked(object sender, EventArgs e)
@@ -124,6 +155,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Update save button enablement
             _saveBtn.Enabled = _state is { CanSave: true, FileState.StateChanged: true };
             _saveAsBtn.Enabled = _state is { CanSave: true, FileState: { StateChanged: true, ParentFileState: null } };
+
+            _previousPageBtn.Enabled = _previewPageIndex > 0;
+            _nextPageBtn.Enabled = _previewPageIndex < _previewPages?.Count - 1;
         }
 
         private void UpdateTextAndPreview()
@@ -156,37 +190,36 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _selectedParsedTranslatedText = parsedTranslatedText;
 
-            UpdatePreview(parsedTranslatedText);
+            _previewPages = GeneratePreviews(_selectedParsedTranslatedText);
+            _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
+
+            UpdatePreview();
         }
 
         private void UpdatePreview()
         {
-            if (_selectedParsedTranslatedText is null)
-            {
-                _textPreview.Image = null;
-                return;
-            }
-
-            UpdatePreview(_selectedParsedTranslatedText);
-        }
-
-        private void UpdatePreview(IList<CharacterData> parsedText)
-        {
-            Image<Rgba32>? preview = GeneratePreview(parsedText);
+            Image<Rgba32>? preview = GetPreviewPage();
             if (preview is null)
             {
                 _textPreview.Image = null;
                 return;
             }
 
-            _textPreview.Reset();
             _textPreview.Image = ImageResource.FromImage(preview);
         }
 
-        private Image<Rgba32>? GeneratePreview(IList<CharacterData> parsedText)
+        private Image<Rgba32>? GetPreviewPage()
+        {
+            if (_previewPages is null || _previewPageIndex < 0 || _previewPageIndex >= _previewPages.Count)
+                return null;
+
+            return _previewPages[_previewPageIndex];
+        }
+
+        private IList<Image<Rgba32>>? GeneratePreviews(IList<CharacterData> parsedText)
         {
             if (_previewBox.SelectedItem is not null)
-                return _previewBox.SelectedItem.Content.CreatePreview(parsedText).Result;
+                return _previewBox.SelectedItem.Content.CreatePreviewPages(parsedText).Result;
 
             FontFamily? fontFamily = _fontFamilyBox.SelectedItem?.Content;
             if (fontFamily is null)
@@ -209,7 +242,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
             renderer.Render(image, layout);
 
-            return image;
+            return [image];
         }
 
         private ICharacterParser GetCharacterParser()

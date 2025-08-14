@@ -17,7 +17,6 @@ using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing.Processors.Transforms;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -25,7 +24,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
     {
         private FileStream? _fileStream;
         private ImageFile? _imageFile;
-        private MasterSwizzle? _customSwizzle;
 
         public RawImageViewerDialog()
         {
@@ -260,7 +258,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             }
             else if (IsCustomSwizzle())
             {
-                (int, int)[] coords = _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
+                (int, int)[] coords = GetCustomSwizzleCoordinates();
                 swizzleDelegate = context => new CustomSwizzle(context, new MasterSwizzle(context.Size.Width, Point.Empty, coords));
             }
 
@@ -347,6 +345,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private bool IsCustomSwizzle()
         {
             return _swizzles.SelectedItem == _customSwizzleItem;
+        }
+
+        private (int, int)[] GetCustomSwizzleCoordinates()
+        {
+            return _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
         }
 
         private Size GetImageSize()

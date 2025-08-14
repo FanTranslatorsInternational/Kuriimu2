@@ -117,6 +117,7 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Add: Left Mouse Click",
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Left Mouse Click",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Move: Left Mouse Hold + Drag",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copy: Alt + C",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",

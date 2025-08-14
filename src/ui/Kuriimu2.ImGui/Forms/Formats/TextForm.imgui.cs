@@ -10,6 +10,7 @@ using ImGui.Forms.Models;
 using Kuriimu2.ImGui.Resources;
 using System.Numerics;
 using ImGui.Forms.Controls.Text.Editor;
+using ImGuiNET;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Plugin.Game;
 using Veldrid;
@@ -35,6 +36,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private ImageButton _saveBtn;
         private ImageButton _saveAsBtn;
+        private ArrowButton _previousPageBtn;
+        private ArrowButton _nextPageBtn;
 
         private void InitializeComponent()
         {
@@ -68,6 +71,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Enabled = false,
                 KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
+
+            _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(Key.Left) };
+            _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(Key.Right) };
 
             #endregion
 
@@ -121,7 +127,18 @@ namespace Kuriimu2.ImGui.Forms.Formats
                                                 ItemSpacing = 4,
                                                 Items =
                                                 {
-                                                    _previewBox,
+                                                    new StackLayout
+                                                    {
+                                                        Alignment = Alignment.Horizontal,
+                                                        Size = Size.WidthAlign,
+                                                        ItemSpacing = 4,
+                                                        Items =
+                                                        {
+                                                            _previewBox,
+                                                            new StackItem(_previousPageBtn){Size = Size.WidthAlign,HorizontalAlignment = HorizontalAlignment.Right},
+                                                            _nextPageBtn
+                                                        }
+                                                    },
                                                     _textPreview
                                                 }
                                             }

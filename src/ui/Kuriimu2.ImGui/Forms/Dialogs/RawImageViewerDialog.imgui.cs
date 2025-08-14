@@ -7,6 +7,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using Kanvas;
 using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Encoding;
@@ -21,6 +22,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class RawImageViewerDialog : Modal
     {
+        private static readonly KeyCommand CustomSwizzleCopyCommand = new(ModifierKeys.Alt, Key.C);
+
         private MenuBarButton _openBtn;
 
         private StackLayout _mainLayout;
@@ -201,6 +204,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
 
             AllowDragDrop = true;
+        }
+
+        protected override void UpdateInternal(Rectangle contentRect)
+        {
+            if (CustomSwizzleCopyCommand.IsPressed() && IsCustomSwizzle())
+            {
+                (int, int)[] coords = GetCustomSwizzleCoordinates();
+                ImGuiNET.ImGui.SetClipboardText(string.Join(',', coords.Select(c => $"({c.Item1},{c.Item2})")));
+            }
+
+            base.UpdateInternal(contentRect);
         }
 
         private void InitializeFormats()

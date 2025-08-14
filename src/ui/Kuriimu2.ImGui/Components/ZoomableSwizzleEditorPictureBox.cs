@@ -60,22 +60,7 @@ namespace Kuriimu2.ImGui.Components
                     ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + macroBlockRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
                     // Render swizzle path
-                    Vector2 prevCoordinate = new Vector2(.5f, .5f);
-                    for (var i = 1; i < Image!.Width * Image!.Height; i++)
-                    {
-                        Vector2 swizzledCoordinate = _swizzle.Get(i);
-                        Vector2 centeredSwizzledCoordinate = swizzledCoordinate + new Vector2(.5f, .5f);
-
-                        ImGuiNET.ImGui.GetWindowDrawList().AddLine(
-                            Transform(contentRect, prevCoordinate) - macroBlockRect.Position + imageRect.Position,
-                            Transform(contentRect, centeredSwizzledCoordinate) - macroBlockRect.Position + imageRect.Position,
-                            Color.Red.ToUInt32());
-
-                        prevCoordinate = centeredSwizzledCoordinate;
-
-                        if (swizzledCoordinate == endPos - Vector2.One)
-                            break;
-                    }
+                    DrawSwizzlePath(contentRect, macroBlockRect, imageRect, endPos);
                 }
             }
 
@@ -163,6 +148,7 @@ namespace Kuriimu2.ImGui.Components
             ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position, ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorAddControl);
             ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorRemoveControl);
             ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorMoveControl);
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 3), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorCopyControl);
         }
 
         private void DrawPixelBorder(Rectangle contentRect, Vector2 pixelPos, Color color, float thickness)
@@ -171,6 +157,28 @@ namespace Kuriimu2.ImGui.Components
             Vector2 coordinateEndPos = Transform(contentRect, pixelPos - new Vector2(Image.Width / 2f, Image.Height / 2f) + Vector2.One);
 
             ImGuiNET.ImGui.GetWindowDrawList().AddRect(coordinateStartPos, coordinateEndPos, color.ToUInt32(), 0f, ImDrawFlags.None, thickness);
+        }
+
+        private void DrawSwizzlePath(Rectangle contentRect, Rectangle macroBlockRect, Rectangle imageRect, Vector2 endPos)
+        {
+            var points = new List<Vector2>();
+
+            var startCoordinate = new Vector2(.5f, .5f);
+            points.Add(Transform(contentRect, startCoordinate) - macroBlockRect.Position + imageRect.Position);
+
+            for (var i = 1; i < Image!.Width * Image!.Height; i++)
+            {
+                Vector2 swizzledCoordinate = _swizzle.Get(i);
+                Vector2 centeredSwizzledCoordinate = swizzledCoordinate + new Vector2(.5f, .5f);
+
+                points.Add(Transform(contentRect, centeredSwizzledCoordinate) - macroBlockRect.Position + imageRect.Position);
+
+                if (swizzledCoordinate == endPos - Vector2.One)
+                    break;
+            }
+
+            Vector2[] pointsArray = points.ToArray();
+            ImGuiNET.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
         }
 
         private bool IsInImage(float x, float y)
