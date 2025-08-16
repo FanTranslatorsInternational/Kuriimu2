@@ -17,6 +17,7 @@ namespace plugin_mt_framework.Texts
 
         public IReadOnlyList<TextEntry> Texts => _texts;
         public IReadOnlyList<Guid>? Previews { get; } = [Guid.Parse("1280108e-010d-4bf0-a495-e614f340360c")];
+        public ITextEntryPager? Pager { get; } = null;
 
         public bool ContentChanged => IsContentChanged();
 

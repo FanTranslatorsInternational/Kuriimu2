@@ -36,7 +36,7 @@ namespace plugin_mt_framework_preview.Texts
             _pluginManager = pluginFileManager;
         }
 
-        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<CharacterData> characters)
+        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> characters)
         {
             IReadOnlyList<CharacterInfo>? font = await GetFont();
             if (font is null)
@@ -47,20 +47,25 @@ namespace plugin_mt_framework_preview.Texts
                 return null;
 
             var glyphProvider = new FontPluginGlyphProvider(font);
-            var layouter = new TextLayouter(new LayoutOptions { InitPoint = new(16, 29), LineHeight = 24 }, glyphProvider);
+            var layouter = new TextLayouter(new LayoutOptions { LineHeight = 24 }, glyphProvider);
             var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
 
             var result = new List<Image<Rgba32>>();
 
-            List<IList<CharacterData>> pages = GetPageCharacters(characters);
-            foreach (IList<CharacterData> page in pages)
+            foreach (IList<CharacterData> characterSet in characters)
             {
-                Image<Rgba32> image = dialogueBox.Clone();
-                TextLayoutData layout = layouter.Create(page, dialogueBox.Size);
+                List<IList<CharacterData>> pages = GetPageCharacters(characterSet);
 
-                renderer.Render(image, layout);
+                var initPoint = new Point(16, 29);
+                foreach (IList<CharacterData> page in pages)
+                {
+                    Image<Rgba32> image = dialogueBox.Clone();
+                    TextLayoutData layout = layouter.Create(page, initPoint, dialogueBox.Size);
 
-                result.Add(image);
+                    renderer.Render(image, layout);
+
+                    result.Add(image);
+                }
             }
 
             return result;
