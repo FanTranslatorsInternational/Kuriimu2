@@ -14,9 +14,7 @@ namespace Kaligraphy.Parsing
             var context = new ParseContext
             {
                 Data = data,
-                Encoding = encoding,
-                MinByteCount = encoding.GetByteCount("\0"),
-                MaxByteCount = encoding.GetMaxByteCount(1)
+                EncodingDecoder = encoding.GetDecoder()
             };
 
             var position = 0;
@@ -101,22 +99,14 @@ namespace Kaligraphy.Parsing
             length = 0;
             character = '\0';
 
+            if (position >= context.Data.Length)
+                return false;
+
             var buffer = new char[1];
-            for (int i = context.MinByteCount; i < context.MaxByteCount; i++)
-            {
-                if (position + i > context.Data.Length)
-                    return false;
+            context.EncodingDecoder.Convert(context.Data[position..], buffer, false, out length, out _, out _);
 
-                if (!context.Encoding.TryGetChars(context.Data.AsSpan(position, i), buffer, out _))
-                    continue;
-
-                length = i;
-                character = buffer[0];
-
-                return true;
-            }
-
-            return false;
+            character = buffer[0];
+            return true;
         }
     }
 }

@@ -27,17 +27,17 @@ namespace Kaligraphy.Layout
             return characters.Count <= 0 ? [] : CreateLines(characters);
         }
 
-        public TextLayoutData Create(IList<CharacterData> characters, Size boundingBox)
+        public TextLayoutData Create(IList<CharacterData> characters, Point initPoint, Size boundingBox)
         {
             if (characters.Count <= 0)
-                return new TextLayoutData(Array.Empty<TextLayoutLineData>(), new Rectangle(Options.InitPoint, Size.Empty));
+                return new TextLayoutData(Array.Empty<TextLayoutLineData>(), new Rectangle(initPoint, Size.Empty));
 
             IList<TextLayoutLineData> layoutLines = CreateLines(characters);
 
-            return Create(layoutLines, boundingBox);
+            return Create(layoutLines, initPoint, boundingBox);
         }
 
-        public TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Size boundingBox)
+        public TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Point initPoint, Size boundingBox)
         {
             int lineHeight = GetLineHeight();
 
@@ -45,7 +45,7 @@ namespace Kaligraphy.Layout
             {
                 TextLayoutLineData layoutLine = layoutLines[i];
 
-                Point linePoint = GetLinePosition(layoutLine, boundingBox, layoutLines.Sum(l => l.BoundingBox.Height));
+                Point linePoint = GetLinePosition(layoutLine, initPoint, boundingBox, layoutLines.Sum(l => l.BoundingBox.Height));
                 linePoint = linePoint with
                 {
                     Y = linePoint.Y - i * lineHeight
@@ -82,44 +82,44 @@ namespace Kaligraphy.Layout
             return new TextLayoutData(layoutLines.AsReadOnly(), new Rectangle(textPoint, textSize));
         }
 
-        protected virtual Point GetLinePosition(TextLayoutLineData currentLine, Size boundingBox, int linesHeight)
+        protected virtual Point GetLinePosition(TextLayoutLineData currentLine, Point initPoint, Size boundingBox, int linesHeight)
         {
-            int x = GetLinePositionX(currentLine, boundingBox.Width);
-            int y = GetLinePositionY(currentLine, boundingBox.Height, linesHeight);
+            int x = GetLinePositionX(currentLine, initPoint, boundingBox.Width);
+            int y = GetLinePositionY(currentLine, initPoint, boundingBox.Height, linesHeight);
 
             return new Point(x, y);
         }
 
-        protected virtual int GetLinePositionX(TextLayoutLineData currentLine, int boundingWidth)
+        protected virtual int GetLinePositionX(TextLayoutLineData currentLine, Point initPoint, int boundingWidth)
         {
             switch (Options.HorizontalAlignment)
             {
                 case HorizontalTextAlignment.Left:
-                    return Options.InitPoint.X + currentLine.BoundingBox.X;
+                    return initPoint.X + currentLine.BoundingBox.X;
 
                 case HorizontalTextAlignment.Center:
-                    return Options.InitPoint.X + currentLine.BoundingBox.X + (boundingWidth - Options.InitPoint.X - currentLine.BoundingBox.Width) / 2;
+                    return initPoint.X + currentLine.BoundingBox.X + (boundingWidth - initPoint.X - currentLine.BoundingBox.Width) / 2;
 
                 case HorizontalTextAlignment.Right:
-                    return boundingWidth - Options.InitPoint.Y - currentLine.BoundingBox.Width;
+                    return boundingWidth - initPoint.Y - currentLine.BoundingBox.Width;
 
                 default:
                     throw new InvalidOperationException($"Unsupported text alignment {Options.HorizontalAlignment}.");
             }
         }
 
-        protected virtual int GetLinePositionY(TextLayoutLineData currentLine, int boundingHeight, int linesHeight)
+        protected virtual int GetLinePositionY(TextLayoutLineData currentLine, Point initPoint, int boundingHeight, int linesHeight)
         {
             switch (Options.VerticalAlignment)
             {
                 case VerticalTextAlignment.Top:
-                    return Options.InitPoint.Y + currentLine.BoundingBox.Y;
+                    return initPoint.Y + currentLine.BoundingBox.Y;
 
                 case VerticalTextAlignment.Center:
-                    return Options.InitPoint.Y + currentLine.BoundingBox.Y + (boundingHeight - Options.InitPoint.Y - linesHeight) / 2;
+                    return initPoint.Y + currentLine.BoundingBox.Y + (boundingHeight - initPoint.Y - linesHeight) / 2;
 
                 case VerticalTextAlignment.Bottom:
-                    return boundingHeight - linesHeight - Options.InitPoint.Y + currentLine.BoundingBox.Y;
+                    return boundingHeight - linesHeight - initPoint.Y + currentLine.BoundingBox.Y;
 
                 default:
                     throw new InvalidOperationException($"Unsupported text alignment {Options.VerticalAlignment}.");

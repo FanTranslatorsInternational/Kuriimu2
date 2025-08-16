@@ -8,8 +8,8 @@ namespace Kaligraphy.Contract.Layout
     {
         IList<TextLayoutLineData> Create(IList<CharacterData> characters);
 
-        TextLayoutData Create(IList<CharacterData> characters, Size boundingBox);
+        TextLayoutData Create(IList<CharacterData> characters, Point initPoint, Size boundingBox);
 
-        TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Size boundingBox);
+        TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Point initPoint, Size boundingBox);
     }
 }
