@@ -10,14 +10,16 @@ namespace Konnect.Contract.Plugin.File.Text
         /// <summary>
         /// Creates a new entry and allows the plugin to provide its derived type.
         /// </summary>
+        /// <param name="page">The page this new entry is created for. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
         /// <returns>TextEntry or a derived type.</returns>
-        TextEntry NewEntry();
+        TextEntry NewEntry(TextEntryPage? page = null);
 
         /// <summary>
         /// Adds a newly created entry to the file and allows the plugin to perform any required adding steps.
         /// </summary>
-        /// <param name="entry"></param>
-        /// <returns>True if the entry was added, False otherwise.</returns>
-        bool AddEntry(TextEntry entry);
+        /// <param name="entry">The entry to add.</param>
+        /// <param name="page">The page this entry needs to be added to. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
+        /// <returns><see langword="true"/> if the entry was added, <see langword="false"/> otherwise.</returns>
+        bool AddEntry(TextEntry entry, TextEntryPage? page = null);
     }
 }

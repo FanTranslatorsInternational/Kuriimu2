@@ -11,7 +11,8 @@ namespace Konnect.Contract.Plugin.File.Text
         /// Deletes an entry and allows the plugin to perform any required deletion steps.
         /// </summary>
         /// <param name="entry">The entry to be deleted.</param>
-        /// <returns>True if the entry was successfully deleted, False otherwise.</returns>
-        bool DeleteEntry(TextEntry entry);
+        /// <param name="page">The page this entry needs to be deleted from. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
+        /// <returns><see langword="true"/> if the entry was successfully deleted, <see langword="false"/> otherwise.</returns>
+        bool DeleteEntry(TextEntry entry, TextEntryPage? page = null);
     }
 }

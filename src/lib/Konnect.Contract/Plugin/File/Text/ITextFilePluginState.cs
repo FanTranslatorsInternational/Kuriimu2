@@ -8,6 +8,8 @@ namespace Konnect.Contract.Plugin.File.Text
 
         IReadOnlyList<Guid>? Previews { get; }
 
+        ITextEntryPager? Pager { get; }
+
         #region Optional feature checks
 
         public bool CanAddEntry => this is IAddEntries;
