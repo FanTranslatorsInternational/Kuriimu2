@@ -24,7 +24,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
     {
         private StackLayout _mainLayout;
 
-        private TreeView<TranslatedTextEntry> _treeView;
+        private TreeView<object> _treeView;
 
         private TextEditor _origTextEditor;
         private TextEditor _editTextEditor;
@@ -39,11 +39,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ArrowButton _previousPageBtn;
         private ArrowButton _nextPageBtn;
 
+        private IGamePluginState? _selectedPreviewPlugin;
+        private List<TranslatedTextEntry> _translatedTextEntries = [];
+
         private void InitializeComponent()
         {
             #region Controls
 
-            _treeView = new TreeView<TranslatedTextEntry> { Size = new Size(.2f, SizeValue.Parent) };
+            _treeView = new TreeView<object> { Size = new Size(.2f, SizeValue.Parent) };
 
             _origTextEditor = new TextEditor { IsReadOnly = true };
             _editTextEditor = new TextEditor();
@@ -183,29 +186,82 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _previewBox.Items.Add(new DropDownItem<IGamePluginState>(gamePlugin.CreatePluginState(_fileManager), gamePlugin.Metadata.Name));
 
             if (_previewBox.Items.Count > 0)
+            {
                 _previewBox.SelectedItem = _previewBox.Items[0];
+                _selectedPreviewPlugin = _previewBox.SelectedItem.Content;
+            }
         }
 
         private void InitializeTexts()
         {
-            for (var i = 0; i < _state.PluginState.Texts.Count; i++)
+            var pager = _state.PluginState.Pager;
+            if (pager is not null)
             {
-                TextEntry textEntry = _state.PluginState.Texts[i];
-                var node = new TreeNode<TranslatedTextEntry>
+                var pages = pager.Page(_state.PluginState.Texts);
+                for (var i = 0; i < pages.Length; i++)
                 {
-                    Text = textEntry.Name ?? $"no_name_{i:00}",
-                    Data = new TranslatedTextEntry
-                    {
-                        Entry = textEntry,
-                        OriginalTextData = textEntry.TextData
-                    }
-                };
-
-                _treeView.Nodes.Add(node);
+                    TranslatedTextEntryPage translatedPage = AddTranslatedPage(pages[i], i, _treeView.Nodes);
+                    _translatedTextEntries.AddRange(translatedPage.Entries);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _state.PluginState.Texts.Count; i++)
+                {
+                    TranslatedTextEntry translatedEntry = AddTranslatedEntry(_state.PluginState.Texts[i], i, null, _treeView.Nodes);
+                    _translatedTextEntries.Add(translatedEntry);
+                }
             }
 
             if (_state.PluginState.Texts.Count > 0)
                 _treeView.SelectedNode = _treeView.Nodes[0];
+        }
+
+        private static TranslatedTextEntryPage AddTranslatedPage(TextEntryPage page, int index, IList<TreeNode<object>> nodes)
+        {
+            var translatedPage = new TranslatedTextEntryPage
+            {
+                Entries = new List<TranslatedTextEntry>(),
+                Page = page
+            };
+
+            var node = new TreeNode<object>
+            {
+                Text = page.Name,
+                Data = translatedPage,
+                IsExpanded = true
+            };
+
+            for (var i = 0; i < page.Entries.Count; i++)
+            {
+                AddTranslatedEntry(page.Entries[i], i, translatedPage, node.Nodes);
+            }
+
+            nodes.Add(node);
+
+            return translatedPage;
+        }
+
+        private static TranslatedTextEntry AddTranslatedEntry(TextEntry entry, int index, TranslatedTextEntryPage? page, IList<TreeNode<object>> nodes)
+        {
+            var translatedEntry = new TranslatedTextEntry
+            {
+                Page = page,
+                Entry = entry,
+                OriginalTextData = entry.TextData
+            };
+
+            var node = new TreeNode<object>
+            {
+                Text = entry.Name ?? $"no_name_{index:00}",
+                Data = translatedEntry
+            };
+
+            page?.Entries.Add(translatedEntry);
+
+            nodes.Add(node);
+
+            return translatedEntry;
         }
 
         #region Component implementation

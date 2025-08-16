@@ -308,6 +308,11 @@
   "Font.Generate.Caption": "Generate Font",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
+  // Text Form
+
+  // Previews
+  "Text.Preview.TextChanged": "Switching the preview plugin will lose already made changes wihout saving. Continue?",
+
   // Dialogs
 
   // Dialog Manager

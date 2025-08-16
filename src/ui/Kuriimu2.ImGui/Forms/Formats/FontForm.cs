@@ -123,7 +123,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return null;
 
             var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
-            TextLayoutData layout = layouter.Create(layoutLines, image.Size);
+            TextLayoutData layout = layouter.Create(layoutLines, Point.Empty, image.Size);
 
             var renderer = new Kaligraphy.Rendering.TextRenderer(new RenderOptions(), glyphProvider);
             renderer.Render(image, layout);

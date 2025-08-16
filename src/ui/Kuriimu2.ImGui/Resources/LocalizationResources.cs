@@ -3,6 +3,7 @@ using ImGui.Forms.Localization;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Kuriimu2.ImGui.Resources
 {
@@ -309,6 +310,11 @@ namespace Kuriimu2.ImGui.Resources
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
         public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
+
+        // Text Form
+
+        // Preview
+        public static LocalizedString TextPreviewTextChanged => LocalizedString.FromId("Text.Preview.TextChanged");
 
         // Dialogs
 

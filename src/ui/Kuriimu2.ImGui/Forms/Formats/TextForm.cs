@@ -18,9 +18,12 @@ using Kaligraphy.Rendering;
 using Kuriimu2.ImGui.Models.Forms.Formats;
 using System;
 using System.Threading.Tasks;
+using ImGui.Forms.Modals;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Files;
+using Kuriimu2.ImGui.Resources;
+using Point = SixLabors.ImageSharp.Point;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -34,8 +37,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly Dictionary<TranslatedTextEntry, IList<CharacterData>> _parsedTranslatedTexts = [];
         private readonly Dictionary<TranslatedTextEntry, string> _serializedTranslatedTexts = [];
         private readonly Dictionary<TranslatedTextEntry, string> _serializedControlTexts = [];
-
-        private IList<CharacterData>? _selectedParsedTranslatedText;
 
         private IList<Image<Rgba32>>? _previewPages;
         private int _previewPageIndex = -1;
@@ -87,8 +88,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void _editTextEditor_TextChanged(object? sender, string e)
         {
-            TranslatedTextEntry? entry = _treeView.SelectedNode?.Data;
-            if (entry is null)
+            object? data = _treeView.SelectedNode?.Data;
+            if (data is null)
+                return;
+
+            if (data is not TranslatedTextEntry entry)
                 return;
 
             string translatedText = _editTextEditor.GetText();
@@ -105,13 +109,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _parsedTranslatedTexts[entry] = deserializedText;
             _serializedControlTexts[entry] = serializedControlText;
 
-            _selectedParsedTranslatedText = deserializedText;
+            IList<IList<CharacterData>> allParsedTranslatedTexts = entry.Page is not null
+                ? GetParsedPageCharacters(entry.Page)
+                : [deserializedText];
 
-            _previewPages = GeneratePreviews(_selectedParsedTranslatedText);
+            _previewPages = GeneratePreviews(allParsedTranslatedTexts);
             _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
 
             entry.Entry.TextData = translatedData;
             entry.Entry.ContentChanged = true;
+
+            _state.FormCommunicator.Update(true, false);
 
             UpdatePreview();
             UpdateFormInternal();
@@ -122,9 +130,49 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdatePreview();
         }
 
-        private void _previewBox_SelectedItemChanged(object? sender, EventArgs e)
+        private async void _previewBox_SelectedItemChanged(object? sender, EventArgs e)
         {
-            UpdatePreview();
+            if (_state.FileState.StateChanged)
+            {
+                DialogResult result = await MessageBox.ShowYesNoAsync(
+                    LocalizationResources.DialogUnsavedChangesCaption, LocalizationResources.TextPreviewTextChanged);
+
+                if (result is DialogResult.Yes)
+                {
+                    _serializedOriginalTexts.Clear();
+                    _parsedTranslatedTexts.Clear();
+                    _serializedTranslatedTexts.Clear();
+                    _serializedControlTexts.Clear();
+
+                    _previewPages = null;
+                    _previewPageIndex = -1;
+
+                    _selectedPreviewPlugin = _previewBox.SelectedItem?.Content;
+
+                    foreach (TranslatedTextEntry translatedEntry in _translatedTextEntries.Where(e => e.Entry.ContentChanged))
+                    {
+                        translatedEntry.Entry.TextData = translatedEntry.OriginalTextData;
+                        translatedEntry.Entry.ContentChanged = false;
+                    }
+
+                    _state.FormCommunicator.Update(true, false);
+
+                    UpdateTextAndPreview();
+                }
+                else
+                {
+                    _previewBox.SelectedItemChanged -= _previewBox_SelectedItemChanged;
+                    _previewBox.SelectedItem = _previewBox.Items.FirstOrDefault(i => i.Content == _selectedPreviewPlugin);
+                    _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
+
+                    return;
+                }
+            }
+            else
+            {
+                UpdatePreview();
+            }
+
             UpdateFormInternal();
         }
 
@@ -156,44 +204,116 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _saveBtn.Enabled = _state is { CanSave: true, FileState.StateChanged: true };
             _saveAsBtn.Enabled = _state is { CanSave: true, FileState: { StateChanged: true, ParentFileState: null } };
 
+            _editTextEditor.IsReadOnly = _treeView.SelectedNode?.Data is TranslatedTextEntryPage;
+
             _previousPageBtn.Enabled = _previewPageIndex > 0;
             _nextPageBtn.Enabled = _previewPageIndex < _previewPages?.Count - 1;
         }
 
         private void UpdateTextAndPreview()
         {
-            TranslatedTextEntry? entry = _treeView.SelectedNode?.Data;
+            object? entry = _treeView.SelectedNode?.Data;
             if (entry is null)
                 return;
 
+            if (entry is TranslatedTextEntryPage page)
+            {
+                PreprocessPage(page);
+
+                _origTextEditor.SetText(string.Empty);
+                _editTextEditor.SetText(string.Empty);
+                _controlTextEditor.SetText(string.Empty);
+
+                _previewPages = null;
+                _previewPageIndex = -1;
+
+                UpdatePreview();
+            }
+            else if (entry is TranslatedTextEntry translatedEntry)
+            {
+                PreprocessEntry(translatedEntry, out string serializedOriginalText, out string serializedTranslatedText,
+                    out string serializedControlText, out IList<CharacterData> parsedTranslatedText);
+
+                _origTextEditor.SetText(serializedOriginalText);
+                _editTextEditor.SetText(serializedTranslatedText);
+                _controlTextEditor.SetText(serializedControlText);
+
+                IList<IList<CharacterData>> allParsedTranslatedTexts = translatedEntry.Page is not null
+                    ? GetParsedPageCharacters(translatedEntry.Page)
+                    : [parsedTranslatedText];
+
+                _previewPages = GeneratePreviews(allParsedTranslatedTexts);
+                _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
+
+                UpdatePreview();
+            }
+        }
+
+        private IList<IList<CharacterData>> GetParsedPageCharacters(TranslatedTextEntryPage page)
+        {
+            var result = new List<IList<CharacterData>>();
+
+            foreach (TranslatedTextEntry entry in page.Entries)
+            {
+                if (!_parsedTranslatedTexts.TryGetValue(entry, out IList<CharacterData>? parsedCharacters))
+                    continue;
+
+                result.Add(parsedCharacters);
+            }
+
+            return result;
+        }
+
+        private void PreprocessPage(TranslatedTextEntryPage page)
+        {
+            foreach (TranslatedTextEntry entry in page.Entries)
+                PersistEntry(entry, out _, out _, out _, out _);
+        }
+
+        private void PreprocessEntry(TranslatedTextEntry entry, out string serializedOriginalText, out string serializedTranslatedText,
+            out string serializedControlText, out IList<CharacterData> parsedTranslatedText)
+        {
+            serializedOriginalText = string.Empty;
+            serializedTranslatedText = string.Empty;
+            serializedControlText = string.Empty;
+            parsedTranslatedText = [];
+
+            if (entry.Page is not null)
+            {
+                foreach (TranslatedTextEntry pageEntry in entry.Page.Entries)
+                {
+                    if (pageEntry == entry)
+                        PersistEntry(entry, out serializedOriginalText, out serializedTranslatedText, out serializedControlText, out parsedTranslatedText);
+                    else
+                        PersistEntry(entry, out _, out _, out _, out _);
+                }
+            }
+            else
+            {
+                PersistEntry(entry, out serializedOriginalText, out serializedTranslatedText, out serializedControlText, out parsedTranslatedText);
+            }
+        }
+
+        private void PersistEntry(TranslatedTextEntry entry, out string serializedOriginalText, out string serializedTranslatedText,
+            out string serializedControlText, out IList<CharacterData> parsedTranslatedText)
+        {
             ICharacterParser parser = GetCharacterParser();
             ICharacterSerializer serializer = GetCharacterSerializer();
 
-            if (!_serializedOriginalTexts.TryGetValue(entry, out string? serializedOriginalText))
+            if (!_serializedOriginalTexts.TryGetValue(entry, out serializedOriginalText!))
             {
                 IList<CharacterData> parsedOriginalText = parser.Parse(entry.OriginalTextData, entry.Entry.Encoding);
                 _serializedOriginalTexts[entry] = serializedOriginalText = serializer.Serialize(parsedOriginalText, true);
             }
 
-            if (!_parsedTranslatedTexts.TryGetValue(entry, out IList<CharacterData>? parsedTranslatedText))
+            if (!_parsedTranslatedTexts.TryGetValue(entry, out parsedTranslatedText!))
                 _parsedTranslatedTexts[entry] = parsedTranslatedText = parser.Parse(entry.Entry.TextData, entry.Entry.Encoding);
 
-            if (!_serializedTranslatedTexts.TryGetValue(entry, out string? serializedTranslatedText))
+            if (!_serializedTranslatedTexts.TryGetValue(entry, out serializedTranslatedText!))
                 _serializedTranslatedTexts[entry] = serializedTranslatedText = serializer.Serialize(parsedTranslatedText, true);
 
-            if (!_serializedControlTexts.TryGetValue(entry, out string? serializedControlText))
+            if (!_serializedControlTexts.TryGetValue(entry, out serializedControlText!))
                 _serializedControlTexts[entry] = serializedControlText = serializer.Serialize(parsedTranslatedText, false);
-
-            _origTextEditor.SetText(serializedOriginalText);
-            _editTextEditor.SetText(serializedTranslatedText);
-            _controlTextEditor.SetText(serializedControlText);
-
-            _selectedParsedTranslatedText = parsedTranslatedText;
-
-            _previewPages = GeneratePreviews(_selectedParsedTranslatedText);
-            _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
-
-            UpdatePreview();
         }
 
         private void UpdatePreview()
@@ -216,10 +336,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return _previewPages[_previewPageIndex];
         }
 
-        private IList<Image<Rgba32>>? GeneratePreviews(IList<CharacterData> parsedText)
+        private IList<Image<Rgba32>>? GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
             if (_previewBox.SelectedItem is not null)
-                return _previewBox.SelectedItem.Content.CreatePreviewPages(parsedText).Result;
+                return _previewBox.SelectedItem.Content.CreatePreviewPages(parsedTexts).Result;
 
             FontFamily? fontFamily = _fontFamilyBox.SelectedItem?.Content;
             if (fontFamily is null)
@@ -229,18 +349,28 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var glyphProvider = new SystemFontGlyphProvider(font);
 
             var layouter = new TextLayouter(new LayoutOptions(), glyphProvider);
-            IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 
-            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
-            int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(l => l.BoundingBox.Height);
+            IList<IList<TextLayoutLineData>> layoutLines = [];
+            foreach (IList<CharacterData> parsedText in parsedTexts)
+                layoutLines.Add(layouter.Create(parsedText));
+
+            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Max(l => l.BoundingBox.Width));
+            int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(l => l.BoundingBox.Height));
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
 
             var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
-            TextLayoutData layout = layouter.Create(layoutLines, image.Size);
 
-            var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
-            renderer.Render(image, layout);
+            var initPoint = Point.Empty;
+            foreach (IList<TextLayoutLineData> layoutLine in layoutLines)
+            {
+                TextLayoutData layout = layouter.Create(layoutLine, initPoint, image.Size);
+
+                var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
+                renderer.Render(image, layout);
+
+                initPoint = new Point(initPoint.X, initPoint.Y + layout.BoundingBox.Height);
+            }
 
             return [image];
         }

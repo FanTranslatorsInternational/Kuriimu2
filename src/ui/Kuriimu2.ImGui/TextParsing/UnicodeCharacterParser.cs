@@ -12,7 +12,10 @@ namespace Kuriimu2.ImGui.TextParsing
             if (IsUnicode(context, position, out int unicodeLength, out length))
             {
                 Span<byte> data = context.Data.AsSpan(position + (length - unicodeLength), unicodeLength);
-                textCharacter = new FontCharacterData { Character = ushort.Parse(context.Encoding.GetString(data), NumberStyles.HexNumber) };
+                Span<char> chars = new char[4];
+                context.EncodingDecoder.Convert(data, chars, false, out _, out _, out _);
+
+                textCharacter = new FontCharacterData { Character = ushort.Parse(chars, NumberStyles.HexNumber) };
 
                 return true;
             }
