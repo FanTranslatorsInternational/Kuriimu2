@@ -65,5 +65,26 @@ namespace plugin_mt_framework_preview.Texts
 
             return false;
         }
+
+        protected override bool IsLineBreak(ParseContext context, int position, out int length)
+        {
+            length = 0;
+
+            if (!TryReadCharacter(context, position, out int byteCount, out char character))
+                return false;
+
+            length += byteCount;
+            position += byteCount;
+
+            if (position >= context.Data.Length)
+                return false;
+
+            if (!TryReadCharacter(context, position, out byteCount, out char character1))
+                return false;
+
+            length += byteCount;
+
+            return character == '\r' && character1 == '\n';
+        }
     }
 }

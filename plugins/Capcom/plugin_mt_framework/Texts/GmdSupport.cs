@@ -1,9 +1,4 @@
-﻿using System.Text;
-using Kaligraphy.Contract.DataClasses.Parsing;
-using Kaligraphy.Contract.Parsing;
-using Kaligraphy.DataClasses.Parsing;
-using Kaligraphy.Parsing;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Komponent.Contract.Enums;
 using Komponent.Streams;
 using Kryptography.Encryption;
@@ -83,17 +78,39 @@ namespace plugin_mt_framework.Texts
         private static string[] _key1 = ["fjfajfahajra;tira9tgujagjjgajgoa", "e43bcc7fcab+a6c4ed22fcd433/9d2e6cb053fa462-463f3a446b19"];
         private static string[] _key2 = ["mva;eignhpe/dfkfjgp295jtugkpejfu", "861f1dca05a0;9ddd5261e5dcc@6b438e6c.8ba7d71c*4fd11f3af1"];
 
-        public static Stream GetXorStream(Stream input, long position)
+        public static int DetectKeypair(Stream input, long position)
         {
             input.Position = input.Length - 1;
             int lastByte = input.ReadByte();
 
+            input.Position = position;
+
             if (lastByte is 0)
+                return -1;
+
+            for (var i = 0; i < _key1.Length; i++)
+            {
+                var keyPos = (int)((input.Length - position - 1) % _key1[i].Length);
+
+                if ((lastByte ^ _key1[i][keyPos] ^ _key2[i][keyPos]) is not 0)
+                    continue;
+
+                return i;
+            }
+
+            return -2;
+        }
+
+        public static Stream GetXorStream(Stream input, long position, int keyPair)
+        {
+            if (keyPair < -1)
+                throw new InvalidOperationException("Could not determine key pair.");
+
+            if (keyPair is -1)
                 return new SubStream(input, position);
 
-            (string? key1, string? key2) = GetXorKeys(lastByte, input.Length - position);
-            if (key1 is null || key2 is null)
-                throw new InvalidOperationException("Could not determine keys for decryption.");
+            string key1 = _key1[keyPair];
+            string key2 = _key2[keyPair];
 
             var key = new byte[key1.Length];
             for (var i = 0; i < key.Length; i++)
@@ -102,19 +119,22 @@ namespace plugin_mt_framework.Texts
             return new XorStream(new SubStream(input, position), key);
         }
 
-        private static (string?, string?) GetXorKeys(int checkValue, long length)
+        public static Stream GetXorStream(Stream input, int keyPair)
         {
-            for (var i = 0; i < _key1.Length; i++)
-            {
-                var keyPos = (int)((length - 1) % _key1[i].Length);
+            if (keyPair < -1)
+                throw new InvalidOperationException("Could not determine key pair.");
 
-                if ((checkValue ^ _key1[i][keyPos] ^ _key2[i][keyPos]) is not 0)
-                    continue;
+            if (keyPair is -1)
+                return input;
 
-                return (_key1[i], _key2[i]);
-            }
+            string key1 = _key1[keyPair];
+            string key2 = _key2[keyPair];
 
-            return (null, null);
+            var key = new byte[key1.Length];
+            for (var i = 0; i < key.Length; i++)
+                key[i] = (byte)(key1[i] ^ key2[i]);
+
+            return new XorStream(input, key);
         }
     }
 }

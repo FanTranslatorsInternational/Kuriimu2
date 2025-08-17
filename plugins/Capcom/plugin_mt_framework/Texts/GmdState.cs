@@ -37,9 +37,23 @@ namespace plugin_mt_framework.Texts
             };
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            throw new NotImplementedException();
+            Stream fileStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
+
+            switch (_version)
+            {
+                case GmdVersion.v1:
+                    _gmd1.Save(_texts, fileStream);
+                    break;
+
+                case GmdVersion.v2:
+                    _gmd2.Save(_texts, fileStream);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("GMD version unknown.");
+            }
         }
 
         private bool IsContentChanged()

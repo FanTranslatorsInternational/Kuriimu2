@@ -7,10 +7,12 @@ namespace plugin_mt_framework.Texts
 {
     class Gmdv1
     {
+        private const int HeaderSize_ = 0x28;
+
         private Gmdv1Header _header;
         private string _name;
-        private Gmdv1LabelEntry[] _labelEntries;
-        private string[] _labels;
+        private int _labelObscure;
+        private int _keyPair;
 
         public List<TextEntry> Load(Stream input)
         {
@@ -23,13 +25,15 @@ namespace plugin_mt_framework.Texts
             _name = br.ReadString(_header.nameSize);
             input.Position++;
 
-            _labelEntries = ReadLabelEntries(br, _header.labelCount);
+            Gmdv1LabelEntry[] labelEntries = ReadLabelEntries(br, _header.labelCount);
+            _labelObscure = labelEntries[0].labelOffset;
 
             long labelDataOffset = br.BaseStream.Position;
-            _labels = ReadLabels(br, _labelEntries, labelDataOffset);
+            string[] labels = ReadLabels(br, labelEntries, labelDataOffset);
 
             br.BaseStream.Position = labelDataOffset + _header.labelSize;
-            Stream textStream = GmdSupport.GetXorStream(input, br.BaseStream.Position);
+            _keyPair = GmdSupport.DetectKeypair(input, br.BaseStream.Position);
+            Stream textStream = GmdSupport.GetXorStream(input, br.BaseStream.Position, _keyPair);
 
             using var textBr = new BinaryReaderX(textStream);
             var result = new List<TextEntry>();
@@ -45,12 +49,12 @@ namespace plugin_mt_framework.Texts
                 long textSize = textBr.BaseStream.Position - textPos;
                 textBr.BaseStream.Position = textPos;
 
-                Gmdv1LabelEntry? labelEntry = _labelEntries.FirstOrDefault(l => l.sectionId == i);
-                int labelIndex = Array.IndexOf(_labelEntries, labelEntry);
+                Gmdv1LabelEntry? labelEntry = labelEntries.FirstOrDefault(l => l.sectionId == i);
+                int labelIndex = Array.IndexOf(labelEntries, labelEntry);
 
                 var textEntry = new TextEntry
                 {
-                    Name = labelIndex < _labels.Length ? _labels[labelIndex] : null,
+                    Name = labelIndex < labels.Length ? labels[labelIndex] : null,
                     TextData = textBr.ReadBytes((int)textSize - 1),
                     Encoding = Encoding.UTF8
                 };
@@ -61,6 +65,60 @@ namespace plugin_mt_framework.Texts
             }
 
             return result;
+        }
+
+        public void Save(IList<TextEntry> entries, Stream output)
+        {
+            Stream textStream = new MemoryStream();
+            Stream cryptStream = GmdSupport.GetXorStream(textStream, _keyPair);
+
+            var labelEntries = new Gmdv1LabelEntry[entries.Count];
+
+            var labelPos = 0;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                cryptStream.Write(entries[i].TextData);
+                cryptStream.WriteByte(0);
+
+                labelEntries[i] = new Gmdv1LabelEntry
+                {
+                    sectionId = i,
+                    labelOffset = _labelObscure + labelPos
+                };
+
+                labelPos += entries[i].Name is null ? 1 : entries[i].Name!.Length + 1;
+            }
+
+            cryptStream.Flush();
+
+            using var bw = new BinaryWriterX(output);
+
+            // Write name
+            output.Position = HeaderSize_;
+            bw.WriteString(_name);
+
+            // Write label entries
+            WriteLabelEntries(labelEntries, bw);
+
+            // Write labels
+            long labelPos1 = output.Position;
+            WriteLabels(entries, bw);
+
+            long labelSize = output.Length - labelPos1;
+
+            // Write text sections
+            textStream.Position = 0;
+            textStream.CopyTo(output);
+
+            // Write header
+            _header.labelCount = labelEntries.Length;
+            _header.sectionCount = entries.Count;
+            _header.labelSize = (int)labelSize;
+            _header.sectionSize = (int)textStream.Length;
+            _header.nameSize = _name.Length;
+
+            output.Position = 0;
+            WriteHeader(_header, bw);
         }
 
         private Gmdv1Header ReadHeader(BinaryReaderX reader)
@@ -109,6 +167,37 @@ namespace plugin_mt_framework.Texts
             }
 
             return result;
+        }
+
+        private void WriteHeader(Gmdv1Header header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write((int)header.language);
+            writer.Write(header.unk1);
+            writer.Write(header.labelCount);
+            writer.Write(header.sectionCount);
+            writer.Write(header.labelSize);
+            writer.Write(header.sectionSize);
+            writer.Write(header.nameSize);
+        }
+
+        private void WriteLabelEntries(IList<Gmdv1LabelEntry> entries, BinaryWriterX writer)
+        {
+            foreach (Gmdv1LabelEntry entry in entries)
+                WriteLabelEntry(entry, writer);
+        }
+
+        private void WriteLabelEntry(Gmdv1LabelEntry entry, BinaryWriterX writer)
+        {
+            writer.Write(entry.sectionId);
+            writer.Write(entry.labelOffset);
+        }
+
+        private void WriteLabels(IList<TextEntry> entries, BinaryWriterX writer)
+        {
+            foreach (TextEntry entry in entries)
+                writer.WriteString(entry.Name ?? string.Empty);
         }
     }
 }

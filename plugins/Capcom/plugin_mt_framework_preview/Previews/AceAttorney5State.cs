@@ -17,19 +17,20 @@ using Konnect.FileSystem;
 using Konnect.Management.Streams;
 using Konnect.Plugin.File.Font;
 using plugin_mt_framework_preview.Characters;
+using plugin_mt_framework_preview.Texts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace plugin_mt_framework_preview.Texts
+namespace plugin_mt_framework_preview.Previews
 {
     class AceAttorney5State : IGamePluginState
     {
         private readonly IPluginFileManager _pluginManager;
 
         public ICharacterParser? Parser { get; } = new GmdCharacterParser();
-        public ICharacterComposer? Composer { get; }
+        public ICharacterComposer? Composer { get; } = new GmdCharacterComposer();
         public ICharacterSerializer? Serializer { get; } = new GmdCharacterSerializer();
-        public ICharacterDeserializer? Deserializer { get; }
+        public ICharacterDeserializer? Deserializer { get; } = new GmdCharacterDeserializer();
 
         public AceAttorney5State(IPluginFileManager pluginFileManager)
         {

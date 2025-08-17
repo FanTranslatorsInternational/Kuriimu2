@@ -8,5 +8,9 @@ namespace plugin_mt_framework.Texts
         {
             return [];
         }
+
+        public void Save(IList<TextEntry> entries, Stream output)
+        {
+        }
     }
 }

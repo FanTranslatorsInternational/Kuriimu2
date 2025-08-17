@@ -1,8 +1,9 @@
 ﻿using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.Game;
+using plugin_mt_framework_preview.Texts;
 
-namespace plugin_mt_framework_preview.Texts
+namespace plugin_mt_framework_preview.Previews
 {
     public class AceAttorney5Plugin : IGamePlugin
     {
