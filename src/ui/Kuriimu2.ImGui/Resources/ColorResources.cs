@@ -35,7 +35,7 @@ namespace Kuriimu2.ImGui.Resources
 
         public static Color Progress => Store[Style.Theme][ImGuiColMax_ + 3];
 
-        public static Color ArchiveChanged => Store[Style.Theme][ImGuiColMax_ + 4];
+        public static Color Changed => Store[Style.Theme][ImGuiColMax_ + 4];
 
         public static ThemedColor GlyphBackground => new(Color.FromRgba(0xdb, 0xdb, 0xdb, 0xff), Color.FromRgba(0x1d, 0x1d, 0x1d, 0xff));
     }

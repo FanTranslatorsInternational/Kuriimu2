@@ -1138,7 +1138,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var node = new TreeNode<DirectoryEntry>
             {
                 Text = string.IsNullOrEmpty(entry.Name) ? _formInfo.FileState.FilePath.GetName() : entry.Name,
-                TextColor = _changedDirectories.Contains(entry.AbsolutePath) ? ColorResources.ArchiveChanged : Color.Transparent,
+                TextColor = _changedDirectories.Contains(entry.AbsolutePath) ? ColorResources.Changed : Color.Transparent,
                 IsExpanded = currentNode == null || _openedDirectories.Contains(entry.AbsolutePath)
             };
 
@@ -1177,7 +1177,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _fileView.Rows = entry.Files.Select(afi => new DataTableRow<ArchiveFile>(new ArchiveFile(afi))
             {
-                TextColor = _changedFiles.Contains(afi) ? ColorResources.ArchiveChanged : Color.Transparent
+                TextColor = _changedFiles.Contains(afi) ? ColorResources.Changed : Color.Transparent
             }).ToArray();
 
             UpdateFileCount(entry.Files.Count);
@@ -1274,7 +1274,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             // Color nodes directly for quicker updates
             var node = _treeView.Nodes[0];
-            node.TextColor = ColorResources.ArchiveChanged;
+            node.TextColor = ColorResources.Changed;
 
             foreach (var part in path.ToRelative().Split())
             {
@@ -1282,7 +1282,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 if (node == null)
                     break;
 
-                node.TextColor = ColorResources.ArchiveChanged;
+                node.TextColor = ColorResources.Changed;
             }
         }
 

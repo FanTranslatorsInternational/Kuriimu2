@@ -18,6 +18,7 @@ using Kaligraphy.Rendering;
 using Kuriimu2.ImGui.Models.Forms.Formats;
 using System;
 using System.Threading.Tasks;
+using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Plugin;
@@ -124,6 +125,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
             entry.Entry.TextData = translatedData;
             entry.Entry.ContentChanged = true;
 
+            if (_treeView.SelectedNode is not null)
+                _treeView.SelectedNode.TextColor = ColorResources.Changed;
+
             _state.FormCommunicator.Update(true, false);
 
             UpdatePreview();
@@ -161,6 +165,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     }
 
                     _state.FormCommunicator.Update(true, false);
+
+                    ResetTreeState(_treeView.Nodes);
 
                     await UpdateTextAndPreview();
                 }
@@ -201,6 +207,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
             await Save(true);
         }
 
+        private void ResetTreeState(IList<TreeNode<object>> nodes)
+        {
+            foreach (TreeNode<object> node in nodes)
+            {
+                node.TextColor = SixLabors.ImageSharp.Color.Transparent;
+                ResetTreeState(node.Nodes);
+            }
+        }
+
         private async Task Save(bool saveAs)
         {
             bool isSaved = await _state.FormCommunicator.Save(saveAs);
@@ -210,6 +225,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             foreach (TextEntry textEntry in _state.PluginState.Texts)
                 textEntry.ContentChanged = false;
 
+            ResetTreeState(_treeView.Nodes);
             UpdateFormInternal();
         }
 
@@ -354,7 +370,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private async Task<IList<Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
             if (_selectedPreviewPlugin is not null)
-                return await _selectedPreviewPlugin.CreatePreviewPages(parsedTexts);
+            {
+                _editTextEditor.IsReadOnly = true;
+                _treeView.Enabled = false;
+
+                IList<Image<Rgba32>>? previews = await _selectedPreviewPlugin.CreatePreviewPages(parsedTexts);
+
+                _editTextEditor.IsReadOnly = false;
+                _treeView.Enabled = true;
+
+                return previews;
+            }
 
             FontFamily? fontFamily = _fontFamilyBox.SelectedItem?.Content;
             if (fontFamily is null)
