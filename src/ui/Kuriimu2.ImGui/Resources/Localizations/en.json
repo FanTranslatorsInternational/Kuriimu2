@@ -311,6 +311,7 @@
   // Text Form
 
   // Previews
+  "Text.Preview.Default": "Default",
   "Text.Preview.TextChanged": "Switching the preview plugin will lose already made changes wihout saving. Continue?",
 
   // Dialogs

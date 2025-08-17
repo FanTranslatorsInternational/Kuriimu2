@@ -175,7 +175,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
             else
             {
-                UpdatePreview();
+                _serializedOriginalTexts.Clear();
+                _parsedTranslatedTexts.Clear();
+                _serializedTranslatedTexts.Clear();
+                _serializedControlTexts.Clear();
+
+                _previewPages = null;
+                _previewPageIndex = -1;
+
+                _selectedPreviewPlugin = _previewBox.SelectedItem?.Content;
+
+                await UpdateTextAndPreview();
             }
 
             UpdateFormInternal();
@@ -343,8 +353,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task<IList<Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
-            if (_previewBox.SelectedItem is not null)
-                return await _previewBox.SelectedItem.Content.CreatePreviewPages(parsedTexts);
+            if (_selectedPreviewPlugin is not null)
+                return await _selectedPreviewPlugin.CreatePreviewPages(parsedTexts);
 
             FontFamily? fontFamily = _fontFamilyBox.SelectedItem?.Content;
             if (fontFamily is null)
@@ -359,7 +369,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             foreach (IList<CharacterData> parsedText in parsedTexts)
                 layoutLines.Add(layouter.Create(parsedText));
 
-            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Max(l => l.BoundingBox.Width));
+            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Count <= 0 ? 0 : t.Max(l => l.BoundingBox.Width));
             int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(l => l.BoundingBox.Height));
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
@@ -382,22 +392,22 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private ICharacterParser GetCharacterParser()
         {
-            return _previewBox.SelectedItem?.Content.Parser ?? new CharacterParser();
+            return _selectedPreviewPlugin?.Parser ?? new CharacterParser();
         }
 
         private ICharacterSerializer GetCharacterSerializer()
         {
-            return _previewBox.SelectedItem?.Content.Serializer ?? new CharacterSerializer();
+            return _selectedPreviewPlugin?.Serializer ?? new CharacterSerializer();
         }
 
         private ICharacterComposer GetCharacterComposer()
         {
-            return _previewBox.SelectedItem?.Content.Composer ?? new CharacterComposer();
+            return _selectedPreviewPlugin?.Composer ?? new CharacterComposer();
         }
 
         private ICharacterDeserializer GetCharacterDeserializer()
         {
-            return _previewBox.SelectedItem?.Content.Deserializer ?? new CharacterDeserializer();
+            return _selectedPreviewPlugin?.Deserializer ?? new CharacterDeserializer();
         }
 
         #region IKuriimuForm implementation

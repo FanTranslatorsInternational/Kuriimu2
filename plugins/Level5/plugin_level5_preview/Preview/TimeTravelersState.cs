@@ -71,6 +71,9 @@ namespace plugin_level5_preview.Preview
 
         private bool IsNarrator(IList<IList<CharacterData>> characters)
         {
+            if (characters.Count <= 0 || characters[0].Count <= 0)
+                return false;
+
             CharacterData character = characters[0][0];
             if (character is not FontCharacterData text)
                 return false;

@@ -314,6 +314,7 @@ namespace Kuriimu2.ImGui.Resources
         // Text Form
 
         // Preview
+        public static LocalizedString TextPreviewDefault => LocalizedString.FromId("Text.Preview.Default");
         public static LocalizedString TextPreviewTextChanged => LocalizedString.FromId("Text.Preview.TextChanged");
 
         // Dialogs
