@@ -32,6 +32,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private ZoomableCharacterInfo _glyphBox;
 
+        private ImageButton _exportBtn;
+        private ImageButton _settingsBtn;
+
         private StackLayout _glyphLayout;
         private TextBox _searchCharBox;
         private UniformZLayout _glyphsLayout;
@@ -94,6 +97,21 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
 
+            _exportBtn = new ImageButton
+            {
+                Image = ImageResources.ImageExport,
+                Tooltip = LocalizationResources.FontPreviewExport,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5)
+            };
+            _settingsBtn = new ImageButton
+            {
+                Image = ImageResources.Settings,
+                Tooltip = LocalizationResources.FontPreviewSettings,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5)
+            };
+
             _generateBtn = new Button { Text = LocalizationResources.FontGenerateCaption, Width = SizeValue.Absolute(100), Enabled = fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
 
             _previewTextEditor = new TextEditor();
@@ -117,6 +135,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
             };
 
+            var textPreviewSettingsLayoutu = new StackLayout
+            {
+                Alignment = Alignment.Horizontal,
+                Size = Size.WidthAlign,
+                ItemSpacing = 4,
+                Items =
+                {
+                    new StackItem(_exportBtn) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right },
+                    _settingsBtn
+                }
+            };
             var textPreviewLayout = new StackLayout
             {
                 Alignment = Alignment.Horizontal,
@@ -137,6 +166,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 {
                     toolbarLayout,
                     _glyphBox,
+                    textPreviewSettingsLayoutu,
                     textPreviewLayout
                 }
             };

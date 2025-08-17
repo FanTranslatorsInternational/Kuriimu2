@@ -3,7 +3,6 @@ using ImGui.Forms.Localization;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Kuriimu2.ImGui.Resources
 {
@@ -130,6 +129,7 @@ namespace Kuriimu2.ImGui.Resources
             PluginType.Archive => LocalizedString.FromId("Menu.Plugins.Archive"),
             PluginType.Image => LocalizedString.FromId("Menu.Plugins.Image"),
             PluginType.Font => LocalizedString.FromId("Menu.Plugins.Font"),
+            PluginType.Text => LocalizedString.FromId("Menu.Plugins.Text"),
             _ => string.Empty
         };
 
@@ -305,7 +305,21 @@ namespace Kuriimu2.ImGui.Resources
 
         // Labels
         public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
+
+        // Preview
         public static LocalizedString FontPreviewPlaceholder=> LocalizedString.FromId("Font.Preview.Placeholder");
+        public static LocalizedString FontPreviewExport => LocalizedString.FromId("Font.Preview.Export");
+        public static LocalizedString FontPreviewSettings => LocalizedString.FromId("Font.Preview.Settings");
+
+        // Settings
+        public static LocalizedString FontPreviewSettingsCaption => LocalizedString.FromId("Font.Preview.Settings.Caption");
+        public static LocalizedString FontPreviewSettingsShowDebug => LocalizedString.FromId("Font.Preview.Settings.ShowDebug");
+        public static LocalizedString FontPreviewSettingsSpacing => LocalizedString.FromId("Font.Preview.Settings.Spacing");
+        public static LocalizedString FontPreviewSettingsLineHeight => LocalizedString.FromId("Font.Preview.Settings.LineHeight");
+        public static LocalizedString FontPreviewSettingsAlignment => LocalizedString.FromId("Font.Preview.Settings.Alignment");
+        public static LocalizedString FontPreviewSettingsAlignmentLeft => LocalizedString.FromId("Font.Preview.Settings.Alignment.Left");
+        public static LocalizedString FontPreviewSettingsAlignmentCenter => LocalizedString.FromId("Font.Preview.Settings.Alignment.Center");
+        public static LocalizedString FontPreviewSettingsAlignmentRight => LocalizedString.FromId("Font.Preview.Settings.Alignment.Right");
 
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");

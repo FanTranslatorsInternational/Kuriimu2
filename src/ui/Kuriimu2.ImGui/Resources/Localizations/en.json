@@ -129,6 +129,7 @@
   "Menu.Plugins.Archive": "Archive",
   "Menu.Plugins.Image": "Image",
   "Menu.Plugins.Font": "Font",
+  "Menu.Plugins.Text": "Text",
 
   // About Dialog
   "Menu.About.Title": "About Kuriimu",
@@ -299,10 +300,22 @@
   // Font Form
 
   // Labels
-  "Font.Label.BaseLine": "Baseline:",
-  "Font.Label.DescentLine": "Descent:",
   "Font.Search.Placeholder": "Search: ¥, \\uFFE3",
+
+  // Preview
   "Font.Preview.Placeholder": "Preview",
+  "Font.Preview.Export": "Export preview",
+  "Font.Preview.Settings": "Settings",
+
+  // Settings
+  "Font.Preview.Settings.Caption": "Preview Settings",
+  "Font.Preview.Settings.ShowDebug": "Show debug boxes",
+  "Font.Preview.Settings.Spacing": "Spacing",
+  "Font.Preview.Settings.LineHeight": "Line height",
+  "Font.Preview.Settings.Alignment": "Alignment",
+  "Font.Preview.Settings.Alignment.Left": "Left",
+  "Font.Preview.Settings.Alignment.Center": "Center",
+  "Font.Preview.Settings.Alignment.Right": "Right",
 
   // Generate
   "Font.Generate.Caption": "Generate Font",

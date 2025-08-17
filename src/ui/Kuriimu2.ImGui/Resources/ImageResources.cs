@@ -20,6 +20,7 @@ namespace Kuriimu2.ImGui.Resources
         private const string BatchImageExportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.batch_image_export.png";
         private const string BatchImageImportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.batch_image_import.png";
         private const string ArrowRightDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.arrow_right.png";
+        private const string SettingsDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.settings.png";
 
         private const string SaveLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.save.png";
         private const string SaveAsLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.save_as.png";
@@ -28,6 +29,7 @@ namespace Kuriimu2.ImGui.Resources
         private const string BatchImageExportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.batch_image_export.png";
         private const string BatchImageImportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.batch_image_import.png";
         private const string ArrowRightLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.arrow_right.png";
+        private const string SettingsLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.settings.png";
 
         #endregion
 
@@ -50,6 +52,8 @@ namespace Kuriimu2.ImGui.Resources
         public static ThemedImageResource BatchImageImport => new(GetImageResource(BatchImageImportLightResource_), GetImageResource(BatchImageImportDarkResource_));
 
         public static ThemedImageResource ArrowRight => new(GetImageResource(ArrowRightLightResource_), GetImageResource(ArrowRightDarkResource_));
+
+        public static ThemedImageResource Settings => new(GetImageResource(SettingsLightResource_), GetImageResource(SettingsDarkResource_));
 
         #endregion
 

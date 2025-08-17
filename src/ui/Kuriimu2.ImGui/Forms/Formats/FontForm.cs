@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Resources;
 using Kaligraphy.Contract.DataClasses.Layout;
 using Kaligraphy.Contract.DataClasses.Parsing;
@@ -16,6 +18,7 @@ using Kaligraphy.Layout;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
+using Kuriimu2.ImGui.Forms.Dialogs;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
@@ -29,6 +32,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
     {
         private readonly UnicodeCharacterParser _parser = new();
         private readonly FormInfo<IFontFilePluginState> _state;
+
+        private FontPreviewSettingsDialog _previewSettingsDialog = new();
+        private Image<Rgba32>? _generatedPreview;
 
         public FontForm(FormInfo<IFontFilePluginState> state)
         {
@@ -44,11 +50,38 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
 
+            _exportBtn.Clicked += _exportBtn_Clicked;
+            _settingsBtn.Clicked += _settingsBtn_Clicked;
+
             _glyphBox.Zoom(20f);
             _previewTextEditor.SetText(LocalizationResources.FontPreviewPlaceholder);
 
             UpdateState();
             UpdateFormInternal();
+        }
+
+        private async void _settingsBtn_Clicked(object? sender, EventArgs e)
+        {
+            await _previewSettingsDialog.ShowAsync();
+
+            UpdateTextPreview();
+        }
+
+        private async void _exportBtn_Clicked(object? sender, EventArgs e)
+        {
+            if (_generatedPreview is null)
+                return;
+
+            // Select file to save at
+            var sfd = new WindowsSaveFileDialog
+            {
+                Title = LocalizationResources.ImageMenuExportPng,
+                InitialDirectory = GetLastDirectory(),
+                InitialFileName = "preview.png"
+            };
+
+            if (await sfd.ShowAsync() is DialogResult.Ok)
+                await _generatedPreview.SaveAsPngAsync(sfd.Files[0]);
         }
 
         #region Events
@@ -101,9 +134,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void UpdateTextPreview()
         {
-            Image<Rgba32>? generatedPreview = GeneratePreview();
+            _generatedPreview = GeneratePreview();
 
-            _textPreview.Image = (generatedPreview is null ? null : ImageResource.FromImage(generatedPreview))!;
+            _textPreview.Image = (_generatedPreview is null ? null : ImageResource.FromImage(_generatedPreview))!;
         }
 
         private Image<Rgba32>? GeneratePreview()
@@ -114,7 +147,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             var glyphProvider = new FontPluginGlyphProvider(_state.PluginState.Characters);
 
-            var layouter = new TextLayouter(new LayoutOptions(), glyphProvider);
+            var layoutOptions = new LayoutOptions
+            {
+                TextSpacing = _previewSettingsDialog.Settings.Spacing,
+                HorizontalAlignment = _previewSettingsDialog.Settings.HorizontalAlignment,
+                LineHeight = _previewSettingsDialog.Settings.LineHeight
+            };
+            var layouter = new TextLayouter(layoutOptions, glyphProvider);
             IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 
             int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
@@ -125,7 +164,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
             TextLayoutData layout = layouter.Create(layoutLines, Point.Empty, image.Size);
 
-            var renderer = new Kaligraphy.Rendering.TextRenderer(new RenderOptions(), glyphProvider);
+            var renderOptions = new RenderOptions
+            {
+                DrawBoundingBoxes = _previewSettingsDialog.Settings.ShowDebugBoxes
+            };
+            var renderer = new Kaligraphy.Rendering.TextRenderer(renderOptions, glyphProvider);
             renderer.Render(image, layout);
 
             return image;
@@ -188,6 +231,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return searchText[0];
 
             return null;
+        }
+
+        private string GetLastDirectory()
+        {
+            var settingsDir = SettingsResources.LastDirectory;
+            return string.IsNullOrEmpty(settingsDir) ? Path.GetFullPath(".") : settingsDir;
         }
 
         #endregion
