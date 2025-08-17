@@ -58,7 +58,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _previousPageBtn.Clicked += _previousPageBtn_Clicked;
             _nextPageBtn.Clicked += _nextPageBtn_Clicked;
 
-            UpdateTextAndPreview();
+            Task.Run(StartupForm);
+        }
+
+        private async Task StartupForm()
+        {
+            await UpdateTextAndPreview();
             UpdateFormInternal();
         }
 
@@ -78,15 +83,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _treeView_SelectedNodeChanged(object? sender, EventArgs e)
+        private async void _treeView_SelectedNodeChanged(object? sender, EventArgs e)
         {
-            UpdateTextAndPreview();
+            await UpdateTextAndPreview();
             UpdateFormInternal();
 
             _textPreview.Reset();
         }
 
-        private void _editTextEditor_TextChanged(object? sender, string e)
+        private async void _editTextEditor_TextChanged(object? sender, string e)
         {
             object? data = _treeView.SelectedNode?.Data;
             if (data is null)
@@ -113,7 +118,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ? GetParsedPageCharacters(entry.Page)
                 : [deserializedText];
 
-            _previewPages = GeneratePreviews(allParsedTranslatedTexts);
+            _previewPages = await GeneratePreviews(allParsedTranslatedTexts);
             _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
 
             entry.Entry.TextData = translatedData;
@@ -157,7 +162,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                     _state.FormCommunicator.Update(true, false);
 
-                    UpdateTextAndPreview();
+                    await UpdateTextAndPreview();
                 }
                 else
                 {
@@ -210,7 +215,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _nextPageBtn.Enabled = _previewPageIndex < _previewPages?.Count - 1;
         }
 
-        private void UpdateTextAndPreview()
+        private async Task UpdateTextAndPreview()
         {
             object? entry = _treeView.SelectedNode?.Data;
             if (entry is null)
@@ -242,7 +247,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     ? GetParsedPageCharacters(translatedEntry.Page)
                     : [parsedTranslatedText];
 
-                _previewPages = GeneratePreviews(allParsedTranslatedTexts);
+                _previewPages = await GeneratePreviews(allParsedTranslatedTexts);
                 _previewPageIndex = _previewPages?.Count >= 1 ? 0 : -1;
 
                 UpdatePreview();
@@ -336,10 +341,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return _previewPages[_previewPageIndex];
         }
 
-        private IList<Image<Rgba32>>? GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
+        private async Task<IList<Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
             if (_previewBox.SelectedItem is not null)
-                return _previewBox.SelectedItem.Content.CreatePreviewPages(parsedTexts).Result;
+                return await _previewBox.SelectedItem.Content.CreatePreviewPages(parsedTexts);
 
             FontFamily? fontFamily = _fontFamilyBox.SelectedItem?.Content;
             if (fontFamily is null)

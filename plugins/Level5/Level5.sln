@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_level5", "plugin_level5\plugin_level5.csproj", "{FB7DC8C3-3C9A-442F-AFCC-481E201046BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_level5_preview", "plugin_level5_preview\plugin_level5_preview.csproj", "{8D1952DB-A25C-4BD1-A7BF-03236FC9E95B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FB7DC8C3-3C9A-442F-AFCC-481E201046BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB7DC8C3-3C9A-442F-AFCC-481E201046BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB7DC8C3-3C9A-442F-AFCC-481E201046BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D1952DB-A25C-4BD1-A7BF-03236FC9E95B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D1952DB-A25C-4BD1-A7BF-03236FC9E95B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D1952DB-A25C-4BD1-A7BF-03236FC9E95B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D1952DB-A25C-4BD1-A7BF-03236FC9E95B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,7 +21,7 @@ namespace plugin_level5.Common.Plugins
         private List<EventTextEntry> _texts;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
-        public IReadOnlyList<Guid>? Previews { get; } = null;
+        public IReadOnlyList<Guid>? Previews { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47")];
         public ITextEntryPager? Pager { get; } = new EventPager();
 
         public bool ContentChanged => IsContentChanged();
