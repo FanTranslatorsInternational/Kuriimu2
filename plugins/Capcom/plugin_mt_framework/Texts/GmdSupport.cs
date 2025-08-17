@@ -2,10 +2,12 @@
 using Komponent.Contract.Enums;
 using Komponent.Streams;
 using Kryptography.Encryption;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 
 namespace plugin_mt_framework.Texts
 {
-    class Gmdv1Header
+    class GmdHeader
     {
         public string magic;
         public int version;
@@ -21,7 +23,26 @@ namespace plugin_mt_framework.Texts
     class Gmdv1LabelEntry
     {
         public int sectionId;
-        public int labelOffset; //relative to LabelDataOffset and after subtracting (_v1Constant + Header.LabelCount * 0x80)
+        public int labelOffset;
+    }
+
+    class Gmdv2LabelEntry
+    {
+        public int sectionId;
+        public uint hash1;
+        public uint hash2;
+        public int labelOffset;
+        public int listLink;
+    }
+
+    class Gmdv2MobileLabelEntry
+    {
+        public int sectionId;
+        public uint hash1;
+        public uint hash2;
+        public uint zeroPadding = 0;
+        public long labelOffset;
+        public long listLink;
     }
 
     enum GmdVersion

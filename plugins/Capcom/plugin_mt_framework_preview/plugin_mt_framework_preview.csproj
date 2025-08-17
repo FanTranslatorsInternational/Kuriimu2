@@ -15,10 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\aa5_box.png" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <EmbeddedResource Include="Resources\aa6_box.png">
+      <LogicalName>aa6_box.png</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\aa5_box.png">
       <LogicalName>aa5_box.png</LogicalName>
     </EmbeddedResource>

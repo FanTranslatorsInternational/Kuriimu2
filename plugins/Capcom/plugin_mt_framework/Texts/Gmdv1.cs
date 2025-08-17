@@ -9,7 +9,7 @@ namespace plugin_mt_framework.Texts
     {
         private const int HeaderSize_ = 0x28;
 
-        private Gmdv1Header _header;
+        private GmdHeader _header;
         private string _name;
         private int _labelObscure;
         private int _keyPair;
@@ -32,6 +32,7 @@ namespace plugin_mt_framework.Texts
             string[] labels = ReadLabels(br, labelEntries, labelDataOffset);
 
             br.BaseStream.Position = labelDataOffset + _header.labelSize;
+            
             _keyPair = GmdSupport.DetectKeypair(input, br.BaseStream.Position);
             Stream textStream = GmdSupport.GetXorStream(input, br.BaseStream.Position, _keyPair);
 
@@ -121,9 +122,9 @@ namespace plugin_mt_framework.Texts
             WriteHeader(_header, bw);
         }
 
-        private Gmdv1Header ReadHeader(BinaryReaderX reader)
+        private GmdHeader ReadHeader(BinaryReaderX reader)
         {
-            return new Gmdv1Header
+            return new GmdHeader
             {
                 magic = reader.ReadString(4),
                 version = reader.ReadInt32(),
@@ -169,7 +170,7 @@ namespace plugin_mt_framework.Texts
             return result;
         }
 
-        private void WriteHeader(Gmdv1Header header, BinaryWriterX writer)
+        private void WriteHeader(GmdHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.version);
