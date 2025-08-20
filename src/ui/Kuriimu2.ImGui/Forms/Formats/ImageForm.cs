@@ -62,6 +62,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             selectedImg?.TranscodeImage(selectedFormat, _state.Progress);
             SetImage(selectedImg, _state.Progress);
 
+            SetPalette(selectedImg, _state.Progress);
+
             SetPaletteFormats(selectedImg);
 
             _state.FormCommunicator.Update(true, false);
@@ -78,6 +80,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             selectedImg?.TranscodePalette(selectedFormat, _state.Progress);
             SetImage(selectedImg, _state.Progress);
+
+            SetPalette(selectedImg, _state.Progress);
 
             _state.FormCommunicator.Update(true, false);
             UpdateFormInternal();

@@ -179,7 +179,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 if (preferredGamePlugin is null)
                     continue;
 
-                _previewBox.Items.Add(new DropDownItem<IGamePluginState?>(preferredGamePlugin.CreatePluginState(_fileManager), preferredGamePlugin.Metadata.Name));
+                var dropDownItem = new DropDownItem<IGamePluginState?>(preferredGamePlugin.CreatePluginState(_fileManager), preferredGamePlugin.Metadata.Name);
+                _previewBox.Items.Add(dropDownItem);
+                _previewBox.PreferredItems.Add(dropDownItem);
             }
 
             _previewBox.Items.Add(new DropDownItem<IGamePluginState?>(null, LocalizationResources.TextPreviewDefault));
