@@ -574,6 +574,9 @@ namespace Konnect.Plugin.File.Image
         {
             ImageConfigurationBuilder config = CreateImageConfiguration();
 
+            if (ImageInfo.Quantize is null)
+                config.ConfigureQuantization(options => options);
+
             IColorShader? paletteShader = EncodingDefinition.GetPaletteShader(paletteFormat);
             if (paletteShader != null)
                 config.ShadeColors.With(() => paletteShader);
