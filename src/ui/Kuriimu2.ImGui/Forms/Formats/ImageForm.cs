@@ -42,6 +42,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _saveAsBtn.Clicked += _saveAsBtn_Clicked;
             _imgExportBtn.Clicked += _imgExportBtn_Clicked;
             _imgImportBtn.Clicked += _imgImportBtn_Clicked;
+            _indexedImageBox.PixelSelected += _indexedImageBox_PixelSelected;
+            _paletteView.PaletteChanged += _paletteView_PaletteChanged;
 
             UpdateState();
             UpdateFormInternal();
@@ -109,6 +111,35 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private async void _imgImportBtn_Clicked(object sender, EventArgs e)
         {
             await Import();
+        }
+
+        private void _paletteView_PaletteChanged(object? sender, EventArgs e)
+        {
+            if (_paletteView.Palette is null)
+                return;
+
+            var selectedImage = GetSelectedImage();
+            if (!selectedImage.IsIndexed)
+                return;
+
+            selectedImage.SetPalette(_paletteView.Palette, _state.Progress);
+
+            SetImage(selectedImage, _state.Progress);
+
+            _state.FormCommunicator.Update(true, false);
+            UpdateFormInternal();
+        }
+
+        private void _indexedImageBox_PixelSelected(object? sender, PixelSelectedEventArgs e)
+        {
+            var selectedImage = GetSelectedImage();
+            if (!selectedImage.IsIndexed)
+                return;
+
+            var image = selectedImage.GetImage();
+            var color = image[e.X, e.Y];
+
+            _paletteView.SetSelectedColor(color);
         }
 
         private async Task Save(bool saveAs)
@@ -206,6 +237,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             // Set image
             SetImage(selectedItem.ImageFile, _state.Progress);
+            SetPalette(selectedItem.ImageFile, _state.Progress);
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusImportSuccess);

@@ -11,6 +11,7 @@ using Konnect.Contract.Plugin.File.Image;
 using Konnect.Contract.Progress;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
+using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using ImageResources = Kuriimu2.ImGui.Resources.ImageResources;
 using Size = ImGui.Forms.Models.Size;
@@ -20,6 +21,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
     partial class ImageForm
     {
         private StackLayout _mainLayout;
+        private StackLayout _listPaletteLayout;
+        private StackLayout _imageInfoLayout;
 
         private ImageButton _saveBtn;
         private ImageButton _saveAsBtn;
@@ -39,6 +42,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ComboBox<int> _paletteBox;
 
         private ZoomablePictureBox _imageBox;
+        private ZoomableIndexedPictureBox _indexedImageBox;
+        private PaletteView _paletteView;
 
         private global::ImGui.Forms.Controls.Lists.List<ImageThumbnail> _imgList;
 
@@ -57,11 +62,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _paletteBox = new ComboBox<int> { MaxShowItems = 10 };
 
             _imageBox = new ZoomablePictureBox { ShowBorder = true };
+            _indexedImageBox = new ZoomableIndexedPictureBox { ShowBorder = true };
+            _paletteView = new PaletteView { Spacing = new Vector2(2, 2), ShowBorder = true };
 
             _imgList = new global::ImGui.Forms.Controls.Lists.List<ImageThumbnail>
             {
                 ItemSpacing = 4,
-                IsSelectable = true
+                IsSelectable = true,
+                Size = Size.Parent
             };
 
             _saveBtn = new ImageButton
@@ -89,77 +97,81 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             #endregion
 
+            _listPaletteLayout = new StackLayout
+            {
+                Alignment = Alignment.Vertical,
+                ItemSpacing = 4,
+                Size = new Size(300, SizeValue.Parent),
+                Items =
+                {
+                    _imgList
+                }
+            };
+
+            _imageInfoLayout = new StackLayout
+            {
+                Alignment = Alignment.Vertical,
+                ItemSpacing = 4,
+                Size = Size.Parent,
+                Items =
+                {
+                    new StackLayout
+                    {
+                        Alignment = Alignment.Horizontal,
+                        ItemSpacing = 4,
+                        Size = Size.WidthAlign,
+                        Items =
+                        {
+                            _saveBtn,
+                            _saveAsBtn,
+                            new Splitter { Length = 26, Alignment = Alignment.Vertical },
+                            _imgExportBtn,
+                            _imgImportBtn,
+                            new Splitter { Length = 26, Alignment = Alignment.Vertical },
+                            _batchImgExportBtn,
+                            _batchImgImportBtn
+                        }
+                    },
+                    _imageBox,
+                    new TableLayout
+                    {
+                        Spacing = new Vector2(4, 4),
+                        Size = Size.WidthAlign,
+                        Rows =
+                        {
+                            new TableRow
+                            {
+                                Cells =
+                                {
+                                    _widthTextLbl,
+                                    _widthContentLbl,
+                                    _heightTextLbl,
+                                    _heightContentLbl
+                                }
+                            },
+                            new TableRow
+                            {
+                                Cells =
+                                {
+                                    _formatTextLbl,
+                                    _formatBox,
+                                    _paletteTextLbl,
+                                    _paletteBox
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             _mainLayout = new StackLayout
             {
                 Alignment = Alignment.Horizontal,
                 ItemSpacing = 4,
                 Items =
                 {
-                    new StackLayout
-                    {
-                        Alignment = Alignment.Vertical,
-                        ItemSpacing = 4,
-                        Size = Size.Parent,
-                        Items =
-                        {
-                            new StackLayout
-                            {
-                                Alignment = Alignment.Horizontal,
-                                ItemSpacing = 4,
-                                Size = Size.WidthAlign,
-                                Items =
-                                {
-                                    _saveBtn,
-                                    _saveAsBtn,
-                                    new Splitter{Length = 26, Alignment = Alignment.Vertical},
-                                    _imgExportBtn,
-                                    _imgImportBtn,
-                                    new Splitter{Length = 26, Alignment = Alignment.Vertical},
-                                    _batchImgExportBtn,
-                                    _batchImgImportBtn
-                                }
-                            },
-                            _imageBox,
-                            new TableLayout
-                            {
-                                Spacing = new Vector2(4,4),
-                                Size = Size.WidthAlign,
-                                Rows =
-                                {
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            _widthTextLbl,
-                                            _widthContentLbl,
-                                            _heightTextLbl,
-                                            _heightContentLbl
-                                        }
-                                    },
-                                    new TableRow
-                                    {
-                                        Cells =
-                                        {
-                                            _formatTextLbl,
-                                            _formatBox,
-                                            _paletteTextLbl,
-                                            _paletteBox
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    new StackLayout
-                    {
-                        Alignment = Alignment.Vertical,
-                        ItemSpacing = 4,
-                        Size = new Size(300,SizeValue.Parent),
-                        Items =
-                        {
-                            _imgList
-                        }
-                    }
+                    _imageInfoLayout,
+                    _listPaletteLayout
                 }
             };
         }
@@ -194,6 +206,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _imgList.SelectedItem = _imgList.Items.FirstOrDefault(x => x.ImageFile == img);
             SetImage(img, progress);
 
+            SetPalette(img, progress);
+
             _widthContentLbl.Text = img.ImageInfo.ImageSize.Width.ToString();
             _heightContentLbl.Text = img.ImageInfo.ImageSize.Height.ToString();
         }
@@ -202,8 +216,39 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             var image = img.GetImage(progress);
 
-            _imageBox.Image = ImageResource.FromImage(image);
+            if (img.IsIndexed)
+            {
+                _imageInfoLayout.Items[1] = _indexedImageBox;
+
+                _indexedImageBox.Image = ImageResource.FromImage(image);
+                _imageBox.Image = null;
+            }
+            else
+            {
+                _imageInfoLayout.Items[1] = _imageBox;
+
+                _indexedImageBox.Image = null;
+                _imageBox.Image = ImageResource.FromImage(image);
+            }
+
             _imgList.SelectedItem.SetThumbnail(image);
+        }
+
+        private void SetPalette(IImageFile img, IProgressContext progress)
+        {
+            if (!img.IsIndexed)
+            {
+                if (_listPaletteLayout.Items.Count > 1)
+                    _listPaletteLayout.Items.RemoveAt(1);
+
+                return;
+            }
+
+            if (_listPaletteLayout.Items.Count <= 1)
+                _listPaletteLayout.Items.Add(_paletteView);
+
+            IList<Rgba32> palette = img.GetPalette(progress);
+            _paletteView.Palette = palette;
         }
 
         private void SetFormats(IImageFile img)

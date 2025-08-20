@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGui.Forms;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
@@ -7,6 +6,7 @@ using ImGui.Forms.Models;
 using ImGui.Forms.Resources;
 using ImGuiNET;
 using Konnect.Contract.Plugin.File.Image;
+using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -58,7 +58,9 @@ namespace Kuriimu2.ImGui.Components
             {
                 var textHeight = Application.Instance.MainForm.DefaultFont.GetLineHeight();
                 var textPosition = contentRect.Position + new Vector2(4, 0) + ThumbnailSize with { Y = ThumbnailSize.Y / 2 - textHeight / 2 };
-                var textColor = Style.GetColor(ImGuiCol.Text).ToUInt32();
+                var textColor = ImageFile.ImageInfo.ContentChanged
+                    ? ColorResources.Changed.ToUInt32()
+                    : Style.GetColor(ImGuiCol.Text).ToUInt32();
 
                 ImGuiNET.ImGui.GetWindowDrawList().AddText(textPosition, textColor, Name);
             }
