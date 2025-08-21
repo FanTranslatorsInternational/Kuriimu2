@@ -32,14 +32,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ZoomablePictureBox _textPreview;
 
         private ComboBox<FontFamily> _fontFamilyBox;
-        private ComboBox<IGamePluginState?> _previewBox;
+        private ComboBox<IGamePlugin?> _previewBox;
 
         private ImageButton _saveBtn;
         private ImageButton _saveAsBtn;
         private ArrowButton _previousPageBtn;
         private ArrowButton _nextPageBtn;
 
-        private IGamePluginState? _selectedPreviewPlugin;
+        private IGamePlugin? _selectedPreviewPlugin;
+        private IGamePluginState? _selectedPreviewPluginState;
         private readonly List<TranslatedTextEntry> _translatedTextEntries = [];
 
         private void InitializeComponent()
@@ -54,7 +55,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _textPreview = new ZoomablePictureBox { ShowBorder = true };
 
             _fontFamilyBox = new ComboBox<FontFamily>();
-            _previewBox = new ComboBox<IGamePluginState?>();
+            _previewBox = new ComboBox<IGamePlugin?>();
 
             _saveBtn = new ImageButton
             {
@@ -179,15 +180,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 if (preferredGamePlugin is null)
                     continue;
 
-                var dropDownItem = new DropDownItem<IGamePluginState?>(preferredGamePlugin.CreatePluginState(_fileManager), preferredGamePlugin.Metadata.Name);
+                var dropDownItem = new DropDownItem<IGamePlugin?>(preferredGamePlugin, preferredGamePlugin.Metadata.Name);
                 _previewBox.Items.Add(dropDownItem);
                 _previewBox.PreferredItems.Add(dropDownItem);
             }
 
-            _previewBox.Items.Add(new DropDownItem<IGamePluginState?>(null, LocalizationResources.TextPreviewDefault));
+            _previewBox.Items.Add(new DropDownItem<IGamePlugin?>(null, LocalizationResources.TextPreviewDefault));
 
             foreach (IGamePlugin gamePlugin in gamePlugins.ExceptBy(preferredGamePluginIds, g => g.PluginId))
-                _previewBox.Items.Add(new DropDownItem<IGamePluginState?>(gamePlugin.CreatePluginState(_fileManager), gamePlugin.Metadata.Name));
+                _previewBox.Items.Add(new DropDownItem<IGamePlugin?>(gamePlugin, gamePlugin.Metadata.Name));
 
             if (_previewBox.Items.Count > 0)
             {

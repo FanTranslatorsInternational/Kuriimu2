@@ -1,12 +1,15 @@
-﻿using Konnect.Contract.DataClasses.Plugin;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
+using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.Game;
-using plugin_mt_framework_preview.Texts;
 
 namespace plugin_mt_framework_preview.Previews
 {
     public class AceAttorney5Plugin : IGamePlugin
     {
+        private static IGamePluginState? _state;
+
         public Guid PluginId => Guid.Parse("1280108e-010d-4bf0-a495-e614f340360c");
         public PluginMetadata Metadata => new()
         {
@@ -18,9 +21,9 @@ namespace plugin_mt_framework_preview.Previews
             LongDescription = "Preview plugin for Ace Attorney 5."
         };
 
-        public IGamePluginState CreatePluginState(IPluginFileManager pluginFileManager)
+        public IGamePluginState CreatePluginState(UPath filePath, IList<TextEntry> entries, IPluginFileManager pluginFileManager)
         {
-            return new AceAttorney5State(pluginFileManager);
+            return _state ??= new AceAttorney5State(pluginFileManager);
         }
     }
 }

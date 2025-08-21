@@ -1,5 +1,4 @@
-﻿using Kaligraphy.Contract.DataClasses.Layout;
-using Kaligraphy.Contract.DataClasses.Parsing;
+﻿using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Rendering;
@@ -18,16 +17,14 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System.Reflection;
 using Kaligraphy.Contract.Layout;
 using Kaligraphy.Contract.Rendering;
-using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.Enums.Layout;
 using Serilog.Core;
 
 namespace plugin_level5_preview.Preview
 {
-    class TimeTravelersState : IGamePluginState
+    class TimeTravelersSubtitleState : IGamePluginState
     {
         private readonly IPluginFileManager _pluginManager;
 
@@ -38,7 +35,7 @@ namespace plugin_level5_preview.Preview
         public ICharacterSerializer? Serializer { get; }
         public ICharacterDeserializer? Deserializer { get; }
 
-        public TimeTravelersState(IPluginFileManager pluginFileManager)
+        public TimeTravelersSubtitleState(IPluginFileManager pluginFileManager)
         {
             _pluginManager = pluginFileManager;
         }
@@ -51,13 +48,12 @@ namespace plugin_level5_preview.Preview
 
             var glyphProvider = new FontPluginGlyphProvider(font);
 
-            var isNarrator = IsNarrator(characters);
-            var screen = GetScreen(isNarrator);
+            var screen = GetScreen();
 
-            var layouter = GetLayouter(isNarrator, glyphProvider);
-            var renderer = GetRenderer(isNarrator, glyphProvider);
+            var layouter = GetLayouter(glyphProvider);
+            var renderer = GetRenderer(glyphProvider);
 
-            var initPoint = isNarrator ? new Point(16, 1) : new Point(0, 15);
+            var initPoint = new Point(0, 15);
             foreach (IList<CharacterData> characterSet in characters)
             {
                 var layout = layouter.Create(characterSet, initPoint, screen.Size);
@@ -69,56 +65,16 @@ namespace plugin_level5_preview.Preview
             return [screen];
         }
 
-        private bool IsNarrator(IList<IList<CharacterData>> characters)
+        private Image<Rgba32> GetScreen()
         {
-            if (characters.Count <= 0 || characters[0].Count <= 0)
-                return false;
+            var image = new Image<Rgba32>(400, 240);
+            image.Mutate(x => x.Clear(Color.Wheat));
 
-            CharacterData character = characters[0][0];
-            if (character is not FontCharacterData text)
-                return false;
-
-            return text.Character is '＊';
+            return image;
         }
 
-        private Image<Rgba32> GetScreen(bool isNarrator)
+        private ITextLayouter GetLayouter(IGlyphProvider glyphProvider)
         {
-            if (isNarrator)
-            {
-                var image = new Image<Rgba32>(320, 240);
-                image.Mutate(x => x.Clear(Color.Black));
-
-                Image<Rgba32>? narrationImage = GetNarrationResource();
-                if (narrationImage == null)
-                    return image;
-
-                var narrationPoint = new Point(0, image.Height - narrationImage.Height);
-                image.Mutate(x => x.DrawImage(narrationImage, narrationPoint, 1f));
-
-                return image;
-            }
-            else
-            {
-                var image = new Image<Rgba32>(400, 240);
-                image.Mutate(x => x.Clear(Color.Wheat));
-
-                return image;
-            }
-        }
-
-        private ITextLayouter GetLayouter(bool isNarrator, IGlyphProvider glyphProvider)
-        {
-            if (isNarrator)
-            {
-                return new TextLayouter(new LayoutOptions
-                {
-                    HorizontalAlignment = HorizontalTextAlignment.Left,
-                    VerticalAlignment = VerticalTextAlignment.Top,
-                    LineHeight = 25,
-                    LineWidth = 286
-                }, glyphProvider);
-            }
-
             return new TextLayouter(new LayoutOptions
             {
                 HorizontalAlignment = HorizontalTextAlignment.Center,
@@ -128,16 +84,8 @@ namespace plugin_level5_preview.Preview
             }, glyphProvider);
         }
 
-        private ITextRenderer GetRenderer(bool isNarrator, IGlyphProvider glyphProvider)
+        private ITextRenderer GetRenderer(IGlyphProvider glyphProvider)
         {
-            if (isNarrator)
-            {
-                return new TextRenderer(new RenderOptions
-                {
-                    TextColor = Color.FromRgb(0xFD, 0xFD, 0xFD)
-                }, glyphProvider);
-            }
-
             return new TextRenderer(new RenderOptions
             {
                 VisibleLines = 2,
@@ -172,15 +120,6 @@ namespace plugin_level5_preview.Preview
             _pluginManager.Close(loadResult.LoadedFileState!);
 
             return _loadedFont = characters;
-        }
-
-        private Image<Rgba32>? GetNarrationResource()
-        {
-            Stream? boxStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("narration.png");
-            if (boxStream is null)
-                return null;
-
-            return Image.Load<Rgba32>(boxStream);
         }
     }
 }

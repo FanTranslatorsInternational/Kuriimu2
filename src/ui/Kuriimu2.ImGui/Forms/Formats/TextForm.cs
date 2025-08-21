@@ -23,6 +23,7 @@ using ImGui.Forms.Modals;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.Game;
 using Kuriimu2.ImGui.Resources;
 using Point = SixLabors.ImageSharp.Point;
 
@@ -100,6 +101,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             if (data is not TranslatedTextEntry entry)
                 return;
+
+            SetGamePreviewState(entry);
 
             string translatedText = _editTextEditor.GetText();
 
@@ -249,6 +252,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             if (entry is TranslatedTextEntryPage page)
             {
+                SetGamePreviewState(page);
+
                 PreprocessPage(page);
 
                 _origTextEditor.SetText(string.Empty);
@@ -262,6 +267,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
             else if (entry is TranslatedTextEntry translatedEntry)
             {
+                SetGamePreviewState(translatedEntry);
+
                 PreprocessEntry(translatedEntry, out string serializedOriginalText, out string serializedTranslatedText,
                     out string serializedControlText, out IList<CharacterData> parsedTranslatedText);
 
@@ -314,9 +321,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 foreach (TranslatedTextEntry pageEntry in entry.Page.Entries)
                 {
                     if (pageEntry == entry)
-                        PersistEntry(entry, out serializedOriginalText, out serializedTranslatedText, out serializedControlText, out parsedTranslatedText);
+                        PersistEntry(pageEntry, out serializedOriginalText, out serializedTranslatedText, out serializedControlText, out parsedTranslatedText);
                     else
-                        PersistEntry(entry, out _, out _, out _, out _);
+                        PersistEntry(pageEntry, out _, out _, out _, out _);
                 }
             }
             else
@@ -374,7 +381,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _editTextEditor.IsReadOnly = true;
                 _treeView.Enabled = false;
 
-                IList<Image<Rgba32>>? previews = await _selectedPreviewPlugin.CreatePreviewPages(parsedTexts);
+                IList<Image<Rgba32>>? previews = await CreatePreviewPages(parsedTexts);
 
                 _editTextEditor.IsReadOnly = false;
                 _treeView.Enabled = true;
@@ -416,24 +423,53 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return [image];
         }
 
+        private void SetGamePreviewState(TranslatedTextEntry currentEntry)
+        {
+            IList<TextEntry> entries = [currentEntry.Entry];
+            if (currentEntry.Page is not null)
+                entries = currentEntry.Page.Page.Entries;
+
+            _selectedPreviewPluginState = CreateGamePreviewState(entries);
+        }
+
+        private void SetGamePreviewState(TranslatedTextEntryPage currentPage)
+        {
+            IList<TextEntry> entries = currentPage.Page.Entries;
+
+            _selectedPreviewPluginState = CreateGamePreviewState(entries);
+        }
+
+        private IGamePluginState? CreateGamePreviewState(IList<TextEntry> entries)
+        {
+            return _selectedPreviewPlugin?.CreatePluginState(_state.FileState.FilePath, entries, _fileManager);
+        }
+
         private ICharacterParser GetCharacterParser()
         {
-            return _selectedPreviewPlugin?.Parser ?? new CharacterParser();
+            return _selectedPreviewPluginState?.Parser ?? new CharacterParser();
         }
 
         private ICharacterSerializer GetCharacterSerializer()
         {
-            return _selectedPreviewPlugin?.Serializer ?? new CharacterSerializer();
+            return _selectedPreviewPluginState?.Serializer ?? new CharacterSerializer();
         }
 
         private ICharacterComposer GetCharacterComposer()
         {
-            return _selectedPreviewPlugin?.Composer ?? new CharacterComposer();
+            return _selectedPreviewPluginState?.Composer ?? new CharacterComposer();
         }
 
         private ICharacterDeserializer GetCharacterDeserializer()
         {
-            return _selectedPreviewPlugin?.Deserializer ?? new CharacterDeserializer();
+            return _selectedPreviewPluginState?.Deserializer ?? new CharacterDeserializer();
+        }
+
+        private async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> parsedTexts)
+        {
+            if (_selectedPreviewPluginState is null)
+                return null;
+
+            return await _selectedPreviewPluginState.CreatePreviewPages(parsedTexts);
         }
 
         #region IKuriimuForm implementation
