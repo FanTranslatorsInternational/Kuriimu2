@@ -1,5 +1,6 @@
-﻿using Konnect.Contract.Management.Files;
-using Konnect.Contract.Plugin.File;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File.Text;
+using Konnect.Contract.Management.Files;
 
 namespace Konnect.Contract.Plugin.Game
 {
@@ -9,10 +10,12 @@ namespace Konnect.Contract.Plugin.Game
     public interface IGamePlugin : IPlugin
     {
         /// <summary>
-        /// Creates an <see cref="IFilePluginState"/> to further work with the file.
+        /// Creates an <see cref="IGamePluginState"/> to further work with the file.
         /// </summary>
+        /// <param name="filePath">The relative path of the text file to identify the type of preview.</param>
+        /// <param name="entries">The text entries to identify the type of preview.</param>
         /// <param name="pluginFileManager">The plugin manager to load files with the Kuriimu runtime.</param>
-        /// <returns>Newly created <see cref="IFilePluginState"/>.</returns>
-        IGamePluginState CreatePluginState(IPluginFileManager pluginFileManager);
+        /// <returns>Newly created <see cref="IGamePluginState"/>.</returns>
+        IGamePluginState CreatePluginState(UPath filePath, IList<TextEntry> entries, IPluginFileManager pluginFileManager);
     }
 }
