@@ -2,6 +2,7 @@
 {
     public abstract class CharacterData
     {
-        public required bool IsVisible { get; init; }
+        public bool IsVisible { get; init; } = true;
+        public bool IsPersistent { get; init; } = true;
     }
 }

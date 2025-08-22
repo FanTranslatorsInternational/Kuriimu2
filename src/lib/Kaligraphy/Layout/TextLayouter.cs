@@ -175,9 +175,9 @@ namespace Kaligraphy.Layout
                     break;
 
                 default:
-                    Rectangle characterBox = GetCharacterBoundingBox(character, characterLocation, out bool isVisible);
+                    Rectangle characterBox = GetCharacterBoundingBox(character, characterLocation, out bool isVisible, out bool isPersistent);
 
-                    if (isVisible && Options.LineWidth > 0 && context.X + characterBox.Width > Options.LineWidth)
+                    if (isPersistent && Options.LineWidth > 0 && context.X + characterBox.Width > Options.LineWidth)
                     {
                         context.Lines.Add(new TextLayoutLineData
                         {
@@ -192,12 +192,13 @@ namespace Kaligraphy.Layout
                         context.Characters = new List<TextLayoutCharacterData>();
 
                         characterLocation = new Point(context.VisibleX, context.Y);
-                        characterBox = GetCharacterBoundingBox(character, characterLocation, out isVisible);
+                        characterBox = GetCharacterBoundingBox(character, characterLocation, out isVisible, out isPersistent);
                     }
 
                     Rectangle glyphBox = GetGlyphBoundingBox(character, characterLocation);
 
-                    context.X += characterBox.Width;
+                    if (isPersistent)
+                        context.X += characterBox.Width;
                     if (isVisible)
                         context.VisibleX += characterBox.Width;
 
@@ -227,9 +228,10 @@ namespace Kaligraphy.Layout
             }
         }
 
-        protected virtual Rectangle GetCharacterBoundingBox(CharacterData character, Point characterLocation, out bool isVisible)
+        protected virtual Rectangle GetCharacterBoundingBox(CharacterData character, Point characterLocation, out bool isVisible, out bool isPersistent)
         {
-            isVisible = true;
+            isVisible = character.IsVisible;
+            isPersistent = character.IsPersistent;
 
             switch (character)
             {

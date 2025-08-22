@@ -65,7 +65,7 @@ namespace Kaligraphy.Parsing
 
             length = 1;
 
-            textCharacter = new FontCharacterData { IsVisible = true, Character = context.Text[position] };
+            textCharacter = new FontCharacterData { Character = context.Text[position] };
             return true;
         }
 

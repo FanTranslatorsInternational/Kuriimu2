@@ -65,7 +65,7 @@ namespace Kaligraphy.Parsing
             if (!TryReadCharacter(context, position, out length, out char character))
                 return false;
 
-            textCharacter = new FontCharacterData { IsVisible = true, Character = character };
+            textCharacter = new FontCharacterData { Character = character };
             return true;
         }
 
