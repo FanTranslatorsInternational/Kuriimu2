@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Konnect</id>
-    <version>2.1.61</version>
+    <version>2.1.62</version>
     <description>A library containing interfaces and data models for plugins.</description>
 
     <authors>onepiecefreak;IcySon55</authors>
@@ -18,7 +18,7 @@
 
     <dependencies>
       <group targetFramework="net8.0">
-        <dependency id="Kaligraphy" version="2.1.23" />
+        <dependency id="Kaligraphy" version="2.1.24" />
         <dependency id="Kanvas" version="2.1.26" />
         <dependency id="Kompression" version="2.1.9" />
         <dependency id="Serilog" version="4.2.0" />
