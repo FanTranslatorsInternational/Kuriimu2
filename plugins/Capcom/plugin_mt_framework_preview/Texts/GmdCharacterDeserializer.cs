@@ -7,19 +7,23 @@ namespace plugin_mt_framework_preview.Texts
 {
     class GmdCharacterDeserializer : CharacterDeserializer
     {
-        protected override bool TryDeserializeControlCode(string text, int position, out int length, out ControlCodeCharacterData? controlCode)
+        protected override bool TryDeserializeControlCode(CharacterDeserializerContext context, int position, out int length,
+            out ControlCodeCharacterData? controlCode)
         {
             length = 0;
             controlCode = null;
 
-            if (text[position] != '<')
+            if (context.Text is null)
                 return false;
 
-            int endIndex = text.IndexOf('>', position);
+            if (context.Text[position] != '<')
+                return false;
+
+            int endIndex = context.Text.IndexOf('>', position);
             if (endIndex < 0)
                 return false;
 
-            if (text.IndexOf('<', position + 1, endIndex - position - 1) >= 0)
+            if (context.Text.IndexOf('<', position + 1, endIndex - position - 1) >= 0)
                 return false;
 
             var sb = new StringBuilder();
@@ -27,7 +31,7 @@ namespace plugin_mt_framework_preview.Texts
 
             for (int i = position + 1; i < endIndex; i++)
             {
-                if (text[i] is ' ')
+                if (context.Text[i] is ' ')
                 {
                     if (sb.Length > 0)
                     {
@@ -38,7 +42,7 @@ namespace plugin_mt_framework_preview.Texts
                     continue;
                 }
 
-                sb.Append(text[i]);
+                sb.Append(context.Text[i]);
             }
 
             if (sb.Length > 0)
@@ -51,7 +55,8 @@ namespace plugin_mt_framework_preview.Texts
             controlCode = new GmdControlCodeCharacterData
             {
                 Code = args[0],
-                Arguments = args.Count <= 1 ? [] : args[1..]
+                Arguments = args.Count <= 1 ? [] : args[1..],
+                IsVisible = false
             };
 
             return true;

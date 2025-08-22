@@ -1,5 +1,4 @@
-﻿using Kaligraphy.Contract.DataClasses.Parsing;
-using Kaligraphy.Contract.Parsing;
+﻿using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
@@ -22,7 +21,7 @@ using Kaligraphy.Contract.Rendering;
 using Kaligraphy.Enums.Layout;
 using Serilog.Core;
 
-namespace plugin_level5_preview.Preview
+namespace plugin_level5_preview.Preview.Subtitle
 {
     class TimeTravelersSubtitleState : IGamePluginState
     {
@@ -30,17 +29,17 @@ namespace plugin_level5_preview.Preview
 
         private IReadOnlyList<CharacterInfo>? _loadedFont;
 
-        public ICharacterParser? Parser { get; }
-        public ICharacterComposer? Composer { get; }
-        public ICharacterSerializer? Serializer { get; }
-        public ICharacterDeserializer? Deserializer { get; }
+        public ICharacterParser? Parser { get; } = new SubtitleCharacterParser();
+        public ICharacterComposer? Composer { get; } = new TimeTravelersCharacterComposer();
+        public ICharacterSerializer? Serializer { get; } = new TimeTravelersCharacterSerializer();
+        public ICharacterDeserializer? Deserializer { get; } = new TimeTravelersCharacterDeserializer();
 
         public TimeTravelersSubtitleState(IPluginFileManager pluginFileManager)
         {
             _pluginManager = pluginFileManager;
         }
 
-        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> characters)
+        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<Kaligraphy.Contract.DataClasses.Parsing.CharacterData>> characters)
         {
             IReadOnlyList<CharacterInfo>? font = await GetFont();
             if (font is null)
@@ -54,7 +53,7 @@ namespace plugin_level5_preview.Preview
             var renderer = GetRenderer(glyphProvider);
 
             var initPoint = new Point(0, 15);
-            foreach (IList<CharacterData> characterSet in characters)
+            foreach (IList<Kaligraphy.Contract.DataClasses.Parsing.CharacterData> characterSet in characters)
             {
                 var layout = layouter.Create(characterSet, initPoint, screen.Size);
                 renderer.Render(screen, layout);

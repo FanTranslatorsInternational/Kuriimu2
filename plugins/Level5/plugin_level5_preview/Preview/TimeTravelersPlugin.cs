@@ -4,6 +4,8 @@ using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.Game;
+using plugin_level5_preview.Preview.Narration;
+using plugin_level5_preview.Preview.Subtitle;
 
 namespace plugin_level5_preview.Preview
 {

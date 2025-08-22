@@ -7,7 +7,7 @@ namespace plugin_mt_framework_preview.Texts
 {
     class GmdCharacterParser : CharacterParser
     {
-        protected override bool TryParseControlCode(ParseContext context, int position, out int length, out ControlCodeCharacterData? controlCode)
+        protected override bool TryParseControlCode(CharacterParserContext context, int position, out int length, out ControlCodeCharacterData? controlCode)
         {
             controlCode = null;
 
@@ -22,7 +22,7 @@ namespace plugin_mt_framework_preview.Texts
             var sb = new StringBuilder();
             var args = new List<string>();
 
-            while (position < context.Data.Length)
+            while (position < context.Data!.Length)
             {
                 if (!TryReadCharacter(context, position, out int byteLength, out character))
                     return false;
@@ -44,7 +44,8 @@ namespace plugin_mt_framework_preview.Texts
                     controlCode = new GmdControlCodeCharacterData
                     {
                         Code = args[0],
-                        Arguments = args.Count <= 1 ? [] : args[1..]
+                        Arguments = args.Count <= 1 ? [] : args[1..],
+                        IsVisible = false
                     };
                     return true;
                 }
@@ -66,9 +67,10 @@ namespace plugin_mt_framework_preview.Texts
             return false;
         }
 
-        protected override bool IsLineBreak(ParseContext context, int position, out int length)
+        protected override bool IsLineBreak(CharacterParserContext context, int position, out int length, out string lineBreak)
         {
             length = 0;
+            lineBreak = string.Empty;
 
             if (!TryReadCharacter(context, position, out int byteCount, out char character))
                 return false;
@@ -76,7 +78,7 @@ namespace plugin_mt_framework_preview.Texts
             length += byteCount;
             position += byteCount;
 
-            if (position >= context.Data.Length)
+            if (position >= context.Data!.Length)
                 return false;
 
             if (!TryReadCharacter(context, position, out byteCount, out char character1))
@@ -84,7 +86,13 @@ namespace plugin_mt_framework_preview.Texts
 
             length += byteCount;
 
-            return character == '\r' && character1 == '\n';
+            bool isLineBreak = character == '\r' && character1 == '\n';
+
+            if (!isLineBreak)
+                return false;
+
+            lineBreak = $"{character}{character1}";
+            return true;
         }
     }
 }
