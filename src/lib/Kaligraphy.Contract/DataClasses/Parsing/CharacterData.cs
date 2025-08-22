@@ -2,6 +2,6 @@
 {
     public abstract class CharacterData
     {
-        public abstract bool IsVisible { get; }
+        public required bool IsVisible { get; init; }
     }
 }

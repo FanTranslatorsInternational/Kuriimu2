@@ -46,8 +46,8 @@ namespace Kaligraphy.Parsing
         {
             switch (character)
             {
-                case LineBreakCharacterData:
-                    return encoding.GetBytes("\n");
+                case LineBreakCharacterData lineBreak:
+                    return encoding.GetBytes(lineBreak.LineBreak);
 
                 case FontCharacterData fontCharacter:
                     return encoding.GetBytes($"{(char)fontCharacter.Character}");

@@ -46,8 +46,8 @@ namespace Kaligraphy.Parsing
         {
             switch (character)
             {
-                case LineBreakCharacterData:
-                    return "\n";
+                case LineBreakCharacterData lineBreak:
+                    return lineBreak.LineBreak;
 
                 case FontCharacterData fontCharacter:
                     return $"{(char)fontCharacter.Character}";

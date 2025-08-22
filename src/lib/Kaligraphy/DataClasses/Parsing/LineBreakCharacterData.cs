@@ -2,6 +2,6 @@
 {
     public class LineBreakCharacterData : TextCharacterData
     {
-        public override bool IsVisible => false;
+        public required string LineBreak { get; init; }
     }
 }
