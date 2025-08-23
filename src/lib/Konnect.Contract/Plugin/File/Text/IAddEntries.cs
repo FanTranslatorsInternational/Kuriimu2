@@ -8,6 +8,11 @@ namespace Konnect.Contract.Plugin.File.Text
     public interface IAddEntries : ITextFilePluginState
     {
         /// <summary>
+        /// Determine if the name of a new entry can be set before adding.
+        /// </summary>
+        bool CanSetNewEntryName { get; }
+
+        /// <summary>
         /// Creates a new entry and allows the plugin to provide its derived type.
         /// </summary>
         /// <param name="page">The page this new entry is created for. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
