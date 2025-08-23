@@ -5,7 +5,7 @@ namespace Konnect.Contract.Plugin.File.Text
     /// <summary>
     /// This interface allows the text adapter to delete entries through the UI.
     /// </summary>
-    public interface IDeleteEntries : ITextFilePluginState
+    public interface IRemoveEntries : ITextFilePluginState
     {
         /// <summary>
         /// Deletes an entry and allows the plugin to perform any required deletion steps.
@@ -13,6 +13,6 @@ namespace Konnect.Contract.Plugin.File.Text
         /// <param name="entry">The entry to be deleted.</param>
         /// <param name="page">The page this entry needs to be deleted from. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
         /// <returns><see langword="true"/> if the entry was successfully deleted, <see langword="false"/> otherwise.</returns>
-        bool DeleteEntry(TextEntry entry, TextEntryPage? page = null);
+        bool RemoveEntry(TextEntry entry, TextEntryPage? page = null);
     }
 }

@@ -13,7 +13,7 @@ namespace Konnect.Contract.Plugin.File.Text
         #region Optional feature checks
 
         public bool CanAddEntry => this is IAddEntries;
-        public bool CanDeleteEntry => this is IDeleteEntries;
+        public bool CanRemoveEntry => this is IRemoveEntries;
         public bool CanRenameEntry => this is IRenameEntries;
 
         #endregion
