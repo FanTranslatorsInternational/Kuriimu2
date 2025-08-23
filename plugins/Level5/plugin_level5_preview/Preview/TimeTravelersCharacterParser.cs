@@ -19,31 +19,31 @@ namespace plugin_level5_preview.Preview
             {
                 if (IsTipStart(context, position, out length, out int tipNumber))
                 {
-                    controlCode = new TipStartControlCodeCharacterData { IsVisible = false, TipNumber = tipNumber };
+                    controlCode = new TipStartControlCodeCharacterData { IsVisible = false, IsPersistent = false, TipNumber = tipNumber };
                     return true;
                 }
 
                 if (IsTipEnd(context, position, out length))
                 {
-                    controlCode = new TipEndControlCodeCharacterData { IsVisible = false };
+                    controlCode = new TipEndControlCodeCharacterData { IsVisible = false, IsPersistent = false };
                     return true;
                 }
 
                 if (IsIcon(context, position, out length, out string iconName))
                 {
-                    controlCode = new IconControlCodeCharacterData { IsVisible = false, IconName = iconName };
+                    controlCode = new IconControlCodeCharacterData { IsVisible = false, IsPersistent = false, IconName = iconName };
                     return true;
                 }
 
                 if (IsBlank(context, position, out length, out int width))
                 {
-                    controlCode = new BlankControlCodeCharacterData { IsVisible = false, Width = width };
+                    controlCode = new BlankControlCodeCharacterData { IsVisible = false, IsPersistent = false, Width = width };
                     return true;
                 }
 
                 if (IsControlCode(context, position, out length, out string controlCodeText))
                 {
-                    controlCode = new GenericControlCodeCharacterData { IsVisible = false, Code = controlCodeText };
+                    controlCode = new GenericControlCodeCharacterData { IsVisible = false, IsPersistent = false, Code = controlCodeText };
                     return true;
                 }
             }
@@ -70,7 +70,7 @@ namespace plugin_level5_preview.Preview
                 context.IsFuriganaBottom = true;
                 context.IsFuriganaTop = false;
 
-                textCharacter = new FuriganaStartCharacterData { IsVisible = false, Character = character };
+                textCharacter = new FuriganaStartCharacterData { IsVisible = false, IsPersistent = false, Character = character };
                 return true;
             }
 
@@ -79,7 +79,7 @@ namespace plugin_level5_preview.Preview
                 context.IsFuriganaBottom = false;
                 context.IsFuriganaTop = true;
 
-                textCharacter = new FuriganaSplitCharacterData { IsVisible = false, Character = character };
+                textCharacter = new FuriganaSplitCharacterData { IsVisible = false, IsPersistent = false, Character = character };
                 return true;
             }
 
@@ -88,11 +88,11 @@ namespace plugin_level5_preview.Preview
                 context.IsFuriganaBottom = false;
                 context.IsFuriganaTop = false;
 
-                textCharacter = new FuriganaEndCharacterData { IsVisible = false, Character = character };
+                textCharacter = new FuriganaEndCharacterData { IsVisible = false, IsPersistent = false, Character = character };
                 return true;
             }
 
-            textCharacter = new FontCharacterData { IsVisible = !context.IsFuriganaTop, Character = character };
+            textCharacter = new FontCharacterData { IsVisible = !context.IsFuriganaTop, IsPersistent = !context.IsFuriganaTop, Character = character };
             return true;
         }
 

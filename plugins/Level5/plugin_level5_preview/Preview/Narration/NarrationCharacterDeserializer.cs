@@ -2,11 +2,12 @@
 
 namespace plugin_level5_preview.Preview.Narration
 {
-    internal class NarrationCharacterParser : TimeTravelersCharacterParser<TimeTravelersParserContext>
+    class NarrationCharacterDeserializer : TimeTravelersCharacterDeserializer<TimeTravelersDeserializerContext>
     {
-        protected override bool TryParseCharacter(TimeTravelersParserContext context, int position, out int length, out TextCharacterData? textCharacter)
+        protected override bool TryDeserializeCharacter(TimeTravelersDeserializerContext context, int position, out int length,
+            out TextCharacterData? textCharacter)
         {
-            bool isValid = base.TryParseCharacter(context, position, out length, out textCharacter);
+            bool isValid = base.TryDeserializeCharacter(context, position, out length, out textCharacter);
 
             if (!isValid)
                 return false;

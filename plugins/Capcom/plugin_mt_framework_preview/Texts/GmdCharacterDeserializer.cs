@@ -56,9 +56,21 @@ namespace plugin_mt_framework_preview.Texts
             {
                 Code = args[0],
                 Arguments = args.Count <= 1 ? [] : args[1..],
-                IsVisible = false
+                IsVisible = false,
+                IsPersistent = false
             };
 
+            return true;
+        }
+
+        protected override bool IsLineBreak(CharacterDeserializerContext context, int position, out int length, out string lineBreak)
+        {
+            bool isValid = base.IsLineBreak(context, position, out length, out lineBreak);
+            
+            if (!isValid)
+                return false;
+
+            lineBreak = "\r\n";
             return true;
         }
     }

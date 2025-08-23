@@ -34,7 +34,7 @@ namespace plugin_level5_preview.Preview.Narration
         public ICharacterParser? Parser { get; } = new NarrationCharacterParser();
         public ICharacterComposer? Composer { get; } = new TimeTravelersCharacterComposer();
         public ICharacterSerializer? Serializer { get; } = new TimeTravelersCharacterSerializer();
-        public ICharacterDeserializer? Deserializer { get; } = new TimeTravelersCharacterDeserializer();
+        public ICharacterDeserializer? Deserializer { get; } = new NarrationCharacterDeserializer();
 
         public TimeTravelersNarrationState(IPluginFileManager pluginFileManager)
         {

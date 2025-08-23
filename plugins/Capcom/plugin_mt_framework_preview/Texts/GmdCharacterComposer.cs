@@ -37,8 +37,8 @@ namespace plugin_mt_framework_preview.Texts
         {
             switch (character)
             {
-                case LineBreakCharacterData:
-                    return encoding.GetBytes("\r\n");
+                case LineBreakCharacterData lineBreak:
+                    return encoding.GetBytes(lineBreak.LineBreak);
             }
 
             return base.ComposeCharacter(character, encoding);

@@ -45,7 +45,8 @@ namespace plugin_mt_framework_preview.Texts
                     {
                         Code = args[0],
                         Arguments = args.Count <= 1 ? [] : args[1..],
-                        IsVisible = false
+                        IsVisible = false,
+                        IsPersistent = false
                     };
                     return true;
                 }

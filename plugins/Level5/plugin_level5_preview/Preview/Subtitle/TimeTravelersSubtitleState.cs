@@ -32,7 +32,7 @@ namespace plugin_level5_preview.Preview.Subtitle
         public ICharacterParser? Parser { get; } = new SubtitleCharacterParser();
         public ICharacterComposer? Composer { get; } = new TimeTravelersCharacterComposer();
         public ICharacterSerializer? Serializer { get; } = new TimeTravelersCharacterSerializer();
-        public ICharacterDeserializer? Deserializer { get; } = new TimeTravelersCharacterDeserializer();
+        public ICharacterDeserializer? Deserializer { get; } = new SubtitleCharacterDeserializer();
 
         public TimeTravelersSubtitleState(IPluginFileManager pluginFileManager)
         {

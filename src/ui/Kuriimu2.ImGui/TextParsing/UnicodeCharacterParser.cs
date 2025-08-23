@@ -7,13 +7,13 @@ namespace Kuriimu2.ImGui.TextParsing
 {
     class UnicodeCharacterParser : CharacterParser
     {
-        protected override bool TryParseCharacter(ParseContext context, int position, out int length, out TextCharacterData? textCharacter)
+        protected override bool TryParseCharacter(CharacterParserContext context, int position, out int length, out TextCharacterData? textCharacter)
         {
             if (IsUnicode(context, position, out int unicodeLength, out length))
             {
                 Span<byte> data = context.Data.AsSpan(position + (length - unicodeLength), unicodeLength);
                 Span<char> chars = new char[4];
-                context.EncodingDecoder.Convert(data, chars, false, out _, out _, out _);
+                context.EncodingDecoder!.Convert(data, chars, false, out _, out _, out _);
 
                 textCharacter = new FontCharacterData { Character = ushort.Parse(chars, NumberStyles.HexNumber) };
 
@@ -23,7 +23,7 @@ namespace Kuriimu2.ImGui.TextParsing
             return base.TryParseCharacter(context, position, out length, out textCharacter);
         }
 
-        private static bool IsUnicode(ParseContext context, int position, out int unicodeLength, out int length)
+        private static bool IsUnicode(CharacterParserContext context, int position, out int unicodeLength, out int length)
         {
             length = 0;
             unicodeLength = 0;
@@ -37,7 +37,7 @@ namespace Kuriimu2.ImGui.TextParsing
             length += byteCount;
             position += byteCount;
 
-            if (position >= context.Data.Length)
+            if (position >= context.Data!.Length)
                 return false;
 
             if (!TryReadCharacter(context, position, out byteCount, out character))
