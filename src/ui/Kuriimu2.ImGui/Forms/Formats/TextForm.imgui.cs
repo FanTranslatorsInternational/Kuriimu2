@@ -17,6 +17,8 @@ using Veldrid;
 using Rectangle = Veldrid.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 using Kuriimu2.ImGui.Models.Forms.Formats;
+using ImGui.Forms.Controls.Menu;
+using ImGui.Forms.Models.IO;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -39,6 +41,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ArrowButton _previousPageBtn;
         private ArrowButton _nextPageBtn;
 
+        private ContextMenu _entryContext;
+
+        private MenuBarButton _renameEntryButton;
+        private MenuBarButton _addEntryButton;
+        private MenuBarButton _deleteEntryButton;
+
         private IGamePlugin? _selectedPreviewPlugin;
         private IGamePluginState? _selectedPreviewPluginState;
         private readonly List<TranslatedTextEntry> _translatedTextEntries = [];
@@ -46,8 +54,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void InitializeComponent()
         {
             #region Controls
-
-            _treeView = new TreeView<object> { Size = new Size(.2f, SizeValue.Parent) };
 
             _origTextEditor = new TextEditor { IsReadOnly = true };
             _editTextEditor = new TextEditor();
@@ -78,6 +84,26 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(Key.Left) };
             _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(Key.Right) };
+
+            _renameEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextRename };
+            _addEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextAdd };
+            _deleteEntryButton = new MenuBarButton
+            {
+                Text = LocalizationResources.TextContextDelete,
+                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.TextContextDeleteShortcut)
+            };
+
+            _entryContext = new ContextMenu
+            {
+                Items =
+                {
+                    _renameEntryButton,
+                    _addEntryButton,
+                    _deleteEntryButton
+                }
+            };
+
+            _treeView = new TreeView<object> { Size = new Size(.2f, SizeValue.Parent), ContextMenu = _entryContext };
 
             #endregion
 
@@ -279,6 +305,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
         protected override void UpdateInternal(Rectangle contentRect)
         {
             _mainLayout.Update(contentRect);
+
+            if (DeleteCommand.IsPressed())
+                DeleteSelectedEntry();
         }
 
         #endregion

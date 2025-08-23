@@ -327,6 +327,24 @@
   "Text.Preview.Default": "Default",
   "Text.Preview.TextChanged": "Switching the preview plugin will lose already made changes wihout saving. Continue?",
 
+  // Context
+  "Text.Context.Rename": "Rename",
+  "Text.Context.Add": "Add",
+  "Text.Context.Delete": "Delete",
+  "Text.Context.Delete.Shortcut": "Del",
+
+  // Rename
+  "Text.Rename.Caption": "Rename",
+  "Text.Rename.Text": "Enter new name",
+
+  // Text Status
+  "Text.Status.Rename.Success": "Renaming text entry successful.",
+  "Text.Status.Rename.Failure": "Renaming text entry failed.",
+  "Text.Status.Add.Success": "Adding text entry successful.",
+  "Text.Status.Add.Failure": "Adding text entry failed.",
+  "Text.Status.Delete.Success": "Removing text entry successful.",
+  "Text.Status.Delete.Failure": "Removing text entry failed.",
+
   // Dialogs
 
   // Dialog Manager

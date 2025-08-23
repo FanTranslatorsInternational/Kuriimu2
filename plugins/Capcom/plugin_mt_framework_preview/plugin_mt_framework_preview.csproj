@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Kaligraphy" Version="2.1.24" />
-    <PackageReference Include="Konnect" Version="2.1.62" />
+    <PackageReference Include="Konnect" Version="2.1.64" />
   </ItemGroup>
 
 </Project>

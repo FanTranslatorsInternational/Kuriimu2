@@ -1,4 +1,5 @@
-﻿using Konnect.Contract.DataClasses.FileSystem;
+﻿using System.Text;
+using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.FileSystem;
@@ -7,13 +8,14 @@ using Konnect.Contract.Plugin.File.Text;
 
 namespace plugin_mt_framework.Texts
 {
-    class GmdState : ILoadFiles, ISaveFiles, ITextFilePluginState
+    class GmdState : ILoadFiles, ISaveFiles, IRenameEntries, IAddEntries, IRemoveEntries
     {
         private readonly Gmdv1 _gmd1 = new();
         private readonly Gmdv2 _gmd2 = new();
 
         private GmdVersion _version;
         private List<TextEntry> _texts;
+        private bool _hasDeletedEntries;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
         public IReadOnlyList<Guid>? Previews { get; } = [
@@ -22,10 +24,14 @@ namespace plugin_mt_framework.Texts
         ];
         public ITextEntryPager? Pager { get; } = null;
 
+        public bool CanSetNewEntryName { get; } = true;
+
         public bool ContentChanged => IsContentChanged();
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
+            _hasDeletedEntries = false;
+
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             if (!GmdSupport.TryGetVersion(fileStream, out GmdVersion version))
@@ -61,7 +67,37 @@ namespace plugin_mt_framework.Texts
 
         private bool IsContentChanged()
         {
-            return _texts.Any(x => x.ContentChanged);
+            return _texts.Any(x => x.ContentChanged) || _hasDeletedEntries;
+        }
+
+        public bool RenameEntry(TextEntry entry, string name)
+        {
+            entry.Name = name;
+            return true;
+        }
+
+        public bool RemoveEntry(TextEntry entry, TextEntryPage? page = null)
+        {
+            _texts.Remove(entry);
+
+            _hasDeletedEntries = true;
+            return true;
+        }
+
+        public TextEntry NewEntry(TextEntryPage? page = null)
+        {
+            return new TextEntry
+            {
+                TextData = [],
+                Encoding = Encoding.UTF8,
+                ContentChanged = true
+            };
+        }
+
+        public bool AddEntry(TextEntry entry, TextEntryPage? page = null)
+        {
+            _texts.Add(entry);
+            return true;
         }
     }
 }

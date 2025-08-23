@@ -20,17 +20,24 @@ using System;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.Game;
 using Kuriimu2.ImGui.Resources;
 using Point = SixLabors.ImageSharp.Point;
+using ImGui.Forms.Models.IO;
+using Veldrid;
+using System.Xml.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class TextForm : IKuriimuForm
     {
+        private static readonly KeyCommand DeleteCommand = new(Key.Delete);
+
         private readonly FormInfo<ITextFilePluginState> _state;
         private readonly IPluginManager _pluginManager;
         private readonly IFileManager _fileManager;
@@ -60,6 +67,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _previousPageBtn.Clicked += _previousPageBtn_Clicked;
             _nextPageBtn.Clicked += _nextPageBtn_Clicked;
 
+            _renameEntryButton.Clicked += _renameEntryButton_Clicked;
+            _addEntryButton.Clicked += _addEntryButton_Clicked;
+            _deleteEntryButton.Clicked += _deleteEntryButton_Clicked;
+
             Task.Run(StartupForm);
         }
 
@@ -67,6 +78,292 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             await UpdateTextAndPreview();
             UpdateFormInternal();
+        }
+
+        private async void _renameEntryButton_Clicked(object? sender, EventArgs e)
+        {
+            if (!_state.PluginState.CanRenameEntry)
+                return;
+
+            await RenameSelectedEntry();
+        }
+
+        private async Task RenameSelectedEntry()
+        {
+            TreeNode<object> node = _treeView.SelectedNode;
+
+            if (node?.Data is not TranslatedTextEntry entry)
+                return;
+
+            await RenameEntry(entry, node);
+        }
+
+        private async Task RenameEntry(TranslatedTextEntry entry, TreeNode<object> node)
+        {
+            string newName = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText,
+                entry.Entry.Name ?? string.Empty);
+
+            if (string.IsNullOrEmpty(newName))
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusRenameFailure);
+                return;
+            }
+
+            var renameState = (IRenameEntries)_state.PluginState;
+            bool wasRenamed = renameState.RenameEntry(entry.Entry, newName);
+
+            if (!wasRenamed)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusRenameFailure);
+                return;
+            }
+
+            entry.Entry.ContentChanged = true;
+
+            node.Text = newName;
+            node.TextColor = ColorResources.Changed;
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusRenameSuccess);
+
+            UpdateFormInternal();
+        }
+
+        private async void _addEntryButton_Clicked(object? sender, EventArgs e)
+        {
+            if (!_state.PluginState.CanAddEntry)
+                return;
+
+            await AddSelectedEntry();
+        }
+
+        private async Task AddSelectedEntry()
+        {
+            TreeNode<object> node = _treeView.SelectedNode;
+
+            switch (node?.Data)
+            {
+                case TranslatedTextEntry entry:
+                    await AddEntry(entry, node);
+                    break;
+
+                case TranslatedTextEntryPage page:
+                    await AddEntry(page, node);
+                    break;
+            }
+        }
+
+        private async Task AddEntry(TranslatedTextEntry entry, TreeNode<object> node)
+        {
+            var addState = (IAddEntries)_state.PluginState;
+
+            IList<TreeNode<object>> nodes = entry.Page is null ? _treeView.Nodes : node.Parent.Nodes;
+
+            TextEntry newEntry = addState.NewEntry(entry.Page?.Page);
+
+            if (addState.CanSetNewEntryName)
+                newEntry.Name = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, string.Empty);
+
+            bool wasAdded = addState.AddEntry(newEntry, entry.Page?.Page);
+
+            if (!wasAdded)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusAddFailure);
+                return;
+            }
+
+            newEntry.ContentChanged = true;
+
+            var translatedEntry = new TranslatedTextEntry
+            {
+                Entry = newEntry,
+                OriginalTextData = newEntry.TextData,
+                Page = entry.Page
+            };
+            _translatedTextEntries.Add(translatedEntry);
+
+            entry.Page?.Entries.Add(translatedEntry);
+
+            nodes.Add(new TreeNode<object>
+            {
+                Text = newEntry.Name ?? $"no_name_{nodes.Count:00}",
+                Data = translatedEntry,
+                TextColor = ColorResources.Changed,
+                IsExpanded = true
+            });
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
+
+            _previewPages = null;
+            _previewPageIndex = -1;
+
+            await UpdateTextAndPreview();
+            UpdateFormInternal();
+        }
+
+        private async Task AddEntry(TranslatedTextEntryPage entryPage, TreeNode<object> node)
+        {
+            var addState = (IAddEntries)_state.PluginState;
+
+            TextEntry newEntry = addState.NewEntry(entryPage.Page);
+
+            if (addState.CanSetNewEntryName)
+                newEntry.Name = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, string.Empty);
+
+            bool wasAdded = addState.AddEntry(newEntry, entryPage.Page);
+
+            if (!wasAdded)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusAddFailure);
+                return;
+            }
+
+            newEntry.ContentChanged = true;
+
+            var translatedEntry = new TranslatedTextEntry
+            {
+                Entry = newEntry,
+                OriginalTextData = newEntry.TextData,
+                Page = entryPage
+            };
+            _translatedTextEntries.Add(translatedEntry);
+
+            entryPage.Entries.Add(translatedEntry);
+
+            node.Nodes.Add(new TreeNode<object>
+            {
+                Text = newEntry.Name ?? $"no_name_{node.Nodes.Count:00}",
+                Data = translatedEntry,
+                TextColor = ColorResources.Changed,
+                IsExpanded = true
+            });
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
+
+            _previewPages = null;
+            _previewPageIndex = -1;
+
+            await UpdateTextAndPreview();
+            UpdateFormInternal();
+        }
+
+        private void _deleteEntryButton_Clicked(object? sender, EventArgs e)
+        {
+            if (!_state.PluginState.CanRemoveEntry)
+                return;
+
+            DeleteSelectedEntry();
+        }
+
+        private void DeleteSelectedEntry()
+        {
+            TreeNode<object> node = _treeView.SelectedNode;
+
+            switch (node?.Data)
+            {
+                case TranslatedTextEntry entry:
+                    DeleteEntry(entry, node);
+                    break;
+
+                case TranslatedTextEntryPage entryPage:
+                    DeleteEntry(entryPage, node);
+                    break;
+            }
+        }
+
+        private void DeleteEntry(TranslatedTextEntry entry, TreeNode<object> node)
+        {
+            var removeState = (IRemoveEntries)_state.PluginState;
+
+            bool wasRemoved = removeState.RemoveEntry(entry.Entry, entry.Page?.Page);
+            if (!wasRemoved)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusDeleteFailure);
+                return;
+            }
+
+            TreeNode<object>? selectedNode = null;
+            if (entry.Page is null)
+            {
+                int nodeIndex = _treeView.Nodes.IndexOf(node);
+
+                _treeView.Nodes.Remove(node);
+
+                if (_treeView.Nodes.Count > 0)
+                    selectedNode = _treeView.Nodes[Math.Max(0, nodeIndex - 1)];
+            }
+            else
+            {
+                TreeNode<object> pageNode = node.Parent;
+
+                int nodeIndex = pageNode.Nodes.IndexOf(node);
+                int pageIndex = _treeView.Nodes.IndexOf(pageNode);
+
+                pageNode.Nodes.Remove(node);
+
+                entry.Page.Entries.Remove(entry);
+                if (entry.Page.Entries.Count <= 0)
+                    _treeView.Nodes.Remove(pageNode);
+
+                if (pageNode.Nodes.Count > 0)
+                    selectedNode = pageNode.Nodes[Math.Max(0, nodeIndex - 1)];
+                else if (_treeView.Nodes.Count > 0)
+                    selectedNode = _treeView.Nodes[Math.Max(0, pageIndex - 1)];
+            }
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusDeleteSuccess);
+
+            _previewPages = null;
+            _previewPageIndex = -1;
+
+            _serializedOriginalTexts.Remove(entry);
+            _serializedTranslatedTexts.Remove(entry);
+            _serializedControlTexts.Remove(entry);
+            _parsedTranslatedTexts.Remove(entry);
+
+            _treeView.SelectedNode = selectedNode;
+        }
+
+        private void DeleteEntry(TranslatedTextEntryPage entryPage, TreeNode<object> node)
+        {
+            var removeState = (IRemoveEntries)_state.PluginState;
+
+            TreeNode<object>[] nodes = node.Nodes.ToArray();
+            foreach (TreeNode<object> entryNode in nodes)
+            {
+                var entry = (TranslatedTextEntry)entryNode.Data;
+
+                bool wasRemoved1 = removeState.RemoveEntry(entry.Entry, entryPage.Page);
+                if (!wasRemoved1)
+                    continue;
+
+                entryPage.Entries.Remove(entry);
+                node.Nodes.Remove(entryNode);
+
+                _serializedOriginalTexts.Remove(entry);
+                _serializedTranslatedTexts.Remove(entry);
+                _serializedControlTexts.Remove(entry);
+                _parsedTranslatedTexts.Remove(entry);
+            }
+
+            int nodeIndex = _treeView.Nodes.IndexOf(node);
+
+            _treeView.Nodes.Remove(node);
+
+            TreeNode<object>? selectedNode = null;
+            if (_treeView.Nodes.Count > 0)
+                selectedNode = _treeView.Nodes[Math.Max(0, nodeIndex - 1)];
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusDeleteSuccess);
+
+            _previewPages = null;
+            _previewPageIndex = -1;
+
+            _treeView.SelectedNode = selectedNode;
         }
 
         private void _previousPageBtn_Clicked(object? sender, EventArgs e)
@@ -117,6 +414,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _serializedTranslatedTexts[entry] = translatedText;
             _parsedTranslatedTexts[entry] = deserializedText;
             _serializedControlTexts[entry] = serializedControlText;
+
+            _controlTextEditor.SetText(serializedControlText);
 
             IList<IList<CharacterData>> allParsedTranslatedTexts = entry.Page is not null
                 ? GetParsedPageCharacters(entry.Page)
@@ -242,6 +541,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _previousPageBtn.Enabled = _previewPageIndex > 0;
             _nextPageBtn.Enabled = _previewPageIndex < _previewPages?.Count - 1;
+
+            _renameEntryButton.Enabled = _state.PluginState.CanRenameEntry && _treeView.SelectedNode?.Data is TranslatedTextEntry;
+            _addEntryButton.Enabled = _state.PluginState.CanAddEntry;
+            _deleteEntryButton.Enabled = _state.PluginState.CanRemoveEntry;
         }
 
         private async Task UpdateTextAndPreview()

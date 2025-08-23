@@ -3,6 +3,7 @@ using ImGui.Forms.Localization;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Kuriimu2.ImGui.Resources
 {
@@ -75,7 +76,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsCompressionsInputFolder => LocalizedString.FromId("Menu.Tools.Compressions.Input.Folder");
         public static LocalizedString MenuToolsCompressionsInputFile => LocalizedString.FromId("Menu.Tools.Compressions.Input.File");
         public static LocalizedString MenuToolsCompressionsInputSubDirectories => LocalizedString.FromId("Menu.Tools.Compressions.Input.SubDirectories");
-        public static LocalizedString MenuToolsCompressionsLogProcess(string filePath) 
+        public static LocalizedString MenuToolsCompressionsLogProcess(string filePath)
             => LocalizedString.FromId("Menu.Tools.Compressions.Log.Process", () => filePath);
         public static LocalizedString MenuToolsCompressionsLogError(string filePath)
             => LocalizedString.FromId("Menu.Tools.Compressions.Log.Error", () => filePath);
@@ -307,7 +308,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
 
         // Preview
-        public static LocalizedString FontPreviewPlaceholder=> LocalizedString.FromId("Font.Preview.Placeholder");
+        public static LocalizedString FontPreviewPlaceholder => LocalizedString.FromId("Font.Preview.Placeholder");
         public static LocalizedString FontPreviewExport => LocalizedString.FromId("Font.Preview.Export");
         public static LocalizedString FontPreviewSettings => LocalizedString.FromId("Font.Preview.Settings");
 
@@ -330,6 +331,24 @@ namespace Kuriimu2.ImGui.Resources
         // Preview
         public static LocalizedString TextPreviewDefault => LocalizedString.FromId("Text.Preview.Default");
         public static LocalizedString TextPreviewTextChanged => LocalizedString.FromId("Text.Preview.TextChanged");
+
+        // Context
+        public static LocalizedString TextContextRename => LocalizedString.FromId("Text.Context.Rename");
+        public static LocalizedString TextContextAdd => LocalizedString.FromId("Text.Context.Add");
+        public static LocalizedString TextContextDelete => LocalizedString.FromId("Text.Context.Delete");
+        public static LocalizedString TextContextDeleteShortcut => LocalizedString.FromId("Text.Context.Delete.Shortcut");
+
+        // Rename
+        public static LocalizedString TextRenameCaption => LocalizedString.FromId("Text.Rename.Caption");
+        public static LocalizedString TextRenameText => LocalizedString.FromId("Text.Rename.Text");
+
+        // Text Status
+        public static LocalizedString TextStatusRenameSuccess => LocalizedString.FromId("Text.Status.Rename.Success");
+        public static LocalizedString TextStatusRenameFailure => LocalizedString.FromId("Text.Status.Rename.Failure");
+        public static LocalizedString TextStatusAddSuccess => LocalizedString.FromId("Text.Status.Add.Success");
+        public static LocalizedString TextStatusAddFailure => LocalizedString.FromId("Text.Status.Add.Failure");
+        public static LocalizedString TextStatusDeleteSuccess => LocalizedString.FromId("Text.Status.Delete.Success");
+        public static LocalizedString TextStatusDeleteFailure => LocalizedString.FromId("Text.Status.Delete.Failure");
 
         // Dialogs
 

@@ -10,7 +10,7 @@ using plugin_level5.Common.ConfigBinary.Models;
 
 namespace plugin_level5.Common.Plugins
 {
-    class RawCfgBinState : ITextFilePluginState, ILoadFiles, ISaveFiles
+    class RawCfgBinState : ILoadFiles, ISaveFiles, IAddEntries, IRemoveEntries
     {
         private readonly RawConfigurationReader _reader = new();
         private readonly RawConfigurationWriter _writer = new();
@@ -19,15 +19,20 @@ namespace plugin_level5.Common.Plugins
 
         private EventTextConfiguration _config;
         private List<EventTextEntry> _texts;
+        private bool _hasRemovedEntries;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
         public IReadOnlyList<Guid>? Previews { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47")];
         public ITextEntryPager? Pager { get; } = new EventPager();
 
+        public bool CanSetNewEntryName => false;
+
         public bool ContentChanged => IsContentChanged();
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
+            _hasRemovedEntries = false;
+
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
 
             Configuration<RawConfigurationEntry> config = _reader.Read(fileStream, StringEncoding.Sjis);
@@ -46,9 +51,61 @@ namespace plugin_level5.Common.Plugins
             _writer.Write(config, fileStream);
         }
 
+        public TextEntry NewEntry(TextEntryPage? page = null)
+        {
+            uint hash = ((EventTextEntry)page?.Entries[0]!).Entry.Hash;
+            int subId = ((EventTextEntry)page?.Entries[^1]!).Entry.SubId;
+
+            var entry = new EventTextEntry
+            {
+                TextData = [],
+                Encoding = _config.StringEncoding switch
+                {
+                    StringEncoding.Sjis => Encoding.GetEncoding("Shift-JIS"),
+                    StringEncoding.Utf8 => Encoding.UTF8,
+                    _ => throw new InvalidOperationException($"Unknown string encoding {_config.StringEncoding}.")
+                },
+                Entry = new EventText
+                {
+                    Hash = hash,
+                    SubId = subId + 1
+                },
+                Name = $"0x{hash:X8}"
+            };
+
+            page?.Entries.Add(entry);
+
+            return entry;
+        }
+
+        public bool AddEntry(TextEntry entry, TextEntryPage? page = null)
+        {
+            var eventEntry = (EventTextEntry)entry;
+
+            _texts.Add(eventEntry);
+            _config.Texts = [.. _config.Texts.Append(eventEntry.Entry)];
+
+            page?.Entries.Add(eventEntry);
+
+            return true;
+        }
+
+        public bool RemoveEntry(TextEntry entry, TextEntryPage? page = null)
+        {
+            var eventEntry = (EventTextEntry)entry;
+
+            _texts.Remove(eventEntry);
+            _config.Texts = [.. _config.Texts.Where(t => t != eventEntry.Entry)];
+
+            page?.Entries.Remove(entry);
+
+            _hasRemovedEntries = true;
+            return true;
+        }
+
         private bool IsContentChanged()
         {
-            return Texts.Any(x => x.ContentChanged);
+            return Texts.Any(x => x.ContentChanged) || _hasRemovedEntries;
         }
 
         private void PopulateTextEntries()

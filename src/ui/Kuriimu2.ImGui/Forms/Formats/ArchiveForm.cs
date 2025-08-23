@@ -34,7 +34,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class ArchiveForm : Component, IKuriimuForm
     {
-        private static readonly KeyCommand _deleteCommand = new(Key.Delete);
+        private static readonly KeyCommand DeleteCommand = new(Key.Delete);
 
         private readonly ArchiveFormInfo _formInfo;
         private readonly IPluginManager _pluginManager;
@@ -1322,7 +1322,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             _mainLayout.Update(contentRect);
 
-            if (_deleteCommand.IsPressed())
+            if (DeleteCommand.IsPressed())
             {
                 if (CanDeleteDirectories() && _lastSelectedComponent == _treeView)
                     await DeleteSelectedDirectory();
