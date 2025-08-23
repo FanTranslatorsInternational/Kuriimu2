@@ -43,7 +43,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _imgExportBtn.Clicked += _imgExportBtn_Clicked;
             _imgImportBtn.Clicked += _imgImportBtn_Clicked;
             _indexedImageBox.PixelSelected += _indexedImageBox_PixelSelected;
-            _paletteView.PaletteChanged += _paletteView_PaletteChanged;
+            _paletteView.ColorChanged += _paletteView_ColorChanged;
 
             UpdateState();
             UpdateFormInternal();
@@ -117,16 +117,16 @@ namespace Kuriimu2.ImGui.Forms.Formats
             await Import();
         }
 
-        private void _paletteView_PaletteChanged(object? sender, EventArgs e)
+        private void _paletteView_ColorChanged(object? sender, int colorIndex)
         {
-            if (_paletteView.Palette is null)
+            if (_paletteView.Palette is null || colorIndex < 0 || colorIndex >= _paletteView.Palette.Count)
                 return;
 
             var selectedImage = GetSelectedImage();
             if (!selectedImage.IsIndexed)
                 return;
 
-            selectedImage.SetPalette(_paletteView.Palette, _state.Progress);
+            selectedImage.SetColorInPalette(colorIndex, _paletteView.Palette[colorIndex]);
 
             SetImage(selectedImage, _state.Progress);
 
@@ -141,9 +141,26 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return;
 
             var image = selectedImage.GetImage();
-            var color = image[e.X, e.Y];
 
-            _paletteView.SetSelectedColor(color);
+            if (e.IsSelect)
+            {
+                var color = image[e.X, e.Y];
+
+                _paletteView.SetSelectedColor(color);
+            }
+            else if (e.IsSet)
+            {
+                int selectedIndex = _paletteView.SelectedIndex;
+                if (selectedIndex < 0 || selectedIndex >= _paletteView.Palette?.Count)
+                    return;
+
+                selectedImage.SetIndexInImage(new Point(e.X, e.Y), selectedIndex);
+
+                SetImage(selectedImage, _state.Progress);
+
+                _state.FormCommunicator.Update(true, false);
+                UpdateFormInternal();
+            }
         }
 
         private async Task Save(bool saveAs)

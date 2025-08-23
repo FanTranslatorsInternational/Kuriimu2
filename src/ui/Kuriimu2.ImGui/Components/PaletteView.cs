@@ -27,10 +27,11 @@ namespace Kuriimu2.ImGui.Components
         private int _selectedColorIndex = -1;
 
         public IList<Rgba32>? Palette { get; set; }
+        public int SelectedIndex => _selectedColorIndex;
 
         public Vector2 Spacing { get; set; }
 
-        public event EventHandler PaletteChanged;
+        public event EventHandler<int> ColorChanged;
 
         public PaletteView()
         {
@@ -168,12 +169,12 @@ namespace Kuriimu2.ImGui.Components
 
             Palette[_selectedColorIndex] = _colorPicker.PickedColor;
 
-            OnPaletteChanged();
+            OnColorChanged(_selectedColorIndex);
         }
 
-        private void OnPaletteChanged()
+        private void OnColorChanged(int colorIndex)
         {
-            PaletteChanged?.Invoke(this, EventArgs.Empty);
+            ColorChanged?.Invoke(this, colorIndex);
         }
     }
 }

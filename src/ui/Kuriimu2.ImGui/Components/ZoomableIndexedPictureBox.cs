@@ -1,8 +1,11 @@
 ﻿using System;
 using ImGui.Forms.Controls;
 using System.Numerics;
+using ImGui.Forms.Models.IO;
+using ImGui.Forms.Resources;
 using ImGuiNET;
 using Veldrid;
+using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Components
 {
@@ -10,12 +13,15 @@ namespace Kuriimu2.ImGui.Components
     {
         public event EventHandler<PixelSelectedEventArgs> PixelSelected;
 
-        protected override void UpdateInternal(Rectangle contentRect)
+        protected override void DrawInternal(Rectangle contentRect)
         {
-            base.UpdateInternal(contentRect);
+            base.DrawInternal(contentRect);
 
             if (!HasValidImage())
+            {
+                DrawControlLegend(contentRect);
                 return;
+            }
 
             Rectangle imageRect = GetTransformedImageRect(contentRect);
 
@@ -31,17 +37,26 @@ namespace Kuriimu2.ImGui.Components
             {
                 if (IsInImage(x, y))
                 {
-                    if (ImGuiNET.ImGui.IsMouseReleased(ImGuiMouseButton.Right))
-                    {
-                        OnPixelSelected(x, y);
-                    }
+                    bool isSelect = ImGuiNET.ImGui.IsKeyDown(ImGuiKey.ModCtrl);
+                    bool isSet = ImGuiNET.ImGui.IsKeyDown(ImGuiKey.ModAlt);
+
+                    if (ImGuiNET.ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                        OnPixelSelected(x, y, isSelect, isSet);
                 }
             }
+
+            DrawControlLegend(contentRect);
         }
 
-        protected void OnPixelSelected(int x, int y)
+        protected void OnPixelSelected(int x, int y, bool isSelect, bool isSet)
         {
-            PixelSelected?.Invoke(this, new PixelSelectedEventArgs { X = x, Y = y });
+            PixelSelected?.Invoke(this, new PixelSelectedEventArgs { X = x, Y = y, IsSelect = isSelect, IsSet = isSet });
+        }
+
+        private void DrawControlLegend(Rectangle contentRect)
+        {
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position, ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSelectColorControl);
+            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSetColorControl);
         }
 
         private bool IsInImage(float x, float y)
@@ -54,5 +69,7 @@ namespace Kuriimu2.ImGui.Components
     {
         public required int X { get; init; }
         public required int Y { get; init; }
+        public required bool IsSelect { get; init; }
+        public required bool IsSet { get; init; }
     }
 }

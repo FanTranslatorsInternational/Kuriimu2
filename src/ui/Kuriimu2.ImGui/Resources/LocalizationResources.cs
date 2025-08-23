@@ -302,6 +302,10 @@ namespace Kuriimu2.ImGui.Resources
         // Image Progress
         public static LocalizedString ImageProgressDecode => LocalizedString.FromId("Image.Progress.Decode");
 
+        // Indexed PictureBox
+        public static LocalizedString ImagePictureBoxIndexSelectColorControl => LocalizedString.FromId("Image.PictureBox.Index.SelectColorControl");
+        public static LocalizedString ImagePictureBoxIndexSetColorControl => LocalizedString.FromId("Image.PictureBox.Index.SetColorControl");
+
         // Font Form
 
         // Labels

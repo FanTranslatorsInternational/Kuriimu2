@@ -297,6 +297,10 @@
   // Image Progress
   "Image.Progress.Decode": "Decode image(s)",
 
+  // Indexed PictureBox
+  "Image.PictureBox.Index.SelectColorControl": "Select Palette Color: Ctrl + left Mouse Click",
+  "Image.PictureBox.Index.SetColorControl": "Set Palette Color: Alt + Left Mouse Click",
+
   // Font Form
 
   // Labels
