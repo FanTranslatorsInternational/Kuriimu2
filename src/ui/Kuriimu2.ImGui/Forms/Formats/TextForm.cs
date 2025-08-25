@@ -29,8 +29,6 @@ using Kuriimu2.ImGui.Resources;
 using Point = SixLabors.ImageSharp.Point;
 using ImGui.Forms.Models.IO;
 using Veldrid;
-using System.Xml.Linq;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -109,9 +107,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return;
             }
 
-            var renameState = (IRenameEntries)_state.PluginState;
-            bool wasRenamed = renameState.RenameEntry(entry.Entry, newName);
-
+            bool wasRenamed = _state.PluginState.AttemptRenameEntry(entry.Entry, newName);
             if (!wasRenamed)
             {
                 _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusRenameFailure);
@@ -155,16 +151,16 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task AddEntry(TranslatedTextEntry entry, TreeNode<object> node)
         {
-            var addState = (IAddEntries)_state.PluginState;
-
             IList<TreeNode<object>> nodes = entry.Page is null ? _treeView.Nodes : node.Parent.Nodes;
 
-            TextEntry newEntry = addState.NewEntry(entry.Page?.Page);
+            TextEntry? newEntry = _state.PluginState.AttemptCreateEntry(entry.Page?.Page);
+            if (newEntry is null)
+                return;
 
-            if (addState.CanSetNewEntryName)
+            if (_state.PluginState.AttemptCanSetNewEntryName)
                 newEntry.Name = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, string.Empty);
 
-            bool wasAdded = addState.AddEntry(newEntry, entry.Page?.Page);
+            bool wasAdded = _state.PluginState.AttemptAddEntry(newEntry, entry.Page?.Page);
 
             if (!wasAdded)
             {
@@ -204,14 +200,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task AddEntry(TranslatedTextEntryPage entryPage, TreeNode<object> node)
         {
-            var addState = (IAddEntries)_state.PluginState;
+            TextEntry? newEntry = _state.PluginState.AttemptCreateEntry(entryPage.Page);
+            if (newEntry is null)
+                return;
 
-            TextEntry newEntry = addState.NewEntry(entryPage.Page);
-
-            if (addState.CanSetNewEntryName)
+            if (_state.PluginState.AttemptCanSetNewEntryName)
                 newEntry.Name = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, string.Empty);
 
-            bool wasAdded = addState.AddEntry(newEntry, entryPage.Page);
+            bool wasAdded = _state.PluginState.AttemptAddEntry(newEntry, entryPage.Page);
 
             if (!wasAdded)
             {
@@ -275,9 +271,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void DeleteEntry(TranslatedTextEntry entry, TreeNode<object> node)
         {
-            var removeState = (IRemoveEntries)_state.PluginState;
-
-            bool wasRemoved = removeState.RemoveEntry(entry.Entry, entry.Page?.Page);
+            bool wasRemoved = _state.PluginState.AttemptRemoveEntry(entry.Entry, entry.Page?.Page);
             if (!wasRemoved)
             {
                 _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.TextStatusDeleteFailure);
@@ -329,15 +323,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void DeleteEntry(TranslatedTextEntryPage entryPage, TreeNode<object> node)
         {
-            var removeState = (IRemoveEntries)_state.PluginState;
-
             TreeNode<object>[] nodes = node.Nodes.ToArray();
             foreach (TreeNode<object> entryNode in nodes)
             {
                 var entry = (TranslatedTextEntry)entryNode.Data;
 
-                bool wasRemoved1 = removeState.RemoveEntry(entry.Entry, entryPage.Page);
-                if (!wasRemoved1)
+                bool wasRemoved = _state.PluginState.AttemptRemoveEntry(entry.Entry, entryPage.Page);
+                if (!wasRemoved)
                     continue;
 
                 entryPage.Entries.Remove(entry);
@@ -458,7 +450,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     _previewPages = null;
                     _previewPageIndex = -1;
 
-                    _selectedPreviewPlugin = _previewBox.SelectedItem?.Content;
+                    _selectedGamePlugin = _previewBox.SelectedItem?.Content;
 
                     foreach (TranslatedTextEntry translatedEntry in _translatedTextEntries.Where(e => e.Entry.ContentChanged))
                     {
@@ -475,7 +467,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 else
                 {
                     _previewBox.SelectedItemChanged -= _previewBox_SelectedItemChanged;
-                    _previewBox.SelectedItem = _previewBox.Items.FirstOrDefault(i => i.Content == _selectedPreviewPlugin);
+                    _previewBox.SelectedItem = _previewBox.Items.FirstOrDefault(i => i.Content == _selectedGamePlugin);
                     _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
 
                     return;
@@ -491,7 +483,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _previewPages = null;
                 _previewPageIndex = -1;
 
-                _selectedPreviewPlugin = _previewBox.SelectedItem?.Content;
+                _selectedGamePlugin = _previewBox.SelectedItem?.Content;
 
                 await UpdateTextAndPreview();
             }
@@ -679,7 +671,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task<IList<Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
-            if (_selectedPreviewPlugin is not null)
+            if (_selectedGamePlugin is not null)
             {
                 _editTextEditor.IsReadOnly = true;
                 _treeView.Enabled = false;
@@ -732,47 +724,47 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (currentEntry.Page is not null)
                 entries = currentEntry.Page.Page.Entries;
 
-            _selectedPreviewPluginState = CreateGamePreviewState(entries);
+            _selectedGameState = CreateGamePreviewState(entries);
         }
 
         private void SetGamePreviewState(TranslatedTextEntryPage currentPage)
         {
             IList<TextEntry> entries = currentPage.Page.Entries;
 
-            _selectedPreviewPluginState = CreateGamePreviewState(entries);
+            _selectedGameState = CreateGamePreviewState(entries);
         }
 
         private IGamePluginState? CreateGamePreviewState(IList<TextEntry> entries)
         {
-            return _selectedPreviewPlugin?.CreatePluginState(_state.FileState.FilePath, entries, _fileManager);
+            return _selectedGamePlugin?.CreatePluginState(_state.FileState.FilePath, entries, _fileManager);
         }
 
         private ICharacterParser GetCharacterParser()
         {
-            return _selectedPreviewPluginState?.Parser ?? new CharacterParser();
+            return _selectedGameState?.TextProcessing?.Parser ?? new CharacterParser();
         }
 
         private ICharacterSerializer GetCharacterSerializer()
         {
-            return _selectedPreviewPluginState?.Serializer ?? new CharacterSerializer();
+            return _selectedGameState?.TextProcessing?.Serializer ?? new CharacterSerializer();
         }
 
         private ICharacterComposer GetCharacterComposer()
         {
-            return _selectedPreviewPluginState?.Composer ?? new CharacterComposer();
+            return _selectedGameState?.TextProcessing?.Composer ?? new CharacterComposer();
         }
 
         private ICharacterDeserializer GetCharacterDeserializer()
         {
-            return _selectedPreviewPluginState?.Deserializer ?? new CharacterDeserializer();
+            return _selectedGameState?.TextProcessing?.Deserializer ?? new CharacterDeserializer();
         }
 
         private async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> parsedTexts)
         {
-            if (_selectedPreviewPluginState is null)
+            if (_selectedGameState is null || !_selectedGameState.CanProcessTexts)
                 return null;
 
-            return await _selectedPreviewPluginState.CreatePreviewPages(parsedTexts);
+            return await _selectedGameState.TextProcessing!.AttemptRenderPreviews(parsedTexts) ?? null;
         }
 
         #region IKuriimuForm implementation

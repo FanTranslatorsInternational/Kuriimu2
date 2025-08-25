@@ -22,7 +22,7 @@ namespace plugin_level5.Common.Plugins
         private bool _hasRemovedEntries;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
-        public IReadOnlyList<Guid>? Previews { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47")];
+        public IReadOnlyList<Guid>? PreviewGuids { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47")];
         public ITextEntryPager? Pager { get; } = new EventPager();
 
         public bool CanSetNewEntryName => false;
@@ -51,7 +51,7 @@ namespace plugin_level5.Common.Plugins
             _writer.Write(config, fileStream);
         }
 
-        public TextEntry NewEntry(TextEntryPage? page = null)
+        public TextEntry CreateEntry(TextEntryPage? page = null)
         {
             uint hash = ((EventTextEntry)page?.Entries[0]!).Entry.Hash;
             int subId = ((EventTextEntry)page?.Entries[^1]!).Entry.SubId;

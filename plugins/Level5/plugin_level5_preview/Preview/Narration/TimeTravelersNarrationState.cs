@@ -1,5 +1,4 @@
-﻿using Kaligraphy.Contract.DataClasses.Parsing;
-using Kaligraphy.Contract.Parsing;
+﻿using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
@@ -25,7 +24,7 @@ using Serilog.Core;
 
 namespace plugin_level5_preview.Preview.Narration
 {
-    class TimeTravelersNarrationState : IGamePluginState
+    class TimeTravelersNarrationState : ITextPreviewState
     {
         private readonly IPluginFileManager _pluginManager;
 
@@ -41,7 +40,7 @@ namespace plugin_level5_preview.Preview.Narration
             _pluginManager = pluginFileManager;
         }
 
-        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<Kaligraphy.Contract.DataClasses.Parsing.CharacterData>> characters)
+        public async Task<IList<Image<Rgba32>>?> RenderPreviews(IList<IList<Kaligraphy.Contract.DataClasses.Parsing.CharacterData>> characters)
         {
             IReadOnlyList<CharacterInfo>? font = await GetFont();
             if (font is null)

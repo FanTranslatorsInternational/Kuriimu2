@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Kaligraphy.Contract.DataClasses.Layout;
 using Kaligraphy.Contract.DataClasses.Parsing;
-using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Rendering;
@@ -17,27 +16,21 @@ using Konnect.FileSystem;
 using Konnect.Management.Streams;
 using Konnect.Plugin.File.Font;
 using plugin_mt_framework_preview.Characters;
-using plugin_mt_framework_preview.Texts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace plugin_mt_framework_preview.Previews
 {
-    class AceAttorney5State : IGamePluginState
+    class AceAttorney5State : GenericGmdState, ITextPreviewState
     {
         private readonly IPluginFileManager _pluginManager;
-
-        public ICharacterParser? Parser { get; } = new GmdCharacterParser();
-        public ICharacterComposer? Composer { get; } = new GmdCharacterComposer();
-        public ICharacterSerializer? Serializer { get; } = new GmdCharacterSerializer();
-        public ICharacterDeserializer? Deserializer { get; } = new GmdCharacterDeserializer();
 
         public AceAttorney5State(IPluginFileManager pluginFileManager)
         {
             _pluginManager = pluginFileManager;
         }
 
-        public async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> characters)
+        public async Task<IList<Image<Rgba32>>?> RenderPreviews(IList<IList<CharacterData>> characters)
         {
             IReadOnlyList<CharacterInfo>? font = await GetFont();
             if (font is null)

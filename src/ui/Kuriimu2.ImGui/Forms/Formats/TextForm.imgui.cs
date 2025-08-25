@@ -47,8 +47,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private MenuBarButton _addEntryButton;
         private MenuBarButton _deleteEntryButton;
 
-        private IGamePlugin? _selectedPreviewPlugin;
-        private IGamePluginState? _selectedPreviewPluginState;
+        private IGamePlugin? _selectedGamePlugin;
+        private IGamePluginState? _selectedGameState;
         private readonly List<TranslatedTextEntry> _translatedTextEntries = [];
 
         private void InitializeComponent()
@@ -197,7 +197,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void InitializePreviewPlugins()
         {
-            IReadOnlyList<Guid> preferredGamePluginIds = _state.PluginState.Previews ?? [];
+            IReadOnlyList<Guid> preferredGamePluginIds = _state.PluginState.PreviewGuids ?? [];
             IGamePlugin[] gamePlugins = _pluginManager.GetPlugins<IGamePlugin>().ToArray();
 
             foreach (Guid preferredGamePluginId in preferredGamePluginIds)
@@ -219,7 +219,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (_previewBox.Items.Count > 0)
             {
                 _previewBox.SelectedItem = _previewBox.Items[0];
-                _selectedPreviewPlugin = _previewBox.SelectedItem.Content;
+                _selectedGamePlugin = _previewBox.SelectedItem.Content;
             }
         }
 

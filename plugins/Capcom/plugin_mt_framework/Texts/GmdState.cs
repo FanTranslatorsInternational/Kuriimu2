@@ -18,7 +18,8 @@ namespace plugin_mt_framework.Texts
         private bool _hasDeletedEntries;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
-        public IReadOnlyList<Guid>? Previews { get; } = [
+        public IReadOnlyList<Guid>? PreviewGuids { get; } = [
+            Guid.Parse("ef1074a3-78b9-4358-adeb-6b58c49173ea"),
             Guid.Parse("1280108e-010d-4bf0-a495-e614f340360c"),
             Guid.Parse("a1fecf11-70aa-49f1-af6f-498d5ff2de41")
         ];
@@ -84,7 +85,7 @@ namespace plugin_mt_framework.Texts
             return true;
         }
 
-        public TextEntry NewEntry(TextEntryPage? page = null)
+        public TextEntry CreateEntry(TextEntryPage? page = null)
         {
             return new TextEntry
             {

@@ -175,10 +175,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void _generateBtn_Clicked(object? sender, EventArgs e)
         {
-            var removeState = (IRemoveCharacters)_fontState;
-            var addState = (IAddCharacters)_fontState;
-
-            removeState.RemoveAll();
+            _fontState.AttemptRemoveAll();
 
             Font font = GetFont();
             foreach (char character in _characterEditor.GetText().Distinct().Order())
@@ -186,7 +183,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 if (char.IsWhiteSpace(character) && _profile.SpaceWidth <= 0)
                     continue;
 
-                CharacterInfo characterInfo = addState.CreateCharacterInfo(character);
+                CharacterInfo? characterInfo = _fontState.AttemptCreateCharacterInfo(character);
+                if (characterInfo is null)
+                    continue;
+
                 characterInfo.ContentChanged = true;
 
                 if (char.IsWhiteSpace(character))
@@ -204,7 +204,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     characterInfo.Glyph = paddedGlyph.Glyph;
                 }
 
-                addState.AddCharacter(characterInfo);
+                _fontState.AttemptAddCharacter(characterInfo);
             }
 
             Close(DialogResult.Ok);
