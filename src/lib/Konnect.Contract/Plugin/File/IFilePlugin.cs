@@ -1,4 +1,7 @@
-﻿using Konnect.Contract.Enums.Plugin.File;
+﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.Enums.Plugin.File;
+using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 
 namespace Konnect.Contract.Plugin.File
@@ -28,7 +31,14 @@ namespace Konnect.Contract.Plugin.File
 
         #region Optional feature support checks
 
-        public bool CanIdentifyFiles => this is IIdentifyFiles;
+        bool CanIdentifyFiles => this is IIdentifyFiles;
+
+        #endregion
+
+        #region Optional feature casting defaults
+
+        Task<bool> AttemptIdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext) =>
+            (this as IIdentifyFiles)?.IdentifyAsync(fileSystem, filePath, identifyContext) ?? Task.FromResult(false);
 
         #endregion
     }

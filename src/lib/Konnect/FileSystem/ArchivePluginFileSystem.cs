@@ -10,7 +10,7 @@ using Konnect.Streams;
 namespace Konnect.FileSystem
 {
     /// <summary>
-    /// Provides a <see cref="IFileSystem"/> for an <see cref="IArchiveState"/>.
+    /// Provides a <see cref="IFileSystem"/> for an <see cref="IArchiveFilePluginState"/>.
     /// </summary>
     class ArchivePluginFileSystem : FileSystem
     {
@@ -20,7 +20,7 @@ namespace Konnect.FileSystem
         private readonly IDictionary<UPath, IArchiveFile> _fileDictionary;
         private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> _directoryDictionary;
 
-        protected IArchiveFilePluginState ArchiveState => _fileState.PluginState as IArchiveFilePluginState;
+        protected IArchiveFilePluginState ArchiveState => _fileState.PluginState.Archive!;
 
         protected UPath SubPath => _fileState.AbsoluteDirectory / _fileState.FilePath.ToRelative();
 
@@ -31,21 +31,14 @@ namespace Konnect.FileSystem
         /// <param name="streamManager">The stream manager to scope streams in.</param>
         public ArchivePluginFileSystem(IFileState fileState, IStreamManager streamManager) : base(streamManager)
         {
-            if (fileState.PluginState is not IArchiveFilePluginState)
+            if (!fileState.PluginState.IsArchive)
                 throw new InvalidOperationException("The state is not an archive.");
 
             _fileState = fileState;
             _temporaryStreamManager = streamManager.CreateTemporaryStreamProvider();
 
-            _fileDictionary = ArchiveState.Files.ToDictionary(x => x.FilePath, y => y);
+            _fileDictionary = _fileState.PluginState.Archive?.Files.ToDictionary(x => x.FilePath, y => y) ?? [];
             _directoryDictionary = CreateDirectoryLookup();
-        }
-
-        private ArchivePluginFileSystem(IFileState fileState, IStreamManager streamManager, IList<Watcher.FileSystemWatcher> watchers) :
-            this(fileState, streamManager)
-        {
-            foreach (var watcher in watchers)
-                GetOrCreateDispatcher().Add(watcher);
         }
 
         /// <inheritdoc />
@@ -62,10 +55,10 @@ namespace Konnect.FileSystem
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => ArchiveState.CanDeleteFiles;
+        public override bool CanDeleteDirectories => _fileState.PluginState.Archive?.CanDeleteFiles ?? false;
 
         /// <inheritdoc />
-        public override bool CanMoveDirectories => ArchiveState.CanRenameFiles;
+        public override bool CanMoveDirectories => _fileState.PluginState.Archive?.CanRenameFiles ?? false;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -96,7 +89,7 @@ namespace Konnect.FileSystem
 
             var element = _directoryDictionary[srcPath];
 
-            // Move sub directories
+            // Move subdirectories
             foreach (var subDir in element.Item1.ToArray())
                 MoveDirectoryImplInternal(subDir, destPath / subDir.GetName());
 
@@ -104,7 +97,7 @@ namespace Konnect.FileSystem
             _directoryDictionary.Remove(srcPath);
 
             var parent = srcPath.GetDirectory();
-            if (!parent.IsNull && !parent.IsEmpty)
+            if (parent is { IsNull: false, IsEmpty: false })
                 _directoryDictionary[parent].Item1.Remove(srcPath);
 
             CreateDirectoryInternal(destPath);
@@ -112,7 +105,7 @@ namespace Konnect.FileSystem
             // Move files
             foreach (var file in element.Item2)
             {
-                ArchiveState.AttemptRenameFile(file, destPath / file.FilePath.GetName());
+                _fileState.PluginState.Archive?.AttemptRenameFile(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -139,22 +132,20 @@ namespace Konnect.FileSystem
 
             var element = _directoryDictionary[path];
 
-            // Delete sub directories
+            // Delete subdirectories
             foreach (var subDir in element.Item1.ToArray())
-                DeleteDirectoryImplInternal(subDir, true);  // Removing sub directories is always recursive
+                DeleteDirectoryImplInternal(subDir, true);  // Removing subdirectories is always recursive
 
             // Delete directory
             _directoryDictionary.Remove(path);
 
             var parent = path.GetDirectory();
-            if (!parent.IsNull && !parent.IsEmpty)
+            if (parent is { IsNull: false, IsEmpty: false })
                 _directoryDictionary[parent].Item1.Remove(path);
 
             // Delete files
             foreach (var file in element.Item2)
-            {
-                ArchiveState.AttemptRemoveFile(file);
-            }
+                _fileState.PluginState.Archive?.AttemptRemoveFile(file);
 
             element.Item2.Clear();
         }
@@ -164,7 +155,7 @@ namespace Konnect.FileSystem
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => ArchiveState.CanAddFiles;
+        public override bool CanCreateFiles => _fileState.PluginState.Archive?.CanAddFiles ?? false;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -175,10 +166,10 @@ namespace Konnect.FileSystem
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanMoveFiles => ArchiveState.CanRenameFiles;
+        public override bool CanMoveFiles => _fileState.PluginState.Archive?.CanRenameFiles ?? false;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => ArchiveState.CanDeleteFiles;
+        public override bool CanDeleteFiles => _fileState.PluginState.Archive?.CanDeleteFiles ?? false;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
@@ -208,7 +199,7 @@ namespace Konnect.FileSystem
                 throw new FileNotFoundException($"Could not find file `{path}`.");
             }
 
-            return GetAfi(path).FileSize;
+            return GetAfi(path)?.FileSize ?? -1;
         }
 
         /// <inheritdoc />
@@ -220,6 +211,9 @@ namespace Konnect.FileSystem
             }
 
             var file = GetAfi(srcPath);
+            if (file is null)
+                return;
+
             _fileDictionary.Remove(srcPath);
 
             // Remove file from source directory
@@ -229,7 +223,7 @@ namespace Konnect.FileSystem
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            ArchiveState.AttemptRenameFile(file, destPath);
+            _fileState.PluginState.Archive?.AttemptRenameFile(file, destPath);
 
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
@@ -252,13 +246,15 @@ namespace Konnect.FileSystem
             }
 
             var file = GetAfi(path);
+            if (file is null)
+                return;
 
             // Remove file from directory
             var srcDir = path.GetDirectory();
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            ArchiveState.AttemptRemoveFile(file);
+            _fileState.PluginState.Archive?.AttemptRemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -281,7 +277,7 @@ namespace Konnect.FileSystem
                 throw new FileNotFoundException($"Could not find file `{path}`.");
             }
 
-            IArchiveFile afi;
+            IArchiveFile? afi;
             switch (mode)
             {
                 case FileMode.Open:
@@ -316,8 +312,11 @@ namespace Konnect.FileSystem
                     break;
 
                 default:
-                    return null;
+                    return Stream.Null;
             }
+
+            if (afi is null)
+                return Stream.Null;
 
             // Ignore file mode, access and share for now
             // TODO: Find a way to somehow allow for mode and access to have an effect?
@@ -371,6 +370,9 @@ namespace Konnect.FileSystem
         protected override FileEntry GetFileEntryImpl(UPath path)
         {
             var afi = GetAfi(path);
+            if (afi is null)
+                throw new FileNotFoundException($"Could not find file `{path}`.");
+
             return new AfiFileEntry
             {
                 ArchiveFile = afi,
@@ -417,8 +419,11 @@ namespace Konnect.FileSystem
             return watcher;
         }
 
-        private void Watcher_Disposed(object sender, EventArgs e)
+        private void Watcher_Disposed(object? sender, EventArgs e)
         {
+            if (sender is null)
+                return;
+
             GetOrCreateDispatcher().Remove((Watcher.FileSystemWatcher)sender);
         }
 
@@ -450,7 +455,7 @@ namespace Konnect.FileSystem
 
         #region Enumerating Paths
 
-        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory, bool firstIteration = true)
+        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory)
         {
             if (!DirectoryExistsImpl(path))
                 throw new DirectoryNotFoundException($"Could not find a part of the path `{path}`.");
@@ -474,9 +479,9 @@ namespace Konnect.FileSystem
             if (onlyTopDirectory)
                 yield break;
 
-            // Enumerate sub directories of current path
+            // Enumerate subdirectories of current path
             foreach (var directory in directories)
-                foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false, false))
+                foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
                     yield return enumeratedPath;
         }
 
@@ -492,7 +497,7 @@ namespace Konnect.FileSystem
                 [UPath.Root] = (new List<UPath>(), new List<IArchiveFile>())
             };
 
-            foreach (var file in ArchiveState.Files)
+            foreach (var file in _fileState.PluginState.Archive?.Files ?? [])
             {
                 var path = file.FilePath.GetDirectory();
                 CreateDirectoryEntries(result, path);
@@ -503,12 +508,12 @@ namespace Konnect.FileSystem
             return result;
         }
 
-        private IArchiveFile CreateFileInternal(Stream fileData, UPath newFilePath)
+        private IArchiveFile? CreateFileInternal(Stream fileData, UPath newFilePath)
         {
-            if (!ArchiveState.CanAddFiles)
+            var newAfi = _fileState.PluginState.Archive?.AttemptAddFile(fileData, newFilePath);
+            if (newAfi is null)
                 return null;
 
-            var newAfi = ArchiveState.AttemptAddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());
@@ -546,17 +551,15 @@ namespace Konnect.FileSystem
 
         #endregion
 
-        private IArchiveFile GetAfi(UPath filePath)
+        private IArchiveFile? GetAfi(UPath filePath)
         {
-            if (!_fileDictionary.ContainsKey(filePath))
+            if (!_fileDictionary.TryGetValue(filePath, out IArchiveFile? afi))
                 return null;
-
-            var afi = _fileDictionary[filePath];
 
             // If the file data stream is closed, this may point to a stale reference from before an external operation modified the IFileState
             // Do expensive FirstOrDefault operation to search the requested file in the ArchiveState itself
             if (afi.IsFileDataInvalid)
-                afi = ArchiveState.Files.FirstOrDefault(x => x.FilePath == filePath);
+                afi = _fileState.PluginState.Archive?.Files.FirstOrDefault(x => x.FilePath == filePath);
 
             // Update the file dictionary, regardless of validity of the file data stream
             if (afi == null)

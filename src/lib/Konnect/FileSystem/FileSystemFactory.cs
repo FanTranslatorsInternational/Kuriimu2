@@ -66,7 +66,7 @@ namespace Konnect.FileSystem
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
         public static IFileSystem CreateArchivePluginFileSystem(IFileState fileState, UPath path)
         {
-            if (fileState.PluginState is not IArchiveFilePluginState)
+            if (!fileState.PluginState.IsArchive)
                 throw new InvalidOperationException("This state is not an archive.");
 
             return CreateArchivePluginFileSystem(fileState, path, fileState.StreamManager);

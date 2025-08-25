@@ -124,7 +124,7 @@ namespace Konnect.Management.Files
         {
             // 1. Save state to a temporary destination
             var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
-            var saveStateResult = await TrySaveState(fileState.PluginState as ISaveFiles, temporaryContainer, savePath, saveInfo);
+            var saveStateResult = await TrySaveState(fileState, temporaryContainer, savePath, saveInfo);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
@@ -157,7 +157,7 @@ namespace Konnect.Management.Files
         /// <param name="savePath">The path of the initial file to save.</param>
         /// <param name="saveInfo">The context for the save operation.</param>
         /// <returns>The result of the save state process.</returns>
-        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, UPath savePath, SaveFileOptions saveInfo)
+        private async Task<SaveResult> TrySaveState(IFileState saveState, IFileSystem temporaryContainer, UPath savePath, SaveFileOptions saveInfo)
         {
             try
             {
@@ -165,7 +165,7 @@ namespace Konnect.Management.Files
                 {
                     ProgressContext = saveInfo.Progress
                 };
-                await Task.Run(async () => await saveState.Save(temporaryContainer, savePath, saveContext));
+                await Task.Run(async () => await saveState.PluginState.AttemptSave(temporaryContainer, savePath, saveContext));
             }
             catch (Exception ex)
             {

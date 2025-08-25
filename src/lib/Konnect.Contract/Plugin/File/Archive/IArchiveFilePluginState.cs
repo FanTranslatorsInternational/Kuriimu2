@@ -14,20 +14,20 @@ namespace Konnect.Contract.Plugin.File.Archive
 
         #region Optional feature support checks
 
-        public bool CanReplaceFiles => this is IReplaceFiles;
-        public bool CanRenameFiles => this is IRenameFiles;
-        public bool CanDeleteFiles => this is IRemoveFiles;
-        public bool CanAddFiles => this is IAddFiles;
+        bool CanReplaceFiles => this is IReplaceFiles;
+        bool CanRenameFiles => this is IRenameFiles;
+        bool CanDeleteFiles => this is IRemoveFiles;
+        bool CanAddFiles => this is IAddFiles;
 
         #endregion
 
         #region Optional feature casting defaults
 
-        void AttemptReplaceFile(IArchiveFile afi, Stream fileData) => ((IReplaceFiles)this).ReplaceFile(afi, fileData);
-        void AttemptRenameFile(IArchiveFile afi, UPath path) => ((IRenameFiles)this).RenameFile(afi, path);
-        void AttemptRemoveFile(IArchiveFile afi) => ((IRemoveFiles)this).RemoveFile(afi);
-        void AttemptRemoveAll() => ((IRemoveFiles)this).RemoveAll();
-        IArchiveFile AttemptAddFile(Stream fileData, UPath filePath) => ((IAddFiles)this).AddFile(fileData, filePath);
+        void AttemptReplaceFile(IArchiveFile afi, Stream fileData) => (this as IReplaceFiles)?.ReplaceFile(afi, fileData);
+        void AttemptRenameFile(IArchiveFile afi, UPath path) => (this as IRenameFiles)?.RenameFile(afi, path);
+        void AttemptRemoveFile(IArchiveFile afi) => (this as IRemoveFiles)?.RemoveFile(afi);
+        void AttemptRemoveAll() => (this as IRemoveFiles)?.RemoveAll();
+        IArchiveFile? AttemptAddFile(Stream fileData, UPath filePath) => (this as IAddFiles)?.AddFile(fileData, filePath);
 
         #endregion
     }

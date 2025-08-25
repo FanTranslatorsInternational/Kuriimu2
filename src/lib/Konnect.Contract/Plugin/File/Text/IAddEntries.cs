@@ -17,7 +17,7 @@ namespace Konnect.Contract.Plugin.File.Text
         /// </summary>
         /// <param name="page">The page this new entry is created for. <see langword="null"/>, if no <see cref="ITextFilePluginState.Pager"/> is set.</param>
         /// <returns>TextEntry or a derived type.</returns>
-        TextEntry NewEntry(TextEntryPage? page = null);
+        TextEntry CreateEntry(TextEntryPage? page = null);
 
         /// <summary>
         /// Adds a newly created entry to the file and allows the plugin to perform any required adding steps.

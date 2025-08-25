@@ -208,7 +208,7 @@ namespace Konnect.Management.Files
             {
                 TemporaryStreamManager = streamManager.CreateTemporaryStreamProvider()
             };
-            var result = await (plugin as IIdentifyFiles).IdentifyAsync(fileSystem, path, identifyContext);
+            var result = await plugin.AttemptIdentifyAsync(fileSystem, path, identifyContext);
 
             // 4. Clean up
             streamManager.ReleaseAll();
@@ -310,7 +310,7 @@ namespace Konnect.Management.Files
         public async Task<LoadResult> LoadFile(IFileState fileState, IArchiveFile afi, LoadFileContext loadFileContext)
         {
             // If fileState is no archive state
-            if (fileState.PluginState is not IArchiveFilePluginState)
+            if (!fileState.PluginState.IsArchive)
                 throw new InvalidOperationException("The state represents no archive.");
 
             // If file is already loaded or loading

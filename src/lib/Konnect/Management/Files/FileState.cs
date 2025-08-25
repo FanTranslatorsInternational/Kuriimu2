@@ -106,13 +106,11 @@ namespace Konnect.Management.Files
             StreamManager?.ReleaseAll();
 
             // Dispose content of state
-            switch (PluginState)
+            if (PluginState.IsArchive)
             {
-                case IArchiveFilePluginState archiveState:
-                    if (archiveState.Files?.Count > 0)
-                        foreach (IArchiveFile file in archiveState.Files)
-                            file.Dispose();
-                    break;
+                if (PluginState.Archive!.Files?.Count > 0)
+                    foreach (IArchiveFile file in PluginState.Archive!.Files)
+                        file.Dispose();
             }
 
             FilePlugin = null;

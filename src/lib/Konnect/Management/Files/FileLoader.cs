@@ -91,11 +91,11 @@ namespace Konnect.Management.Files
         private async Task<IFilePlugin?> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadFileOptions loadInfo)
         {
             // 1. Get all plugins that support identification
-            var identifiablePlugins = _pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles).Cast<IIdentifyFiles>();
+            var identifiablePlugins = _pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles);
 
             // 2. Identify the file with identifiable plugins
             var matchedPlugins = new List<IFilePlugin>();
-            foreach (IIdentifyFiles identifiablePlugin in identifiablePlugins)
+            foreach (IFilePlugin identifiablePlugin in identifiablePlugins)
             {
                 try
                 {
@@ -134,14 +134,14 @@ namespace Konnect.Management.Files
         /// <param name="filePath">The path of the file to identify.</param>
         /// <param name="streamManager">The stream manager.</param>
         /// <returns>If hte identification was successful.</returns>
-        private async Task<bool> TryIdentifyFileAsync(IIdentifyFiles identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
+        private async Task<bool> TryIdentifyFileAsync(IFilePlugin identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
         {
             // 1. Identify plugin
             var identifyContext = new IdentifyContext
             {
                 TemporaryStreamManager = streamManager.CreateTemporaryStreamProvider()
             };
-            var identifyResult = await identifyFile.IdentifyAsync(fileSystem, filePath, identifyContext);
+            var identifyResult = await identifyFile.AttemptIdentifyAsync(fileSystem, filePath, identifyContext);
 
             // 2. Close all streams opened by the identifying method
             streamManager.ReleaseAll();

@@ -9,20 +9,19 @@ namespace Konnect.Contract.Plugin.File.Font
         /// </summary>
         IReadOnlyList<CharacterInfo> Characters { get; }
 
-        /// <summary>
-        /// Character baseline.
-        /// </summary>
-        float Baseline { get; set; }
-
-        /// <summary>
-        /// Character descent line.
-        /// </summary>
-        float DescentLine { get; set; }
-
         #region Optional feature support checks
 
-        public bool CanAddCharacter => this is IAddCharacters;
-        public bool CanRemoveCharacter => this is IRemoveCharacters;
+        bool CanAddCharacter => this is IAddCharacters;
+        bool CanRemoveCharacter => this is IRemoveCharacters;
+
+        #endregion
+
+        #region Optional feature casting defaults
+
+        CharacterInfo? AttemptCreateCharacterInfo(char codePoint) => (this as IAddCharacters)?.CreateCharacterInfo(codePoint);
+        bool AttemptAddCharacter(CharacterInfo characterInfo) => (this as IAddCharacters)?.AddCharacter(characterInfo) ?? false;
+        bool AttemptRemoveCharacter(CharacterInfo characterInfo) => (this as IRemoveCharacters)?.RemoveCharacter(characterInfo) ?? false;
+        void AttemptRemoveAll() => (this as IRemoveCharacters)?.RemoveAll();
 
         #endregion
     }

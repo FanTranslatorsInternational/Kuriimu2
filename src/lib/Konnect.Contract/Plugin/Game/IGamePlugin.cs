@@ -5,7 +5,7 @@ using Konnect.Contract.Management.Files;
 namespace Konnect.Contract.Plugin.Game
 {
     /// <summary>
-    /// Interface for plugins that handle previews.
+    /// Interface for plugins that handle game-specific behaviours.
     /// </summary>
     public interface IGamePlugin : IPlugin
     {
