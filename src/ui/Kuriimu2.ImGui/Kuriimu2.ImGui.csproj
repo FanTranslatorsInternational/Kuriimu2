@@ -19,6 +19,9 @@
     <None Remove="Resources\Images\dark\batch_image_import.png" />
     <None Remove="Resources\Images\dark\image_export.png" />
     <None Remove="Resources\Images\dark\image_import.png" />
+    <None Remove="Resources\Images\dark\kup_export.png" />
+    <None Remove="Resources\Images\dark\kup_import.png" />
+    <None Remove="Resources\Images\dark\po_import.png" />
     <None Remove="Resources\Images\dark\save.png" />
     <None Remove="Resources\Images\dark\save_as.png" />
     <None Remove="Resources\Images\dark\arrow_right.png" />
@@ -29,6 +32,9 @@
     <None Remove="Resources\Images\light\batch_image_import.png" />
     <None Remove="Resources\Images\light\image_export.png" />
     <None Remove="Resources\Images\light\image_import.png" />
+    <None Remove="Resources\Images\light\kup_export.png" />
+    <None Remove="Resources\Images\light\kup_import.png" />
+    <None Remove="Resources\Images\light\po_import.png" />
     <None Remove="Resources\Images\light\save.png" />
     <None Remove="Resources\Images\light\save_as.png" />
     <None Remove="Resources\Images\light\arrow_right.png" />
@@ -59,6 +65,10 @@
     <EmbeddedResource Include="Resources\Images\dark\batch_image_import.png" />
     <EmbeddedResource Include="Resources\Images\dark\image_export.png" />
     <EmbeddedResource Include="Resources\Images\dark\image_import.png" />
+    <EmbeddedResource Include="Resources\Images\dark\kup_export.png" />
+    <EmbeddedResource Include="Resources\Images\dark\kup_import.png" />
+    <EmbeddedResource Include="Resources\Images\dark\po_export.png" />
+    <EmbeddedResource Include="Resources\Images\dark\po_import.png" />
     <EmbeddedResource Include="Resources\Images\dark\save.png" />
     <EmbeddedResource Include="Resources\Images\dark\save_as.png" />
     <EmbeddedResource Include="Resources\Images\dark\settings.png" />
@@ -68,6 +78,10 @@
     <EmbeddedResource Include="Resources\Images\light\batch_image_import.png" />
     <EmbeddedResource Include="Resources\Images\light\image_export.png" />
     <EmbeddedResource Include="Resources\Images\light\image_import.png" />
+    <EmbeddedResource Include="Resources\Images\light\kup_export.png" />
+    <EmbeddedResource Include="Resources\Images\light\kup_import.png" />
+    <EmbeddedResource Include="Resources\Images\light\po_export.png" />
+    <EmbeddedResource Include="Resources\Images\light\po_import.png" />
     <EmbeddedResource Include="Resources\Images\light\save.png" />
     <EmbeddedResource Include="Resources\Images\light\save_as.png" />
     <EmbeddedResource Include="Resources\Images\light\settings.png" />

@@ -201,6 +201,8 @@
   // File Filters
   "Filter.All": "All Files",
   "Filter.Png": "Portable Network Graphics",
+  "Filter.Po": "Gettext Portable Object",
+  "Filter.kup": "Kuriimu Translation Object",
 
   // Archive Form
 
@@ -327,6 +329,17 @@
 
   // Text Form
 
+  // Menu
+  "Text.Menu.Export.Po": "Export PO...",
+  "Text.Menu.Import.Po": "Import PO...",
+  "Text.Menu.Export.Kup": "Export KUP...",
+  "Text.Menu.Import.Kup": "Import KUP...",
+
+  // Labels
+  "Text.Content.Original": "Original:",
+  "Text.Content.Edited": "Edited:",
+  "Text.Content.NoCodes": "No control codes:",
+
   // Previews
   "Text.Preview.Default": "Default",
   "Text.Preview.TextChanged": "Switching the preview plugin will lose already made changes wihout saving. Continue?",
@@ -348,6 +361,8 @@
   "Text.Status.Add.Failure": "Adding text entry failed.",
   "Text.Status.Delete.Success": "Removing text entry successful.",
   "Text.Status.Delete.Failure": "Removing text entry failed.",
+  "Text.Status.Export.Success": "Export texts successful.",
+  "Text.Status.Import.Success": "Import texts successful.",
 
   // Dialogs
 

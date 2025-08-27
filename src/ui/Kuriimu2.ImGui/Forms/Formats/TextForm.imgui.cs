@@ -38,6 +38,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private ImageButton _saveBtn;
         private ImageButton _saveAsBtn;
+        private ImageButton _poExportBtn;
+        private ImageButton _poImportBtn;
+        private ImageButton _kupExportBtn;
+        private ImageButton _kupImportBtn;
+
         private ArrowButton _previousPageBtn;
         private ArrowButton _nextPageBtn;
 
@@ -50,6 +55,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private IGamePlugin? _selectedGamePlugin;
         private IGamePluginState? _selectedGameState;
         private readonly List<TranslatedTextEntry> _translatedTextEntries = [];
+        private readonly Dictionary<TranslatedTextEntry, TreeNode<object>> _translatedTextEntryNodes = [];
 
         private void InitializeComponent()
         {
@@ -81,6 +87,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Enabled = false,
                 KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
+            _poExportBtn = new ImageButton { Image = ImageResources.PoExport, Tooltip = LocalizationResources.TextMenuExportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
+            _poImportBtn = new ImageButton { Image = ImageResources.PoImport, Tooltip = LocalizationResources.TextMenuImportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
+            _kupExportBtn = new ImageButton { Image = ImageResources.KupExport, Tooltip = LocalizationResources.TextMenuExportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
+            _kupImportBtn = new ImageButton { Image = ImageResources.KupImport, Tooltip = LocalizationResources.TextMenuImportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
 
             _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(Key.Left) };
             _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(Key.Right) };
@@ -121,7 +131,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
                         Items =
                         {
                             _saveBtn,
-                            _saveAsBtn
+                            _saveAsBtn,
+                            new Splitter { Length = 26, Alignment = Alignment.Vertical },
+                            _poExportBtn,
+                            _poImportBtn,
+                            new Splitter { Length = 26, Alignment = Alignment.Vertical },
+                            _kupExportBtn,
+                            _kupImportBtn
                         }
                     },
                     new StackLayout
@@ -142,15 +158,42 @@ namespace Kuriimu2.ImGui.Forms.Formats
                                     {
                                         Cells =
                                         {
-                                            _origTextEditor,
-                                            _editTextEditor
+                                            new StackLayout
+                                            {
+                                                Alignment = Alignment.Vertical,
+                                                ItemSpacing = 4,
+                                                Items =
+                                                {
+                                                    new Label(LocalizationResources.TextContentOriginal),
+                                                    _origTextEditor
+                                                }
+                                            },
+                                            new StackLayout
+                                            {
+                                                Alignment = Alignment.Vertical,
+                                                ItemSpacing = 4,
+                                                Items =
+                                                {
+                                                    new Label(LocalizationResources.TextContentEdited),
+                                                    _editTextEditor
+                                                }
+                                            }
                                         }
                                     },
                                     new TableRow
                                     {
                                         Cells =
                                         {
-                                            _controlTextEditor,
+                                            new StackLayout
+                                            {
+                                                Alignment = Alignment.Vertical,
+                                                ItemSpacing = 4,
+                                                Items =
+                                                {
+                                                    new Label(LocalizationResources.TextContentNoCodes),
+                                                    _controlTextEditor
+                                                }
+                                            },
                                             new StackLayout
                                             {
                                                 Alignment = Alignment.Vertical,
@@ -225,22 +268,19 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void InitializeTexts()
         {
-            var pager = _state.PluginState.Pager;
-            if (pager is not null)
+            object[] entries = CreateTranslatedPagedEntries();
+
+            for (var i = 0; i < entries.Length; i++)
             {
-                var pages = pager.Page(_state.PluginState.Texts);
-                for (var i = 0; i < pages.Length; i++)
+                switch (entries[i])
                 {
-                    TranslatedTextEntryPage translatedPage = AddTranslatedPage(pages[i], _treeView.Nodes);
-                    _translatedTextEntries.AddRange(translatedPage.Entries);
-                }
-            }
-            else
-            {
-                for (var i = 0; i < _state.PluginState.Texts.Count; i++)
-                {
-                    TranslatedTextEntry translatedEntry = AddTranslatedEntry(_state.PluginState.Texts[i], i, null, _treeView.Nodes);
-                    _translatedTextEntries.Add(translatedEntry);
+                    case TranslatedTextEntryPage page:
+                        AddTranslatedPage(page, _treeView.Nodes);
+                        break;
+
+                    case TranslatedTextEntry entry:
+                        AddTranslatedEntry(entry, i, _treeView.Nodes);
+                        break;
                 }
             }
 
@@ -248,51 +288,82 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _treeView.SelectedNode = _treeView.Nodes[0];
         }
 
-        private static TranslatedTextEntryPage AddTranslatedPage(TextEntryPage page, IList<TreeNode<object>> nodes)
+        private object[] CreateTranslatedPagedEntries()
         {
-            var translatedPage = new TranslatedTextEntryPage
-            {
-                Entries = new List<TranslatedTextEntry>(),
-                Page = page
-            };
+            var result = new List<object>();
 
+            var pager = _state.PluginState.Pager;
+            if (pager is not null)
+            {
+                var pages = pager.Page(_state.PluginState.Texts);
+                foreach (TextEntryPage page in pages)
+                {
+                    var translatedPage = new TranslatedTextEntryPage
+                    {
+                        Page = page,
+                        Entries = new List<TranslatedTextEntry>()
+                    };
+
+                    foreach (TextEntry entry in page.Entries)
+                    {
+                        var translatedEntry = new TranslatedTextEntry
+                        {
+                            Page = translatedPage,
+                            Entry = entry,
+                            OriginalTextData = entry.TextData
+                        };
+
+                        translatedPage.Entries.Add(translatedEntry);
+                    }
+
+                    result.Add(translatedPage);
+                }
+            }
+            else
+            {
+                foreach (TextEntry entry in _state.PluginState.Texts)
+                {
+                    var translatedEntry = new TranslatedTextEntry
+                    {
+                        Page = null,
+                        Entry = entry,
+                        OriginalTextData = entry.TextData
+                    };
+
+                    result.Add(translatedEntry);
+                }
+            }
+
+            return [.. result];
+        }
+
+        private void AddTranslatedPage(TranslatedTextEntryPage translatedPage, IList<TreeNode<object>> nodes)
+        {
             var node = new TreeNode<object>
             {
-                Text = page.Name,
+                Text = translatedPage.Page.Name,
                 Data = translatedPage,
                 IsExpanded = true
             };
 
-            for (var i = 0; i < page.Entries.Count; i++)
-            {
-                AddTranslatedEntry(page.Entries[i], i, translatedPage, node.Nodes);
-            }
+            for (var i = 0; i < translatedPage.Entries.Count; i++)
+                AddTranslatedEntry(translatedPage.Entries[i], i, node.Nodes);
 
             nodes.Add(node);
-
-            return translatedPage;
         }
 
-        private static TranslatedTextEntry AddTranslatedEntry(TextEntry entry, int index, TranslatedTextEntryPage? page, IList<TreeNode<object>> nodes)
+        private void AddTranslatedEntry(TranslatedTextEntry translatedEntry, int index, IList<TreeNode<object>> nodes)
         {
-            var translatedEntry = new TranslatedTextEntry
-            {
-                Page = page,
-                Entry = entry,
-                OriginalTextData = entry.TextData
-            };
-
             var node = new TreeNode<object>
             {
-                Text = entry.Name ?? $"no_name_{index:00}",
+                Text = translatedEntry.Entry.Name ?? $"no_name_{index:00}",
                 Data = translatedEntry
             };
 
-            page?.Entries.Add(translatedEntry);
-
             nodes.Add(node);
 
-            return translatedEntry;
+            _translatedTextEntries.Add(translatedEntry);
+            _translatedTextEntryNodes[translatedEntry] = node;
         }
 
         #region Component implementation

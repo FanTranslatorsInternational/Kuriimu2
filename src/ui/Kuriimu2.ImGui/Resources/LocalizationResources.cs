@@ -206,6 +206,8 @@ namespace Kuriimu2.ImGui.Resources
         // File Filters
         public static LocalizedString FilterAll => LocalizedString.FromId("Filter.All");
         public static LocalizedString FilterPng => LocalizedString.FromId("Filter.Png");
+        public static LocalizedString FilterPo => LocalizedString.FromId("Filter.Po");
+        public static LocalizedString FilterKup => LocalizedString.FromId("Filter.Kup");
 
         // Archive Form
 
@@ -332,6 +334,17 @@ namespace Kuriimu2.ImGui.Resources
 
         // Text Form
 
+        // Menu
+        public static LocalizedString TextMenuExportPo => LocalizedString.FromId("Text.Menu.Export.Po");
+        public static LocalizedString TextMenuImportPo => LocalizedString.FromId("Text.Menu.Import.Po");
+        public static LocalizedString TextMenuExportKup => LocalizedString.FromId("Text.Menu.Export.Kup");
+        public static LocalizedString TextMenuImportKup => LocalizedString.FromId("Text.Menu.Import.Kup");
+
+        // Labels
+        public static LocalizedString TextContentOriginal => LocalizedString.FromId("Text.Content.Original");
+        public static LocalizedString TextContentEdited => LocalizedString.FromId("Text.Content.Edited");
+        public static LocalizedString TextContentNoCodes => LocalizedString.FromId("Text.Content.NoCodes");
+
         // Preview
         public static LocalizedString TextPreviewDefault => LocalizedString.FromId("Text.Preview.Default");
         public static LocalizedString TextPreviewTextChanged => LocalizedString.FromId("Text.Preview.TextChanged");
@@ -353,6 +366,8 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString TextStatusAddFailure => LocalizedString.FromId("Text.Status.Add.Failure");
         public static LocalizedString TextStatusDeleteSuccess => LocalizedString.FromId("Text.Status.Delete.Success");
         public static LocalizedString TextStatusDeleteFailure => LocalizedString.FromId("Text.Status.Delete.Failure");
+        public static LocalizedString TextStatusExportSuccess => LocalizedString.FromId("Text.Status.Export.Success");
+        public static LocalizedString TextStatusImportSuccess => LocalizedString.FromId("Text.Status.Import.Success");
 
         // Dialogs
 

@@ -17,10 +17,12 @@ using Kaligraphy.Parsing;
 using Kaligraphy.Rendering;
 using Kuriimu2.ImGui.Models.Forms.Formats;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
+using ImGui.Forms.Modals.IO.Windows;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Files;
@@ -28,7 +30,11 @@ using Konnect.Contract.Plugin.Game;
 using Kuriimu2.ImGui.Resources;
 using Point = SixLabors.ImageSharp.Point;
 using ImGui.Forms.Models.IO;
+using Konnect.Extensions;
+using Konnect.Management.Text;
 using Veldrid;
+using System.Security.Cryptography;
+using Konnect.DataClasses.Management.Text;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -58,6 +64,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _saveBtn.Clicked += _saveBtn_Clicked;
             _saveAsBtn.Clicked += _saveAsBtn_Clicked;
+            _poExportBtn.Clicked += _poExportBtn_Clicked;
+            _poImportBtn.Clicked += _poImportBtn_Clicked;
+            _kupExportBtn.Clicked += _kupExportBtn_Clicked;
+            _kupImportBtn.Clicked += _kupImportBtn_Clicked;
+
             _editTextEditor.TextChanged += _editTextEditor_TextChanged;
             _fontFamilyBox.SelectedItemChanged += _fontFamilyBox_SelectedItemChanged;
             _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
@@ -176,6 +187,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 OriginalTextData = newEntry.TextData,
                 Page = entry.Page
             };
+
             _translatedTextEntries.Add(translatedEntry);
 
             entry.Page?.Entries.Add(translatedEntry);
@@ -187,6 +199,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
             });
+
+            _translatedTextEntryNodes[translatedEntry] = nodes[^1];
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
@@ -223,6 +237,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 OriginalTextData = newEntry.TextData,
                 Page = entryPage
             };
+
             _translatedTextEntries.Add(translatedEntry);
 
             entryPage.Entries.Add(translatedEntry);
@@ -234,6 +249,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
             });
+
+            _translatedTextEntryNodes[translatedEntry] = node.Nodes[^1];
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
@@ -358,6 +375,171 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _treeView.SelectedNode = selectedNode;
         }
 
+        private async void _poExportBtn_Clicked(object? sender, EventArgs e)
+        {
+            var sfd = new WindowsSaveFileDialog
+            {
+                InitialDirectory = SettingsResources.LastDirectory,
+                InitialFileName = _state.FileState.FilePath.GetName() + ".po",
+                Filters = [new FileFilter(LocalizationResources.FilterPo, "po")],
+                Title = LocalizationResources.TextMenuExportPo
+            };
+
+            var result = await sfd.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
+
+            var fileEntries = CreateFileEntries();
+            PoManager.Save(sfd.Files[0], [.. fileEntries]);
+
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
+        }
+
+        private async void _poImportBtn_Clicked(object? sender, EventArgs e)
+        {
+            var ofd = new WindowsOpenFileDialog
+            {
+                InitialDirectory = SettingsResources.LastDirectory,
+                InitialFileName = _state.FileState.FilePath.GetName() + ".po",
+                Filters = [new FileFilter(LocalizationResources.FilterPo, "po")],
+                Multiselect = false,
+                Title = LocalizationResources.TextMenuImportPo
+            };
+
+            var result = await ofd.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+
+            var loadedEntries = PoManager.Load(ofd.Files[0]);
+            await ImportFileEntries(loadedEntries);
+        }
+
+        private async void _kupExportBtn_Clicked(object? sender, EventArgs e)
+        {
+            var sfd = new WindowsSaveFileDialog
+            {
+                InitialDirectory = SettingsResources.LastDirectory,
+                InitialFileName = _state.FileState.FilePath.GetName() + ".kup",
+                Filters = [new FileFilter(LocalizationResources.FilterKup, "kup")],
+                Title = LocalizationResources.TextMenuExportKup
+            };
+
+            var result = await sfd.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
+
+            var fileEntries = CreateFileEntries();
+            KupManager.Save(sfd.Files[0], [.. fileEntries]);
+
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
+        }
+
+        private async void _kupImportBtn_Clicked(object? sender, EventArgs e)
+        {
+            var ofd = new WindowsOpenFileDialog
+            {
+                InitialDirectory = SettingsResources.LastDirectory,
+                InitialFileName = _state.FileState.FilePath.GetName() + ".kup",
+                Filters = [new FileFilter(LocalizationResources.FilterKup, "kup")],
+                Multiselect = false,
+                Title = LocalizationResources.TextMenuImportKup
+            };
+
+            var result = await ofd.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+
+            var loadedEntries = KupManager.Load(ofd.Files[0]);
+            await ImportFileEntries(loadedEntries);
+        }
+
+        private TranslationFileEntry[] CreateFileEntries()
+        {
+            IList<TranslationFileEntry> result = new List<TranslationFileEntry>();
+
+            object[] entries = CreateTranslatedPagedEntries();
+            foreach (object entry in entries)
+            {
+                switch (entry)
+                {
+                    case TranslatedTextEntryPage page:
+                        foreach (TranslatedTextEntry pageEntry in page.Entries)
+                        {
+                            PreprocessEntry(pageEntry, out string serializedOriginalText, out string serializedTranslatedText, out _, out _);
+
+                            result.Add(new TranslationFileEntry
+                            {
+                                Name = $"{page.Page.Name};{pageEntry.Entry.Name}",
+                                OriginalText = serializedOriginalText,
+                                TranslatedText = serializedTranslatedText
+                            });
+                        }
+                        break;
+
+                    case TranslatedTextEntry textEntry:
+                        PreprocessEntry(textEntry, out string serializedOriginalText1, out string serializedTranslatedText1, out _, out _);
+
+                        result.Add(new TranslationFileEntry
+                        {
+                            Name = $"{textEntry.Entry.Name}",
+                            OriginalText = serializedOriginalText1,
+                            TranslatedText = serializedTranslatedText1
+                        });
+                        break;
+                }
+            }
+
+            return [.. result];
+        }
+
+        private async Task ImportFileEntries(TranslationFileEntry[] loadedEntries)
+        {
+            var deserializer = GetCharacterDeserializer();
+            var composer = GetCharacterComposer();
+
+            foreach (var loadedEntry in loadedEntries)
+            {
+                var relatedEntries = _translatedTextEntries.Where(x => x.Entry.Name == loadedEntry.Name);
+                relatedEntries = loadedEntry.PageName is null
+                    ? relatedEntries.Where(x => x.Page is null)
+                    : relatedEntries.Where(x => x.Page?.Page.Name == loadedEntry.PageName);
+
+                var relatedEntry = relatedEntries.FirstOrDefault();
+                if (relatedEntry is null)
+                    continue;
+
+                relatedEntry.Entry.ContentChanged = true;
+
+                if (_translatedTextEntryNodes.TryGetValue(relatedEntry, out var node))
+                    node.TextColor = ColorResources.Changed;
+
+                var deserializedCharacters = deserializer.Deserialize(loadedEntry.TranslatedText);
+                relatedEntry.Entry.TextData = composer.Compose(deserializedCharacters, relatedEntry.Entry.Encoding);
+
+                _serializedOriginalTexts.Remove(relatedEntry);
+                _serializedTranslatedTexts.Remove(relatedEntry);
+                _serializedControlTexts.Remove(relatedEntry);
+                _parsedTranslatedTexts.Remove(relatedEntry);
+
+                _previewPageIndex = -1;
+                _previewPages = null;
+            }
+
+            _state.FormCommunicator.Update(true, false);
+            _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusImportSuccess);
+
+            await UpdateTextAndPreview();
+            UpdateFormInternal();
+        }
+
         private void _previousPageBtn_Clicked(object? sender, EventArgs e)
         {
             _previewPageIndex = Math.Max(0, _previewPageIndex - 1);
@@ -460,7 +642,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                     _state.FormCommunicator.Update(true, false);
 
-                    ResetTreeState(_treeView.Nodes);
+                    SetTreeState(_treeView.Nodes, false);
 
                     await UpdateTextAndPreview();
                 }
@@ -501,12 +683,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             await Save(true);
         }
 
-        private void ResetTreeState(IList<TreeNode<object>> nodes)
+        private void SetTreeState(IList<TreeNode<object>> nodes, bool isChanged)
         {
             foreach (TreeNode<object> node in nodes)
             {
-                node.TextColor = SixLabors.ImageSharp.Color.Transparent;
-                ResetTreeState(node.Nodes);
+                node.TextColor = isChanged ? ColorResources.Changed : SixLabors.ImageSharp.Color.Transparent;
+                SetTreeState(node.Nodes, isChanged);
             }
         }
 
@@ -519,7 +701,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             foreach (TextEntry textEntry in _state.PluginState.Texts)
                 textEntry.ContentChanged = false;
 
-            ResetTreeState(_treeView.Nodes);
+            SetTreeState(_treeView.Nodes, false);
             UpdateFormInternal();
         }
 

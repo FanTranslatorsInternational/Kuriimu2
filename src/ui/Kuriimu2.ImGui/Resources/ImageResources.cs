@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using ImGui.Forms.Models;
 using ImGui.Forms.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -19,6 +18,10 @@ namespace Kuriimu2.ImGui.Resources
         private const string ImageImportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.image_import.png";
         private const string BatchImageExportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.batch_image_export.png";
         private const string BatchImageImportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.batch_image_import.png";
+        private const string PoImportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.po_import.png";
+        private const string PoExportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.po_export.png";
+        private const string KupImportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.kup_import.png";
+        private const string KupExportDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.kup_export.png";
         private const string ArrowRightDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.arrow_right.png";
         private const string SettingsDarkResource_ = "Kuriimu2.ImGui.Resources.Images.dark.settings.png";
 
@@ -28,6 +31,10 @@ namespace Kuriimu2.ImGui.Resources
         private const string ImageImportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.image_import.png";
         private const string BatchImageExportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.batch_image_export.png";
         private const string BatchImageImportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.batch_image_import.png";
+        private const string PoImportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.po_import.png";
+        private const string PoExportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.po_export.png";
+        private const string KupImportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.kup_import.png";
+        private const string KupExportLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.kup_export.png";
         private const string ArrowRightLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.arrow_right.png";
         private const string SettingsLightResource_ = "Kuriimu2.ImGui.Resources.Images.light.settings.png";
 
@@ -50,6 +57,14 @@ namespace Kuriimu2.ImGui.Resources
         public static ThemedImageResource BatchImageExport => new(GetImageResource(BatchImageExportLightResource_), GetImageResource(BatchImageExportDarkResource_));
 
         public static ThemedImageResource BatchImageImport => new(GetImageResource(BatchImageImportLightResource_), GetImageResource(BatchImageImportDarkResource_));
+
+        public static ThemedImageResource PoImport => new(GetImageResource(PoImportLightResource_), GetImageResource(PoImportDarkResource_));
+
+        public static ThemedImageResource PoExport => new(GetImageResource(PoExportLightResource_), GetImageResource(PoExportDarkResource_));
+
+        public static ThemedImageResource KupImport => new(GetImageResource(KupImportLightResource_), GetImageResource(KupImportDarkResource_));
+
+        public static ThemedImageResource KupExport => new(GetImageResource(KupExportLightResource_), GetImageResource(KupExportDarkResource_));
 
         public static ThemedImageResource ArrowRight => new(GetImageResource(ArrowRightLightResource_), GetImageResource(ArrowRightDarkResource_));
 
