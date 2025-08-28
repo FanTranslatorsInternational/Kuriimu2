@@ -132,7 +132,7 @@
   "Menu.Plugins.Text": "Text",
 
   // About Dialog
-  "Menu.About.Title": "About Kuriimu",
+  "Menu.About.Title": "About Kuriimu2",
   "Menu.About.Version": "Version {0}",
   "Menu.About.Description": "Kuriimu2 is a general purpose game translation project\nmanager and toolkit for authors of fan translations and\ngame mods.",
 
@@ -176,7 +176,7 @@
   "Status.File.Save.Start": "Now saving file {0}",
   "Status.File.Save.Closed": "The given file is already closed.",
   "Status.File.Save.Saving": "File {0} is already saving.",
-  "Status.File.Save.Closing": "File {0} is currently closing.",
+  "Status.File.Save.Closing": "File {0} is already closing.",
   "Status.File.Save.NotLoaded": "The given file is not loaded anymore.",
   "Status.File.Save.NoChanges": "The file had no changes and was not saved.",
   "Status.File.Save.NotSupported": "Plugin does not support saving.",
@@ -190,7 +190,7 @@
   "Status.File.Close.Start": "Now closing file {0}.",
   "Status.File.Close.Cancel": "Closing cancelled.",
   "Status.File.Close.Saving": "File {0} is currently saving.",
-  "Status.File.Close.Closing": "File {0} is already closing.",
+  "Status.File.Close.Closing": "File {0} is currently closing.",
   "Status.File.Close.NotLoaded": "The given file is not loaded anymore.",
   "Status.File.Close.Success": "File closed successfully.",
   "Status.Operation.Running": "Operations are still running and the file cannot be closed.",
@@ -389,7 +389,6 @@
 
   // Font Generation Dialog
   "Dialog.GenerateFont.Caption": "Font Generation",
-
   "Dialog.GenerateFont.Family": "Font Family",
   "Dialog.GenerateFont.Style": "Font Style",
   "Dialog.GenerateFont.Size": "Font Size",
@@ -397,20 +396,14 @@
   "Dialog.GenerateFont.GlyphHeight": "Glyph Height",
   "Dialog.GenerateFont.SpaceWidth": "Space Width",
   "Dialog.GenerateFont.Characters": "Characters",
-
   "Dialog.GenerateFont.Style.Bold": "Bold",
   "Dialog.GenerateFont.Style.Italic": "Italic",
-
   "Dialog.GenerateFont.Load": "Load",
   "Dialog.GenerateFont.Load.Caption": "Load font profile...",
-
   "Dialog.GenerateFont.Save": "Save",
   "Dialog.GenerateFont.Save.Caption": "Save font profile...",
-
   "Dialog.GenerateFont.Profile": "Font Profile",
-
   "Dialog.GenerateFont.Generate": "Generate",
-
   "Dialog.GenerateFont.Padding.Left": "Left Padding",
   "Dialog.GenerateFont.Padding.Right": "Right Padding"
 }
