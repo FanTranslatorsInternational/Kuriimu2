@@ -33,7 +33,6 @@ using ImGui.Forms.Models.IO;
 using Konnect.Extensions;
 using Konnect.Management.Text;
 using Veldrid;
-using System.Security.Cryptography;
 using Konnect.DataClasses.Management.Text;
 
 namespace Kuriimu2.ImGui.Forms.Formats
