@@ -1,0 +1,409 @@
+﻿{
+  "Name": "Tiếng Việt",
+
+  // ImGui (Does not affect windows-native dialogs)
+  "ImGui.Button.Ok": "Ok",
+  "ImGui.Button.Cancel": "Hủy",
+  "ImGui.Button.Yes": "Có",
+  "ImGui.Button.No": "Không",
+  "ImGui.Button.Save": "Lưu",
+  "ImGui.FileDialog.Search": "Tìm Kiếm...",
+  "ImGui.FileDialog.Name": "Tên",
+  "ImGui.FileDialog.Type": "Loại",
+  "ImGui.FileDialog.DateModified": "Ngày Chỉnh Sửa",
+  "ImGui.FileDialog.SelectedFile": "Tên File:",
+  "ImGui.FileDialog.ReplaceFile.Caption": "File Đã Tồn Tại",
+  "ImGui.FileDialog.ReplaceFile.Text": "Bạn có muốn ghi đè file {0}?",
+  "ImGui.FileDialog.CreateFolder.Caption": "Tạo thư mục",
+  "ImGui.FileDialog.CreateFolder.Text": "Tên thư mục mới:",
+
+  // Kuriimu2
+  "Application.Name": "Kuriimu2",
+
+  // Menu
+  "Menu.File": "Tệp",
+  "Menu.Tools": "Công Cụ",
+  "Menu.Settings": "Cài Đặt",
+  "Menu.Help": "Hỗ Trợ",
+
+  // File Menu
+  "Menu.File.Open": "Mở",
+  "Menu.File.Open.Shortcut": "Ctrl+O",
+  "Menu.File.OpenWith": "Mở bằng...",
+  "Menu.File.OpenWith.Shortcut": "Ctrl+Shift+O",
+  "Menu.File.Save": "Lưu",
+  "Menu.File.Save.Shortcut": "Ctrl+S",
+  "Menu.File.SaveAs": "Lưu với...",
+  "Menu.File.SaveAs.Shortcut": "F12",
+  "Menu.File.SaveAll": "Lưu Toàn Bộ",
+  "Menu.File.SaveAll.Shortcut": "Ctrl+Shift+S",
+  "Menu.File.Close": "Đóng",
+
+  // Tools Menu
+  "Menu.Tools.Ciphers": "Mật Mã",
+  "Menu.Tools.Compressions": "Kiểu Nén",
+  "Menu.Tools.ImageTranscoder": "Giải Mã Ảnh",
+  "Menu.Tools.RawImageViewer": "Trình Xem Ảnh Raw",
+  "Menu.Tools.TextSequenceSearcher": "Trình Tìm Văn Bản",
+  "Menu.Tools.BatchExtractor": "Giải Nén Tất Cả",
+  "Menu.Tools.BatchInjector": "Thay Thế Tất Cả",
+  "Menu.Tools.Hashes": "Hashes",
+
+  // Settings Menu
+  "Menu.Settings.IncludeDevBuilds": "Gồm Bản Nhà Phát Triển",
+  "Menu.Settings.ChangeLanguage": "Đổi Ngôn Ngữ",
+  "Menu.Settings.ChangeTheme": "Đổi Nền",
+
+  // Theme Menu
+  "Menu.Settings.ChangeTheme.Dark": "Tối",
+  "Menu.Settings.ChangeTheme.Light": "Sáng",
+
+  // Ciphers Menu
+  "Menu.Tools.Ciphers.Caption": "Mật Mã",
+  "Menu.Tools.Ciphers.Encrypt": "Mã Hóa",
+  "Menu.Tools.Ciphers.Decrypt": "Giải Mã",
+  "Menu.Tools.Ciphers.Execute": "Thực Thi",
+  "Menu.Tools.Ciphers.Input.Folder": "Chọn thư mục",
+  "Menu.Tools.Ciphers.Input.File": "Chọn tệp",
+  "Menu.Tools.Ciphers.Input.SubDirectories": "Thư Mục Con",
+  "Menu.Tools.Ciphers.Input.Parameters": "Thông Số",
+  "Menu.Tools.Ciphers.Log.Process": "Tệp đang xử lý {0}.",
+  "Menu.Tools.Ciphers.Log.Error": "Lỗi khi xử lý tệp {0}.",
+  "Menu.Tools.Ciphers.Progress": "Xử Lý",
+
+  // Compressions Menu
+  "Menu.Tools.Compressions.Caption": "Kiểu Nén",
+  "Menu.Tools.Compressions.Decompress": "Giải Nén",
+  "Menu.Tools.Compressions.Compress": "Nén",
+  "Menu.Tools.Compressions.Execute": "Thực Thi",
+  "Menu.Tools.Compressions.Input.Folder": "Chọn thư mục",
+  "Menu.Tools.Compressions.Input.File": "Chọn tệp",
+  "Menu.Tools.Compressions.Input.SubDirectories": "Thư Mục Con",
+  "Menu.Tools.Compressions.Log.Process": "Tệp đang xử lý {0}.",
+  "Menu.Tools.Compressions.Log.Error": "Lỗi khi xử lý tệp {0}.",
+  "Menu.Tools.Compressions.Progress": "Xử Lý",
+
+  // Image Transcoder
+  "Menu.Tools.ImageTranscoder.Caption": "Giải Mã Ảnh",
+  "Menu.Tools.ImageTranscoder.File": "Tệp",
+  "Menu.Tools.ImageTranscoder.File.Open": "Mở",
+  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
+  "Menu.Tools.ImageTranscoder.Encoding": "Mã Hóa",
+  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Bảng Màu Mã Hóa",
+  "Menu.Tools.ImageTranscoder.Quantizer": "Lượng Tử Hóa",
+  "Menu.Tools.ImageTranscoder.ColorCache": "Bộ Đệm Màu",
+  "Menu.Tools.ImageTranscoder.Ditherer": "Trình Dither",
+  "Menu.Tools.ImageTranscoder.NoDitherer": "Trống",
+  "Menu.Tools.ImageTranscoder.ColorCount": "Số Lượng Màu",
+
+  // Raw Image Viewer
+  "Menu.Tools.RawImageViewer.Caption": "Trình Xem Ảnh Raw",
+  "Menu.Tools.RawImageViewer.File": "Tệp",
+  "Menu.Tools.RawImageViewer.File.Open": "Mở",
+  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
+  "Menu.Tools.RawImageViewer.Placeholder": "Giá Trị: 128, 0x80",
+  "Menu.Tools.RawImageViewer.Width": "Chiều Rộng",
+  "Menu.Tools.RawImageViewer.Height": "Chiều Cao",
+  "Menu.Tools.RawImageViewer.Offset": "Offset",
+  "Menu.Tools.RawImageViewer.PaletteOffset": "Độ Lệch Màu",
+  "Menu.Tools.RawImageViewer.Encoding": "Mã Hóa",
+  "Menu.Tools.RawImageViewer.PaletteEncoding": "Bảng Màu Mã Hóa",
+  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Kênh Màu",
+  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Thành Phần Bảng Màu",
+  "Menu.Tools.RawImageViewer.Swizzle": "Swizzles",
+  "Menu.Tools.RawImageViewer.NoSwizzle": "Không",
+  "Menu.Tools.RawImageViewer.CustomSwizzle": "Tùy Chỉnh",
+  "Menu.Tools.RawImageViewer.RenderSwizzle": "Swizzle Kết Xuất",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Thêm: Nhấn Chuột Trái",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Xóa: Nhấn Chuột Trái",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Di Chuyển: Giữ Chuột Trái + Kéo",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Sao Chép: Alt + C",
+
+  // Plugins Dialog
+  "Menu.Plugins.Title": "Plugin Đã Cài",
+  "Menu.Plugins.Name": "Tên",
+  "Menu.Plugins.Publisher": "Xuất Bản",
+  "Menu.Plugins.Developer": "Phát Triển",
+  "Menu.Plugins.Authors": "Tác Giả",
+  "Menu.Plugins.Platforms": "Hệ Máy",
+  "Menu.Plugins.Archive": "Lưu Trữ",
+  "Menu.Plugins.Image": "Ảnh",
+  "Menu.Plugins.Font": "Font",
+  "Menu.Plugins.Text": "Text",
+
+  // About Dialog
+  "Menu.About.Title": "Thông Tin Kuriimu2",
+  "Menu.About.Version": "Phiên bản {0}",
+  "Menu.About.Description": "Kuriimu2 là một dự án quản lý dịch trò chơi đa năng\nvà bộ công cụ dành cho các fan thực hiện bản địa hóa\nvà các bản mod trò chơi.",
+
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Đã có cập nhật",
+  "Dialog.UpdateAvailable.Text": "Bạn có muốn cập nhật từ phiên bản {0}-{1} lên phiên bản {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Đã phát hiện ngoại lệ",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Plugin không có sẵn",
+  "Dialog.PluginsNotAvailable.Text": "Những plugin sau không thể tải:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Những thay đổi chưa lưu",
+  "Dialog.UnsavedChanges.Text.Specific": "Đã có các thay đổi đã được thực hiện đối với tệp {0} hoặc các tệp con đang mở của nó. Bạn có muốn lưu những thay đổi đó không?",
+  "Dialog.UnsavedChanges.Text.Generic": "Đã có thay đổi trong một hoặc nhiều tệp. Bạn có muốn lưu những thay đổi đó không?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Tệp Phụ Thuộc",
+  "Dialog.DependantFiles.Text": "Mọi tệp được mở từ tệp này và các tệp bên dưới cũng sẽ bị đóng. Tiếp tục",
+
+  // Status
+  "Status.Plugin.Select.None": "Không có plugin nào được chọn.",
+  "Status.Plugin.Select.Unknown": "Loại plugin chưa xác định {0}.",
+  "Status.Plugin.Load.None": "Không có plugin nào có thể mở tệp.",
+  "Status.Plugin.Load.NoArchive": "Plugin không hỗ trợ định dạng lưu trữ.",
+  "Status.Plugin.State.Init.Error": "Plugin không thể khởi tạo.",
+  "Status.Plugin.State.Load.None": "Plugin không thể tải được tệp.",
+  "Status.Plugin.State.Load.Error": "Tệp không thể tải.",
+  "Status.File.Select.None": "Chưa chọn tệp.",
+  "Status.File.Select.Invalid": "Tệp đã chọn không đúng.",
+  "Status.File.Load.Start": "Đang tải tệp {0}",
+  "Status.File.Load.Cancel": "Đã hủy.",
+  "Status.File.Load.Opening": "{0} đã được mở.",
+  "Status.File.Load.Saving": "{0} đã được lưu.",
+  "Status.File.Load.Success": "Đã tải tệp thành công.",
+  "Status.File.Load.Error": "Tệp mở không thành công.",
+  "Status.File.Load.Error.Plugin": "Tệp không thể mở thành công bằng plugin {0}.",
+  "Status.File.Save.Start": "Đang lưu tệp {0}",
+  "Status.File.Save.Closed": "Tệp đã được đóng trước đó.",
+  "Status.File.Save.Saving": "Tệp {0} đã được lưu trước đó.",
+  "Status.File.Save.Closing": "Tệp {0} đã đóng.",
+  "Status.File.Save.NotLoaded": "Tệp đã không còn mở.",
+  "Status.File.Save.NoChanges": "Tệp không có thay đổi nên không được lưu.",
+  "Status.File.Save.NotSupported": "Plugin không hỗ trợ lưu.",
+  "Status.File.Save.State.Error": "Tệp không thể lưu.",
+  "Status.File.Save.State.Reload.Error": "Tệp không thể mở lại sau khi lưu.",
+  "Status.File.Save.Replace.Error": "Một số tệp không thể bị thay thế.",
+  "Status.File.Save.Copy.Error": "Một số tệp không thể sao chép.",
+  "Status.File.Save.DestinationNotExist": "Không thể tạo tệp mới khi đang lưu.",
+  "Status.File.Save.Success": "Tệp đã lưu thành công.",
+  "Status.File.Save.Error": "Tệp chưa lưu thành công.",
+  "Status.File.Close.Start": "Đang đóng tệp {0}.",
+  "Status.File.Close.Cancel": "Đang hủy đóng.",
+  "Status.File.Close.Saving": "Tệp {0} đang được lưu.",
+  "Status.File.Close.Closing": "Tệp {0} đang được đóng.",
+  "Status.File.Close.NotLoaded": "Tệp đã không còn mở.",
+  "Status.File.Close.Success": "Đã đóng tệp thành công.",
+  "Status.Operation.Running": "Các tác vụ vẫn đang chạy nên không thể đóng tệp.",
+
+  // Errors
+  "Error.Unsupported.OperatingSystem": "Hệ điều hành không được hỗ trợ: {0}.",
+
+  // File Filters
+  "Filter.All": "Toàn Bộ Tệp",
+  "Filter.Png": "Portable Network Graphics",
+  "Filter.Po": "Gettext Portable Object",
+  "Filter.Kup": "Kuriimu Translation Object",
+
+  // Archive Form
+
+  // File Operations
+  "Archive.File.Open": "Mở",
+  "Archive.File.OpenWith": "Mở bằng...",
+  "Archive.File.Extract": "Giải Nén",
+  "Archive.File.Replace": "Thay Thế",
+  "Archive.File.Rename": "Đổi Tên",
+  "Archive.File.Delete": "Xóa",
+  "Archive.File.Delete.Shortcut": "Xóa",
+
+  // Folder Operations
+  "Archive.Directory.Extract": "Giải Nén",
+  "Archive.Directory.Replace": "Thay Thế",
+  "Archive.Directory.Rename": "Đổi Tên",
+  "Archive.Directory.Delete": "Xóa",
+  "Archive.Directory.Delete.Shortcut": "Xóa",
+  "Archive.Directory.Add": "Thêm",
+
+  // Status
+  "Archive.Status.Extract.Cancel": "Đã hủy giải nén.",
+  "Archive.Status.Replace.Cancel": "Đã hủy thay thế.",
+  "Archive.Status.Rename.Cancel": "Đã hủy đổi tên tệp.",
+  "Archive.Status.Delete.Cancel": "Đã hủy xóa.",
+  "Archive.Status.Add.Cancel": "Đã hủy thêm tệp.",
+
+  "Archive.Status.Extract.Success": "Các tệp đã giải nén thành công.",
+  "Archive.Status.Replace.Success": "Các tệp đã thay thế thành công.",
+  "Archive.Status.Rename.Success": "Các tệp đã đổi tên thành công.",
+  "Archive.Status.Delete.Success": "Các tệp đã xóa thành công.",
+  "Archive.Status.Add.Success": "Các tệp đã thêm thành công.",
+
+  "Archive.Status.Rename.Error.NoName": "Chưa có tên mới.",
+  "Archive.Status.Add.Error": "Một số tệp không thể thêm thành công. Vui lòng xem log để biết thêm thông tin.",
+
+  "Archive.Status.Select.None": "Chưa chọn mục tiêu.",
+  "Archive.Status.Extract.None": "Không có tệp để giải nén.",
+  "Archive.Status.Replace.None": "Không có tệp để thay thế.",
+  "Archive.Status.Rename.None": "Không có tệp để đổi tên.",
+  "Archive.Status.Delete.None": "Không có tệp để xóa.",
+  "Archive.Status.Add.None": "Không có tệp để thêm.",
+
+  // Archive Progress
+  "Archive.Progress.Extract": "Giải nén các tệp",
+  "Archive.Progress.Replace": "Thay thế các tệp",
+  "Archive.Progress.Rename": "Đổi tên các tệp",
+  "Archive.Progress.Delete": "Xóa các tệp",
+  "Archive.Progress.Add": "Thêm các tệp",
+
+  // Archive Rename Dialog
+  "Archive.Dialog.Rename.File.Caption": "Đổi tên tệp",
+  "Archive.Dialog.Rename.Directory.Caption": "Đổi tên thư mục",
+  "Archive.Dialog.Rename.Text": "Chọn một tên mới cho {0}:",
+
+  // Archive File Headers
+  "Archive.Table.Files.Name": "Tên",
+  "Archive.Table.Files.Size": "Kích Thước",
+
+  // Archive Search Bar
+  "Archive.Search.Placeholder": "Tìm kiếm...",
+  "Archive.Search.Clear": "Xóa",
+
+  // Misc
+  "Archive.FileCount": "Tệp: {0}",
+  "Archive.CancelOperation": "Hủy",
+
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Xuất ảnh",
+  "Image.Menu.Import": "Nhập ảnh",
+  "Image.Menu.Export.Batch": "Xuất toàn bộ ảnh",
+  "Image.Menu.Import.Batch": "Nhập toàn bộ ảnh",
+  "Image.Menu.Export.Png": "Xuất PNG...",
+  "Image.Menu.Import.Png": "Nhập PNG...",
+
+  // Labels
+  "Image.Label.Width": "Chiều Rộng:",
+  "Image.Label.Height": "Chiều Cao:",
+  "Image.Label.Format": "Định Dạng:",
+  "Image.Label.Palette": "Bảng Màu:",
+
+  // Image Status
+  "Image.Status.Export.Start": "Đang xuất ảnh {0}.",
+  "Image.Status.Export.Cancel": "Đã hủy xuất ảnh.",
+  "Image.Status.Export.Success": "Đã xuất ảnh thành công.",
+  "Image.Status.Export.Failure": "Đã xuất ảnh thất bại.",
+  "Image.Status.Import.Start": "Đang nhập ảnh {0}.",
+  "Image.Status.Import.Cancel": "Đã hủy nhập ảnh.",
+  "Image.Status.Import.Success": "Đã nhập ảnh thành công.",
+  "Image.Status.Import.Failure": "Đã nhập ảnh thất bại.",
+
+  // Image Progress
+  "Image.Progress.Decode": "Giải mã ảnh(s)",
+
+  // Indexed PictureBox
+  "Image.PictureBox.Index.SelectColorControl": "Chọn Bảng Màu: Ctrl + Nhấn Chuột Trái",
+  "Image.PictureBox.Index.SetColorControl": "Thiết Lập Bảng Màu: Alt + Nhấn Chuột Trái",
+
+  // Font Form
+
+  // Labels
+  "Font.Search.Placeholder": "Tìm kiếm: ¥, \\uFFE3",
+
+  // Preview
+  "Font.Preview.Placeholder": "Xem Trước",
+  "Font.Preview.Export": "Xuất xem trước",
+  "Font.Preview.Settings": "Thiết Lập",
+
+  // Settings
+  "Font.Preview.Settings.Caption": "Thiết Lập Xem Trước",
+  "Font.Preview.Settings.ShowDebug": "Hiển thị hộp debug",
+  "Font.Preview.Settings.Spacing": "Khoảng Cách",
+  "Font.Preview.Settings.LineHeight": "Chiều cao dòng",
+  "Font.Preview.Settings.Alignment": "Căn Chỉnh",
+  "Font.Preview.Settings.Alignment.Left": "Trái",
+  "Font.Preview.Settings.Alignment.Center": "Giữa",
+  "Font.Preview.Settings.Alignment.Right": "Phải",
+
+  // Generate
+  "Font.Generate.Caption": "Tạo Font",
+  "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
+
+  // Text Form
+
+  // Menu
+  "Text.Menu.Export.Po": "Xuất PO...",
+  "Text.Menu.Import.Po": "Nhập PO...",
+  "Text.Menu.Export.Kup": "Xuất KUP...",
+  "Text.Menu.Import.Kup": "Nhập KUP...",
+
+  // Labels
+  "Text.Content.Original": "Gốc:",
+  "Text.Content.Edited": "Đã Dịch:",
+  "Text.Content.NoCodes": "Bỏ codes control:",
+
+  // Previews
+  "Text.Preview.Default": "Mặc Định",
+  "Text.Preview.TextChanged": "Chuyển đổi plugin xem trước sẽ làm mất các thay đổi đã thực hiện mà không được lưu lại. Bạn có muốn tiếp tục không?",
+
+  // Context
+  "Text.Context.Rename": "Đổi Tên",
+  "Text.Context.Add": "Thêm",
+  "Text.Context.Delete": "Xóa",
+  "Text.Context.Delete.Shortcut": "Xóa",
+
+  // Rename
+  "Text.Rename.Caption": "Đổi Tên",
+  "Text.Rename.Text": "Nhập tên mới",
+
+  // Text Status
+  "Text.Status.Rename.Success": "Đổi tên mục văn bản thành công.",
+  "Text.Status.Rename.Failure": "Đổi tên mục văn bản thất bại.",
+  "Text.Status.Add.Success": "Thêm mục văn bản thành công.",
+  "Text.Status.Add.Failure": "Thêm mục văn bản thất bại.",
+  "Text.Status.Delete.Success": "Xóa mục văn bản thành công.",
+  "Text.Status.Delete.Failure": "Xóa mục văn bản thất bại.",
+  "Text.Status.Export.Success": "Xuất văn bản thành công.",
+  "Text.Status.Import.Success": "Nhập văn bản thành công.",
+
+  // Dialogs
+
+  // Dialog Manager
+  "Dialog.Manager.Button.Ok": "Ok",
+
+  // Choose Plugin Dialog
+  "Dialog.ChoosePlugin.Caption": "Chọn plugin",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Chọn plugin để mở tệp:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Không thể tự động xác định plugin để mở tệp này,\nvui lòng chọn thủ công.:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Có nhiều plugin có thể nhận diện tệp này. Vui lòng chọn một:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "Mặc định, chỉ các plugin không thể tự động xác định rằng chúng hỗ trợ tệp này mới được hiển thị.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Tên",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Loại",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Mô Tả",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Tiếp Tục",
+  "Dialog.ChoosePlugin.ViewRaw": "Xem raw bytes",
+  "Dialog.ChoosePlugin.Cancel": "Hủy",
+  "Dialog.ChoosePlugin.ShowAll": "Hiện toàn bộ plugin",
+
+  // Font Generation Dialog
+  "Dialog.GenerateFont.Caption": "Tạo Font",
+  "Dialog.GenerateFont.Family": "Font Family",
+  "Dialog.GenerateFont.Style": "Kiểu Font",
+  "Dialog.GenerateFont.Size": "Kích Thước Font",
+  "Dialog.GenerateFont.Baseline": "Đường Cơ Sở",
+  "Dialog.GenerateFont.GlyphHeight": "Chiều Cao Glyph",
+  "Dialog.GenerateFont.SpaceWidth": "Chiều Rộng Khoảng Trắng",
+  "Dialog.GenerateFont.Characters": "Ký Tự",
+  "Dialog.GenerateFont.Style.Bold": "In Đậm",
+  "Dialog.GenerateFont.Style.Italic": "In Nghiêng",
+  "Dialog.GenerateFont.Load": "Tải",
+  "Dialog.GenerateFont.Load.Caption": "Tải hồ sơ font...",
+  "Dialog.GenerateFont.Save": "Lưu",
+  "Dialog.GenerateFont.Save.Caption": "Lưu hồ sơ font...",
+  "Dialog.GenerateFont.Profile": "Hồ Sơ Font",
+  "Dialog.GenerateFont.Generate": "Tạo",
+  "Dialog.GenerateFont.Padding.Left": "Lề Trái",
+  "Dialog.GenerateFont.Padding.Right": "Lề Phải"
+}
