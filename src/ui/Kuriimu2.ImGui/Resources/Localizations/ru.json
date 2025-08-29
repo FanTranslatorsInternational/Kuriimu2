@@ -87,7 +87,7 @@
   "Menu.Tools.ImageTranscoder.Caption": "Транскодер изображений",
   "Menu.Tools.ImageTranscoder.File": "Файл",
   "Menu.Tools.ImageTranscoder.File.Open": "Открыть",
-  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl +  O",
+  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl + O",
   "Menu.Tools.ImageTranscoder.Encoding": "Кодировка",
   "Menu.Tools.ImageTranscoder.PaletteEncoding": "Кодировка палитры",
   "Menu.Tools.ImageTranscoder.Quantizer": "Квантизатор",
