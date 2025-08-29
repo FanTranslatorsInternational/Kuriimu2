@@ -389,7 +389,7 @@
 
   // Font Generation Dialog
   "Dialog.GenerateFont.Caption": "Génération de police",
-  "Dialog.GenerateFont.Family": "Famille de police",t
+  "Dialog.GenerateFont.Family": "Famille de police",
   "Dialog.GenerateFont.Style": "Style de police",
   "Dialog.GenerateFont.Size": "Taille de police",
   "Dialog.GenerateFont.Baseline": "Ligne de base",
