@@ -101,13 +101,25 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\en.json</TargetPath>
     </None>
+    <None Update="Resources\Localizations\fr.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\fr.json</TargetPath>
+    </None>
     <None Update="Resources\Localizations\ko.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\ko.json</TargetPath>
     </None>
+    <None Update="Resources\Localizations\pt-br.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\pt-br.json</TargetPath>
+    </None>
     <None Update="Resources\Localizations\ru.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\ru.json</TargetPath>
+    </None>
+    <None Update="Resources\Localizations\vi.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\vi.json</TargetPath>
     </None>
     <None Update="Resources\Localizations\zh.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
