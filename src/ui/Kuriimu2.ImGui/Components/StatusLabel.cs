@@ -16,7 +16,7 @@ namespace Kuriimu2.ImGui.Components
 
         public StatusKind StatusKind { get; private set; }
 
-        public string Text
+        public LocalizedString Text
         {
             get => _label.Text;
             set => _label.Text = value;

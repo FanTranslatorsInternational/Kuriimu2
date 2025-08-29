@@ -72,7 +72,7 @@ namespace plugin_mt_framework.Fonts
             foreach (GfdEntryv1 entry in entries)
             {
                 Image<Rgba32>? glyph = null;
-                if (entry.GlyphWidth > 0 || entry.GlyphHeight > 0)
+                if (entry is { GlyphWidth: > 0, GlyphHeight: > 0 })
                     glyph = _imageFiles[entry.ImageId].GetImage().Clone(context => context.Crop(new Rectangle(entry.GlyphPositionX, entry.GlyphPositionY, entry.GlyphWidth, entry.GlyphHeight)));
 
                 result.Add(new CharacterInfo

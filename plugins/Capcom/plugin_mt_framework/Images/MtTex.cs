@@ -172,7 +172,7 @@ namespace plugin_mt_framework.Images
             {
                 // Read mips
                 var mipData = new List<byte[]>();
-                for (var m = 1; m < _header.imageData.mipCount; m++)
+                for (var m = 0; m < _header.imageData.mipCount; m++)
                 {
                     var mipSize = (_header.imageData.width >> m) * (_header.imageData.height >> m) * bitDepth / 8;
 
@@ -255,7 +255,7 @@ namespace plugin_mt_framework.Images
 
             // Skip mip offsets
             var mipCount = version == 0x87 ? _header87.imageData.mipCount : _header.imageData.mipCount;
-            ReadIntegers(br, mipCount);
+            ReadIntegers(br, mipCount - 1);
 
             // Collect values
             var format = version == 0x87 ? _header87 is { format: 0x19, useDxt10: 0 } ? 0xFF : _header87.format : _header.format;
@@ -598,28 +598,48 @@ namespace plugin_mt_framework.Images
         private void SavePc(BinaryWriterX bw, ImageFileInfo imageInfo)
         {
             var version = _header.imageData.version;
-            var headerSize = version == 0x87 ? HeaderSize87_ : HeaderSize_;
 
-            // Write data offset
-            var dataOffset = headerSize + (version == 0x87 ? 0 : 4) + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
+            // Write data offsets
+            int dataOffset;
+            long offsetPosition;
+            switch (version)
+            {
+                case 0x87:
+                    dataOffset = HeaderSize87_ + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
+                    offsetPosition = HeaderSize87_;
+                    break;
 
-            bw.BaseStream.Position = headerSize;
-            if (version != 0x87)
-                bw.Write(dataOffset);
+                case 0x9d:
+                    dataOffset = HeaderSize_ + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
+                    offsetPosition = HeaderSize_;
+                    break;
+
+                case 0xa3:
+                    dataOffset = HeaderSize_ + 4 + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
+                    offsetPosition = HeaderSize_;
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported PC version {version}.");
+            }
+
+            bw.BaseStream.Position = offsetPosition;
+            bw.Write(dataOffset);
 
             // Write mip offsets
-            var mipPosition = version == 0x87 ? dataOffset : 0;
-            bw.Write(mipPosition);
-            mipPosition += imageInfo.ImageData.Length;
+            dataOffset += imageInfo.ImageData.Length;
 
             if ((imageInfo.MipMapData?.Count ?? 0) > 0)
             {
                 foreach (var mipData in imageInfo.MipMapData!)
                 {
-                    bw.Write(mipPosition);
-                    mipPosition += mipData.Length;
+                    bw.Write(dataOffset);
+                    dataOffset += mipData.Length;
                 }
             }
+
+            if (version is 0xa3)
+                bw.Write(0);
 
             // Write image data
             bw.Write(imageInfo.ImageData);

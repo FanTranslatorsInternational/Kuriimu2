@@ -161,7 +161,7 @@ namespace plugin_mt_framework.Images
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt3(),
             [0x17] = ImageFormats.Dxt5(),
-
+            [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Dxt1(),
             [0x1F] = ImageFormats.Dxt5(),
             [0x21] = ImageFormats.Dxt5(),
@@ -175,10 +175,13 @@ namespace plugin_mt_framework.Images
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt1(),
             [0x17] = ImageFormats.Dxt5(),
+            [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1A(),
             [0x1F] = ImageFormats.Ati2(),
 
-            [0x2A] = ImageFormats.Bc7()
+            [0x2A] = ImageFormats.Bc7(),
+
+            [0x31] = ImageFormats.Bc7()
         };
 
         public static readonly IDictionary<int, IColorEncoding> PcFormats = new Dictionary<int, IColorEncoding>
@@ -188,12 +191,14 @@ namespace plugin_mt_framework.Images
             [0x14] = ImageFormats.Dxt1(),
             [0x15] = ImageFormats.Dxt3(),
             [0x17] = ImageFormats.Dxt5(),
-            [0x19] = ImageFormats.Ati1A(),
+            [0x18] = ImageFormats.Dxt5(),
+            [0x19] = ImageFormats.Dxt1(),
             [0x1F] = ImageFormats.Ati2(),
 
             [0x22] = ImageFormats.Dxt5(),
 
             [0x2A] = ImageFormats.Bc7(),
+            [0x2B] = ImageFormats.Dxt5(),
             [0x36] = ImageFormats.Bc7()
         };
 
@@ -202,6 +207,7 @@ namespace plugin_mt_framework.Images
             [0x13] = ImageFormats.Dxt1(),
             [0x15] = ImageFormats.Dxt3(),
             [0x17] = ImageFormats.Dxt5(),
+            [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1(),
 
             [0x1E] = ImageFormats.Dxt1(),
@@ -240,7 +246,9 @@ namespace plugin_mt_framework.Images
 
         private static readonly IDictionary<int, IColorShader> ShadersPc = new Dictionary<int, IColorShader>
         {
-            [0x2A] = new MtTex_YCbCrColorShader()
+            [0x19] = new MtTex_AlphaLuminanceColorShader(),
+            [0x2A] = new MtTex_YCbCrColorShader(),
+            [0x2B] = new MtTex_YCbCrColorShader()
         };
 
         public static int GetBitDepth(MtTexPlatform platform, int format)
@@ -278,6 +286,7 @@ namespace plugin_mt_framework.Images
             if (magic == "TEX " && mobileVersion == 0x09)
                 return MtTexPlatform.Mobile;
 
+            MtTexPlatform[] options;
             switch (version)
             {
                 case 0xa4:
@@ -294,27 +303,34 @@ namespace plugin_mt_framework.Images
 
                 case 0x97:
                 case 0x9a:
-                case 0x9d:
                     return MtTexPlatform.PS3;
 
+                case 0x9d:
+                    options = [MtTexPlatform.Pc, MtTexPlatform.PS3];
+                    break;
+
                 case 0xa0:
+                case 0xa1:
                     return MtTexPlatform.Switch;
 
                 case 0xa3:
-                    var selection = new DialogField
-                    {
-                        Text = "Platform",
-                        Type = DialogFieldType.DropDown,
-                        DefaultValue = MtTexPlatform.Pc.ToString(),
-                        Options = [MtTexPlatform.Pc.ToString(), MtTexPlatform.Switch.ToString()]
-                    };
-                    await dialogManager.ShowDialog([selection]);
-
-                    return Enum.Parse<MtTexPlatform>(selection.Result);
+                    options = [MtTexPlatform.Pc, MtTexPlatform.Switch];
+                    break;
 
                 default:
                     throw new InvalidOperationException($"MtTex version 0x{version:X2} is not supported.");
             }
+
+            var selection = new DialogField
+            {
+                Text = "Platform",
+                Type = DialogFieldType.DropDown,
+                DefaultValue = options[0].ToString(),
+                Options = options.Select(x => $"{x}").ToArray()
+            };
+            await dialogManager.ShowDialog([selection]);
+
+            return Enum.Parse<MtTexPlatform>(selection.Result);
         }
 
         public static EncodingDefinition GetEncodingDefinition(MtTexPlatform platform)
@@ -367,6 +383,21 @@ namespace plugin_mt_framework.Images
         Mobile,
         Pc,
         Pc87
+    }
+
+    class MtTex_AlphaLuminanceColorShader : IColorShader
+    {
+        public Rgba32 Read(Rgba32 c)
+        {
+            var luminance = (byte)((c.R + c.G + c.B) / 3);
+            return new Rgba32(c.A, c.A, c.A, luminance);
+        }
+
+        public Rgba32 Write(Rgba32 c)
+        {
+            byte luminance = c.A;
+            return new Rgba32(luminance, luminance, luminance, 255);
+        }
     }
 
     class MtTex_YCbCrColorShader : IColorShader
