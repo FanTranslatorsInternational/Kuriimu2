@@ -22,8 +22,8 @@ namespace plugin_bandai_namco.Archives
             Name = "APK",
             Publisher = "Bandai Namco",
             Developer = "Bandai Namco",
-            Platform = ["3DS"],
-            LongDescription = "Main package resource in Gundam 3D Battle."
+            Platform = ["PSP", "Vita", "3DS", "PS3"],
+            LongDescription = "Main package resource in Gundam 3D Battle and AKB48 dating sim Games."
         };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
