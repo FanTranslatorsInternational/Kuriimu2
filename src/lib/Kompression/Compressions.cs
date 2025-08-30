@@ -1,4 +1,5 @@
-﻿using Komponent.Contract.Enums;
+﻿using K4os.Compression.LZ4.Encoders;
+using Komponent.Contract.Enums;
 using Kompression.Configuration;
 using Kompression.Contract.Configuration;
 using Kompression.Contract.Enums.Encoder.Huffman;
@@ -234,5 +235,10 @@ namespace Kompression
             new CompressionConfigurationBuilder()
                 .Decode.With(() => new SosLz3Decoder())
                 .Encode.With(() => new SosLz3Encoder());
+
+        public static ICompressionConfigurationBuilder Lzma =>
+            new CompressionConfigurationBuilder()
+                .Decode.With(() => new LzmaDecoder())
+                .Encode.With(() => new LzmaEncoder());
     }
 }
