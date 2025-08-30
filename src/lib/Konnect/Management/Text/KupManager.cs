@@ -5,12 +5,10 @@ namespace Konnect.Management.Text
 {
     public static class KupManager
     {
-        public static TranslationFileEntry[] Load(string filePath)
+        public static TranslationFileEntry[] Load(Stream input)
         {
-            using Stream inputStream = File.OpenRead(filePath);
-
             var serializer = new XmlSerializer(typeof(KupXmlRoot));
-            var root = (KupXmlRoot?)serializer.Deserialize(inputStream);
+            var root = (KupXmlRoot?)serializer.Deserialize(input);
 
             if (root is null)
                 return [];
@@ -33,7 +31,7 @@ namespace Konnect.Management.Text
             return [.. result];
         }
 
-        public static void Save(string filePath, TranslationFileEntry[] entries)
+        public static void Save(Stream output, TranslationFileEntry[] entries)
         {
             var xmlEntries = new List<KupXmlEntry>();
 
@@ -59,10 +57,8 @@ namespace Konnect.Management.Text
                 }
             };
 
-            using Stream outputStream = File.Create(filePath);
-
             var serializer = new XmlSerializer(typeof(KupXmlRoot));
-            serializer.Serialize(outputStream, root);
+            serializer.Serialize(output, root);
         }
     }
 }

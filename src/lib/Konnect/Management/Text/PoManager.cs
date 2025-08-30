@@ -6,9 +6,9 @@ namespace Konnect.Management.Text
 {
     public static class PoManager
     {
-        public static TranslationFileEntry[] Load(string filePath)
+        public static TranslationFileEntry[] Load(Stream input)
         {
-            string poText = File.ReadAllText(filePath);
+            string poText = new StreamReader(input).ReadToEnd();
 
             var result = new List<TranslationFileEntry>();
 
@@ -78,7 +78,7 @@ namespace Konnect.Management.Text
             return [.. result];
         }
 
-        public static void Save(string filePath, TranslationFileEntry[] entries)
+        public static void Save(Stream output, TranslationFileEntry[] entries)
         {
             var sb = new StringBuilder();
 
@@ -98,7 +98,8 @@ namespace Konnect.Management.Text
             }
 
             var poText = sb.ToString();
-            File.WriteAllText(filePath, poText);
+
+            new StreamWriter(output).Write(poText);
         }
     }
 }

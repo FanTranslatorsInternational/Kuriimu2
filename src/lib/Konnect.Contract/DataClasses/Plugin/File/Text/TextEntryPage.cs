@@ -8,7 +8,7 @@
         /// <summary>
         /// The name of the page.
         /// </summary>
-        public string Name { get; init; }
+        public string? Name { get; init; }
 
         /// <summary>
         /// The <see cref="TextEntry"/>s that represent a single page.

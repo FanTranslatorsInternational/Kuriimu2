@@ -3,19 +3,13 @@ using Konnect.Contract.Enums.Management.Files;
 
 namespace Konnect.Contract.DataClasses.Management.Files.Events
 {
-    public class ManualSelectionEventArgs : EventArgs
+    public class ManualSelectionEventArgs(IFilePlugin[] allFilePlugins, IFilePlugin[] filteredFilePlugins, SelectionStatus status)
+        : EventArgs
     {
-        public IEnumerable<IFilePlugin> FilePlugins { get; }
-        public IEnumerable<IFilePlugin> FilteredFilePlugins { get; }
-        public SelectionStatus SelectionStatus { get; }
+        public IEnumerable<IFilePlugin> FilePlugins { get; } = allFilePlugins;
+        public IEnumerable<IFilePlugin> FilteredFilePlugins { get; } = filteredFilePlugins;
+        public SelectionStatus SelectionStatus { get; } = status;
 
-        public IFilePlugin Result { get; set; }
-
-        public ManualSelectionEventArgs(IEnumerable<IFilePlugin> allFilePlugins, IEnumerable<IFilePlugin> filteredFilePlugins, SelectionStatus status)
-        {
-            FilePlugins = allFilePlugins;
-            FilteredFilePlugins = filteredFilePlugins;
-            SelectionStatus = status;
-        }
+        public IFilePlugin? Result { get; set; }
     }
 }

@@ -16,6 +16,6 @@ namespace Konnect.Contract.Plugin.Game
         /// <param name="entries">The text entries to identify the type of preview.</param>
         /// <param name="pluginFileManager">The plugin manager to load files with the Kuriimu runtime.</param>
         /// <returns>Newly created <see cref="IGamePluginState"/>.</returns>
-        IGamePluginState CreatePluginState(UPath filePath, IList<TextEntry> entries, IPluginFileManager pluginFileManager);
+        IGamePluginState CreatePluginState(UPath filePath, IReadOnlyList<TextEntry> entries, IPluginFileManager pluginFileManager);
     }
 }

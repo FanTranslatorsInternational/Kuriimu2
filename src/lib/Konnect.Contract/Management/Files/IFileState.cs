@@ -56,7 +56,7 @@ namespace Konnect.Contract.Management.Files
         /// The parent state from which this file was opened.
         /// <see langword="null" /> if this file wasn't opened from another state.
         /// </summary>
-        IFileState ParentFileState { get; }
+        IFileState? ParentFileState { get; }
 
         /// <summary>
         /// The values retrieved by dialogs in the initial load process.
