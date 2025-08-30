@@ -21,7 +21,7 @@ namespace plugin_mt_framework_preview.Previews
             LongDescription = "Preview plugin for Ace Attorney 6."
         };
 
-        public IGamePluginState CreatePluginState(UPath filePath, IList<TextEntry> entries, IPluginFileManager pluginFileManager)
+        public IGamePluginState CreatePluginState(UPath filePath, IReadOnlyList<TextEntry> entries, IPluginFileManager pluginFileManager)
         {
             return _state ??= new AceAttorney6State(pluginFileManager);
         }

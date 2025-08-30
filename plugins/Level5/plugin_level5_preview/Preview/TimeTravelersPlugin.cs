@@ -25,7 +25,7 @@ namespace plugin_level5_preview.Preview
             LongDescription = "Preview plugin for Time Travelers."
         };
 
-        public IGamePluginState CreatePluginState(UPath filePath, IList<TextEntry> entries, IPluginFileManager pluginFileManager)
+        public IGamePluginState CreatePluginState(UPath filePath, IReadOnlyList<TextEntry> entries, IPluginFileManager pluginFileManager)
         {
             if (entries.Count <= 0)
                 return _narrationState ??= new TimeTravelersNarrationState(pluginFileManager);
