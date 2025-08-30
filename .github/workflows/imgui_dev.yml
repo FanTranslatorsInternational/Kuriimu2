@@ -53,6 +53,7 @@ jobs:
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Beeworks/Beeworks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/Capcom.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
@@ -60,6 +61,7 @@ jobs:
         dotnet build ./plugins/DreamCatcher/DreamCatcher.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Gust/Gust.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/HuneX/HuneX.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
