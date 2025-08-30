@@ -6,7 +6,7 @@ using Kuriimu2.Cmd.Models.Contexts;
 
 namespace Kuriimu2.Cmd.Contexts
 {
-    class TextContext(IFileState stateInfo, IContext parentContext, IProgressContext progressContext)
+    class FontContext(IFileState stateInfo, IContext parentContext, IProgressContext progressContext)
         : BaseContext(progressContext)
     {
         protected override Command[] GetCommandsInternal()

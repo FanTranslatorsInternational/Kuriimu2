@@ -1,52 +1,49 @@
 ﻿using System;
-using Kontract;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Progress;
-using Kontract.Models.Dialog;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
+using Konnect.Contract.Progress;
 using Kuriimu2.Cmd.Parsers;
 
 namespace Kuriimu2.Cmd.Manager
 {
-    class ConsoleDialogManager : IDialogManager
+    class ConsoleDialogManager(IArgumentGetter argumentGetter, IProgressContext progress) : IDialogManager
     {
-        private readonly IArgumentGetter _argumentGetter;
-        private readonly IProgressContext _progress;
+        public IList<string> DialogOptions { get; } = [];
 
-        public ConsoleDialogManager(IArgumentGetter argumentGetter, IProgressContext progress)
+        public Task<bool> ShowDialog(DialogField[] fields)
         {
-            ContractAssertions.IsNotNull(argumentGetter, nameof(argumentGetter));
-            ContractAssertions.IsNotNull(progress, nameof(progress));
+            progress.FinishProgress();
 
-            _argumentGetter = argumentGetter;
-            _progress = progress;
-        }
-
-        public void ShowDialog(DialogField[] fields)
-        {
-            _progress.FinishProgress();
-
-            foreach (var field in fields)
+            foreach (DialogField field in fields)
                 ProcessField(field);
 
-            _progress.StartProgress();
+            progress.StartProgress();
+
+            return Task.FromResult(true);
         }
 
         private void ProcessField(DialogField field)
         {
             Console.Clear();
 
-            var suffix = !string.IsNullOrEmpty(field.Text) ? $" for '{field.Text}'" : string.Empty;
+            string suffix = !string.IsNullOrEmpty(field.Text) ? $" for '{field.Text}'" : string.Empty;
             Console.WriteLine($"Input is requested{suffix}:");
 
             switch (field.Type)
             {
                 case DialogFieldType.TextBox:
-                    field.Result = _argumentGetter.GetNextArgument();
+                    field.Result = argumentGetter.GetNextArgument();
                     break;
 
                 case DialogFieldType.DropDown:
                     GetDropDownArgument(field);
                     break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported dialog field type {field.Type}.");
             }
         }
 
@@ -57,9 +54,9 @@ namespace Kuriimu2.Cmd.Manager
 
             while (true)
             {
-                var optionIndexArgument = _argumentGetter.GetNextArgument();
+                string optionIndexArgument = argumentGetter.GetNextArgument();
 
-                if (!int.TryParse(optionIndexArgument, out var optionIndex))
+                if (!int.TryParse(optionIndexArgument, out int optionIndex))
                 {
                     Console.WriteLine($"'{optionIndexArgument}' is not a valid number.");
                     continue;

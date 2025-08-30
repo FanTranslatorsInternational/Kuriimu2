@@ -3,48 +3,44 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Progress;
-using Kontract.Models;
-using Kore.Managers.Plugins;
-using Kore.Update;
+using Konnect.Contract.DataClasses.Management.Files;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Management.Plugin;
+using Konnect.Contract.Progress;
+using Kuriimu2.Cmd.Models.Contexts;
+using Kuriimu2.Cmd.Update;
 
 namespace Kuriimu2.Cmd.Contexts
 {
-    class MainContext : BaseFileContext
+    class MainContext(IPluginManager pluginManager, IFileManager fileManager, IProgressContext progressContext)
+        : BaseFileContext(fileManager, progressContext)
     {
-        public MainContext(IInternalFileManager pluginManager, IProgressContext progressContext) :
-            base(pluginManager, progressContext)
+        protected override Command[] GetCommandsInternal()
         {
-        }
+            Command[] baseCommands = base.GetCommandsInternal();
 
-        protected override IList<Command> InitializeCommands()
-        {
-            var baseCommands = base.InitializeCommands();
-
-            return baseCommands.Concat(new[]
-            {
+            return baseCommands.Concat([
                 new Command("update"),
                 new Command("extensions"),
                 new Command("exit")
-            }).ToArray();
+            ]).ToArray();
         }
 
-        protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
+        protected override async Task<IContext?> ExecuteNextInternal(Command command, IList<string> arguments)
         {
-            var executeContext = await base.ExecuteNextInternal(command, arguments);
-            if (executeContext != null)
+            IContext? executeContext = await base.ExecuteNextInternal(command, arguments);
+            if (executeContext is not null)
                 return executeContext;
 
             switch (command.Name)
             {
                 case "update":
-                    Update();
+                    await Update();
                     return null;
 
                 case "extensions":
-                    return new ExtensionContext(PluginManager, this, Progress);
+                    return new ExtensionContext(pluginManager, FileManager, this, Progress);
 
                 case "exit":
                     CloseAll();
@@ -56,7 +52,7 @@ namespace Kuriimu2.Cmd.Contexts
 
         protected override bool IsLoaded(string filePath)
         {
-            return PluginManager.IsLoaded(filePath);
+            return FileManager.IsLoaded(filePath);
         }
 
         protected override bool FileExists(string filePath)
@@ -67,32 +63,21 @@ namespace Kuriimu2.Cmd.Contexts
         protected override Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId)
         {
             return pluginId == Guid.Empty ?
-                PluginManager.LoadFile(filePath) :
-                PluginManager.LoadFile(filePath, pluginId);
+                FileManager.LoadFile(filePath) :
+                FileManager.LoadFile(filePath, pluginId);
         }
 
-        private void Update()
+        private async Task Update()
         {
-            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            string? executablePath = await UpdateUtilities.DownloadUpdateExecutable();
+            if(executablePath is null)
+                return;
+
             var process = new Process
             {
-                StartInfo = new ProcessStartInfo(executablePath, $"{Program.ApplicationType}.{GetCurrentPlatform()} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+                StartInfo = new ProcessStartInfo(executablePath, $"{Program.ApplicationType}.{Program.GetCurrentPlatform()} {Path.GetFileName(Process.GetCurrentProcess().MainModule!.FileName)}")
             };
             process.Start();
-        }
-
-        private string GetCurrentPlatform()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "Mac";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return "Windows";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return "Linux";
-
-            throw new InvalidOperationException($"The platform {RuntimeInformation.OSDescription} is not supported.");
         }
     }
 }

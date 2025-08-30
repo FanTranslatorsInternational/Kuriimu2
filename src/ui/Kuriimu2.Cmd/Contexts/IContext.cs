@@ -7,6 +7,6 @@ namespace Kuriimu2.Cmd.Contexts
     {
         void PrintCommands();
 
-        Task<IContext> ExecuteNext(IArgumentGetter argumentGetter);
+        Task<IContext?> ExecuteNext(IArgumentGetter argumentGetter);
     }
 }

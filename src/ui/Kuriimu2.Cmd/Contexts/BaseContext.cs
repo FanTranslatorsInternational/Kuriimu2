@@ -2,42 +2,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Kontract;
-using Kontract.Interfaces.Progress;
+using Konnect.Contract.Progress;
+using Kuriimu2.Cmd.Models.Contexts;
 using Kuriimu2.Cmd.Parsers;
 
 namespace Kuriimu2.Cmd.Contexts
 {
-    abstract class BaseContext : IContext
+    abstract class BaseContext(IProgressContext progressContext) : IContext
     {
-        private readonly IList<Command> _commands;
+        private Command[]? _commands;
 
-        protected IProgressContext Progress { get; }
-
-        protected BaseContext(IProgressContext progressContext)
-        {
-            ContractAssertions.IsNotNull(progressContext, nameof(progressContext));
-
-            Progress = progressContext;
-
-            _commands = InitializeCommands();
-        }
+        protected IProgressContext Progress { get; } = progressContext;
 
         public void PrintCommands()
         {
             Console.WriteLine();
             Console.WriteLine("Available commands:");
-            foreach (var command in _commands.Where(x => x.Enabled))
+
+            Command[] commands = GetCommands();
+            foreach (Command command in commands.Where(x => x.Enabled))
                 Console.WriteLine($"{command.Name} {string.Join(' ', command.Arguments.Select(x => $"[{x}]"))}");
         }
 
-        public async Task<IContext> ExecuteNext(IArgumentGetter argumentGetter)
+        public async Task<IContext?> ExecuteNext(IArgumentGetter argumentGetter)
         {
-            var commandName = argumentGetter.GetNextArgument();
+            string commandName = argumentGetter.GetNextArgument();
 
             // Check if command exists
-            var command = _commands.Where(x => x.Enabled).FirstOrDefault(x => x.Name == commandName);
-            if (command == null)
+            Command[] commands = GetCommands();
+            Command? command = commands.FirstOrDefault(x => x.Enabled && x.Name == commandName);
+            if (command is null)
             {
                 Console.WriteLine($"Command '{commandName}' is not supported.");
                 return this;
@@ -46,12 +40,14 @@ namespace Kuriimu2.Cmd.Contexts
             Console.Clear();
 
             // Execute command
-            var arguments = argumentGetter.GetNextArguments(command.Arguments.Length);
+            IList<string> arguments = argumentGetter.GetNextArguments(command.Arguments.Length);
             return await ExecuteNextInternal(command, arguments);
         }
 
-        protected abstract Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments);
+        private Command[] GetCommands() => _commands ??= GetCommandsInternal();
 
-        protected abstract IList<Command> InitializeCommands();
+        protected virtual Command[] GetCommandsInternal() => [];
+
+        protected abstract Task<IContext?> ExecuteNextInternal(Command command, IList<string> arguments);
     }
 }

@@ -1,19 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp31</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <LangVersion>8</LangVersion>
-
+    <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ApplicationIcon>Resources\Images\kuriimu2.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,26 +20,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Resources\Images\kuriimu2.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
-    <ProjectReference Include="..\Komponent\Komponent.csproj" />
-    <ProjectReference Include="..\Kompression\Kompression.csproj" />
-    <ProjectReference Include="..\Kontract\Kontract.csproj" />
-    <ProjectReference Include="..\Kore\Kore.csproj" />
-    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+    <ProjectReference Include="..\..\lib\Konnect\Konnect.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>..\..\..\dist\Cmd\Debug\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>..\..\..\dist\Cmd\Release\</OutputPath>
   </PropertyGroup>
 
 </Project>

@@ -1,42 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using Kontract;
-using Kontract.Extensions;
-using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
-using Kontract.Models;
-using Kore.Managers.Plugins;
+using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Management.Files;
+using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Contract.Plugin.File.Font;
+using Konnect.Contract.Plugin.File.Hex;
+using Konnect.Contract.Plugin.File.Image;
+using Konnect.Contract.Plugin.File.Text;
+using Konnect.Contract.Progress;
+using Konnect.Extensions;
+using Kuriimu2.Cmd.Models.Contexts;
 
 namespace Kuriimu2.Cmd.Contexts
 {
     abstract class BaseFileContext : BaseContext
     {
-        protected IInternalFileManager PluginManager { get; }
+        protected IFileManager FileManager { get; }
 
-        protected ContextNode ContextNode { get; }
+        protected ContextNode Node { get; }
 
-        protected BaseFileContext(IInternalFileManager pluginManager, IProgressContext progressContext) :
+        protected BaseFileContext(IFileManager fileManager, IProgressContext progressContext) :
             base(progressContext)
         {
-            ContractAssertions.IsNotNull(progressContext, nameof(progressContext));
+            FileManager = fileManager;
 
-            PluginManager = pluginManager;
-
-            ContextNode = new ContextNode();
+            Node = new ContextNode();
         }
 
-        protected BaseFileContext(IInternalFileManager pluginManager, ContextNode parentContextNode, IProgressContext progressContext) :
+        protected BaseFileContext(IFileManager fileManager, ContextNode parentNode, IProgressContext progressContext) :
             base(progressContext)
         {
-            PluginManager = pluginManager;
+            FileManager = fileManager;
 
-            ContextNode = parentContextNode;
+            Node = parentNode;
         }
 
-        protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
+        protected override async Task<IContext?> ExecuteNextInternal(Command command, IList<string> arguments)
         {
             switch (command.Name)
             {
@@ -59,7 +62,7 @@ namespace Kuriimu2.Cmd.Contexts
                     return this;
 
                 case "save-this":
-                    await SaveThis();
+                    await Save();
                     return this;
 
                 case "close":
@@ -81,10 +84,10 @@ namespace Kuriimu2.Cmd.Contexts
             return null;
         }
 
-        protected override IList<Command> InitializeCommands()
+        protected override Command[] GetCommandsInternal()
         {
-            return new[]
-            {
+            return
+            [
                 new Command("open", "file"),
                 new Command("open-with", "file", "plugin-id"),
                 new Command("save", "file-index"),
@@ -95,7 +98,7 @@ namespace Kuriimu2.Cmd.Contexts
                 new Command("close-all"),
                 new Command("select", "file-index"),
                 new Command("list-open")
-            };
+            ];
         }
 
         protected abstract bool FileExists(string filePath);
@@ -106,7 +109,7 @@ namespace Kuriimu2.Cmd.Contexts
 
         protected abstract Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId);
 
-        private async Task<IContext> LoadFile(string fileArgument, string pluginIdArgument)
+        private async Task<IContext> LoadFile(string fileArgument, string? pluginIdArgument)
         {
             if (!FileExists(fileArgument))
             {
@@ -141,19 +144,19 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (!loadResult.IsSuccessful)
+            if (loadResult.Status is not LoadStatus.Successful)
             {
-                Console.WriteLine($"Load Error: {loadResult.Message}");
+                Console.WriteLine($"Load Error: {loadResult.Exception?.Message}");
                 return this;
             }
 
-            if (loadResult.LoadedFileState.PluginState is IHexState)
+            if (loadResult.LoadedFileState!.PluginState is IHexFilePluginState)
             {
                 Console.WriteLine("No plugin supports this file.");
                 return this;
             }
 
-            var newNode = ContextNode.Add(this, loadResult.LoadedFileState);
+            ContextNode newNode = Node.Add(this, loadResult.LoadedFileState);
 
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
@@ -164,47 +167,54 @@ namespace Kuriimu2.Cmd.Contexts
 
         #region Save
 
-        private Task SaveFile(string fileIndexArgument, string savePathArgument)
+        private async Task SaveFile(string fileIndexArgument, string? savePathArgument)
         {
-            if (!int.TryParse(fileIndexArgument, out var fileIndex))
+            if (!int.TryParse(fileIndexArgument, out int fileIndex))
             {
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid number.");
-                return Task.CompletedTask;
             }
 
-            if (fileIndex >= ContextNode.Children.Count)
+            if (fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
-                return Task.CompletedTask;
             }
 
-            return SaveFileInternal(fileIndex, savePathArgument);
+            await SaveFileInternal(fileIndex, savePathArgument);
         }
 
         private async Task SaveAll()
         {
-            for (var i = 0; i < ContextNode.Children.Count; i++)
+            for (var i = 0; i < Node.Children.Count; i++)
             {
-                if (ContextNode.Children[i].StateInfo.StateChanged)
+                if (Node.Children[i].StateInfo is null)
+                    continue;
+
+                if (Node.Children[i].StateInfo!.StateChanged)
                     await SaveFileInternal(i, null);
             }
         }
 
-        private Task SaveThis()
+        private async Task Save()
         {
-            var selectedState = ContextNode.StateInfo;
-            return SaveFileInternal(selectedState, null);
+            IFileState? selectedState = Node.StateInfo;
+            await SaveFileInternal(selectedState, null);
         }
 
-        private Task SaveFileInternal(int fileIndex, string savePathArgument)
+        private async Task SaveFileInternal(int fileIndex, string? savePathArgument)
         {
-            var selectedState = ContextNode.Children[fileIndex].StateInfo;
-            return SaveFileInternal(selectedState, savePathArgument);
+            IFileState? selectedState = Node.Children[fileIndex].StateInfo;
+            await SaveFileInternal(selectedState, savePathArgument);
         }
 
-        private async Task SaveFileInternal(IFileState selectedState, string savePathArgument)
+        private async Task SaveFileInternal(IFileState? selectedState, string? savePathArgument)
         {
-            if (!(selectedState.PluginState is ISaveFiles))
+            if (selectedState is null)
+            {
+                Console.WriteLine("No file state was set.");
+                return;
+            }
+
+            if (!selectedState.PluginState.CanSave)
             {
                 Console.WriteLine($"File '{selectedState.FilePath}' is not savable.");
                 return;
@@ -220,8 +230,8 @@ namespace Kuriimu2.Cmd.Contexts
             try
             {
                 saveResult = await (string.IsNullOrEmpty(savePathArgument)
-                    ? PluginManager.SaveFile(selectedState)
-                    : PluginManager.SaveFile(selectedState, savePathArgument));
+                    ? FileManager.SaveFile(selectedState)
+                    : FileManager.SaveFile(selectedState, savePathArgument));
             }
             catch (Exception e)
             {
@@ -231,7 +241,7 @@ namespace Kuriimu2.Cmd.Contexts
 
             if (!saveResult.IsSuccessful)
             {
-                Console.WriteLine($"Save Error: {saveResult.Message}");
+                Console.WriteLine($"Save Error: {saveResult.Reason}");
                 return;
             }
 
@@ -244,54 +254,86 @@ namespace Kuriimu2.Cmd.Contexts
 
         private void CloseFile(string fileIndexArgument)
         {
-            if (!int.TryParse(fileIndexArgument, out var fileIndex))
+            if (!int.TryParse(fileIndexArgument, out int fileIndex))
             {
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid number.");
                 return;
             }
 
-            if (fileIndex >= ContextNode.Children.Count)
+            if (fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return;
             }
 
-            var selectedState = ContextNode.Children[fileIndex].StateInfo;
-            var selectedFile = selectedState.FilePath;
+            IFileState? selectedState = Node.Children[fileIndex].StateInfo;
+            if (selectedState is null)
+            {
+                Console.WriteLine("No state was set.");
+                return;
+            }
 
-            PluginManager.Close(selectedState);
-            ContextNode.Children[fileIndex].Remove();
+            UPath selectedFile = selectedState.FilePath;
+
+            CloseResult closeResult = FileManager.Close(selectedState);
+            if (!closeResult.IsSuccessful)
+            {
+                Console.WriteLine($"Close Error: {closeResult.Reason}");
+                return;
+            }
+
+            Node.Children[fileIndex].Remove();
 
             Console.WriteLine($"Closed '{selectedFile}' successfully.");
         }
 
         protected void CloseAll()
         {
-            foreach (var child in ContextNode.Children)
-                PluginManager.Close(child.StateInfo);
+            ContextNode[] children = Node.Children.ToArray();
 
-            ContextNode.Children.Clear();
+            if (children.Length <= 0)
+                return;
 
-            Console.WriteLine("Closed all files successfully.");
+            var allSuccessful = true;
+            foreach (ContextNode child in children)
+            {
+                if (child.StateInfo is null)
+                    continue;
+
+                CloseResult closeResult = FileManager.Close(child.StateInfo);
+                if (closeResult.IsSuccessful)
+                    Node.Children.Remove(child);
+
+                allSuccessful &= closeResult.IsSuccessful;
+            }
+
+            Console.WriteLine(allSuccessful
+                ? "Closed all files successfully."
+                : "Some files could not be closed successfully.");
         }
 
         #endregion
 
         private IContext SelectFile(string fileIndexArgument)
         {
-            if (!int.TryParse(fileIndexArgument, out var fileIndex))
+            if (!int.TryParse(fileIndexArgument, out int fileIndex))
             {
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid number.");
                 return this;
             }
 
-            if (fileIndex >= ContextNode.Children.Count)
+            if (fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return this;
             }
 
-            var selectedNode = ContextNode.Children[fileIndex];
+            ContextNode selectedNode = Node.Children[fileIndex];
+            if (selectedNode.StateInfo is null)
+            {
+                Console.WriteLine("No file state was set.");
+                return this;
+            }
 
             Console.WriteLine($"Selected '{selectedNode.StateInfo.FilePath.ToRelative()}'.");
 
@@ -300,114 +342,41 @@ namespace Kuriimu2.Cmd.Contexts
 
         private void ListOpenFiles()
         {
-            if (ContextNode.Children.Count <= 0)
+            if (Node.Children.Count <= 0)
             {
                 Console.WriteLine("No files are open.");
                 return;
             }
 
-            ContextNode.ListFiles();
+            Node.ListFiles();
         }
 
         private IContext CreateFileContext(ContextNode childNode)
         {
+            if (childNode.StateInfo is null)
+            {
+                Console.WriteLine("No file state was set.");
+                return this;
+            }
+
             switch (childNode.StateInfo.PluginState)
             {
-                case ITextState _:
+                case ITextFilePluginState:
                     return new TextContext(childNode.StateInfo, this, Progress);
 
-                case IImageState _:
+                case IImageFilePluginState:
                     return new ImageContext(childNode.StateInfo, this, Progress);
 
-                case IArchiveState _:
-                    return new ArchiveContext(childNode, this, PluginManager, Progress);
+                case IArchiveFilePluginState:
+                    return new ArchiveContext(childNode, this, FileManager, Progress);
+
+                case IFontFilePluginState:
+                    return new FontContext(childNode.StateInfo, this, Progress);
 
                 default:
                     Console.WriteLine($"State '{childNode.StateInfo.PluginState.GetType()}' is not supported.");
                     return this;
             }
-        }
-    }
-
-    [DebuggerDisplay("{StateInfo.FilePath}")]
-    class ContextNode
-    {
-        private readonly IContext _parentContext;
-        private ContextNode _parentNode;
-
-        public IFileState StateInfo { get; }
-
-        public IContext RootContext => GetRootContext();
-
-        public IList<ContextNode> Children { get; }
-
-        public ContextNode()
-        {
-            Children = new List<ContextNode>();
-        }
-
-        private ContextNode(IContext parentContext, ContextNode parentNode, IFileState parentState) : this()
-        {
-            ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
-            ContractAssertions.IsNotNull(parentNode, nameof(parentNode));
-            ContractAssertions.IsNotNull(parentState, nameof(parentState));
-
-            _parentNode = parentNode;
-            _parentContext = parentContext;
-            StateInfo = parentState;
-        }
-
-        public ContextNode Add(IContext parentContext, IFileState stateInfo)
-        {
-            var newNode = new ContextNode(parentContext, this, stateInfo);
-            Children.Add(newNode);
-
-            return newNode;
-        }
-
-        public void ListFiles()
-        {
-            ListFilesInternal();
-        }
-
-        public void Remove()
-        {
-            _parentNode?.Children.Remove(this);
-            _parentNode = null;
-        }
-
-        private void ListFilesInternal(int iteration = 0)
-        {
-            var prefix = new string(' ', iteration * 2);
-
-            for (var i = 0; i < Children.Count; i++)
-            {
-                if (iteration == 0)
-                    prefix = $"[{i}] ";
-
-                if (Children[i].StateInfo.StateChanged)
-                    prefix += "* ";
-
-                Console.WriteLine(prefix + Children[i].StateInfo.FilePath.ToRelative());
-
-                Children[i].ListFilesInternal(iteration + 1);
-            }
-        }
-
-        private IContext GetRootContext()
-        {
-            if (_parentNode == null)
-                throw new InvalidOperationException("Can't get root context of the root.");
-
-            var currentNode = _parentNode;
-            var currentContext = _parentContext;
-            while (currentNode._parentContext != null && currentNode._parentNode != null)
-            {
-                currentContext = currentNode._parentContext;
-                currentNode = currentNode._parentNode;
-            }
-
-            return currentContext;
         }
     }
 }

@@ -1,82 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Kontract.Interfaces.Managers;
-using Kontract.Models;
-using Kore.Managers.Plugins;
-using Kore.Models.Update;
-using Kore.Progress;
-using Kore.Update;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Konnect.Contract.DataClasses.Management.Files.Events;
+using Konnect.Contract.DataClasses.Management.Plugin.Loaders;
+using Konnect.Contract.Management.Plugin;
+using Konnect.Contract.Plugin.File;
+using Konnect.Contract.Plugin.Game;
+using Konnect.Management.Files;
+using Konnect.Management.Plugin;
+using Konnect.Management.Plugin.Loaders;
+using Konnect.Progress;
 using Kuriimu2.Cmd.Contexts;
 using Kuriimu2.Cmd.Manager;
+using Kuriimu2.Cmd.Models;
 using Kuriimu2.Cmd.Parsers;
 using Kuriimu2.Cmd.Progress;
-using Newtonsoft.Json;
+using Kuriimu2.Cmd.Resources;
+using Kuriimu2.Cmd.Update;
 using Serilog;
+using Serilog.Core;
 
 namespace Kuriimu2.Cmd
 {
     class Program
     {
-        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/main/{0}/manifest.json";
-        public const string ApplicationType = "CommandLine.{0}";
+        private const string ManifestUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/main/{0}/manifest.json";
+        public const string ApplicationType = "CommandLine";
 
-        private static Manifest _localManifest;
-        private static IArgumentGetter _argumentGetter;
+        private static IArgumentGetter? _argumentGetter;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            _argumentGetter = new ArgumentGetter(args);
-            _localManifest = LoadLocalManifest();
+            Manifest? localManifest = LoadLocalManifest();
 
-            PrintWelcomeText();
-            CheckForUpdate();
+            PrintWelcomeText(localManifest);
+            await CheckForUpdate(localManifest);
+
+            _argumentGetter = new ArgumentGetter(args);
 
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
             var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
-            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-            var pluginManager = new FileManager("plugins")
+            Logger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
+            IPluginManager? pluginManager = LoadPluginManager();
+            if (pluginManager is null)
+            {
+                Console.WriteLine("No plugins were loaded.");
+                return;
+            }
+
+            var fileManager = new FileManager(pluginManager)
             {
                 DialogManager = dialogManager,
                 Progress = progressContext,
                 Logger = logger
             };
-            pluginManager.OnManualSelection += PluginManager_OnManualSelection;
+            fileManager.OnManualSelection += PluginManager_OnManualSelection;
 
-            PrintUnloadedPlugins(pluginManager.LoadErrors);
+            PrintUnloadedPlugins(pluginManager.GetErrors());
 
-            IContext context = new MainContext(pluginManager, progressContext);
+            IContext? context = new MainContext(pluginManager, fileManager, progressContext);
 
-            while (context != null)
+            while (context is not null)
             {
                 context.PrintCommands();
 
-                context = context.ExecuteNext(_argumentGetter).Result;
+                context = await context.ExecuteNext(_argumentGetter);
             }
         }
 
-        private static void PrintWelcomeText()
+        #region Update
+
+        private static Manifest? LoadLocalManifest()
         {
-            Console.WriteLine($"Welcome to Kuriimu2 {_localManifest.Version}-{_localManifest.BuildNumber}");
-            Console.WriteLine();
-            Console.WriteLine("Authors: onepiecefreak, IcySon55, Neobeo, and other contributors");
-            Console.WriteLine("Github: https://github.com/FanTranslatorsInternational/Kuriimu2");
+            string? manifest = BinaryResources.VersionManifest;
+            return manifest is null ? null : JsonSerializer.Deserialize<Manifest>(manifest);
         }
 
-        private static void CheckForUpdate()
+        private static async Task CheckForUpdate(Manifest? localManifest)
         {
-            var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl, GetCurrentPlatform()));
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, true))
+            string platform = GetCurrentPlatform();
+
+            Manifest? remoteManifest = await UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl_, platform));
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest, true))
                 return;
 
             Console.WriteLine();
-            Console.WriteLine($"A new version is available: {remoteManifest.Version}-{remoteManifest.BuildNumber}");
+            Console.WriteLine($"A new version is available: {remoteManifest!.Version}-{remoteManifest.BuildNumber}");
         }
 
-        private static string GetCurrentPlatform()
+        public static string GetCurrentPlatform()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return "Linux";
@@ -90,13 +109,55 @@ namespace Kuriimu2.Cmd
             throw new InvalidOperationException($"Unsupported platform {RuntimeInformation.OSDescription}.");
         }
 
-        private static Manifest LoadLocalManifest()
+        #endregion
+
+        #region Plugins
+
+        private static IPluginManager? LoadPluginManager()
         {
-            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Kuriimu2.Cmd.Resources.version.json");
-            if (resourceStream == null)
+            string? baseDirectory = GetBaseDirectory();
+            if (baseDirectory is null)
                 return null;
 
-            return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
+            string pluginPath = Path.Combine(baseDirectory, "plugins");
+
+            var fileLoader = new PluginLoader<IFilePlugin>(pluginPath);
+            var gameLoader = new PluginLoader<IGamePlugin>(pluginPath);
+
+            return new PluginManager(fileLoader, gameLoader);
+        }
+
+        private static string? GetBaseDirectory()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return ".";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                string path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                if (string.IsNullOrEmpty(path))
+                    path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+
+                return path;
+            }
+
+            Console.WriteLine($"Unsupported operating system {RuntimeInformation.OSDescription}.");
+            return null;
+        }
+
+        #endregion
+
+        #region Print
+
+        private static void PrintWelcomeText(Manifest? localManifest)
+        {
+            Console.WriteLine(localManifest is null
+                ? "Welcome to Kuriimu2"
+                : $"Welcome to Kuriimu2 {localManifest.Version}-{localManifest.BuildNumber}");
+            Console.WriteLine();
+            Console.WriteLine("Authors: onepiecefreak, IcySon55, Neobeo, and other contributors");
+            Console.WriteLine("Github: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
 
         private static void PrintUnloadedPlugins(IReadOnlyList<PluginLoadError> loadErrors)
@@ -106,29 +167,38 @@ namespace Kuriimu2.Cmd
 
             Console.WriteLine();
             Console.WriteLine("Some plugins could not be loaded:");
-            foreach (var loadError in loadErrors)
+
+            foreach (PluginLoadError loadError in loadErrors)
                 Console.WriteLine($"\t{loadError.AssemblyPath} - {loadError.Exception.Message}");
         }
 
-        private static void PluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        private static Task PluginManager_OnManualSelection(ManualSelectionEventArgs e)
         {
-            Console.WriteLine("No plugin could identify the file!");
+            if (_argumentGetter is null)
+                return Task.CompletedTask;
+
+            Console.WriteLine("No plugin could identify the file.");
             Console.WriteLine("Select a plugin manually:");
 
-            foreach (var filePlugin in e.FilePlugins)
+            foreach (IFilePlugin filePlugin in e.FilePlugins)
                 Console.WriteLine($"[{filePlugin.PluginId}] - {filePlugin.Metadata.Name} | {string.Join(';', filePlugin.FileExtensions)}");
 
-            var idArgument = _argumentGetter.GetNextArgument();
+            string idArgument = _argumentGetter.GetNextArgument();
 
-            if (!Guid.TryParse(idArgument, out var pluginId))
+            if (!Guid.TryParse(idArgument, out Guid pluginId))
             {
                 Console.WriteLine($"'{idArgument}' is not a valid plugin ID.");
                 e.Result = null;
-                return;
+
+                return Task.CompletedTask;
             }
 
             Console.Clear();
             e.Result = e.FilePlugins.FirstOrDefault(x => x.PluginId == pluginId);
+
+            return Task.CompletedTask;
         }
+
+        #endregion
     }
 }

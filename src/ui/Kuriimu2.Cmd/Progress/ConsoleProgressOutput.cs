@@ -1,14 +1,10 @@
-﻿using System;
-using Kore.Progress;
+﻿using Konnect.Progress;
+using System;
 
 namespace Kuriimu2.Cmd.Progress
 {
-    class ConsoleProgressOutput : BaseConcurrentProgressOutput
+    class ConsoleProgressOutput(int updateInterval) : ConcurrentProgressOutput(updateInterval)
     {
-        public ConsoleProgressOutput(int updateInterval) : base(updateInterval)
-        {
-        }
-
         protected override void OutputProgressInternal(double completion, string message)
         {
             var intCompletion = Convert.ToInt32(completion);
