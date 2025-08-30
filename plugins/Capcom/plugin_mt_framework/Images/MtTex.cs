@@ -1,4 +1,5 @@
-﻿using Kanvas.Swizzle;
+﻿using Kanvas;
+using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using SixLabors.ImageSharp;
@@ -208,21 +209,19 @@ namespace plugin_mt_framework.Images
             var texSize = br.ReadUInt32();
 
             // Skip mip offsets
-            ReadIntegers(br, _header.imageData.mipCount);
+            var mipOffsets = ReadIntegers(br, _header.imageData.mipCount);
 
             // Read image data
-            // HINT: Calculating dataSize by bitsPerValue and colorsPerValue, since bitDepth can be 0 or some float due to ASTC
-            var bitsPerValue = MtTexSupport.SwitchFormats[_header.format].BitsPerValue;
-            var colorsPerValue = MtTexSupport.SwitchFormats[_header.format].ColorsPerValue;
-            var dataSize = _header.imageData.width * _header.imageData.height / colorsPerValue * bitsPerValue / 8;
-            var imageData = br.ReadBytes(dataSize);
+            var dataSize = (mipOffsets.Length > 1 ? mipOffsets[1] : texSize) - mipOffsets[0];
+            var imageData = br.ReadBytes((int)dataSize);
 
             // Read mips
             var mipData = new List<byte[]>();
             for (var i = 1; i < _header.imageData.mipCount; i++)
             {
-                var mipSize = (_header.imageData.width >> i) * (_header.imageData.height >> i) / colorsPerValue * bitsPerValue / 8;
-                mipData.Add(br.ReadBytes(mipSize));
+                dataSize = (i + 1 < mipOffsets.Length ? mipOffsets[i + 1] : texSize) - mipOffsets[i];
+
+                mipData.Add(br.ReadBytes((int)dataSize));
             }
 
             // Create image info
@@ -565,6 +564,7 @@ namespace plugin_mt_framework.Images
 
             // Write mip offsets
             var mipPosition = 0;
+
             bw.Write(mipPosition);
             mipPosition += imageInfo.ImageData.Length;
 

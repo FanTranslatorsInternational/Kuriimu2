@@ -160,26 +160,35 @@ namespace plugin_mt_framework.Images
 
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt3(),
+
             [0x17] = ImageFormats.Dxt5(),
             [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Dxt1(),
+
             [0x1F] = ImageFormats.Dxt5(),
+
             [0x21] = ImageFormats.Dxt5(),
+
             [0x27] = ImageFormats.Dxt5(),
+
             [0x2A] = ImageFormats.Dxt5()
         };
 
         public static readonly IDictionary<int, IColorEncoding> SwitchFormats = new Dictionary<int, IColorEncoding>
         {
             [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
+
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt1(),
+
             [0x17] = ImageFormats.Dxt5(),
             [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1A(),
+
             [0x1F] = ImageFormats.Ati2(),
 
             [0x2A] = ImageFormats.Bc7(),
+            [0x2B] = ImageFormats.Dxt5(),
 
             [0x31] = ImageFormats.Bc7()
         };
@@ -187,25 +196,31 @@ namespace plugin_mt_framework.Images
         public static readonly IDictionary<int, IColorEncoding> PcFormats = new Dictionary<int, IColorEncoding>
         {
             [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
+
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt1(),
             [0x15] = ImageFormats.Dxt3(),
+
             [0x17] = ImageFormats.Dxt5(),
             [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Dxt1(),
+
             [0x1F] = ImageFormats.Ati2(),
 
             [0x22] = ImageFormats.Dxt5(),
 
             [0x2A] = ImageFormats.Bc7(),
             [0x2B] = ImageFormats.Dxt5(),
+
             [0x36] = ImageFormats.Bc7()
         };
 
         public static readonly IDictionary<int, IColorEncoding> Pc87Formats = new Dictionary<int, IColorEncoding>
         {
             [0x13] = ImageFormats.Dxt1(),
+
             [0x15] = ImageFormats.Dxt3(),
+
             [0x17] = ImageFormats.Dxt5(),
             [0x18] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1(),
@@ -222,7 +237,9 @@ namespace plugin_mt_framework.Images
         public static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
         {
             [0x1] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
+
             [0x7] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
+
             [0xA] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
             [0xB] = ImageFormats.Pvrtc_4bpp(),
             [0xD] = ImageFormats.PvrtcA_4bpp(),
@@ -236,17 +253,20 @@ namespace plugin_mt_framework.Images
         private static readonly IDictionary<int, IColorShader> ShadersPs3 = new Dictionary<int, IColorShader>
         {
             [0x21] = new MtTex_NoAlphaShader(),
+
             [0x2A] = new MtTex_YCbCrColorShader()
         };
 
         private static readonly IDictionary<int, IColorShader> ShadersSwitch = new Dictionary<int, IColorShader>
         {
-            [0x2A] = new MtTex_YCbCrColorShader()
+            [0x2A] = new MtTex_YCbCrColorShader(),
+            [0x2B] = new MtTex_YCbCrColorShader()
         };
 
         private static readonly IDictionary<int, IColorShader> ShadersPc = new Dictionary<int, IColorShader>
         {
             [0x19] = new MtTex_AlphaLuminanceColorShader(),
+
             [0x2A] = new MtTex_YCbCrColorShader(),
             [0x2B] = new MtTex_YCbCrColorShader()
         };
