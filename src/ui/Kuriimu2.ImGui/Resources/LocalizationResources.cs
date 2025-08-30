@@ -3,7 +3,6 @@ using ImGui.Forms.Localization;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Kuriimu2.ImGui.Resources
 {

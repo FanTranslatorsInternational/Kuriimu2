@@ -183,6 +183,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var translatedEntry = new TranslatedTextEntry
             {
                 Entry = newEntry,
+                Name = newEntry.Name ?? $"no_name_{nodes.Count:00}",
                 OriginalTextData = newEntry.TextData,
                 Page = entry.Page
             };
@@ -193,7 +194,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             nodes.Add(new TreeNode<object>
             {
-                Text = newEntry.Name ?? $"no_name_{nodes.Count:00}",
+                Text = translatedEntry.Name,
                 Data = translatedEntry,
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
@@ -233,6 +234,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var translatedEntry = new TranslatedTextEntry
             {
                 Entry = newEntry,
+                Name = newEntry.Name ?? $"no_name_{node.Nodes.Count:00}",
                 OriginalTextData = newEntry.TextData,
                 Page = entryPage
             };
@@ -243,7 +245,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             node.Nodes.Add(new TreeNode<object>
             {
-                Text = newEntry.Name ?? $"no_name_{node.Nodes.Count:00}",
+                Text = translatedEntry.Name,
                 Data = translatedEntry,
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
@@ -391,7 +393,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
             SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
 
             var fileEntries = CreateFileEntries();
-            PoManager.Save(sfd.Files[0], [.. fileEntries]);
+            await using Stream output = File.Create(sfd.Files[0]);
+
+            PoManager.Save(output, [.. fileEntries]);
 
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
         }
@@ -412,8 +416,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return;
 
             SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            await using Stream input = File.OpenRead(ofd.Files[0]);
 
-            var loadedEntries = PoManager.Load(ofd.Files[0]);
+            var loadedEntries = PoManager.Load(input);
             await ImportFileEntries(loadedEntries);
         }
 
@@ -434,7 +439,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
             SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
 
             var fileEntries = CreateFileEntries();
-            KupManager.Save(sfd.Files[0], [.. fileEntries]);
+            await using Stream output = File.Create(sfd.Files[0]);
+
+            KupManager.Save(output, [.. fileEntries]);
 
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
         }
@@ -455,8 +462,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 return;
 
             SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            await using Stream input = File.OpenRead(ofd.Files[0]);
 
-            var loadedEntries = KupManager.Load(ofd.Files[0]);
+            var loadedEntries = KupManager.Load(input);
             await ImportFileEntries(loadedEntries);
         }
 
@@ -476,7 +484,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                             result.Add(new TranslationFileEntry
                             {
-                                Name = $"{page.Page.Name};{pageEntry.Entry.Name}",
+                                Name = pageEntry.Name,
+                                PageName = $"{page.Name}",
                                 OriginalText = serializedOriginalText,
                                 TranslatedText = serializedTranslatedText
                             });
@@ -488,7 +497,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                         result.Add(new TranslationFileEntry
                         {
-                            Name = $"{textEntry.Entry.Name}",
+                            Name = textEntry.Name,
                             OriginalText = serializedOriginalText1,
                             TranslatedText = serializedTranslatedText1
                         });
@@ -506,10 +515,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             foreach (var loadedEntry in loadedEntries)
             {
-                var relatedEntries = _translatedTextEntries.Where(x => x.Entry.Name == loadedEntry.Name);
+                var relatedEntries = _translatedTextEntries.Where(x => x.Name == loadedEntry.Name);
                 relatedEntries = loadedEntry.PageName is null
                     ? relatedEntries.Where(x => x.Page is null)
-                    : relatedEntries.Where(x => x.Page?.Page.Name == loadedEntry.PageName);
+                    : relatedEntries.Where(x => x.Page?.Name == loadedEntry.PageName);
 
                 var relatedEntry = relatedEntries.FirstOrDefault();
                 if (relatedEntry is null)
@@ -917,7 +926,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private IGamePluginState? CreateGamePreviewState(IList<TextEntry> entries)
         {
-            return _selectedGamePlugin?.CreatePluginState(_state.FileState.FilePath, entries, _fileManager);
+            return _selectedGamePlugin?.CreatePluginState(_state.FileState.FilePath, entries.AsReadOnly(), _fileManager);
         }
 
         private ICharacterParser GetCharacterParser()

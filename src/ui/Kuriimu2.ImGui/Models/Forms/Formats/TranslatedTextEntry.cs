@@ -8,6 +8,8 @@ namespace Kuriimu2.ImGui.Models.Forms.Formats
 
         public required TextEntry Entry { get; init; }
 
+        public required string Name { get; init; }
+
         public required byte[] OriginalTextData { get; set; }
     }
 }

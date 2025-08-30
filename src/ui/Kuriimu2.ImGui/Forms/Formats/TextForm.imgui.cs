@@ -296,21 +296,23 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (pager is not null)
             {
                 var pages = pager.Page(_state.PluginState.Texts);
-                foreach (TextEntryPage page in pages)
+                for (var i = 0; i < pages.Length; i++)
                 {
                     var translatedPage = new TranslatedTextEntryPage
                     {
-                        Page = page,
+                        Page = pages[i],
+                        Name = pages[i].Name ?? $"no_name_{i:00}",
                         Entries = new List<TranslatedTextEntry>()
                     };
 
-                    foreach (TextEntry entry in page.Entries)
+                    for (var j = 0; j < pages[i].Entries.Count; j++)
                     {
                         var translatedEntry = new TranslatedTextEntry
                         {
                             Page = translatedPage,
-                            Entry = entry,
-                            OriginalTextData = entry.TextData
+                            Entry = pages[i].Entries[j],
+                            Name = pages[i].Entries[j].Name ?? $"no_name_{j:00}",
+                            OriginalTextData = pages[i].Entries[j].TextData
                         };
 
                         translatedPage.Entries.Add(translatedEntry);
@@ -321,13 +323,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
             else
             {
-                foreach (TextEntry entry in _state.PluginState.Texts)
+                for (var i = 0; i < _state.PluginState.Texts.Count; i++)
                 {
                     var translatedEntry = new TranslatedTextEntry
                     {
                         Page = null,
-                        Entry = entry,
-                        OriginalTextData = entry.TextData
+                        Entry = _state.PluginState.Texts[i],
+                        Name = _state.PluginState.Texts[i].Name ?? $"no_name_{i:00}",
+                        OriginalTextData = _state.PluginState.Texts[i].TextData
                     };
 
                     result.Add(translatedEntry);
@@ -341,7 +344,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             var node = new TreeNode<object>
             {
-                Text = translatedPage.Page.Name,
+                Text = translatedPage.Name,
                 Data = translatedPage,
                 IsExpanded = true
             };

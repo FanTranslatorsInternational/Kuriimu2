@@ -5,8 +5,10 @@ namespace Kuriimu2.ImGui.Models.Forms.Formats
 {
     class TranslatedTextEntryPage
     {
-        public TextEntryPage Page { get; init; }
+        public required TextEntryPage Page { get; init; }
 
-        public IList<TranslatedTextEntry> Entries { get; init; }
+        public required string Name { get; init; }
+
+        public required IList<TranslatedTextEntry> Entries { get; init; }
     }
 }
