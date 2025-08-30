@@ -22,7 +22,7 @@ namespace plugin_shade.Images
             Name = "SHTX",
             Publisher = "Level5",
             Developer = "Shade",
-            Platform = ["Wii", "Vita"],
+            Platform = ["Wii", "Vita", "PSP"],
             LongDescription = "Images for Shade games"
         };
 
