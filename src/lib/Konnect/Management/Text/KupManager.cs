@@ -8,7 +8,16 @@ namespace Konnect.Management.Text
         public static TranslationFileEntry[] Load(Stream input)
         {
             var serializer = new XmlSerializer(typeof(KupXmlRoot));
-            var root = (KupXmlRoot?)serializer.Deserialize(input);
+
+            KupXmlRoot? root;
+            try
+            {
+                root = (KupXmlRoot?)serializer.Deserialize(input);
+            }
+            catch (Exception)
+            {
+                root = null;
+            }
 
             if (root is null)
                 return [];

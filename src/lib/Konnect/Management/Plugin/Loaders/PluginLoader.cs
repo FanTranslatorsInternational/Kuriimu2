@@ -11,7 +11,7 @@ namespace Konnect.Management.Plugin.Loaders
         public abstract IReadOnlyList<PluginLoadError> LoadErrors { get; }
         public abstract bool Exists(Guid pluginId);
 
-        protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
+        protected void LoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
         {
             // 1. Get all assembly file paths from the designated plugin directories
             var assemblyFilePaths = pluginPaths.Select(p => p)
@@ -23,10 +23,10 @@ namespace Konnect.Management.Plugin.Loaders
             var assemblyFiles = assemblyFilePaths.Select(Assembly.LoadFile).ToArray();
 
             // 3. Process assemblies
-            return TryLoadPlugins(assemblyFiles, out loadedPlugins, out errors);
+            LoadPlugins(assemblyFiles, out loadedPlugins, out errors);
         }
 
-        protected bool TryLoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
+        protected void LoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
         {
             // 3. Get all public types assignable to IPlugin
             var pluginTypes = GetPublicTypes<TPlugin>(assemblyFiles, out var loadErrors);
@@ -38,7 +38,6 @@ namespace Konnect.Management.Plugin.Loaders
             RegisterReferencedAssemblies(loadedPlugins);
 
             errors = loadErrors.Concat(createErrors).ToArray();
-            return !errors.Any();
         }
 
         private IList<Type> GetPublicTypes<TPlugin>(IEnumerable<Assembly> assemblies, out IList<PluginLoadError> errors)
@@ -73,11 +72,14 @@ namespace Konnect.Management.Plugin.Loaders
             var result = new List<TPlugin>();
             errors = new List<PluginLoadError>();
 
-            foreach (var pluginType in pluginTypes)
+            foreach (Type pluginType in pluginTypes)
             {
                 try
                 {
-                    var instance = (TPlugin)Activator.CreateInstance(pluginType);
+                    var instance = (TPlugin?)Activator.CreateInstance(pluginType);
+                    if(instance is null)
+                        continue;
+
                     result.Add(instance);
                 }
                 catch (Exception ex)

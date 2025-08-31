@@ -64,7 +64,7 @@ namespace Konnect.Management.Text
 
                 result.Add(new TranslationFileEntry
                 {
-                    Name = reference,
+                    Name = pageIndex < 0 ? reference : reference[..pageIndex],
                     PageName = pageIndex < 0 ? null : reference[(pageIndex + 1)..],
                     OriginalText = msgId.Replace("\\\"", "\"").Replace("\\t", "\t").Replace("\\n", "\n"),
                     TranslatedText = msgStr.Replace("\\\"", "\"").Replace("\\t", "\t").Replace("\\n", "\n")
@@ -99,7 +99,10 @@ namespace Konnect.Management.Text
 
             var poText = sb.ToString();
 
-            new StreamWriter(output).Write(poText);
+            var writer = new StreamWriter(output);
+            writer.Write(poText);
+
+            writer.Dispose();
         }
     }
 }
