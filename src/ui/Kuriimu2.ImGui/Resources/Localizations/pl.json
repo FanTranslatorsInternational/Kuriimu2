@@ -1,0 +1,409 @@
+﻿{
+  "Name": "Polski",
+
+  // ImGui (Does not affect windows-native dialogs)
+  "ImGui.Button.Ok": "Ok",
+  "ImGui.Button.Cancel": "Anuluj",
+  "ImGui.Button.Yes": "Tak",
+  "ImGui.Button.No": "Ni",
+  "ImGui.Button.Save": "Zapisz",
+  "ImGui.FileDialog.Search": "Szukaj...",
+  "ImGui.FileDialog.Name": "Nazwa",
+  "ImGui.FileDialog.Type": "Typ",
+  "ImGui.FileDialog.DateModified": "Data Modyfikacji",
+  "ImGui.FileDialog.SelectedFile": "Nazwa Pliku:",
+  "ImGui.FileDialog.ReplaceFile.Caption": "Plik istnieje",
+  "ImGui.FileDialog.ReplaceFile.Text": "Chcesz nadpisać plik {0}?",
+  "ImGui.FileDialog.CreateFolder.Caption": "Stwórz folder",
+  "ImGui.FileDialog.CreateFolder.Text": "Nazwa nowego folderu:",
+
+  // Kuriimu2
+  "Application.Name": "Kuriimu2",
+
+  // Menu
+  "Menu.File": "Plik",
+  "Menu.Tools": "Narzędzia",
+  "Menu.Settings": "Ustawienia",
+  "Menu.Help": "Pomoc",
+
+  // File Menu
+  "Menu.File.Open": "Otwórz",
+  "Menu.File.Open.Shortcut": "Ctrl+O",
+  "Menu.File.OpenWith": "Otwórz za pomocą...",
+  "Menu.File.OpenWith.Shortcut": "Ctrl+Shift+O",
+  "Menu.File.Save": "Zapisz",
+  "Menu.File.Save.Shortcut": "Ctrl+S",
+  "Menu.File.SaveAs": "Zapisz jako...",
+  "Menu.File.SaveAs.Shortcut": "F12",
+  "Menu.File.SaveAll": "Zapisz Wszystko",
+  "Menu.File.SaveAll.Shortcut": "Ctrl+Shift+S",
+  "Menu.File.Close": "Zamknij",
+
+  // Tools Menu
+  "Menu.Tools.Ciphers": "Szyfry",
+  "Menu.Tools.Compressions": "Kompresje",
+  "Menu.Tools.ImageTranscoder": "Transkoder Obrazów",
+  "Menu.Tools.RawImageViewer": "Przeglądarka Obrazów",
+  "Menu.Tools.TextSequenceSearcher": "Wyszukiwarka Tekstu",
+  "Menu.Tools.BatchExtractor": "Wyodrębnij Wszystko",
+  "Menu.Tools.BatchInjector": "Zastąp Wszystko",
+  "Menu.Tools.Hashes": "Hasze",
+
+  // Settings Menu
+  "Menu.Settings.IncludeDevBuilds": "Uwzględnij Wersje Deweloperskie",
+  "Menu.Settings.ChangeLanguage": "Zmień Język",
+  "Menu.Settings.ChangeTheme": "Zmień Motyw",
+
+  // Theme Menu
+  "Menu.Settings.ChangeTheme.Dark": "Ciemny",
+  "Menu.Settings.ChangeTheme.Light": "Jasny",
+
+  // Ciphers Menu
+  "Menu.Tools.Ciphers.Caption": "Szyfry",
+  "Menu.Tools.Ciphers.Encrypt": "Zaszyfruj",
+  "Menu.Tools.Ciphers.Decrypt": "Odszyfruj",
+  "Menu.Tools.Ciphers.Execute": "Wykonaj",
+  "Menu.Tools.Ciphers.Input.Folder": "Wybierz folder",
+  "Menu.Tools.Ciphers.Input.File": "Wybierz plik",
+  "Menu.Tools.Ciphers.Input.SubDirectories": "Podkatalogi",
+  "Menu.Tools.Ciphers.Input.Parameters": "Parametry",
+  "Menu.Tools.Ciphers.Log.Process": "Przetwórz plik {0}.",
+  "Menu.Tools.Ciphers.Log.Error": "Błąd podczas procesowania pliku {0}.",
+  "Menu.Tools.Ciphers.Progress": "Procesuj",
+
+  // Compressions Menu
+  "Menu.Tools.Compressions.Caption": "Kompresje",
+  "Menu.Tools.Compressions.Decompress": "Dekompresuj",
+  "Menu.Tools.Compressions.Compress": "Kompresuj",
+  "Menu.Tools.Compressions.Execute": "Wykonaj",
+  "Menu.Tools.Compressions.Input.Folder": "Wybierz folder",
+  "Menu.Tools.Compressions.Input.File": "Wybierz plik",
+  "Menu.Tools.Compressions.Input.SubDirectories": "Podkatalogi",
+  "Menu.Tools.Compressions.Log.Process": "Przetwórz plik {0}.",
+  "Menu.Tools.Compressions.Log.Error": "Błąd podczas procesowania pliku {0}.",
+  "Menu.Tools.Compressions.Progress": "Procesuj",
+
+  // Image Transcoder
+  "Menu.Tools.ImageTranscoder.Caption": "Transkoder Obrazów",
+  "Menu.Tools.ImageTranscoder.File": "Plik",
+  "Menu.Tools.ImageTranscoder.File.Open": "Otwórz",
+  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
+  "Menu.Tools.ImageTranscoder.Encoding": "Format Obrazu",
+  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Format Palety",
+  "Menu.Tools.ImageTranscoder.Quantizer": "Kwantyzator",
+  "Menu.Tools.ImageTranscoder.ColorCache": "Cache Koloru",
+  "Menu.Tools.ImageTranscoder.Ditherer": "Mieszacz Kolorów",
+  "Menu.Tools.ImageTranscoder.NoDitherer": "Brak",
+  "Menu.Tools.ImageTranscoder.ColorCount": "Liczba Kolorów",
+
+  // Raw Image Viewer
+  "Menu.Tools.RawImageViewer.Caption": "Przeglądarka Obrazów",
+  "Menu.Tools.RawImageViewer.File": "Plik",
+  "Menu.Tools.RawImageViewer.File.Open": "Otwórz",
+  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
+  "Menu.Tools.RawImageViewer.Placeholder": "Wartość:  128, 0x80",
+  "Menu.Tools.RawImageViewer.Width": "Szerokość",
+  "Menu.Tools.RawImageViewer.Height": "Wysokość",
+  "Menu.Tools.RawImageViewer.Offset": "Offset",
+  "Menu.Tools.RawImageViewer.PaletteOffset": "Offset Palety",
+  "Menu.Tools.RawImageViewer.Encoding": "Format Obrazu",
+  "Menu.Tools.RawImageViewer.PaletteEncoding": "Format Palety",
+  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Komponenty",
+  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Komponenty Palety",
+  "Menu.Tools.RawImageViewer.Swizzle": "Swizzle",
+  "Menu.Tools.RawImageViewer.NoSwizzle": "Brak",
+  "Menu.Tools.RawImageViewer.CustomSwizzle": "Niestandardowy",
+  "Menu.Tools.RawImageViewer.RenderSwizzle": "Render Swizzle",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Dodaj: Lewy Przycisk Myszy",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Usuń: Lewy Przycisk Myszy",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Przesuń: Przytrzymaj Lewy Przycisk + Przeciągnij",
+  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Kopiuj: Alt + C",
+
+  // Plugins Dialog
+  "Menu.Plugins.Title": "Zainstalowane Wtyczki",
+  "Menu.Plugins.Name": "Nazwa",
+  "Menu.Plugins.Publisher": "Wydawca",
+  "Menu.Plugins.Developer": "Deweloper",
+  "Menu.Plugins.Authors": "Autorzy",
+  "Menu.Plugins.Platforms": "Platformy",
+  "Menu.Plugins.Archive": "Archiwum",
+  "Menu.Plugins.Image": "Obraz",
+  "Menu.Plugins.Font": "Czcionka",
+  "Menu.Plugins.Text": "Tekst",
+
+  // About Dialog
+  "Menu.About.Title": "O Programie",
+  "Menu.About.Version": "Wersja {0}",
+  "Menu.About.Description": "Kuriimu2 to uniwersalny menedżer projektów tłumaczeniowych, \nbędący zestawem narzędzi dla autorów fanowskich tłumaczeń \ni modów do gier.",
+
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Dostępna aktualizacja",
+  "Dialog.UpdateAvailable.Text": "Czy chcesz zaktualizować z wersji {0}-{1} na {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Przechwycono wyjątek",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Wtyczki niedostępne",
+  "Dialog.PluginsNotAvailable.Text": "Następujące wtyczki nie mogły zostać wczytane:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Niezapisane zmiany",
+  "Dialog.UnsavedChanges.Text.Specific": "Dokonano zmian w {0} lub jego otwartych plikach. Czy chcesz zapisać te zmiany?",
+  "Dialog.UnsavedChanges.Text.Generic": "Wprowadzono zmiany w jednym lub większej liczbie plików. Czy chcesz zapisać te zmiany?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Zależne pliki",
+  "Dialog.DependantFiles.Text": "Każdy plik otwarty z tego i niższych zostanie również zamknięty. Kontynuować?",
+
+  // Status
+  "Status.Plugin.Select.None": "Nie wybrano żadnej wtyczki.",
+  "Status.Plugin.Select.Unknown": "Nieznany typ wtyczki {0}.",
+  "Status.Plugin.Load.None": "Żadna wtyczka nie mogła otworzyć pliku.",
+  "Status.Plugin.Load.NoArchive": "Wtyczka nie reprezentuje archiwum.",
+  "Status.Plugin.State.Init.Error": "Nie udało się zainicjować wtyczki.",
+  "Status.Plugin.State.Load.None": "Wtyczka nie może wczytać plików.",
+  "Status.Plugin.State.Load.Error": "Nie można załadować pliku.",
+  "Status.File.Select.None": "Nie wybrano pliku.",
+  "Status.File.Select.Invalid": "Wybrany plik jest nieprawidłowy.",
+  "Status.File.Load.Start": "Trwa ładowanie pliku {0}",
+  "Status.File.Load.Cancel": "Anulowano wczytywanie.",
+  "Status.File.Load.Opening": "{0} już się otwiera.",
+  "Status.File.Load.Saving": "{0} już się zapisuje.",
+  "Status.File.Load.Success": "Plik wczytany pomyślnie.",
+  "Status.File.Load.Error": "Plik nie został wczytany pomyślnie.",
+  "Status.File.Load.Error.Plugin": "Plik nie został wczytany pomyślnie za pomocą wtyczki {0}.",
+  "Status.File.Save.Start": "Teraz zapisuję plik {0}",
+  "Status.File.Save.Closed": "Podany plik jest już zamknięty.",
+  "Status.File.Save.Saving": "Plik {0} jest już zapisywany.",
+  "Status.File.Save.Closing": "Plik {0} jest już zamykany.",
+  "Status.File.Save.NotLoaded": "Podany plik nie jest już wczytywany.",
+  "Status.File.Save.NoChanges": "W pliku nie wprowadzono zmian i nie został on zapisany.",
+  "Status.File.Save.NotSupported": "Wtyczka nie obsługuje zapisywania.",
+  "Status.File.Save.State.Error": "Nie udało się zapisać pliku.",
+  "Status.File.Save.State.Reload.Error": "Po zapisaniu pliku nie udało się go ponownie wczytać.",
+  "Status.File.Save.Replace.Error": "Nie udało się zastąpić niektórych plików.",
+  "Status.File.Save.Copy.Error": "Nie udało się skopiować niektórych plików.",
+  "Status.File.Save.DestinationNotExist": "Podczas zapisywania nie można tworzyć nowych plików.",
+  "Status.File.Save.Success": "Plik zapisany pomyślnie.",
+  "Status.File.Save.Error": "Plik nie został zapisany pomyślnie.",
+  "Status.File.Close.Start": "Zamykam plik {0}.",
+  "Status.File.Close.Cancel": "Anulowano zamknięcie.",
+  "Status.File.Close.Saving": "Plik {0} jest obecnie zapisywany.",
+  "Status.File.Close.Closing": "Plik {0} jest obecnie zamykany.",
+  "Status.File.Close.NotLoaded": "Podany plik nie jest już wczytywany.",
+  "Status.File.Close.Success": "Plik zamknięto pomyślnie.",
+  "Status.Operation.Running": "Operacje są nadal wykonywane, przez co nie można zamknąć pliku.",
+
+  // Errors
+  "Error.Unsupported.OperatingSystem": "Nieobsługiwany system operacyjny: {0}.",
+
+  // File Filters
+  "Filter.All": "Wszystkie Pliki",
+  "Filter.Png": "Przenośna Grafika Sieciowa",
+  "Filter.Po": "Przenośny Obiekt Gettext",
+  "Filter.Kup": "Obiekt Tłumaczeń Kuriimu",
+
+  // Archive Form
+
+  // File Operations
+  "Archive.File.Open": "Otwórz",
+  "Archive.File.OpenWith": "Otwórz za pomocą...",
+  "Archive.File.Extract": "Wypakuj",
+  "Archive.File.Replace": "Zastąp",
+  "Archive.File.Rename": "Zmień Nazwę",
+  "Archive.File.Delete": "Usuń",
+  "Archive.File.Delete.Shortcut": "Usuń",
+
+  // Folder Operations
+  "Archive.Directory.Extract": "Wypakuj",
+  "Archive.Directory.Replace": "Zastąp",
+  "Archive.Directory.Rename": "Zmień Nazwę",
+  "Archive.Directory.Delete": "Usuń",
+  "Archive.Directory.Delete.Shortcut": "Usuń",
+  "Archive.Directory.Add": "Dodaj",
+
+  // Status
+  "Archive.Status.Extract.Cancel": "Anulowano wypakowanie pliku.",
+  "Archive.Status.Replace.Cancel": "Anulowano zastąpienie pliku.",
+  "Archive.Status.Rename.Cancel": "Anulowano zmianę nazwy pliku.",
+  "Archive.Status.Delete.Cancel": "Anulowano usunięcie pliku.",
+  "Archive.Status.Add.Cancel": "Anulowano dodanie pliku.",
+
+  "Archive.Status.Extract.Success": "Plik(i) wypakowano pomyślnie.",
+  "Archive.Status.Replace.Success": "Plik(i) zastąpiony pomyślnie.",
+  "Archive.Status.Rename.Success": "Plik(owi\/om) pomyślnie zmieniono nazwę.",
+  "Archive.Status.Delete.Success": "Plik(i) usunięto pomyślnie",
+  "Archive.Status.Add.Success": "Plik(i) dodano pomyślnie.",
+
+  "Archive.Status.Rename.Error.NoName": "Nie podano nowej nazwy.",
+  "Archive.Status.Add.Error": "Nie udało się dodać niektórych plików. Więcej informacji znajdziesz w logach.",
+
+  "Archive.Status.Select.None": "Nie wybrano celu.",
+  "Archive.Status.Extract.None": "Brak plików do wypakowania.",
+  "Archive.Status.Replace.None": "Brak plików do podmiany.",
+  "Archive.Status.Rename.None": "Brak plików do zmiany nazwy.",
+  "Archive.Status.Delete.None": "Brak plików do usunięcia.",
+  "Archive.Status.Add.None": "Brak plików do dodania.",
+
+  // Archive Progress
+  "Archive.Progress.Extract": "Wypakuj pliki",
+  "Archive.Progress.Replace": "Zastąp pliki",
+  "Archive.Progress.Rename": "Zmień nazwę plików",
+  "Archive.Progress.Delete": "Usuń pliki",
+  "Archive.Progress.Add": "Dodaj pliki",
+
+  // Archive Rename Dialog
+  "Archive.Dialog.Rename.File.Caption": "Zmień nazwę pliku",
+  "Archive.Dialog.Rename.Directory.Caption": "Zmień nazwę katalogu",
+  "Archive.Dialog.Rename.Text": "Wybierz nową nazwę dla {0}:",
+
+  // Archive File Headers
+  "Archive.Table.Files.Name": "Nazwa",
+  "Archive.Table.Files.Size": "Rozmiar",
+
+  // Archive Search Bar
+  "Archive.Search.Placeholder": "Szukaj...",
+  "Archive.Search.Clear": "Wyczyść",
+
+  // Misc
+  "Archive.FileCount": "Pliki: {0}",
+  "Archive.CancelOperation": "Anuluj",
+
+  // Image Form
+
+  // Menu
+  "Image.Menu.Export": "Eksportuj obraz",
+  "Image.Menu.Import": "Zaimportuj obraz",
+  "Image.Menu.Export.Batch": "Eksportuj wszystkie obrazy",
+  "Image.Menu.Import.Batch": "Zaimportuj wszystkie obrazy",
+  "Image.Menu.Export.Png": "Eksportuj PNG...",
+  "Image.Menu.Import.Png": "Importuj PNG...",
+
+  // Labels
+  "Image.Label.Width": "Szerokość:",
+  "Image.Label.Height": "Wysokość:",
+  "Image.Label.Format": "Format:",
+  "Image.Label.Palette": "Paleta:",
+
+  // Image Status
+  "Image.Status.Export.Start": "Teraz eksportuję obraz {0}.",
+  "Image.Status.Export.Cancel": "Eksport obrazu został anulowany.",
+  "Image.Status.Export.Success": "Obraz został pomyślnie wyeksportowany.",
+  "Image.Status.Export.Failure": "Eksport obrazu nie powiódł się.",
+  "Image.Status.Import.Start": "Teraz importuję do obrazu {0}.",
+  "Image.Status.Import.Cancel": "Importowanie obrazu zostało anulowane.",
+  "Image.Status.Import.Success": "Obraz został pomyślnie zaimportowany.",
+  "Image.Status.Import.Failure": "Import obrazu nie powiódł się.",
+
+  // Image Progress
+  "Image.Progress.Decode": "Dekodowanie obrazu(ów)",
+
+  // Indexed PictureBox
+  "Image.PictureBox.Index.SelectColorControl": "Wybierz Kolor Palety: Ctrl + Lewy Przycisk Myszy",
+  "Image.PictureBox.Index.SetColorControl": "Ustaw Kolor Palety: Alt + Lewy Przycisk Myszy",
+
+  // Font Form
+
+  // Labels
+  "Font.Search.Placeholder": "Szukaj: ¥, \\uFFE3",
+
+  // Preview
+  "Font.Preview.Placeholder": "Podgląd",
+  "Font.Preview.Export": "Podgląd eksportu",
+  "Font.Preview.Settings": "Ustawienia",
+
+  // Settings
+  "Font.Preview.Settings.Caption": "Ustawienia podglądu",
+  "Font.Preview.Settings.ShowDebug": "Pokaż pola debugowania",
+  "Font.Preview.Settings.Spacing": "Rozstaw",
+  "Font.Preview.Settings.LineHeight": "Wysokość linii",
+  "Font.Preview.Settings.Alignment": "Wyrównanie",
+  "Font.Preview.Settings.Alignment.Left": "Do lewej",
+  "Font.Preview.Settings.Alignment.Center": "Do środka",
+  "Font.Preview.Settings.Alignment.Right": "Do prawej",
+
+  // Generate
+  "Font.Generate.Caption": "Generuj Czcionkę",
+  "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
+
+  // Text Form
+
+  // Menu
+  "Text.Menu.Export.Po": "Wyeksportuj PO...",
+  "Text.Menu.Import.Po": "Zaimportuj PO...",
+  "Text.Menu.Export.Kup": "Wyeksportuj KUP...",
+  "Text.Menu.Import.Kup": "Zaimportuj KUP...",
+
+  // Labels
+  "Text.Content.Original": "Oryginał:",
+  "Text.Content.Edited": "Edytowany:",
+  "Text.Content.NoCodes": "Brak kodów kontrolnych:",
+
+  // Previews
+  "Text.Preview.Default": "Domyślny",
+  "Text.Preview.TextChanged": "Przełączenie wtyczki podglądu spowoduje utratę już wprowadzonych zmian bez ich zapisania. Kontynuować?",
+
+  // Context
+  "Text.Context.Rename": "Zmień Nazwę",
+  "Text.Context.Add": "Dodaj",
+  "Text.Context.Delete": "Usuń",
+  "Text.Context.Delete.Shortcut": "Usuń",
+
+  // Rename
+  "Text.Rename.Caption": "Zmień Nazwę",
+  "Text.Rename.Text": "Wprowadź nową nazwę",
+
+  // Text Status
+  "Text.Status.Rename.Success": "Zmiana nazwy tekstu powiodła się.",
+  "Text.Status.Rename.Failure": "Zmiana nazwy tekstu nie powiodła się.",
+  "Text.Status.Add.Success": "Dodawanie tekstu powiodło się.",
+  "Text.Status.Add.Failure": "Dodawanie tekstu nie powiodło się.",
+  "Text.Status.Delete.Success": "Usuwanie tekstu powiodło się.",
+  "Text.Status.Delete.Failure": "Usuwanie tekstu nie powiodło się.",
+  "Text.Status.Export.Success": "Eksport tekstów zakończony sukcesem.",
+  "Text.Status.Import.Success": "Import tekstów zakończony sukcesem.",
+
+  // Dialogs
+
+  // Dialog Manager
+  "Dialog.Manager.Button.Ok": "Ok",
+
+  // Choose Plugin Dialog
+  "Dialog.ChoosePlugin.Caption": "Wybierz wtyczkę",
+
+  "Dialog.ChoosePlugin.Header.Generic": "Wybierz wtyczkę, za pomocą której chcesz otworzyć plik:",
+  "Dialog.ChoosePlugin.Header.Identification.None": "Nie można automatycznie określić wtyczki umożliwiającej otwarcie tego pliku. Proszę wybrać ją ręcznie:",
+  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Wiele wtyczek jest w stanie otworzyć ten plik. Proszę wybierz jedną z nich:",
+  "Dialog.ChoosePlugin.Header.Identification.Note": "Domyślnie wyświetlane są tylko te wtyczki, które nie mogły automatycznie ustalić, czy obsługują dany plik.",
+
+  "Dialog.ChoosePlugin.Plugins.Table.Name": "Nazwa",
+  "Dialog.ChoosePlugin.Plugins.Table.Type": "Typ",
+  "Dialog.ChoosePlugin.Plugins.Table.Description": "Opis",
+  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+
+  "Dialog.ChoosePlugin.Continue": "Kontynuuj",
+  "Dialog.ChoosePlugin.ViewRaw": "Wyświetl surowe dane",
+  "Dialog.ChoosePlugin.Cancel": "Anuluj",
+  "Dialog.ChoosePlugin.ShowAll": "Pokaż wszystkie wtyczki",
+
+  // Font Generation Dialog
+  "Dialog.GenerateFont.Caption": "Generowanie Czcionki",
+  "Dialog.GenerateFont.Family": "Rodzina Czcionki",
+  "Dialog.GenerateFont.Style": "Styl Czcionki",
+  "Dialog.GenerateFont.Size": "Rozmiar Czcionki",
+  "Dialog.GenerateFont.Baseline": "Linia Bazowa",
+  "Dialog.GenerateFont.GlyphHeight": "Wysokość Glifów",
+  "Dialog.GenerateFont.SpaceWidth": "Rozstaw",
+  "Dialog.GenerateFont.Characters": "Znaki",
+  "Dialog.GenerateFont.Style.Bold": "Pogrubione",
+  "Dialog.GenerateFont.Style.Italic": "Kursywa",
+  "Dialog.GenerateFont.Load": "Wczytaj",
+  "Dialog.GenerateFont.Load.Caption": "Wczytaj profil czcionki...",
+  "Dialog.GenerateFont.Save": "Zapisz",
+  "Dialog.GenerateFont.Save.Caption": "Zapisz profil czcionki...",
+  "Dialog.GenerateFont.Profile": "Profil Czcionki",
+  "Dialog.GenerateFont.Generate": "Generuj",
+  "Dialog.GenerateFont.Padding.Left": "Wypełnienie z Lewej",
+  "Dialog.GenerateFont.Padding.Right": "Wypełnienie z Prawej"
+}
