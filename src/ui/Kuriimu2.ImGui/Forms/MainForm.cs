@@ -248,7 +248,7 @@ namespace Kuriimu2.ImGui.Forms
         {
             DragDrop -= MainForm_DragDrop;
 
-            var selectedPlugin = await ChoosePlugin(e.FilePlugins.ToArray(), e.FilteredFilePlugins.ToArray(), e.SelectionStatus);
+            var selectedPlugin = await ChoosePlugin(e.FilePlugins, e.FilteredFilePlugins, e.SelectionStatus);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
 

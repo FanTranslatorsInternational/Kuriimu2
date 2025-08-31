@@ -7,7 +7,7 @@ namespace Kuriimu2.ImGui.Models.Forms.Formats
     {
         public required TextEntryPage Page { get; init; }
 
-        public required string Name { get; init; }
+        public required string Name { get; set; }
 
         public required IList<TranslatedTextEntry> Entries { get; init; }
     }

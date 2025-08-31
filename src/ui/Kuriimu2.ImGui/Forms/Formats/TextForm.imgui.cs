@@ -11,7 +11,6 @@ using Kuriimu2.ImGui.Resources;
 using System.Numerics;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGuiNET;
-using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Plugin.Game;
 using Veldrid;
 using Rectangle = Veldrid.Rectangle;
@@ -19,6 +18,7 @@ using Size = ImGui.Forms.Models.Size;
 using Kuriimu2.ImGui.Models.Forms.Formats;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Models.IO;
+using Konnect.Contract.DataClasses.Plugin.File.Text;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -56,6 +56,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private IGamePluginState? _selectedGameState;
         private readonly List<TranslatedTextEntry> _translatedTextEntries = [];
         private readonly Dictionary<TranslatedTextEntry, TreeNode<object>> _translatedTextEntryNodes = [];
+
+        private readonly Dictionary<string, int> _entryNameLookup = [];
+        private readonly Dictionary<string, int> _pageNameLookup = [];
 
         private void InitializeComponent()
         {
@@ -270,22 +273,49 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             object[] entries = CreateTranslatedPagedEntries();
 
-            for (var i = 0; i < entries.Length; i++)
+            foreach (object entry in entries)
             {
-                switch (entries[i])
+                switch (entry)
                 {
                     case TranslatedTextEntryPage page:
                         AddTranslatedPage(page, _treeView.Nodes);
                         break;
 
-                    case TranslatedTextEntry entry:
-                        AddTranslatedEntry(entry, i, _treeView.Nodes);
+                    case TranslatedTextEntry translatedEntry:
+                        AddTranslatedEntry(translatedEntry, _treeView.Nodes);
                         break;
                 }
             }
 
             if (_state.PluginState.Texts.Count > 0)
                 _treeView.SelectedNode = _treeView.Nodes[0];
+        }
+
+        private void UpdateNames()
+        {
+            _pageNameLookup.Clear();
+            _entryNameLookup.Clear();
+
+            var index = 0;
+            foreach (TreeNode<object> node in _treeView.Nodes)
+            {
+                switch (node.Data)
+                {
+                    case TranslatedTextEntryPage page:
+                        node.Text = page.Name = CreatePageName(page.Page, index++);
+
+                        for (var i = 0; i < node.Nodes.Count; i++)
+                        {
+                            var translatedEntry = (TranslatedTextEntry)node.Nodes[i].Data;
+                            node.Nodes[i].Text = translatedEntry.Name = CreateEntryName(translatedEntry.Entry, i);
+                        }
+                        break;
+
+                    case TranslatedTextEntry entry:
+                        node.Text = entry.Name = CreateEntryName(entry.Entry, index++);
+                        break;
+                }
+            }
         }
 
         private object[] CreateTranslatedPagedEntries()
@@ -298,20 +328,24 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 var pages = pager.Page(_state.PluginState.Texts);
                 for (var i = 0; i < pages.Length; i++)
                 {
+                    string pageName = CreatePageName(pages[i], i);
+
                     var translatedPage = new TranslatedTextEntryPage
                     {
                         Page = pages[i],
-                        Name = pages[i].Name ?? $"no_name_{i:00}",
+                        Name = pageName,
                         Entries = new List<TranslatedTextEntry>()
                     };
 
                     for (var j = 0; j < pages[i].Entries.Count; j++)
                     {
+                        string entryName = CreateEntryName(pages[i].Entries[j], j);
+
                         var translatedEntry = new TranslatedTextEntry
                         {
                             Page = translatedPage,
                             Entry = pages[i].Entries[j],
-                            Name = pages[i].Entries[j].Name ?? $"no_name_{j:00}",
+                            Name = entryName,
                             OriginalTextData = pages[i].Entries[j].TextData
                         };
 
@@ -325,11 +359,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 for (var i = 0; i < _state.PluginState.Texts.Count; i++)
                 {
+                    string entryName = CreateEntryName(_state.PluginState.Texts[i], i);
+
                     var translatedEntry = new TranslatedTextEntry
                     {
                         Page = null,
                         Entry = _state.PluginState.Texts[i],
-                        Name = _state.PluginState.Texts[i].Name ?? $"no_name_{i:00}",
+                        Name = entryName,
                         OriginalTextData = _state.PluginState.Texts[i].TextData
                     };
 
@@ -338,6 +374,42 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             return [.. result];
+        }
+
+        private string CreatePageName(TextEntryPage page, int index)
+        {
+            if (page.Name is null)
+                return $"no_name_{index:00}";
+
+            string pageName = page.Name;
+
+            if (!_pageNameLookup.TryGetValue(pageName, out int count))
+                _pageNameLookup[pageName] = 1;
+            else
+            {
+                _pageNameLookup[pageName]++;
+                pageName += $"_{count}";
+            }
+
+            return pageName;
+        }
+
+        private string CreateEntryName(TextEntry entry, int index)
+        {
+            if (entry.Name is null)
+                return $"no_name_{index:00}";
+
+            string entryName = entry.Name;
+
+            if (!_entryNameLookup.TryGetValue(entryName, out int count))
+                _entryNameLookup[entryName] = 1;
+            else
+            {
+                _entryNameLookup[entryName]++;
+                entryName += $"_{count}";
+            }
+
+            return entryName;
         }
 
         private void AddTranslatedPage(TranslatedTextEntryPage translatedPage, IList<TreeNode<object>> nodes)
@@ -349,17 +421,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 IsExpanded = true
             };
 
-            for (var i = 0; i < translatedPage.Entries.Count; i++)
-                AddTranslatedEntry(translatedPage.Entries[i], i, node.Nodes);
+            foreach (TranslatedTextEntry entry in translatedPage.Entries)
+                AddTranslatedEntry(entry, node.Nodes);
 
             nodes.Add(node);
         }
 
-        private void AddTranslatedEntry(TranslatedTextEntry translatedEntry, int index, IList<TreeNode<object>> nodes)
+        private void AddTranslatedEntry(TranslatedTextEntry translatedEntry, IList<TreeNode<object>> nodes)
         {
             var node = new TreeNode<object>
             {
-                Text = translatedEntry.Entry.Name ?? $"no_name_{index:00}",
+                Text = translatedEntry.Name,
                 Data = translatedEntry
             };
 

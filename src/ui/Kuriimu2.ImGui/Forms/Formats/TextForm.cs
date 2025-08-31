@@ -108,8 +108,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task RenameEntry(TranslatedTextEntry entry, TreeNode<object> node)
         {
-            string newName = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText,
-                entry.Entry.Name ?? string.Empty);
+            string? oldName = entry.Entry.Name;
+            string newName = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, oldName ?? string.Empty);
 
             if (string.IsNullOrEmpty(newName))
             {
@@ -126,8 +126,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             entry.Entry.ContentChanged = true;
 
-            node.Text = newName;
             node.TextColor = ColorResources.Changed;
+
+            UpdateNames();
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusRenameSuccess);
@@ -183,7 +184,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var translatedEntry = new TranslatedTextEntry
             {
                 Entry = newEntry,
-                Name = newEntry.Name ?? $"no_name_{nodes.Count:00}",
+                Name = string.Empty,
                 OriginalTextData = newEntry.TextData,
                 Page = entry.Page
             };
@@ -194,13 +195,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             nodes.Add(new TreeNode<object>
             {
-                Text = translatedEntry.Name,
                 Data = translatedEntry,
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
             });
 
             _translatedTextEntryNodes[translatedEntry] = nodes[^1];
+
+            UpdateNames();
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
@@ -234,7 +236,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var translatedEntry = new TranslatedTextEntry
             {
                 Entry = newEntry,
-                Name = newEntry.Name ?? $"no_name_{node.Nodes.Count:00}",
+                Name = string.Empty,
                 OriginalTextData = newEntry.TextData,
                 Page = entryPage
             };
@@ -245,13 +247,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             node.Nodes.Add(new TreeNode<object>
             {
-                Text = translatedEntry.Name,
                 Data = translatedEntry,
                 TextColor = ColorResources.Changed,
                 IsExpanded = true
             });
 
             _translatedTextEntryNodes[translatedEntry] = node.Nodes[^1];
+
+            UpdateNames();
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusAddSuccess);
@@ -325,6 +328,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     selectedNode = _treeView.Nodes[Math.Max(0, pageIndex - 1)];
             }
 
+            UpdateNames();
+
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusDeleteSuccess);
 
@@ -366,6 +371,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             TreeNode<object>? selectedNode = null;
             if (_treeView.Nodes.Count > 0)
                 selectedNode = _treeView.Nodes[Math.Max(0, nodeIndex - 1)];
+
+            UpdateNames();
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusDeleteSuccess);
@@ -472,10 +479,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             IList<TranslationFileEntry> result = new List<TranslationFileEntry>();
 
-            object[] entries = CreateTranslatedPagedEntries();
-            foreach (object entry in entries)
+            foreach (TreeNode<object> node in _treeView.Nodes)
             {
-                switch (entry)
+                switch (node.Data)
                 {
                     case TranslatedTextEntryPage page:
                         foreach (TranslatedTextEntry pageEntry in page.Entries)

@@ -141,7 +141,7 @@
   "Dialog.UpdateAvailable.Text": "Deseja atualizar de {0}-{1} para {2}-{3}?",
 
   // Exception Dialog
-  "Dialog.ExceptionCatched.Caption": "Exceção capturada",
+  "Dialog.ExceptionCatched.Caption": "Exceção encontrada",
 
   // Plugins Not Available Dialog
   "Dialog.PluginsNotAvailable.Caption": "Plugins não disponíveis",
@@ -171,7 +171,7 @@
   "Status.File.Load.Opening": "{0} já está sendo aberto.",
   "Status.File.Load.Saving": "{0} já está sendo salvo.",
   "Status.File.Load.Success": "Arquivo carregado com sucesso.",
-  "Status.File.Load.Error": "Arquivo não carregado com sucesso.",
+  "Status.File.Load.Error": "Não foi possível carregar o arquivo.",
   "Status.File.Load.Error.Plugin": "Não foi possível carregar o arquivo com o plugin {0}.",
   "Status.File.Save.Start": "Salvando arquivo {0}",
   "Status.File.Save.Closed": "O arquivo informado já está fechado.",
@@ -201,6 +201,8 @@
   // File Filters
   "Filter.All": "Todos os arquivos",
   "Filter.Png": "Portable Network Graphics",
+  "Filter.Po": "Gettext Portable Object",
+  "Filter.Kup": "Kuriimu Translation Object",
 
   // Archive Form
 
@@ -235,7 +237,7 @@
   "Archive.Status.Add.Success": "Arquivo(s) adicionado(s) com sucesso.",
 
   "Archive.Status.Rename.Error.NoName": "Nenhum novo nome informado.",
-  "Archive.Status.Add.Error": "Alguns arquivos não puderam ser adicionados com sucesso. Consulte o log para mais informações.",
+  "Archive.Status.Add.Error": "Alguns arquivos não puderam ser adicionados corretamente. Consulte o log para mais informações.",
 
   "Archive.Status.Select.None": "Nenhum destino selecionado.",
   "Archive.Status.Extract.None": "Nenhum arquivo para extrair.",
@@ -297,6 +299,10 @@
   // Image Progress
   "Image.Progress.Decode": "Decodificar imagem(ns)",
 
+  // Indexed PictureBox
+  "Image.PictureBox.Index.SelectColorControl": "Selecionar cor da paleta: Ctrl + Botão esquerdo do mouse",
+  "Image.PictureBox.Index.SetColorControl": "Definir cor da paleta: Alt + botão esquerdo do mouse",
+
   // Font Form
 
   // Labels
@@ -323,9 +329,40 @@
 
   // Text Form
 
+  // Menu
+  "Text.Menu.Export.Po": "Exportar PO...",
+  "Text.Menu.Import.Po": "Importar PO...",
+  "Text.Menu.Export.Kup": "Exportar KUP...",
+  "Text.Menu.Import.Kup": "Importar KUP...",
+
+  // Labels
+  "Text.Content.Original": "Original:",
+  "Text.Content.Edited": "Editado:",
+  "Text.Content.NoCodes": "Sem códigos de controle:",
+
   // Previews
   "Text.Preview.Default": "Padrão",
   "Text.Preview.TextChanged": "Ao trocar o plugin de pré-visualização, as alterações feitas serão perdidas sem salvar. Continuar?",
+
+  // Context
+  "Text.Context.Rename": "Renomear",
+  "Text.Context.Add": "Adicionar",
+  "Text.Context.Delete": "Excluir",
+  "Text.Context.Delete.Shortcut": "Del",
+
+  // Rename
+  "Text.Rename.Caption": "Renomear",
+  "Text.Rename.Text": "Insira o novo nome",
+
+  // Text Status
+  "Text.Status.Rename.Success": "Entrada de texto renomeada com sucesso.",
+  "Text.Status.Rename.Failure": "Falha ao renomear a entrada de texto.",
+  "Text.Status.Add.Success": "Entrada de texto adicionada com sucesso.",
+  "Text.Status.Add.Failure": "Falha ao adicionar a entrada de texto.",
+  "Text.Status.Delete.Success": "Entrada de texto removida com sucesso.",
+  "Text.Status.Delete.Failure": "Falha ao remover a entrada de texto.",
+  "Text.Status.Export.Success": "Textos exportados com sucesso.",
+  "Text.Status.Import.Success": "Textos importados com sucesso.",
 
   // Dialogs
 
@@ -352,7 +389,6 @@
 
   // Font Generation Dialog
   "Dialog.GenerateFont.Caption": "Geração de Fonte",
-
   "Dialog.GenerateFont.Family": "Família da Fonte",
   "Dialog.GenerateFont.Style": "Estilo da Fonte",
   "Dialog.GenerateFont.Size": "Tamanho da Fonte",
@@ -360,20 +396,14 @@
   "Dialog.GenerateFont.GlyphHeight": "Altura do glifo",
   "Dialog.GenerateFont.SpaceWidth": "Largura do espaço",
   "Dialog.GenerateFont.Characters": "Caracteres",
-
   "Dialog.GenerateFont.Style.Bold": "Negrito",
   "Dialog.GenerateFont.Style.Italic": "Itálico",
-
   "Dialog.GenerateFont.Load": "Carregar",
   "Dialog.GenerateFont.Load.Caption": "Carregar perfil de fonte...",
-
   "Dialog.GenerateFont.Save": "Salvar",
   "Dialog.GenerateFont.Save.Caption": "Salvar perfil de fonte...",
-
   "Dialog.GenerateFont.Profile": "Perfil de Fonte",
-
   "Dialog.GenerateFont.Generate": "Gerar",
-
   "Dialog.GenerateFont.Padding.Left": "Margem esquerda",
   "Dialog.GenerateFont.Padding.Right": "Margem direita"
 }
