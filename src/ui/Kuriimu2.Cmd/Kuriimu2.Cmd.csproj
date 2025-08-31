@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\Konnect\Konnect.csproj" />
+    <ProjectReference Include="..\..\lib\Kryptography\Kryptography.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

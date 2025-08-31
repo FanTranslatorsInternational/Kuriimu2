@@ -90,7 +90,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (imageIndex >= _imageState.Images.Count)
+            if (imageIndex < 0 || imageIndex >= _imageState.Images.Count)
             {
                 Console.WriteLine($"Index '{imageIndex}' was out of bounds.");
                 return;
@@ -129,7 +129,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (imageIndex >= _imageState.Images.Count)
+            if (imageIndex < 0 || imageIndex >= _imageState.Images.Count)
             {
                 Console.WriteLine($"Index '{imageIndex}' was out of bounds.");
                 return;
@@ -186,7 +186,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (imageIndex >= _imageState.Images.Count)
+            if (imageIndex < 0 || imageIndex >= _imageState.Images.Count)
             {
                 Console.WriteLine($"Index '{imageIndex}' was out of bounds.");
                 return;

@@ -178,6 +178,11 @@ namespace Kuriimu2.Cmd
                 return Task.CompletedTask;
 
             Console.WriteLine("No plugin could identify the file.");
+
+            if (e.FilePlugins.Length <= 0)
+                return Task.CompletedTask;
+
+            Console.WriteLine();
             Console.WriteLine("Select a plugin manually:");
 
             foreach (IFilePlugin filePlugin in e.FilePlugins)

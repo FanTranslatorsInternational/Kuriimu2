@@ -6,6 +6,7 @@ using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Management.Files;
+using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Hex;
@@ -21,14 +22,17 @@ namespace Kuriimu2.Cmd.Contexts
     {
         protected IFileManager FileManager { get; }
 
+        protected IPluginManager PluginManager { get; }
+
         protected ContextNode Node { get; }
 
-        protected BaseFileContext(IFileManager fileManager, IProgressContext progressContext) :
+        protected BaseFileContext(IPluginManager pluginManager, IFileManager fileManager, IProgressContext progressContext) :
             base(progressContext)
         {
             FileManager = fileManager;
+            PluginManager = pluginManager;
 
-            Node = new ContextNode();
+            Node = new ContextNode(this);
         }
 
         protected BaseFileContext(IFileManager fileManager, ContextNode parentNode, IProgressContext progressContext) :
@@ -103,13 +107,13 @@ namespace Kuriimu2.Cmd.Contexts
 
         protected abstract bool FileExists(string filePath);
 
-        protected abstract bool IsLoaded(string filePath);
+        protected abstract bool IsLoaded(string filePath, out IFileState? loadedFile);
 
         #region Load
 
         protected abstract Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId);
 
-        private async Task<IContext> LoadFile(string fileArgument, string? pluginIdArgument)
+        private async Task<IContext?> LoadFile(string fileArgument, string? pluginIdArgument)
         {
             if (!FileExists(fileArgument))
             {
@@ -117,10 +121,10 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (IsLoaded(fileArgument))
+            if (IsLoaded(fileArgument, out IFileState? loadedFile))
             {
                 Console.WriteLine($"File '{fileArgument}' already loaded.");
-                return this;
+                return loadedFile is null ? this : Node.GetLoadedContext(loadedFile);
             }
 
             var pluginId = Guid.Empty;
@@ -146,7 +150,7 @@ namespace Kuriimu2.Cmd.Contexts
 
             if (loadResult.Status is not LoadStatus.Successful)
             {
-                Console.WriteLine($"Load Error: {loadResult.Exception?.Message}");
+                Console.WriteLine($"Load Error: {loadResult.Reason}");
                 return this;
             }
 
@@ -155,12 +159,13 @@ namespace Kuriimu2.Cmd.Contexts
                 Console.WriteLine("No plugin supports this file.");
                 return this;
             }
-
-            ContextNode newNode = Node.Add(this, loadResult.LoadedFileState);
-
+            
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
-            return CreateFileContext(newNode);
+            IContext context = CreateFileContext(loadResult.LoadedFileState);
+            Node.Add(context, loadResult.LoadedFileState);
+
+            return context;
         }
 
         #endregion
@@ -174,7 +179,7 @@ namespace Kuriimu2.Cmd.Contexts
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid number.");
             }
 
-            if (fileIndex >= Node.Children.Count)
+            if (fileIndex < 0 || fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
             }
@@ -260,7 +265,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (fileIndex >= Node.Children.Count)
+            if (fileIndex < 0 || fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return;
@@ -322,7 +327,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (fileIndex >= Node.Children.Count)
+            if (fileIndex < 0 || fileIndex >= Node.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return this;
@@ -337,7 +342,7 @@ namespace Kuriimu2.Cmd.Contexts
 
             Console.WriteLine($"Selected '{selectedNode.StateInfo.FilePath.ToRelative()}'.");
 
-            return CreateFileContext(selectedNode);
+            return CreateFileContext(selectedNode.StateInfo);
         }
 
         private void ListOpenFiles()
@@ -351,30 +356,30 @@ namespace Kuriimu2.Cmd.Contexts
             Node.ListFiles();
         }
 
-        private IContext CreateFileContext(ContextNode childNode)
+        private IContext CreateFileContext(IFileState? loadedFile)
         {
-            if (childNode.StateInfo is null)
+            if (loadedFile is null)
             {
                 Console.WriteLine("No file state was set.");
                 return this;
             }
 
-            switch (childNode.StateInfo.PluginState)
+            switch (loadedFile.PluginState)
             {
                 case ITextFilePluginState:
-                    return new TextContext(childNode.StateInfo, this, Progress);
+                    return new TextContext(loadedFile, this, PluginManager, Progress);
 
                 case IImageFilePluginState:
-                    return new ImageContext(childNode.StateInfo, this, Progress);
+                    return new ImageContext(loadedFile, this, Progress);
 
                 case IArchiveFilePluginState:
-                    return new ArchiveContext(childNode, this, FileManager, Progress);
+                    return new ArchiveContext(Node, this, FileManager, Progress);
 
                 case IFontFilePluginState:
-                    return new FontContext(childNode.StateInfo, this, Progress);
+                    return new FontContext(loadedFile, this, Progress);
 
                 default:
-                    Console.WriteLine($"State '{childNode.StateInfo.PluginState.GetType()}' is not supported.");
+                    Console.WriteLine($"State '{loadedFile.PluginState.GetType()}' is not supported.");
                     return this;
             }
         }

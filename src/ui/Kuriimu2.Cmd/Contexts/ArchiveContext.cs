@@ -79,10 +79,16 @@ namespace Kuriimu2.Cmd.Contexts
             return _archiveFileSystem.FileExists(new UPath(filePath).ToAbsolute());
         }
 
-        protected override bool IsLoaded(string filePath)
+        protected override bool IsLoaded(string filePath, out IFileState? loadedFile)
         {
+            loadedFile = null;
+
             UPath absolutePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath / filePath;
-            return FileManager.IsLoaded(absolutePath);
+            if (!FileManager.IsLoaded(absolutePath))
+                return false;
+
+            loadedFile = FileManager.GetLoadedFile(absolutePath);
+            return true;
         }
 
         protected override async Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId)
