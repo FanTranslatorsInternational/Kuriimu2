@@ -3,7 +3,7 @@ using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.Enums.Management.Files;
-using Konnect.Contract.Exceptions.Plugin.File;
+using Konnect.Contract.Exceptions.Management.Files;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
