@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
+using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Exceptions.Management.Files;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File.Archive;
@@ -150,6 +152,28 @@ namespace Kuriimu2.Cmd.Contexts
 
             if (loadResult.Status is not LoadStatus.Successful)
             {
+                if (loadResult.Reason is LoadErrorReason.Deprecated)
+                {
+                    if (loadResult.Exception is not FilePluginDeprecatedException deprecatedException)
+                    {
+                        Console.WriteLine("Plugin is deprecated.");
+                        return this;
+                    }
+
+                    Console.WriteLine($"Plugin '{deprecatedException.Plugin.Metadata.Name}' is deprecated.");
+
+                    if (deprecatedException.Plugin.Alternatives.Length <= 0)
+                        return this;
+
+                    Console.WriteLine();
+                    Console.WriteLine("Consider using one of the following alternatives instead:");
+
+                    foreach (DeprecatedPluginAlternative alternative in deprecatedException.Plugin.Alternatives)
+                        Console.WriteLine($"{alternative.ToolName}: {alternative.Url}");
+
+                    return this;
+                }
+
                 Console.WriteLine($"Load Error: {loadResult.Reason}");
                 return this;
             }
@@ -159,7 +183,7 @@ namespace Kuriimu2.Cmd.Contexts
                 Console.WriteLine("No plugin supports this file.");
                 return this;
             }
-            
+
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
             IContext context = CreateFileContext(loadResult.LoadedFileState);
@@ -225,12 +249,6 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (!selectedState.StateChanged)
-            {
-                Console.WriteLine($"File '{selectedState.FilePath.ToRelative()}' has no changes.");
-                return;
-            }
-
             SaveResult saveResult;
             try
             {
@@ -246,6 +264,13 @@ namespace Kuriimu2.Cmd.Contexts
 
             if (!saveResult.IsSuccessful)
             {
+
+                if (saveResult.Reason is SaveErrorReason.NoChanges)
+                {
+                    Console.WriteLine($"File '{selectedState.FilePath.ToRelative()}' has no changes.");
+                    return;
+                }
+
                 Console.WriteLine($"Save Error: {saveResult.Reason}");
                 return;
             }
