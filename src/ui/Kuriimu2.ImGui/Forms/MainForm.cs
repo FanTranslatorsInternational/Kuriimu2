@@ -21,7 +21,9 @@ using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Management.Plugin.Loaders;
+using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Exceptions.Management.Files;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File;
@@ -449,6 +451,14 @@ namespace Kuriimu2.ImGui.Forms
 
             if (loadResult.Status != LoadStatus.Successful)
             {
+                if (loadResult.Reason is LoadErrorReason.Deprecated)
+                {
+                    var deprecatedException = loadResult.Exception as FilePluginDeprecatedException;
+
+                    var dialog = new PluginDeprecatedDialog(deprecatedException?.Plugin);
+                    await dialog.ShowAsync();
+                }
+
                 ReportStatus(StatusKind.Failure, GetReasonString(filePath, loadResult.Reason));
                 return false;
             }
@@ -476,6 +486,9 @@ namespace Kuriimu2.ImGui.Forms
             {
                 case LoadErrorReason.Loading:
                     return LocalizationResources.StatusFileLoadOpening(path);
+
+                case LoadErrorReason.Deprecated:
+                    return LocalizationResources.StatusPluginDeprecated;
 
                 case LoadErrorReason.NoPlugin:
                     return LocalizationResources.StatusPluginLoadNone;

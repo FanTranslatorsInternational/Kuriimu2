@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Dependant files",
   "Dialog.DependantFiles.Text": "Every file opened from this one and below will be closed too. Continue?",
 
+  // Deprecated Info Dialog
+  "Dialog.Deprecated.Caption": "Deprecated plugin",
+  "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.",
+  "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:",
+
   // Status
   "Status.Plugin.Select.None": "No plugin selected.",
   "Status.Plugin.Select.Unknown": "Unknown plugin type {0}.",
+  "Status.Plugin.Load.Deprecated": "The plugin is deprecated.",
   "Status.Plugin.Load.None": "No plugin could open the file.",
   "Status.Plugin.Load.NoArchive": "Plugin does not represent an archive.",
   "Status.Plugin.State.Init.Error": "The plugin could not be initialized.",

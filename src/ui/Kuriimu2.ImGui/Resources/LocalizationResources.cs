@@ -159,10 +159,16 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogDependantFilesCaption => LocalizedString.FromId("Dialog.DependantFiles.Caption");
         public static LocalizedString DialogDependantFilesText => LocalizedString.FromId("Dialog.DependantFiles.Text");
 
+        // Deprecated Info Dialog
+        public static LocalizedString DialogDeprecatedCaption => LocalizedString.FromId("Dialog.Deprecated.Caption");
+        public static LocalizedString DialogDeprecatedTextGeneral(string pluginName) => LocalizedString.FromId("Dialog.Deprecated.Text.General", () => pluginName);
+        public static LocalizedString DialogDeprecatedTextAlternatives => LocalizedString.FromId("Dialog.Deprecated.Text.Alternatives");
+
         // Status
         public static LocalizedString StatusPluginSelectNone => LocalizedString.FromId("Status.Plugin.Select.None");
         public static LocalizedString StatusPluginSelectUnknown(IFilePluginState state)
             => LocalizedString.FromId("Status.Plugin.Select.Unknown", () => state.GetType().Name);
+        public static LocalizedString StatusPluginDeprecated => LocalizedString.FromId("Status.Plugin.Load.Deprecated");
         public static LocalizedString StatusPluginLoadNone => LocalizedString.FromId("Status.Plugin.Load.None");
         public static LocalizedString StatusPluginLoadNoArchive => LocalizedString.FromId("Status.Plugin.Load.NoArchive");
         public static LocalizedString StatusPluginStateInitError => LocalizedString.FromId("Status.Plugin.State.Init.Error");
