@@ -3,6 +3,7 @@ using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Exceptions.Plugin.File;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
@@ -176,6 +177,18 @@ namespace Konnect.Management.Files
         private LoadResult TryCreateState(IFilePlugin plugin, IPluginFileManager fileManager, LoadFileOptions loadInfo, out IFilePluginState? pluginState)
         {
             pluginState = null;
+
+            if (plugin.IsDeprecated)
+            {
+                loadInfo.Logger?.Warning("The plugin '{0}' is deprecated.", plugin.PluginId);
+
+                return new LoadResult
+                {
+                    Status = LoadStatus.Errored,
+                    Exception = new FilePluginDeprecatedException(plugin.Deprecated!),
+                    Reason = LoadErrorReason.Deprecated
+                };
+            }
 
             try
             {

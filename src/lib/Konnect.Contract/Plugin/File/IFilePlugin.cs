@@ -1,4 +1,5 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.FileSystem;
@@ -33,12 +34,16 @@ namespace Konnect.Contract.Plugin.File
 
         bool CanIdentifyFiles => this is IIdentifyFiles;
 
+        bool IsDeprecated => this is IDeprecatedFilePlugin;
+
         #endregion
 
         #region Optional feature casting defaults
 
         Task<bool> AttemptIdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext) =>
             (this as IIdentifyFiles)?.IdentifyAsync(fileSystem, filePath, identifyContext) ?? Task.FromResult(false);
+
+        IDeprecatedFilePlugin? Deprecated => this as IDeprecatedFilePlugin;
 
         #endregion
     }

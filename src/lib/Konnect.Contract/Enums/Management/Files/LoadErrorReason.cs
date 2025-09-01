@@ -4,6 +4,7 @@
     {
         None,
         Loading,
+        Deprecated,
         NoPlugin,
         NoArchive,
         StateCreateError,
