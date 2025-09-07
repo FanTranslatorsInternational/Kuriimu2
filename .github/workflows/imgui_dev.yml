@@ -59,6 +59,7 @@ jobs:
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DreamCatcher/DreamCatcher.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Enterbrain/Enterbrain.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Gust/Gust.sln --output ./dist/final/plugins --configuration Release
