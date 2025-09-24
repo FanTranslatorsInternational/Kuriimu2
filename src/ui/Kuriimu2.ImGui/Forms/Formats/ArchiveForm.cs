@@ -428,17 +428,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _fileSystem = FileSystemFactory.CreateArchivePluginFileSystem(_formInfo.FileState);
 
-            // Clear changed element cache
-            _changedDirectories.Clear();
-            UpdateFileTree();
-
-            _changedFiles.Clear();
-            UpdateFileView(_treeView.SelectedNode.Data);
-
             // Call update methods
             _saveLock = false;
 
             UpdateForm();
+
             _formInfo.FormCommunicator.Update(true, false);
         }
 
@@ -792,10 +786,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     if (string.IsNullOrEmpty(newName))
                         continue;
 
-                    // RenameFile possibly open file in main form
+                    // Rename possibly open file in main form
                     _formInfo.FormCommunicator.Rename(file, file.FilePath.GetDirectory() / newName);
 
-                    // RenameFile file in archive
+                    // Rename file in archive
                     _fileSystem.MoveFile(file.FilePath, file.FilePath.GetDirectory() / newName);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
@@ -1337,6 +1331,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         public void UpdateForm()
         {
+            // Update changed directories and files
+            if (!_formInfo.FileState.StateChanged)
+                ClearChangedItems();
+            else
+                UpdateChildrenFiles();
+
             // Update root name, if changed
             var rootName = _formInfo.FileState.FilePath.GetName();
             if (_treeView.Nodes[0].Text != rootName)
@@ -1344,6 +1344,46 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             // Update save button enablement
             UpdateSaveButtons();
+        }
+
+        private void ClearChangedItems()
+        {
+            ClearChangedDirectories();
+            ClearChangedFiles();
+        }
+
+        private void ClearChangedDirectories()
+        {
+            if (_changedDirectories.Count <= 0)
+                return;
+
+            _changedDirectories.Clear();
+            UpdateFileTree();
+        }
+
+        private void ClearChangedFiles()
+        {
+            if (_changedFiles.Count <= 0)
+                return;
+
+            _changedFiles.Clear();
+            UpdateFileView(_treeView.SelectedNode.Data);
+        }
+
+        private void UpdateChildrenFiles()
+        {
+            foreach (IFileState child in _formInfo.FileState.ArchiveChildren)
+            {
+                if (!child.StateChanged)
+                    continue;
+
+                var changedFile = (AfiFileEntry)_fileSystem.GetFileEntry(child.FilePath);
+
+                _changedFiles.Add(changedFile.ArchiveFile);
+                AddChangedDirectory(child.FilePath.GetDirectory());
+            }
+
+            UpdateFileView(_treeView.SelectedNode.Data);
         }
 
         private void UpdateSaveButtons()
