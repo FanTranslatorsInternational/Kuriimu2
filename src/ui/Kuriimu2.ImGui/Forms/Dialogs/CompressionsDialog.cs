@@ -70,7 +70,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var ofd = new WindowsOpenFileDialog
             {
                 InitialDirectory = SettingsResources.LastDirectory,
-                Filters = [new FileFilter(LocalizationResources.FilterAll, string.Empty)]
+                Filters = [new FileFilter(LocalizationResources.FilterAll, "*")]
             };
 
             // Show dialog and wait for result

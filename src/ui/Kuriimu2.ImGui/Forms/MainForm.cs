@@ -971,7 +971,7 @@ namespace Kuriimu2.ImGui.Forms
         {
             var filters = new List<FileFilter>
             {
-                new FileFilter(LocalizationResources.FilterAll, string.Empty)
+                new FileFilter(LocalizationResources.FilterAll, "*")
             };
 
             foreach (var plugin in pluginManager.GetPlugins<IFilePlugin>().Where(x => x.FileExtensions?.Any() ?? false))
