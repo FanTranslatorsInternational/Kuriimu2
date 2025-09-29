@@ -25,7 +25,7 @@ namespace Kryptography.Checksum.Fnv
         {
         }
 
-        protected override void ComputeInternal(Span<byte> input, ref uint result)
+        public override void ComputeBlock(Span<byte> input, ref uint result)
         {
             foreach (var value in input)
                 result = result * Prime ^ value;

@@ -164,6 +164,17 @@ namespace Kryptography.Checksum.Crc
 
         #region Override methods
 
+        public override void ComputeBlock(Span<byte> input, ref uint result)
+        {
+            foreach (var value in input)
+            {
+                if (_formula == Crc32Formula.Reflected)
+                    result = result >> 8 ^ _polynomialTable[result & 0xff ^ value];
+                else
+                    result = result << 8 ^ _polynomialTable[result >> 24 ^ ReverseBits(value)];
+            }
+        }
+
         protected override uint CreateInitialValue()
         {
             return _initValue;
@@ -175,17 +186,6 @@ namespace Kryptography.Checksum.Crc
                 result ^= _xorOut;
             else
                 result = ReverseBits(result) ^ _xorOut;
-        }
-
-        protected override void ComputeInternal(Span<byte> input, ref uint result)
-        {
-            foreach (var value in input)
-            {
-                if (_formula == Crc32Formula.Reflected)
-                    result = result >> 8 ^ _polynomialTable[result & 0xff ^ value];
-                else
-                    result = result << 8 ^ _polynomialTable[result >> 24 ^ ReverseBits(value)];
-            }
         }
 
         protected override byte[] ConvertResult(uint result)

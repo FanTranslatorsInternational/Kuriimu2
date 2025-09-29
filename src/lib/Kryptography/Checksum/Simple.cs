@@ -20,7 +20,7 @@ namespace Kryptography.Checksum
         {
         }
 
-        protected override void ComputeInternal(Span<byte> input, ref uint result)
+        public override void ComputeBlock(Span<byte> input, ref uint result)
         {
             foreach (var value in input)
                 result = result * _magic + value;

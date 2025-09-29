@@ -58,7 +58,7 @@ namespace Kryptography.Checksum
         public T ComputeValue(Span<byte> input)
         {
             var result = CreateInitialValue();
-            ComputeInternal(input, ref result);
+            ComputeBlock(input, ref result);
 
             FinalizeResult(ref result);
             return result;
@@ -77,12 +77,19 @@ namespace Kryptography.Checksum
 
             int readSize;
             while ((readSize = input.Read(buffer)) > 0)
-                ComputeInternal(buffer.AsSpan(0, readSize), ref result);
+                ComputeBlock(buffer.AsSpan(0, readSize), ref result);
 
             FinalizeResult(ref result);
 
             return result;
         }
+
+        /// <summary>
+        /// Computes the hash on a given span of data. This method may be called multiple times and may be handled as an accumulative operation.
+        /// </summary>
+        /// <param name="input">The data to consume.</param>
+        /// <param name="result">The value to hold the computed hash.</param>
+        public abstract void ComputeBlock(Span<byte> input, ref T result);
 
         /// <summary>
         /// Creates the start value of the hash computation of type <typeparamref name="T"/>.
@@ -95,13 +102,6 @@ namespace Kryptography.Checksum
         /// </summary>
         /// <param name="result">The computed hash after all data was consumed.</param>
         protected abstract void FinalizeResult(ref T result);
-
-        /// <summary>
-        /// Computes the hash on a given span of data. This method may be called multiple times and may be handled as an accumulative operation.
-        /// </summary>
-        /// <param name="input">The data to consume.</param>
-        /// <param name="result">The value to hold the computed hash.</param>
-        protected abstract void ComputeInternal(Span<byte> input, ref T result);
 
         /// <summary>
         /// Converts the value of type <typeparamref name="T"/> to a byte array.

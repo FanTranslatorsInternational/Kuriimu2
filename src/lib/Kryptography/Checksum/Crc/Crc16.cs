@@ -33,7 +33,7 @@ namespace Kryptography.Checksum.Crc
             result ^= _xorOut;
         }
 
-        protected override void ComputeInternal(Span<byte> input, ref ushort result)
+        public override void ComputeBlock(Span<byte> input, ref ushort result)
         {
             foreach (byte value in input)
             {
