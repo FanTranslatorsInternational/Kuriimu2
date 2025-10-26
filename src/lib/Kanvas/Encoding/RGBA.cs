@@ -20,7 +20,6 @@ namespace Kanvas.Encoding
         public Rgba(int r, int g, int b, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
             this(r, g, b, "RGBA", byteOrder, bitOrder)
         {
-
         }
 
         /// <summary>
@@ -35,7 +34,6 @@ namespace Kanvas.Encoding
         public Rgba(int r, int g, int b, int a, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
             this(r, g, b, a, "RGBA", byteOrder, bitOrder)
         {
-
         }
 
         /// <summary>

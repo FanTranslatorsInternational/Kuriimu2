@@ -10,8 +10,8 @@ namespace Kanvas.Encoding.Base
     public abstract class PixelEncoding : IColorEncoding
     {
         private readonly IPixelDescriptor _descriptor;
-        private readonly Func<byte[], int, IEnumerable<long>> _readValuesDelegate;
-        private readonly Action<IEnumerable<long>, byte[]> _writeValuesDelegate;
+        private readonly Func<byte[], int, IEnumerable<long>>? _readValuesDelegate;
+        private readonly Action<IEnumerable<long>, byte[]>? _writeValuesDelegate;
 
         /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
@@ -40,20 +40,26 @@ namespace Kanvas.Encoding.Base
         /// <inheritdoc cref="Load"/>
         public IEnumerable<Rgba32> Load(byte[] input, EncodingOptions options)
         {
+            if (_readValuesDelegate is null)
+                return [];
+
             var bits = options.Size.Width * options.Size.Height * BitsPerValue;
             var length = bits / 8 + (bits % 8 > 0 ? 1 : 0);
 
             return _readValuesDelegate(input, length).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(options.TaskCount)
-                .Select(v => _descriptor.GetColor(v));
+                .Select(_descriptor.GetColor);
         }
 
         /// <inheritdoc cref="Load"/>
         public byte[] Save(IEnumerable<Rgba32> colors, EncodingOptions options)
         {
+            if (_writeValuesDelegate is null)
+                return [];
+
             var values = colors.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(options.TaskCount)
-                .Select(c => _descriptor.GetValue(c));
+                .Select(_descriptor.GetValue);
 
             var bits = options.Size.Width * options.Size.Height * BitsPerValue;
             var buffer = new byte[bits / 8 + (bits % 8 > 0 ? 1 : 0)];
@@ -64,8 +70,10 @@ namespace Kanvas.Encoding.Base
 
         #region Delegate getter
 
-        private Func<byte[], int, IEnumerable<long>> GetReadDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
+        private Func<byte[], int, IEnumerable<long>>? GetReadDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
         {
+            BitsPerValue = bitDepth;
+
             if (bitDepth is 1 or 2 or 4)
             {
                 if (bitOrder == BitOrder.MostSignificantBitFirst)
@@ -73,6 +81,9 @@ namespace Kanvas.Encoding.Base
 
                 return (input, length) => ReadBitsLSB(input, length, bitDepth);
             }
+
+            if (bitDepth < 8)
+                return null;
 
             var bytesToRead = (bitDepth + 7) >> 3;
             BitsPerValue = bytesToRead * 8;
@@ -101,7 +112,7 @@ namespace Kanvas.Encoding.Base
             return null;
         }
 
-        private Action<IEnumerable<long>, byte[]> GetWriteDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
+        private Action<IEnumerable<long>, byte[]>? GetWriteDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
         {
             if (bitDepth is 1 or 2 or 4)
             {
@@ -110,6 +121,9 @@ namespace Kanvas.Encoding.Base
 
                 return (values, input) => WriteBitsLSB(values, input, bitDepth);
             }
+
+            if (bitDepth < 8)
+                return null;
 
             var bytesToRead = (bitDepth + 7) >> 3;
             switch (bytesToRead)
