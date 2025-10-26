@@ -31,7 +31,7 @@ namespace plugin_mt_framework.Archives
                 result[i] = Rot(result[i], RotValues[i]);
         }
 
-        protected override void ComputeInternal(Span<byte> input, ref byte[] result)
+        public override void ComputeBlock(Span<byte> input, ref byte[] result)
         {
             for (var i = 0; i < input.Length; i++)
                 result[i % 16] += input[i];

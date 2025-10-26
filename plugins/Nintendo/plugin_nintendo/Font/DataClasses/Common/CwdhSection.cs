@@ -1,10 +1,10 @@
-﻿namespace plugin_nintendo.Font.DataClasses
+﻿namespace plugin_nintendo.Font.DataClasses.Common
 {
-    struct CfntCwdhSection
+    struct CwdhSection
     {
         public short startIndex;
         public short endIndex;
         public int nextCwdhOffset;
-        public CfntCwdhEntry[] entries;
+        public CwdhEntry[] entries;
     }
 }

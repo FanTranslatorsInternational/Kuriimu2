@@ -1,6 +1,6 @@
-﻿namespace plugin_nintendo.Font.DataClasses
+﻿namespace plugin_nintendo.Font.DataClasses.Common
 {
-    struct CfntCmapSection
+    struct CmapSection
     {
         public ushort codeBegin;
         public ushort codeEnd;

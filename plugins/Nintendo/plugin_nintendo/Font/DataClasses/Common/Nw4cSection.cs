@@ -1,4 +1,4 @@
-﻿namespace plugin_nintendo.Font.DataClasses
+﻿namespace plugin_nintendo.Font.DataClasses.Common
 {
     struct Nw4cSection
     {

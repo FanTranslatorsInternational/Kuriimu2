@@ -2,19 +2,22 @@
 
 namespace plugin_nintendo.Font.DataClasses
 {
-    struct CfntInfSection
+    struct NftrInfSection
     {
         public byte fontType;
         public byte lineFeed;
         public ushort fallbackCharIndex;
         public CwdhEntry defaultWidths;
         public byte encoding;
-        public int tglpOffset;
+        public int cglpOffset;
         public int cwdhOffset;
         public int cmapOffset;
+
         public byte height;
         public byte width;
-        public byte ascent;
-        public byte reserved;
+        public byte bearingX;
+        public byte bearingY;
+
+        public bool hasExtendedData;
     }
 }

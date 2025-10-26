@@ -1,6 +1,5 @@
 ﻿using Kaligraphy.Contract.DataClasses;
 using Kaligraphy.Generation;
-using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
@@ -15,20 +14,20 @@ using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_nintendo.Font
 {
-    class CfntReader
+    class NftrReader
     {
-        private readonly CfntEncodingProvider _encodingProvider = new();
+        private readonly NftrEncodingProvider _encodingProvider = new();
 
-        public CfntData Read(Stream input)
+        public NftrData Read(Stream input)
         {
             using var reader = new BinaryReaderX(input, true);
             reader.ByteOrder = PeekByteOrder(reader);
 
-            CfntHeader header = ReadHeader(reader);
+            NftrHeader header = ReadHeader(reader);
             Nw4cSection[] sections = ReadSections(reader, header.blockCount);
 
             // Get widths
-            CfntInfSection infoSection = GetInfoSection(sections);
+            NftrInfSection infoSection = GetInfoSection(sections);
             CwdhSection[] widthSections = GetWidthSections(sections, infoSection.cwdhOffset);
 
             CwdhEntry[] widthEntries = GetWidths(infoSection, widthSections);
@@ -38,12 +37,12 @@ namespace plugin_nintendo.Font
             Dictionary<ushort, int> codes = GetCodes(codeSections);
 
             // Create glyphs
-            CfntTglpSection imageSection = GetImageSection(sections);
+            NftrCglpSection imageSection = GetImageSection(sections);
 
-            return new CfntData
+            return new NftrData
             {
                 Characters = GetCharacterInfos(imageSection, codes, widthEntries),
-                MetaData = new CfntMetaData
+                MetaData = new NftrMetaData
                 {
                     Version = header.version,
                     Type = infoSection.fontType,
@@ -51,19 +50,21 @@ namespace plugin_nintendo.Font
                     DefaultWidths = infoSection.defaultWidths,
                     LineFeed = infoSection.lineFeed,
                     Baseline = imageSection.baseline,
-                    Ascent = infoSection.ascent,
                     Width = infoSection.width,
-                    Height = infoSection.height
+                    Height = infoSection.height,
+                    BearingX = infoSection.bearingX,
+                    BearingY = infoSection.bearingY,
+                    HasExtendedData = infoSection.hasExtendedData
                 },
-                ImageData = new CfntImageData
+                ImageData = new NftrImageData
                 {
-                    SheetSize = new Size(imageSection.sheetWidth, imageSection.sheetHeight),
-                    ImageFormat = imageSection.sheetFormat
+                    BitDepth = imageSection.cellBitDepth,
+                    Rotation = imageSection.cellRotation
                 }
             };
         }
 
-        private CwdhEntry[] GetWidths(CfntInfSection infoSection, CwdhSection[] widthSections)
+        private CwdhEntry[] GetWidths(NftrInfSection infoSection, CwdhSection[] widthSections)
         {
             int maxIndex = widthSections.Max(s => s.endIndex);
             var result = new CwdhEntry[maxIndex + 1];
@@ -123,32 +124,20 @@ namespace plugin_nintendo.Font
             return result;
         }
 
-        private List<CharacterInfo> GetCharacterInfos(CfntTglpSection imageSection, Dictionary<ushort, int> codes, CwdhEntry[] widthEntries)
+        private List<CharacterInfo> GetCharacterInfos(NftrCglpSection imageSection, Dictionary<ushort, int> codes, CwdhEntry[] widthEntries)
         {
             var result = new List<CharacterInfo>(codes.Count);
-
-            IImageFile[] images = GetImages(imageSection);
-            int sheetGlyphCount = imageSection.rowCount * imageSection.columnCount;
 
             var index = 0;
             foreach (ushort code in codes.Keys.Order())
             {
-                int imageIndex = index / sheetGlyphCount;
-                if (imageIndex >= imageSection.sheetCount)
-                    break;
+                IImageFile glyphImage = GetGlyphImage(imageSection, imageSection.cellData[index++]);
 
                 CwdhEntry widthEntry = widthEntries[codes[code]];
 
-                int rowIndex = index % sheetGlyphCount / imageSection.columnCount;
-                int columnIndex = index % sheetGlyphCount % imageSection.columnCount;
+                var srcRect = new Rectangle(0, 0, widthEntry.glyphWidth, imageSection.cellHeight);
 
-                var srcRect = new Rectangle(
-                    columnIndex * (imageSection.cellWidth + 1) + 1,
-                    rowIndex * (imageSection.cellHeight + 1) + 1,
-                    widthEntry.glyphWidth,
-                    imageSection.cellHeight);
-
-                Image<Rgba32> image = images[imageIndex].GetImage();
+                Image<Rgba32> image = glyphImage.GetImage();
                 GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, srcRect);
                 Image<Rgba32>? glyph = glyphDescription.Size is { Width: > 0, Height: > 0 }
                     ? image.Clone(context => context.Crop(new Rectangle(glyphDescription.Position, glyphDescription.Size)))
@@ -161,41 +150,34 @@ namespace plugin_nintendo.Font
                     BoundingBox = new Size(widthEntry.charWidth, imageSection.cellHeight),
                     Glyph = glyph
                 });
-                index++;
             }
 
             return result;
         }
 
-        private IImageFile[] GetImages(CfntTglpSection imageSection)
+        private IImageFile GetGlyphImage(NftrCglpSection imageSection, byte[] cellData)
         {
-            var result = new IImageFile[imageSection.sheetCount];
-
             EncodingDefinition encodingDefinition = _encodingProvider.GetEncodingDefinitions();
-            for (var i = 0; i < imageSection.sheetData.Length; i++)
+
+            var imageInfo = new ImageFileInfo
             {
-                var imageInfo = new ImageFileInfo
-                {
-                    BitDepth = encodingDefinition.GetColorEncoding(imageSection.sheetFormat)!.BitDepth,
-                    ImageData = imageSection.sheetData[i],
-                    ImageFormat = imageSection.sheetFormat,
-                    ImageSize = new Size(imageSection.sheetWidth, imageSection.sheetHeight),
-                    RemapPixels = context => new CtrSwizzle(context)
-                };
-                result[i] = new ImageFile(imageInfo, encodingDefinition);
-            }
+                BitDepth = imageSection.cellBitDepth,
+                ImageData = cellData,
+                ImageFormat = imageSection.cellBitDepth,
+                ImageSize = new Size(imageSection.cellWidth, imageSection.cellHeight)
+            };
 
-            return result;
+            return new ImageFile(imageInfo, encodingDefinition);
         }
 
-        private CfntTglpSection GetImageSection(Nw4cSection[] sections)
+        private NftrCglpSection GetImageSection(Nw4cSection[] sections)
         {
-            return (CfntTglpSection)sections.FirstOrDefault(x => x.magic is "TGLP").sectionData;
+            return (NftrCglpSection)sections.FirstOrDefault(x => x.magic is "PLGC").sectionData;
         }
 
-        private CfntInfSection GetInfoSection(Nw4cSection[] sections)
+        private NftrInfSection GetInfoSection(Nw4cSection[] sections)
         {
-            return (CfntInfSection)sections.FirstOrDefault(x => x.magic is "FINF").sectionData;
+            return (NftrInfSection)sections.FirstOrDefault(x => x.magic is "FNIF").sectionData;
         }
 
         private CmapSection[] GetCodeSections(Nw4cSection[] sections, long mapSectionOffset)
@@ -206,7 +188,7 @@ namespace plugin_nintendo.Font
             {
                 Nw4cSection section = sections.First(x => x.sectionOffset == mapSectionOffset);
 
-                if (section.magic is not "CMAP")
+                if (section.magic is not "PAMC")
                     break;
 
                 var mapSection = (CmapSection)section.sectionData;
@@ -226,7 +208,7 @@ namespace plugin_nintendo.Font
             {
                 Nw4cSection section = sections.First(x => x.sectionOffset == widthSectionOffset);
 
-                if (section.magic is not "CWDH")
+                if (section.magic is not "HDWC")
                     break;
 
                 var widthSection = (CwdhSection)section.sectionData;
@@ -253,16 +235,16 @@ namespace plugin_nintendo.Font
             return (ByteOrder)byteOrderValue;
         }
 
-        private CfntHeader ReadHeader(BinaryReaderX reader)
+        private NftrHeader ReadHeader(BinaryReaderX reader)
         {
-            return new CfntHeader
+            return new NftrHeader
             {
                 magic = reader.ReadString(4),
                 endianess = reader.ReadUInt16(),
-                headerSize = reader.ReadUInt16(),
-                version = reader.ReadInt32(),
+                version = reader.ReadUInt16(),
                 fileSize = reader.ReadInt32(),
-                blockCount = reader.ReadInt32()
+                infoOffset = reader.ReadInt16(),
+                blockCount = reader.ReadInt16()
             };
         }
 
@@ -285,19 +267,19 @@ namespace plugin_nintendo.Font
             object sectionData;
             switch (magic)
             {
-                case "FINF":
-                    sectionData = ReadInfSection(reader);
+                case "FNIF":
+                    sectionData = ReadInfSection(reader, sectionSize);
                     break;
 
-                case "TGLP":
-                    sectionData = ReadTglpSection(reader);
+                case "PLGC":
+                    sectionData = ReadCglpSection(reader, sectionSize);
                     break;
 
-                case "CWDH":
+                case "HDWC":
                     sectionData = ReadCwdhSection(reader);
                     break;
 
-                case "CMAP":
+                case "PAMC":
                     sectionData = ReadCmapSection(reader);
                     break;
 
@@ -314,48 +296,52 @@ namespace plugin_nintendo.Font
             };
         }
 
-        private CfntInfSection ReadInfSection(BinaryReaderX reader)
+        private NftrInfSection ReadInfSection(BinaryReaderX reader, int sectionSize)
         {
-            return new CfntInfSection
+            var infSection = new NftrInfSection
             {
                 fontType = reader.ReadByte(),
                 lineFeed = reader.ReadByte(),
                 fallbackCharIndex = reader.ReadUInt16(),
                 defaultWidths = ReadCwdhEntry(reader),
                 encoding = reader.ReadByte(),
-                tglpOffset = reader.ReadInt32(),
+                cglpOffset = reader.ReadInt32(),
                 cwdhOffset = reader.ReadInt32(),
-                cmapOffset = reader.ReadInt32(),
-                height = reader.ReadByte(),
-                width = reader.ReadByte(),
-                ascent = reader.ReadByte(),
-                reserved = reader.ReadByte()
+                cmapOffset = reader.ReadInt32()
             };
+
+            if (sectionSize == 0x20)
+            {
+                infSection.height = reader.ReadByte();
+                infSection.width = reader.ReadByte();
+                infSection.bearingX = reader.ReadByte();
+                infSection.bearingY = reader.ReadByte();
+                infSection.hasExtendedData = true;
+            }
+
+            return infSection;
         }
 
-        private CfntTglpSection ReadTglpSection(BinaryReaderX reader)
+        private NftrCglpSection ReadCglpSection(BinaryReaderX reader, int sectionSize)
         {
-            var section = new CfntTglpSection
+            var section = new NftrCglpSection
             {
                 cellWidth = reader.ReadByte(),
                 cellHeight = reader.ReadByte(),
+                cellSize = reader.ReadInt16(),
                 baseline = reader.ReadByte(),
                 maxCharWidth = reader.ReadByte(),
-                sheetSize = reader.ReadInt32(),
-                sheetCount = reader.ReadInt16(),
-                sheetFormat = reader.ReadInt16(),
-                columnCount = reader.ReadInt16(),
-                rowCount = reader.ReadInt16(),
-                sheetWidth = reader.ReadInt16(),
-                sheetHeight = reader.ReadInt16(),
-                sheetDataOffset = reader.ReadInt32()
+                cellBitDepth = reader.ReadByte(),
+                cellRotation = reader.ReadByte()
             };
 
-            reader.BaseStream.Position = section.sheetDataOffset;
+            int tileCount = (sectionSize - 0x10) / section.cellSize;
 
-            section.sheetData = new byte[section.sheetCount][];
-            for (var i = 0; i < section.sheetCount; i++)
-                section.sheetData[i] = reader.ReadBytes(section.sheetSize);
+            section.cellData = new byte[tileCount][];
+            for (var i = 0; i < tileCount; i++)
+                section.cellData[i] = reader.ReadBytes(section.cellSize);
+
+            reader.SeekAlignment(4);
 
             return section;
         }

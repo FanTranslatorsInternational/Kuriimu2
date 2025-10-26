@@ -9,21 +9,21 @@ using Konnect.Contract.Plugin.File;
 
 namespace plugin_nintendo.Font
 {
-    public class CfntPlugin : IIdentifyFiles
+    public class NftrPlugin : IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("682ca832-3e29-476d-bc16-f8a9f6105452");
+        public Guid PluginId => Guid.Parse("2bb83b8e-9c79-4649-b15a-e16e9ef2a5b9");
 
         public PluginType PluginType => PluginType.Font;
-        public string[] FileExtensions => ["*.bcfnt"];
+        public string[] FileExtensions => ["*.nftr"];
 
         public PluginMetadata Metadata { get; } = new()
         {
             Author = ["onepiecefreak"],
-            Name = "BCFNT",
+            Name = "NFTR",
             Publisher = "Nintendo",
             Developer = "Nintendo",
-            Platform = ["3DS"],
-            LongDescription = "The Nintendo SDK standard font on 3DS."
+            Platform = ["NDS"],
+            LongDescription = "The Nintendo SDK standard font on NDS."
         };
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -32,12 +32,12 @@ namespace plugin_nintendo.Font
             using var br = new BinaryReaderX(fileStream);
 
             string magic = br.ReadString(4);
-            return magic is "CFNT";
+            return magic is "RTFN";
         }
 
         public IFilePluginState CreatePluginState(IPluginFileManager pluginFileManager)
         {
-            return new CfntState();
+            return new NftrState();
         }
     }
 }

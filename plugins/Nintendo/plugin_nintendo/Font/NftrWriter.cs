@@ -1,5 +1,4 @@
-﻿using Kanvas.Swizzle;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Plugin.File.Image;
 using plugin_nintendo.Font.DataClasses;
@@ -10,29 +9,30 @@ using SixLabors.ImageSharp.Processing;
 
 namespace plugin_nintendo.Font
 {
-    class CfntWriter
+    class NftrWriter
     {
-        private const int HeaderSize_ = 0x14;
+        private const int HeaderSize_ = 0x10;
         private const int InfoOffset_ = HeaderSize_;
-        private const int InfoSize_ = 0x18;
-        private const int ImageOffset_ = InfoOffset_ + InfoSize_ + 8;
-        private const int ImageDataOffset_ = 0x80;
+        private const int InfoSize_ = 0x1C;
+        private const int ExtendedInfoSize_ = 0x20;
+        private const int ImageOffset_ = InfoOffset_ + InfoSize_;
+        private const int ExtendedImageOffset_ = InfoOffset_ + ExtendedInfoSize_;
 
-        private readonly CfntEncodingProvider _encodingProvider = new();
+        private readonly NftrEncodingProvider _encodingProvider = new();
         private readonly CodeRangeOptimalParser _rangeOptimalParser = new();
 
-        public void Write(Stream output, CfntData fontData)
+        public void Write(Stream output, NftrData fontData)
         {
             CharacterInfo[] characters = fontData.Characters.OrderBy(x => x.CodePoint).ToArray();
 
             // Create header
-            CfntHeader header = CreateHeader(fontData.MetaData);
+            NftrHeader header = CreateHeader(fontData.MetaData);
 
             // Create info section
-            CfntInfSection infoSection = CreateInfoSection(fontData.MetaData);
+            NftrInfSection infoSection = CreateInfoSection(fontData.MetaData);
 
             // Create image section
-            CfntTglpSection imageSection = CreateImageSection(characters, fontData.MetaData, fontData.ImageData);
+            NftrCglpSection imageSection = CreateImageSection(characters, fontData.MetaData, fontData.ImageData);
 
             // Create mapping sections
             CmapSection[] mappingSections = CreateMappingSections(characters);
@@ -43,9 +43,7 @@ namespace plugin_nintendo.Font
             using var writer = new BinaryWriterX(output, true);
 
             // Write image section
-            writer.BaseStream.Position = ImageOffset_;
-
-            imageSection.sheetDataOffset = ImageDataOffset_;
+            writer.BaseStream.Position = infoSection.hasExtendedData ? ExtendedImageOffset_ : ImageOffset_;
 
             WriteImageSection(imageSection, writer);
 
@@ -63,7 +61,7 @@ namespace plugin_nintendo.Font
             writer.BaseStream.Position = InfoOffset_;
 
             infoSection.fallbackCharIndex = 0;
-            infoSection.tglpOffset = ImageOffset_ + 8;
+            infoSection.cglpOffset = ImageOffset_ + 8;
             infoSection.cwdhOffset = widthOffset + 8;
             infoSection.cmapOffset = mappingOffset + 8;
 
@@ -73,25 +71,25 @@ namespace plugin_nintendo.Font
             writer.BaseStream.Position = 0;
 
             header.fileSize = (int)output.Length;
-            header.blockCount = mappingSections.Length + 3;
+            header.blockCount = (short)(mappingSections.Length + 3);
 
             WriteHeader(header, writer);
         }
 
-        private CfntHeader CreateHeader(CfntMetaData metaData)
+        private NftrHeader CreateHeader(NftrMetaData metaData)
         {
-            return new CfntHeader
+            return new NftrHeader
             {
-                magic = "CFNT",
+                magic = "RTFN",
                 endianess = 0xfeff,
-                headerSize = HeaderSize_,
-                version = metaData.Version
+                version = metaData.Version,
+                infoOffset = InfoOffset_
             };
         }
 
-        private CfntInfSection CreateInfoSection(CfntMetaData metaData)
+        private NftrInfSection CreateInfoSection(NftrMetaData metaData)
         {
-            return new CfntInfSection
+            return new NftrInfSection
             {
                 fontType = metaData.Type,
                 lineFeed = metaData.LineFeed,
@@ -99,38 +97,29 @@ namespace plugin_nintendo.Font
                 encoding = metaData.Encoding,
                 width = metaData.Width,
                 height = metaData.Height,
-                ascent = metaData.Ascent,
-                reserved = 0
+                bearingX = metaData.BearingX,
+                bearingY = metaData.BearingY,
+                hasExtendedData = metaData.HasExtendedData
             };
         }
 
-        private CfntTglpSection CreateImageSection(CharacterInfo[] characters, CfntMetaData metaData, CfntImageData imageData)
+        private NftrCglpSection CreateImageSection(CharacterInfo[] characters, NftrMetaData metaData, NftrImageData imageData)
         {
             int maxCharSize = characters.Max(x => x.BoundingBox.Width);
 
             Size cellSize = GetCellSize(characters);
-            ImageFile[] sheets = CreateSheetImages(characters, imageData.ImageFormat, cellSize, imageData.SheetSize, out int columnCount, out int rowCount);
+            byte[][] glyphData = CreateGlyphData(characters, imageData.BitDepth, cellSize);
 
-            int imageFormat = sheets[0].ImageInfo.ImageFormat;
-
-            var sheetData = new byte[sheets.Length][];
-            for (var i = 0; i < sheets.Length; i++)
-                sheetData[i] = sheets[i].ImageInfo.ImageData;
-
-            return new CfntTglpSection
+            return new NftrCglpSection
             {
                 cellWidth = (byte)cellSize.Width,
                 cellHeight = (byte)cellSize.Height,
+                cellSize = (short)glyphData[0].Length,
                 baseline = metaData.Baseline,
                 maxCharWidth = (byte)maxCharSize,
-                sheetSize = sheets[0].ImageInfo.ImageData.Length,
-                sheetCount = (short)sheets.Length,
-                sheetFormat = (short)imageFormat,
-                columnCount = (short)columnCount,
-                rowCount = (short)rowCount,
-                sheetWidth = (short)sheets[0].ImageInfo.ImageSize.Width,
-                sheetHeight = (short)sheets[0].ImageInfo.ImageSize.Height,
-                sheetData = sheetData
+                cellBitDepth = imageData.BitDepth,
+                cellRotation = imageData.Rotation,
+                cellData = glyphData
             };
         }
 
@@ -251,62 +240,50 @@ namespace plugin_nintendo.Font
             return new Size(cellWidth, cellHeight);
         }
 
-        private ImageFile[] CreateSheetImages(CharacterInfo[] characters, int imageFormat, Size cellSize, Size sheetSize, out int columnCount, out int rowCount)
+        private byte[][] CreateGlyphData(CharacterInfo[] characters, int bitDepth, Size cellSize)
         {
-            columnCount = sheetSize.Width / (cellSize.Width + 1);
-            rowCount = sheetSize.Height / (cellSize.Height + 1);
-            var sheetCount = (int)Math.Ceiling(characters.Length / (float)(rowCount * columnCount));
+            var result = new byte[characters.Length][];
 
-            var result = new ImageFile[sheetCount];
-
-            var characterIndex = 0;
+            int cellByteSize = ((cellSize.Width * cellSize.Height * bitDepth + 7) & ~7) / 8;
             EncodingDefinition encodingDefinition = _encodingProvider.GetEncodingDefinitions();
-            for (var i = 0; i < sheetCount; i++)
+
+            for (var i = 0; i < characters.Length; i++)
             {
-                var sheetImage = new Image<Rgba32>(sheetSize.Width, sheetSize.Height);
-                for (var y = 0; y < rowCount; y++)
+                CharacterInfo character = characters[i];
+
+                if (character.Glyph is null)
                 {
-                    for (var x = 0; x < columnCount; x++)
-                    {
-                        if (characterIndex >= characters.Length)
-                            break;
-
-                        CharacterInfo character = characters[characterIndex++];
-
-                        if (character.Glyph is null)
-                            continue;
-
-                        var glyphPosition = new Point(x * (cellSize.Width + 1) + 1, character.GlyphPosition.Y + y * (cellSize.Height + 1) + 1);
-                        sheetImage.Mutate(config => config.DrawImage(character.Glyph, glyphPosition, 1f));
-                    }
-
-                    if (characterIndex >= characters.Length)
-                        break;
+                    result[i] = new byte[cellByteSize];
+                    continue;
                 }
 
-                var sheetImageFile = ImageFile.Create(sheetSize, encodingDefinition);
-                sheetImageFile.ImageInfo.ImageFormat = imageFormat;
-                sheetImageFile.ImageInfo.RemapPixels = context => new CtrSwizzle(context);
+                var glyphImage = new Image<Rgba32>(cellSize.Width, cellSize.Height);
 
-                sheetImageFile.SetImage(sheetImage);
+                var glyphPosition = new Point(0, character.GlyphPosition.Y);
+                glyphImage.Mutate(config => config.DrawImage(character.Glyph, glyphPosition, 1f));
 
-                result[i] = sheetImageFile;
+                var glyphImageFile = ImageFile.Create(cellSize, encodingDefinition);
+                glyphImageFile.ImageInfo.ImageFormat = bitDepth;
+
+                glyphImageFile.SetImage(glyphImage);
+
+                result[i] = glyphImageFile.ImageInfo.ImageData;
             }
 
             return result;
         }
 
-        private void WriteHeader(CfntHeader header, BinaryWriterX writer)
+        private void WriteHeader(NftrHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
             writer.Write(header.endianess);
-            writer.Write(header.headerSize);
             writer.Write(header.version);
             writer.Write(header.fileSize);
+            writer.Write(header.infoOffset);
             writer.Write(header.blockCount);
         }
 
-        private void WriteInfoSection(CfntInfSection infoSection, BinaryWriterX writer)
+        private void WriteInfoSection(NftrInfSection infoSection, BinaryWriterX writer)
         {
             long baseOffset = writer.BaseStream.Position;
 
@@ -319,25 +296,29 @@ namespace plugin_nintendo.Font
             writer.Write(infoSection.defaultWidths.glyphWidth);
             writer.Write(infoSection.defaultWidths.charWidth);
             writer.Write(infoSection.encoding);
-            writer.Write(infoSection.tglpOffset);
+            writer.Write(infoSection.cglpOffset);
             writer.Write(infoSection.cwdhOffset);
             writer.Write(infoSection.cmapOffset);
-            writer.Write(infoSection.height);
-            writer.Write(infoSection.width);
-            writer.Write(infoSection.ascent);
-            writer.Write(infoSection.reserved);
+
+            if (infoSection.hasExtendedData)
+            {
+                writer.Write(infoSection.height);
+                writer.Write(infoSection.width);
+                writer.Write(infoSection.bearingX);
+                writer.Write(infoSection.bearingY);
+            }
 
             long endOffset = writer.BaseStream.Position;
 
             writer.BaseStream.Position = baseOffset;
 
-            writer.WriteString("FINF", writeNullTerminator: false);
+            writer.WriteString("FNIF", writeNullTerminator: false);
             writer.Write((int)(endOffset - baseOffset));
 
             writer.BaseStream.Position = endOffset;
         }
 
-        private void WriteImageSection(CfntTglpSection imageSection, BinaryWriterX writer)
+        private void WriteImageSection(NftrCglpSection imageSection, BinaryWriterX writer)
         {
             long baseOffset = writer.BaseStream.Position;
 
@@ -345,27 +326,22 @@ namespace plugin_nintendo.Font
 
             writer.Write(imageSection.cellWidth);
             writer.Write(imageSection.cellHeight);
+            writer.Write(imageSection.cellSize);
             writer.Write(imageSection.baseline);
             writer.Write(imageSection.maxCharWidth);
-            writer.Write(imageSection.sheetSize);
-            writer.Write(imageSection.sheetCount);
-            writer.Write(imageSection.sheetFormat);
-            writer.Write(imageSection.columnCount);
-            writer.Write(imageSection.rowCount);
-            writer.Write(imageSection.sheetWidth);
-            writer.Write(imageSection.sheetHeight);
-            writer.Write(imageSection.sheetDataOffset);
+            writer.Write(imageSection.cellBitDepth);
+            writer.Write(imageSection.cellRotation);
 
-            writer.BaseStream.Position = imageSection.sheetDataOffset;
+            foreach (byte[] cellData in imageSection.cellData)
+                writer.Write(cellData);
 
-            foreach (byte[] sheetData in imageSection.sheetData)
-                writer.Write(sheetData);
+            writer.WriteAlignment(4);
 
             long endOffset = writer.BaseStream.Position;
 
             writer.BaseStream.Position = baseOffset;
 
-            writer.WriteString("TGLP", writeNullTerminator: false);
+            writer.WriteString("PLGC", writeNullTerminator: false);
             writer.Write((int)(endOffset - baseOffset));
 
             writer.BaseStream.Position = endOffset;
@@ -394,7 +370,7 @@ namespace plugin_nintendo.Font
 
             writer.BaseStream.Position = baseOffset;
 
-            writer.WriteString("CWDH", writeNullTerminator: false);
+            writer.WriteString("HDWC", writeNullTerminator: false);
             writer.Write((int)(endOffset - baseOffset));
 
             writer.BaseStream.Position = endOffset;
@@ -449,7 +425,7 @@ namespace plugin_nintendo.Font
             // Write NW4C header
             writer.BaseStream.Position = baseOffset;
 
-            writer.WriteString("CMAP", writeNullTerminator: false);
+            writer.WriteString("PAMC", writeNullTerminator: false);
             writer.Write((int)(endOffset - baseOffset));
 
             writer.BaseStream.Position = endOffset;
