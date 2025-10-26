@@ -331,6 +331,7 @@
 
   // Generate
   "Font.Generate.Caption": "Generate Font",
+  "Font.Generate.Edit.Caption": "Edit Font",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -394,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Show all plugins",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Font Generation",
-  "Dialog.GenerateFont.Family": "Font Family",
-  "Dialog.GenerateFont.Style": "Font Style",
-  "Dialog.GenerateFont.Size": "Font Size",
-  "Dialog.GenerateFont.Baseline": "Baseline",
-  "Dialog.GenerateFont.GlyphHeight": "Glyph Height",
-  "Dialog.GenerateFont.SpaceWidth": "Space Width",
-  "Dialog.GenerateFont.Characters": "Characters",
-  "Dialog.GenerateFont.Style.Bold": "Bold",
-  "Dialog.GenerateFont.Style.Italic": "Italic",
-  "Dialog.GenerateFont.Load": "Load",
-  "Dialog.GenerateFont.Load.Caption": "Load font profile...",
-  "Dialog.GenerateFont.Save": "Save",
-  "Dialog.GenerateFont.Save.Caption": "Save font profile...",
-  "Dialog.GenerateFont.Profile": "Font Profile",
-  "Dialog.GenerateFont.Generate": "Generate",
-  "Dialog.GenerateFont.Padding.Left": "Left Padding",
-  "Dialog.GenerateFont.Padding.Right": "Right Padding"
+  "Dialog.Font.Generate.Caption": "Generate Font",
+  "Dialog.Font.Edit.Caption": "Edit Font",
+  "Dialog.Font.Generate.Family": "Font Family",
+  "Dialog.Font.Generate.Style": "Font Style",
+  "Dialog.Font.Generate.Size": "Font Size",
+  "Dialog.Font.Generate.Baseline": "Baseline",
+  "Dialog.Font.Generate.GlyphHeight": "Glyph Height",
+  "Dialog.Font.Generate.SpaceWidth": "Space Width",
+  "Dialog.Font.Generate.Characters": "Characters",
+  "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile",
+  "Dialog.Font.Generate.Style.Bold": "Bold",
+  "Dialog.Font.Generate.Style.Italic": "Italic",
+  "Dialog.Font.Generate.Load": "Load",
+  "Dialog.Font.Generate.Load.Caption": "Load font profile...",
+  "Dialog.Font.Generate.Save": "Save",
+  "Dialog.Font.Generate.Save.Caption": "Save font profile...",
+  "Dialog.Font.Generate.Profile": "Font Profile",
+  "Dialog.Font.Generate.Generate": "Generate",
+  "Dialog.Font.Edit.Edit": "Edit",
+  "Dialog.Font.Generate.Padding.Left": "Left Padding",
+  "Dialog.Font.Generate.Padding.Right": "Right Padding"
 }

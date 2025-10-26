@@ -44,20 +44,22 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private const int DefaultPaddingRight_ = 0;
 
         private readonly IFontFilePluginState _fontState;
+        private readonly FontGenerationType _type;
         private readonly FontProfileManager _profileManager = new();
 
         private bool _isProfile;
         private FontProfile _profile;
 
-        public FontGenerationDialog(IFontFilePluginState fontState)
+        public FontGenerationDialog(IFontFilePluginState fontState, FontGenerationType type, string? selectedCharacters)
         {
             _fontState = fontState;
+            _type = type;
 
-            InitializeComponent();
+            InitializeComponent(type, selectedCharacters);
 
             _loadBtn.Clicked += _loadBtn_Clicked;
             _saveBtn.Clicked += _saveBtn_Clicked;
-            _generateBtn.Clicked += _generateBtn_Clicked;
+            _executeBtn.Clicked += _executeBtn_Clicked;
 
             _paddingLeftBox.TextChanged += _paddingLeftBox_TextChanged;
             _paddingRightBox.TextChanged += _paddingRightBox_TextChanged;
@@ -69,6 +71,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _glyphHeightBox.TextChanged += _glyphHeightBox_TextChanged;
             _spaceWidthBox.TextChanged += _spaceWidthBox_TextChanged;
             _characterEditor.CursorPositionChanged += _characterEditor_CursorPositionChanged;
+            _replaceCharactersCheck.CheckChanged += _replaceCharactersCheck_CheckChanged;
 
             SetFontFamilies();
 
@@ -82,6 +85,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Characters = LocalizationResources.FontGenerateDefaultCharacters,
                 Paddings = new Dictionary<char, (int, int)>()
             };
+        }
+
+        private void _replaceCharactersCheck_CheckChanged(object? sender, EventArgs e)
+        {
+            SettingsResources.ReplaceFontCharacters = _replaceCharactersCheck.Checked;
         }
 
         protected override void ShowInternal()
@@ -139,10 +147,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             var ofd = new WindowsOpenFileDialog
             {
-                Title = LocalizationResources.DialogGenerateFontLoadCaption,
+                Title = LocalizationResources.DialogFontGenerateLoadCaption,
                 Filters = new List<FileFilter>
                 {
-                    new(LocalizationResources.DialogGenerateFontProfile, "bfgp")
+                    new(LocalizationResources.DialogFontGenerateProfile, "bfgp")
                 }
             };
 
@@ -159,10 +167,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             var sfd = new WindowsSaveFileDialog
             {
-                Title = LocalizationResources.DialogGenerateFontSaveCaption,
+                Title = LocalizationResources.DialogFontGenerateSaveCaption,
                 Filters = new List<FileFilter>
                 {
-                    new(LocalizationResources.DialogGenerateFontProfile, "bfgp")
+                    new(LocalizationResources.DialogFontGenerateProfile, "bfgp")
                 }
             };
 
@@ -173,7 +181,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             ToggleForm(true);
         }
 
-        private void _generateBtn_Clicked(object? sender, EventArgs e)
+        private void _executeBtn_Clicked(object? sender, EventArgs e)
+        {
+            if (_type == FontGenerationType.Create)
+                GenerateFont();
+            else if (_type == FontGenerationType.Edit)
+                EditFont();
+        }
+
+        private void GenerateFont()
         {
             _fontState.AttemptRemoveAll();
 
@@ -205,6 +221,51 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
 
                 _fontState.AttemptAddCharacter(characterInfo);
+            }
+
+            Close(DialogResult.Ok);
+        }
+
+        private void EditFont()
+        {
+            Font font = GetFont();
+            foreach (char character in _characterEditor.GetText().Distinct().Order())
+            {
+                if (char.IsWhiteSpace(character) && _profile.SpaceWidth <= 0)
+                    continue;
+
+                CharacterInfo? characterInfo = _fontState.Characters.FirstOrDefault(c => c.CodePoint == character);
+                bool isNew = characterInfo is null;
+
+                if (characterInfo is null)
+                {
+                    if (_fontState.CanAddCharacter)
+                        continue;
+
+                    characterInfo = _fontState.AttemptCreateCharacterInfo(character);
+                    if (characterInfo is null)
+                        continue;
+                }
+
+                characterInfo.ContentChanged = true;
+
+                if (char.IsWhiteSpace(character))
+                {
+                    characterInfo.BoundingBox = new SixLabors.ImageSharp.Size(_profile.SpaceWidth, _profile.GlyphHeight);
+                    characterInfo.GlyphPosition = Point.Empty;
+                    characterInfo.Glyph = null;
+                }
+                else
+                {
+                    PaddedGlyph paddedGlyph = GetPaddedGlyph(character, font);
+
+                    characterInfo.BoundingBox = paddedGlyph.BoundingBox;
+                    characterInfo.GlyphPosition = paddedGlyph.GlyphPosition;
+                    characterInfo.Glyph = paddedGlyph.Glyph;
+                }
+
+                if (isNew)
+                    _fontState.AttemptAddCharacter(characterInfo);
             }
 
             Close(DialogResult.Ok);
@@ -494,7 +555,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _loadBtn.Enabled = toggle;
             _saveBtn.Enabled = toggle;
-            _generateBtn.Enabled = toggle;
+            _executeBtn.Enabled = toggle;
 
             _paddingLeftBox.Enabled = toggle;
             _paddingRightBox.Enabled = toggle;
@@ -526,7 +587,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             SetGlyphHeight(_profile.GlyphHeight);
             SetSpaceWidth(_profile.SpaceWidth);
 
-            if (_profile.Characters.Length >= 1)
+            if (_replaceCharactersCheck.Checked && _profile.Characters.Length >= 1)
             {
                 _characterEditor.SetText(_profile.Characters);
                 SetCurrentCharacter(_profile.Characters[0]);

@@ -9,6 +9,7 @@ using ImGui.Forms.Models;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 using Size = ImGui.Forms.Models.Size;
+using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -25,33 +26,41 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private TextBox _glyphHeightBox;
         private TextBox _spaceWidthBox;
         private TextEditor _characterEditor;
+        private CheckBox _replaceCharactersCheck;
 
         private Button _loadBtn;
         private Button _saveBtn;
-        private Button _generateBtn;
+        private Button _executeBtn;
 
-        private void InitializeComponent()
+        private void InitializeComponent(FontGenerationType type, string? selectedCharacters)
         {
             _glyphBox = new ZoomablePaddedGlyph { ShowBorder = true };
             _paddingLeftBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
             _paddingRightBox = new TextBox { AllowedCharacters = CharacterRestriction.Decimal };
             _fontFamilyBox = new ComboBox<FontFamily> { MaxShowItems = 5 };
-            _boldCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleBold);
-            _italicCheckBox = new CheckBox(LocalizationResources.DialogGenerateFontStyleItalic);
+            _boldCheckBox = new CheckBox(LocalizationResources.DialogFontGenerateStyleBold);
+            _italicCheckBox = new CheckBox(LocalizationResources.DialogFontGenerateStyleItalic);
             _fontSizeBox = new TextBox { Text = $"{DefaultFontSize_}", AllowedCharacters = CharacterRestriction.Decimal };
             _baselineBox = new TextBox { Text = $"{DefaultBaseline_}", AllowedCharacters = CharacterRestriction.Decimal };
             _glyphHeightBox = new TextBox { Text = $"{DefaultGlyphHeight_}", AllowedCharacters = CharacterRestriction.Decimal };
             _spaceWidthBox = new TextBox { Text = $"{DefaultSpaceWidth_}", AllowedCharacters = CharacterRestriction.Decimal };
+            _replaceCharactersCheck = new CheckBox(LocalizationResources.DialogFontGenerateCharactersReplace) { Checked = SettingsResources.ReplaceFontCharacters };
 
             _characterEditor = new TextEditor { IsShowingLineNumbers = false };
-            _characterEditor.SetText(LocalizationResources.FontGenerateDefaultCharacters);
+            _characterEditor.SetText(string.IsNullOrEmpty(selectedCharacters) ? LocalizationResources.FontGenerateDefaultCharacters : selectedCharacters);
 
-            _loadBtn = new Button(LocalizationResources.DialogGenerateFontLoad) { Width = 75 };
-            _saveBtn = new Button(LocalizationResources.DialogGenerateFontSave) { Width = 75 };
-            _generateBtn = new Button(LocalizationResources.DialogGenerateFontGenerate) { Width = 75, Enabled = _fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
+            _loadBtn = new Button(LocalizationResources.DialogFontGenerateLoad) { Width = 75 };
+            _saveBtn = new Button(LocalizationResources.DialogFontGenerateSave) { Width = 75 };
+            _executeBtn = new Button(type == FontGenerationType.Create
+                ? LocalizationResources.DialogFontGenerateGenerate
+                : LocalizationResources.DialogFontEditEdit)
+            {
+                Width = 75,
+                Enabled = type != FontGenerationType.Create || _fontState is { CanAddCharacter: true, CanRemoveCharacter: true }
+            };
 
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
-            Caption = LocalizationResources.DialogGenerateFontCaption;
+            Caption = type == FontGenerationType.Create ? LocalizationResources.DialogFontGenerateCaption : LocalizationResources.DialogFontEditCaption;
             Content = new StackLayout
             {
                 Alignment = Alignment.Horizontal,
@@ -75,8 +84,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateFontPaddingLeft),
-                                            new Label(LocalizationResources.DialogGenerateFontPaddingRight)
+                                            new Label(LocalizationResources.DialogFontGeneratePaddingLeft),
+                                            new Label(LocalizationResources.DialogFontGeneratePaddingRight)
                                         }
                                     },
                                     new TableRow
@@ -106,7 +115,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateFontFamily),
+                                            new Label(LocalizationResources.DialogFontGenerateFamily),
                                             _fontFamilyBox
                                         }
                                     },
@@ -114,7 +123,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateFontStyle),
+                                            new Label(LocalizationResources.DialogFontGenerateStyle),
                                             new StackLayout
                                             {
                                                 Alignment = Alignment.Horizontal,
@@ -132,7 +141,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateFontSize),
+                                            new Label(LocalizationResources.DialogFontGenerateSize),
                                             _fontSizeBox
                                         }
                                     },
@@ -140,7 +149,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateBaseline),
+                                            new Label(LocalizationResources.DialogFontGenerateBaseline),
                                             _baselineBox
                                         }
                                     },
@@ -148,7 +157,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateGlyphHeight),
+                                            new Label(LocalizationResources.DialogFontGenerateGlyphHeight),
                                             _glyphHeightBox
                                         }
                                     },
@@ -156,7 +165,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateSpaceWidth),
+                                            new Label(LocalizationResources.DialogFontGenerateSpaceWidth),
                                             _spaceWidthBox
                                         }
                                     },
@@ -164,8 +173,25 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                     {
                                         Cells =
                                         {
-                                            new Label(LocalizationResources.DialogGenerateCharacters),
+                                            new Label(LocalizationResources.DialogFontGenerateCharacters),
                                             _characterEditor
+                                        }
+                                    },
+                                    new TableRow
+                                    {
+                                        Cells =
+                                        {
+                                            new Label(string.Empty),
+                                            new StackLayout
+                                            {
+                                                Alignment = Alignment.Horizontal,
+                                                Size = Size.WidthAlign,
+                                                ItemSpacing = 4,
+                                                Items =
+                                                {
+                                                    new StackItem(_replaceCharactersCheck){Size = Size.WidthAlign}
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -179,7 +205,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                                 {
                                     _loadBtn,
                                     _saveBtn,
-                                    new StackItem(_generateBtn) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right }
+                                    new StackItem(_executeBtn) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right }
                                 }
                             }
                         }

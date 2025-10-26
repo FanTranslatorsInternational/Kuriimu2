@@ -14,6 +14,7 @@ namespace Kuriimu2.ImGui.Resources
         private const string IncludeDevBuildsName_ = "IncludeDevBuilds";
         private const string LocaleName_ = "Locale";
         private const string ThemeName_ = "Theme";
+        private const string ReplaceFontCharactersName_ = "ReplaceFontCharacters";
 
         public static string LastDirectory
         {
@@ -73,6 +74,12 @@ namespace Kuriimu2.ImGui.Resources
         {
             get => SettingsProvider.Instance.Get(ThemeName_, Theme.Dark);
             set => SettingsProvider.Instance.Set(ThemeName_, value);
+        }
+
+        public static bool ReplaceFontCharacters
+        {
+            get => SettingsProvider.Instance.Get(ReplaceFontCharactersName_, true);
+            set => SettingsProvider.Instance.Set(ReplaceFontCharactersName_, value);
         }
     }
 }

@@ -335,6 +335,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
+        public static LocalizedString FontGenerateEditCaption => LocalizedString.FromId("Font.Generate.Edit.Caption");
         public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
 
         // Text Form
@@ -398,30 +399,33 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogChoosePluginShowAll => LocalizedString.FromId("Dialog.ChoosePlugin.ShowAll");
 
         // Font Generation Dialog
-        public static LocalizedString DialogGenerateFontCaption => LocalizedString.FromId("Dialog.GenerateFont.Caption");
+        public static LocalizedString DialogFontGenerateCaption => LocalizedString.FromId("Dialog.Font.Generate.Caption");
+        public static LocalizedString DialogFontEditCaption => LocalizedString.FromId("Dialog.Font.Edit.Caption");
 
-        public static LocalizedString DialogGenerateFontFamily => LocalizedString.FromId("Dialog.GenerateFont.Family");
-        public static LocalizedString DialogGenerateFontStyle => LocalizedString.FromId("Dialog.GenerateFont.Style");
-        public static LocalizedString DialogGenerateFontSize => LocalizedString.FromId("Dialog.GenerateFont.Size");
-        public static LocalizedString DialogGenerateBaseline => LocalizedString.FromId("Dialog.GenerateFont.Baseline");
-        public static LocalizedString DialogGenerateGlyphHeight => LocalizedString.FromId("Dialog.GenerateFont.GlyphHeight");
-        public static LocalizedString DialogGenerateSpaceWidth => LocalizedString.FromId("Dialog.GenerateFont.SpaceWidth");
-        public static LocalizedString DialogGenerateCharacters => LocalizedString.FromId("Dialog.GenerateFont.Characters");
+        public static LocalizedString DialogFontGenerateFamily => LocalizedString.FromId("Dialog.Font.Generate.Family");
+        public static LocalizedString DialogFontGenerateStyle => LocalizedString.FromId("Dialog.Font.Generate.Style");
+        public static LocalizedString DialogFontGenerateSize => LocalizedString.FromId("Dialog.Font.Generate.Size");
+        public static LocalizedString DialogFontGenerateBaseline => LocalizedString.FromId("Dialog.Font.Generate.Baseline");
+        public static LocalizedString DialogFontGenerateGlyphHeight => LocalizedString.FromId("Dialog.Font.Generate.GlyphHeight");
+        public static LocalizedString DialogFontGenerateSpaceWidth => LocalizedString.FromId("Dialog.Font.Generate.SpaceWidth");
+        public static LocalizedString DialogFontGenerateCharacters => LocalizedString.FromId("Dialog.Font.Generate.Characters");
+        public static LocalizedString DialogFontGenerateCharactersReplace => LocalizedString.FromId("Dialog.Font.Generate.Characters.Replace");
 
-        public static LocalizedString DialogGenerateFontStyleBold => LocalizedString.FromId("Dialog.GenerateFont.Style.Bold");
-        public static LocalizedString DialogGenerateFontStyleItalic => LocalizedString.FromId("Dialog.GenerateFont.Style.Italic");
+        public static LocalizedString DialogFontGenerateStyleBold => LocalizedString.FromId("Dialog.Font.Generate.Style.Bold");
+        public static LocalizedString DialogFontGenerateStyleItalic => LocalizedString.FromId("Dialog.Font.Generate.Style.Italic");
 
-        public static LocalizedString DialogGenerateFontLoad => LocalizedString.FromId("Dialog.GenerateFont.Load");
-        public static LocalizedString DialogGenerateFontLoadCaption => LocalizedString.FromId("Dialog.GenerateFont.Load.Caption");
+        public static LocalizedString DialogFontGenerateLoad => LocalizedString.FromId("Dialog.Font.Generate.Load");
+        public static LocalizedString DialogFontGenerateLoadCaption => LocalizedString.FromId("Dialog.Font.Generate.Load.Caption");
 
-        public static LocalizedString DialogGenerateFontSave => LocalizedString.FromId("Dialog.GenerateFont.Save");
-        public static LocalizedString DialogGenerateFontSaveCaption => LocalizedString.FromId("Dialog.GenerateFont.Save.Caption");
+        public static LocalizedString DialogFontGenerateSave => LocalizedString.FromId("Dialog.Font.Generate.Save");
+        public static LocalizedString DialogFontGenerateSaveCaption => LocalizedString.FromId("Dialog.Font.Generate.Save.Caption");
 
-        public static LocalizedString DialogGenerateFontProfile => LocalizedString.FromId("Dialog.GenerateFont.Profile");
+        public static LocalizedString DialogFontGenerateProfile => LocalizedString.FromId("Dialog.Font.Generate.Profile");
 
-        public static LocalizedString DialogGenerateFontGenerate => LocalizedString.FromId("Dialog.GenerateFont.Generate");
+        public static LocalizedString DialogFontGenerateGenerate => LocalizedString.FromId("Dialog.Font.Generate.Generate");
+        public static LocalizedString DialogFontEditEdit => LocalizedString.FromId("Dialog.Font.Edit.Edit");
 
-        public static LocalizedString DialogGenerateFontPaddingLeft => LocalizedString.FromId("Dialog.GenerateFont.Padding.Left");
-        public static LocalizedString DialogGenerateFontPaddingRight => LocalizedString.FromId("Dialog.GenerateFont.Padding.Right");
+        public static LocalizedString DialogFontGeneratePaddingLeft => LocalizedString.FromId("Dialog.Font.Generate.Padding.Left");
+        public static LocalizedString DialogFontGeneratePaddingRight => LocalizedString.FromId("Dialog.Font.Generate.Padding.Right");
     }
 }

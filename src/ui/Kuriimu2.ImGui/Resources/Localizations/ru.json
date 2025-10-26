@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Зависимые файлы",
   "Dialog.DependantFiles.Text": "Все файлы, открытые из этого файла и его подфайлов, будут закрыты. Продолжить?",
 
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
   // Status
   "Status.Plugin.Select.None": "Плагин не выбран.",
   "Status.Plugin.Select.Unknown": "Неизвестный тип плагина {0}.",
+  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
   "Status.Plugin.Load.None": "Ни один плагин не смог открыть файл.",
   "Status.Plugin.Load.NoArchive": "Плагин не представляет собой архив.",
   "Status.Plugin.State.Init.Error": "Не удалось инициализировать плагин.",
@@ -325,6 +331,7 @@
 
   // Generate
   "Font.Generate.Caption": "Сгенерировать шрифт",
+  // "Font.Generate.Edit.Caption": "Edit Font", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -388,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Показать все плагины",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Генерация шрифта",
-  "Dialog.GenerateFont.Family": "Семейство шрифтов",
-  "Dialog.GenerateFont.Style": "Стиль шрифта",
-  "Dialog.GenerateFont.Size": "Размер шрифта",
-  "Dialog.GenerateFont.Baseline": "Линия основания",
-  "Dialog.GenerateFont.GlyphHeight": "Высота глифа",
-  "Dialog.GenerateFont.SpaceWidth": "Ширина пробела",
-  "Dialog.GenerateFont.Characters": "Символы",
-  "Dialog.GenerateFont.Style.Bold": "Полужирный",
-  "Dialog.GenerateFont.Style.Italic": "Курсивный",
-  "Dialog.GenerateFont.Load": "Загрузить",
-  "Dialog.GenerateFont.Load.Caption": "Загрузка шаблона шрифта...",
-  "Dialog.GenerateFont.Save": "Сохранить",
-  "Dialog.GenerateFont.Save.Caption": "Сохранение шаблона шрифта...",
-  "Dialog.GenerateFont.Profile": "Шаблон шрифта",
-  "Dialog.GenerateFont.Generate": "Сгенерировать",
-  "Dialog.GenerateFont.Padding.Left": "Отступ слева",
-  "Dialog.GenerateFont.Padding.Right": "Отступ справа"
+  "Dialog.Font.Generate.Caption": "Генерация шрифта",
+  // "Dialog.Font.Edit.Caption": "Edit Font", // TODO
+  "Dialog.Font.Generate.Family": "Семейство шрифтов",
+  "Dialog.Font.Generate.Style": "Стиль шрифта",
+  "Dialog.Font.Generate.Size": "Размер шрифта",
+  "Dialog.Font.Generate.Baseline": "Линия основания",
+  "Dialog.Font.Generate.GlyphHeight": "Высота глифа",
+  "Dialog.Font.Generate.SpaceWidth": "Ширина пробела",
+  "Dialog.Font.Generate.Characters": "Символы",
+  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Style.Bold": "Полужирный",
+  "Dialog.Font.Generate.Style.Italic": "Курсивный",
+  "Dialog.Font.Generate.Load": "Загрузить",
+  "Dialog.Font.Generate.Load.Caption": "Загрузка шаблона шрифта...",
+  "Dialog.Font.Generate.Save": "Сохранить",
+  "Dialog.Font.Generate.Save.Caption": "Сохранение шаблона шрифта...",
+  "Dialog.Font.Generate.Profile": "Шаблон шрифта",
+  "Dialog.Font.Generate.Generate": "Сгенерировать",
+  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Generate.Padding.Left": "Отступ слева",
+  "Dialog.Font.Generate.Padding.Right": "Отступ справа"
 }

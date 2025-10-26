@@ -21,6 +21,7 @@ using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Forms.Dialogs;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
+using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.TextParsing;
 using SixLabors.ImageSharp;
@@ -47,6 +48,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _searchCharBox.TextChanged += _searchCharBox_TextChanged;
             _generateBtn.Clicked += _generateBtn_Clicked;
+            _editBtn.Clicked += _editBtn_Clicked;
 
             _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
 
@@ -56,7 +58,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _glyphBox.Zoom(20f);
             _previewTextEditor.SetText(LocalizationResources.FontPreviewPlaceholder);
 
-            UpdateState();
+            ResetState();
             UpdateFormInternal();
         }
 
@@ -100,7 +102,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             await _state.FormCommunicator.Save(saveAs);
 
-            UpdateState();
+            ResetState();
             UpdateFormInternal();
         }
 
@@ -119,7 +121,23 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _generateBtn_Clicked(object sender, EventArgs e)
         {
-            DialogResult result = await _generationDialog.ShowAsync();
+            var generationDialog = new FontGenerationDialog(_state.PluginState, FontGenerationType.Create, null);
+
+            DialogResult result = await generationDialog.ShowAsync();
+            if (result is not DialogResult.Ok)
+                return;
+
+            ResetState();
+            UpdateFormInternal();
+        }
+
+        private async void _editBtn_Clicked(object? sender, EventArgs e)
+        {
+            string selectedCharacters = string.Concat(_selectedCharacters.Select(c => c.CodePoint));
+
+            var generationDialog = new FontGenerationDialog(_state.PluginState, FontGenerationType.Edit, selectedCharacters);
+
+            DialogResult result = await generationDialog.ShowAsync();
             if (result is not DialogResult.Ok)
                 return;
 
@@ -178,12 +196,19 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Update methods
 
-        private void UpdateState()
+        private void ResetState()
         {
             SetGlyphs(_state.PluginState.Characters);
 
             if (_state.PluginState.Characters.Count > 0)
                 SetSelectedGlyph(_state.PluginState.Characters[0]);
+
+            UpdateTextPreview();
+        }
+
+        private void UpdateState()
+        {
+            UpdateGlyphs(_state.PluginState.Characters);
 
             UpdateTextPreview();
         }

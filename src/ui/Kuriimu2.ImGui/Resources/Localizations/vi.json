@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Tệp Phụ Thuộc",
   "Dialog.DependantFiles.Text": "Mọi tệp được mở từ tệp này và các tệp bên dưới cũng sẽ bị đóng. Tiếp tục",
 
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
   // Status
   "Status.Plugin.Select.None": "Không có plugin nào được chọn.",
   "Status.Plugin.Select.Unknown": "Loại plugin chưa xác định {0}.",
+  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
   "Status.Plugin.Load.None": "Không có plugin nào có thể mở tệp.",
   "Status.Plugin.Load.NoArchive": "Plugin không hỗ trợ định dạng lưu trữ.",
   "Status.Plugin.State.Init.Error": "Plugin không thể khởi tạo.",
@@ -325,6 +331,7 @@
 
   // Generate
   "Font.Generate.Caption": "Tạo Font",
+  // "Font.Generate.Edit.Caption": "Edit Font", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -388,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Hiện toàn bộ plugin",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Tạo Font",
-  "Dialog.GenerateFont.Family": "Font Family",
-  "Dialog.GenerateFont.Style": "Kiểu Font",
-  "Dialog.GenerateFont.Size": "Kích Thước Font",
-  "Dialog.GenerateFont.Baseline": "Đường Cơ Sở",
-  "Dialog.GenerateFont.GlyphHeight": "Chiều Cao Glyph",
-  "Dialog.GenerateFont.SpaceWidth": "Chiều Rộng Khoảng Trắng",
-  "Dialog.GenerateFont.Characters": "Ký Tự",
-  "Dialog.GenerateFont.Style.Bold": "In Đậm",
-  "Dialog.GenerateFont.Style.Italic": "In Nghiêng",
-  "Dialog.GenerateFont.Load": "Tải",
-  "Dialog.GenerateFont.Load.Caption": "Tải hồ sơ font...",
-  "Dialog.GenerateFont.Save": "Lưu",
-  "Dialog.GenerateFont.Save.Caption": "Lưu hồ sơ font...",
-  "Dialog.GenerateFont.Profile": "Hồ Sơ Font",
-  "Dialog.GenerateFont.Generate": "Tạo",
-  "Dialog.GenerateFont.Padding.Left": "Lề Trái",
-  "Dialog.GenerateFont.Padding.Right": "Lề Phải"
+  "Dialog.Font.Generate.Caption": "Tạo Font",
+  // "Dialog.Font.Edit.Caption": "Edit Font", // TODO
+  "Dialog.Font.Generate.Family": "Font Family",
+  "Dialog.Font.Generate.Style": "Kiểu Font",
+  "Dialog.Font.Generate.Size": "Kích Thước Font",
+  "Dialog.Font.Generate.Baseline": "Đường Cơ Sở",
+  "Dialog.Font.Generate.GlyphHeight": "Chiều Cao Glyph",
+  "Dialog.Font.Generate.SpaceWidth": "Chiều Rộng Khoảng Trắng",
+  "Dialog.Font.Generate.Characters": "Ký Tự",
+  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Style.Bold": "In Đậm",
+  "Dialog.Font.Generate.Style.Italic": "In Nghiêng",
+  "Dialog.Font.Generate.Load": "Tải",
+  "Dialog.Font.Generate.Load.Caption": "Tải hồ sơ font...",
+  "Dialog.Font.Generate.Save": "Lưu",
+  "Dialog.Font.Generate.Save.Caption": "Lưu hồ sơ font...",
+  "Dialog.Font.Generate.Profile": "Hồ Sơ Font",
+  "Dialog.Font.Generate.Generate": "Tạo",
+  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Generate.Padding.Left": "Lề Trái",
+  "Dialog.Font.Generate.Padding.Right": "Lề Phải"
 }

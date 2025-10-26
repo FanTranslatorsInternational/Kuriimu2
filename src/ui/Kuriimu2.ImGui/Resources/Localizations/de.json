@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Abhängige Dateien",
   "Dialog.DependantFiles.Text": "Alle von dieser geöffneten Dateien werden ebenfalls geschlossen. Fortfahren?",
 
+  // Deprecated Info Dialog
+  "Dialog.Deprecated.Caption": "Veraltetes Plugin",
+  "Dialog.Deprecated.Text.General": "Kuriimu2 unterstützt diese Datei nicht länger mit Plugin '{0}'.",
+  "Dialog.Deprecated.Text.Alternatives": "Verwende stattdessen eine der folgenden Alternativen:",
+
   // Status
   "Status.Plugin.Select.None": "Kein Plugin ausgewählt.",
   "Status.Plugin.Select.Unknown": "Unbekannter Plugin-Typ {0}.",
+  "Status.Plugin.Load.Deprecated": "Das Plugin ist veraltet.",
   "Status.Plugin.Load.None": "Kein Plugin konnte die Datei öffnen.",
   "Status.Plugin.Load.NoArchive": "Plugin stellt kein Archiv dar.",
   "Status.Plugin.State.Init.Error": "Plugin konnte nicht initialisiert werden.",
@@ -324,7 +330,8 @@
   "Font.Preview.Settings.Alignment.Right": "Rechts",
 
   // Generate
-  "Font.Generate.Caption": "Schriftart generieren",
+  "Font.Generate.Caption": "Schriftart erstellen",
+  "Font.Generate.Edit.Caption": "Schriftart bearbeiten",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -388,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Alle Plugins anzeigen",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Erstellung",
-  "Dialog.GenerateFont.Family": "Schriftfamilie",
-  "Dialog.GenerateFont.Style": "Schriftstil",
-  "Dialog.GenerateFont.Size": "Schriftgröße",
-  "Dialog.GenerateFont.Baseline": "Grundlinie",
-  "Dialog.GenerateFont.GlyphHeight": "Glyphenhöhe",
-  "Dialog.GenerateFont.SpaceWidth": "Leerzeichenbreite",
-  "Dialog.GenerateFont.Characters": "Zeichen",
-  "Dialog.GenerateFont.Style.Bold": "Fett",
-  "Dialog.GenerateFont.Style.Italic": "Kursiv",
-  "Dialog.GenerateFont.Load": "Laden",
-  "Dialog.GenerateFont.Load.Caption": "Schriftprofil laden...",
-  "Dialog.GenerateFont.Save": "Speichern",
-  "Dialog.GenerateFont.Save.Caption": "Schriftprofil speichern...",
-  "Dialog.GenerateFont.Profile": "Schriftprofil",
-  "Dialog.GenerateFont.Generate": "Generieren",
-  "Dialog.GenerateFont.Padding.Left": "Linker Abstand",
-  "Dialog.GenerateFont.Padding.Right": "Rechter Abstand"
+  "Dialog.Font.Generate.Caption": "Schriftart erstellen",
+  "Dialog.Font.Edit.Caption": "Schriftart bearbeiten",
+  "Dialog.Font.Generate.Family": "Schriftfamilie",
+  "Dialog.Font.Generate.Style": "Schriftstil",
+  "Dialog.Font.Generate.Size": "Schriftgröße",
+  "Dialog.Font.Generate.Baseline": "Grundlinie",
+  "Dialog.Font.Generate.GlyphHeight": "Glyphenhöhe",
+  "Dialog.Font.Generate.SpaceWidth": "Leerzeichenbreite",
+  "Dialog.Font.Generate.Characters": "Zeichen",
+  "Dialog.Font.Generate.Characters.Replace": "Ersetze Zeichen, wenn Profil geladen wird",
+  "Dialog.Font.Generate.Style.Bold": "Fett",
+  "Dialog.Font.Generate.Style.Italic": "Kursiv",
+  "Dialog.Font.Generate.Load": "Laden",
+  "Dialog.Font.Generate.Load.Caption": "Schriftprofil laden...",
+  "Dialog.Font.Generate.Save": "Speichern",
+  "Dialog.Font.Generate.Save.Caption": "Schriftprofil speichern...",
+  "Dialog.Font.Generate.Profile": "Schriftprofil",
+  "Dialog.Font.Generate.Generate": "Generieren",
+  "Dialog.Font.Edit.Edit": "Bearbeiten",
+  "Dialog.Font.Generate.Padding.Left": "Linker Abstand",
+  "Dialog.Font.Generate.Padding.Right": "Rechter Abstand"
 }

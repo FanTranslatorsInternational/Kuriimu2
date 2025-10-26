@@ -89,10 +89,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Localizations\da.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>resources\langs\da.json</TargetPath>
-    </None>
     <None Update="Resources\Localizations\de.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\de.json</TargetPath>
@@ -104,10 +100,6 @@
     <None Update="Resources\Localizations\fr.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\fr.json</TargetPath>
-    </None>
-    <None Update="Resources\Localizations\ko.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>resources\langs\ko.json</TargetPath>
     </None>
     <None Update="Resources\Localizations\pt-br.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -121,14 +113,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\vi.json</TargetPath>
     </None>
-    <None Update="Resources\Localizations\zh.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>resources\langs\zh.json</TargetPath>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Imgui.Forms" Version="1.5.11" />
+    <PackageReference Include="Imgui.Forms" Version="1.5.13" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
   </ItemGroup>

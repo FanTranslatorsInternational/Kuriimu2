@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Arquivos dependentes",
   "Dialog.DependantFiles.Text": "Todos os arquivos abertos a partir deste também serão fechados. Continuar?",
 
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
   // Status
   "Status.Plugin.Select.None": "Nenhum plugin selecionado.",
   "Status.Plugin.Select.Unknown": "Tipo de plugin desconhecido {0}.",
+  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
   "Status.Plugin.Load.None": "Nenhum plugin pôde abrir o arquivo.",
   "Status.Plugin.Load.NoArchive": "O plugin não representa um contêiner de dados.",
   "Status.Plugin.State.Init.Error": "O plugin não pôde ser inicializado.",
@@ -325,6 +331,7 @@
 
   // Generate
   "Font.Generate.Caption": "Gerar Fonte",
+  // "Font.Generate.Edit.Caption": "Edit Font", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -388,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Mostrar todos os plugins",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Geração de Fonte",
-  "Dialog.GenerateFont.Family": "Família da Fonte",
-  "Dialog.GenerateFont.Style": "Estilo da Fonte",
-  "Dialog.GenerateFont.Size": "Tamanho da Fonte",
-  "Dialog.GenerateFont.Baseline": "Linha de base",
-  "Dialog.GenerateFont.GlyphHeight": "Altura do glifo",
-  "Dialog.GenerateFont.SpaceWidth": "Largura do espaço",
-  "Dialog.GenerateFont.Characters": "Caracteres",
-  "Dialog.GenerateFont.Style.Bold": "Negrito",
-  "Dialog.GenerateFont.Style.Italic": "Itálico",
-  "Dialog.GenerateFont.Load": "Carregar",
-  "Dialog.GenerateFont.Load.Caption": "Carregar perfil de fonte...",
-  "Dialog.GenerateFont.Save": "Salvar",
-  "Dialog.GenerateFont.Save.Caption": "Salvar perfil de fonte...",
-  "Dialog.GenerateFont.Profile": "Perfil de Fonte",
-  "Dialog.GenerateFont.Generate": "Gerar",
-  "Dialog.GenerateFont.Padding.Left": "Margem esquerda",
-  "Dialog.GenerateFont.Padding.Right": "Margem direita"
+  "Dialog.Font.Generate.Caption": "Geração de Fonte",
+  // "Dialog.Font.Edit.Caption": "Edit Font", // TODO
+  "Dialog.Font.Generate.Family": "Família da Fonte",
+  "Dialog.Font.Generate.Style": "Estilo da Fonte",
+  "Dialog.Font.Generate.Size": "Tamanho da Fonte",
+  "Dialog.Font.Generate.Baseline": "Linha de base",
+  "Dialog.Font.Generate.GlyphHeight": "Altura do glifo",
+  "Dialog.Font.Generate.SpaceWidth": "Largura do espaço",
+  "Dialog.Font.Generate.Characters": "Caracteres",
+  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Style.Bold": "Negrito",
+  "Dialog.Font.Generate.Style.Italic": "Itálico",
+  "Dialog.Font.Generate.Load": "Carregar",
+  "Dialog.Font.Generate.Load.Caption": "Carregar perfil de fonte...",
+  "Dialog.Font.Generate.Save": "Salvar",
+  "Dialog.Font.Generate.Save.Caption": "Salvar perfil de fonte...",
+  "Dialog.Font.Generate.Profile": "Perfil de Fonte",
+  "Dialog.Font.Generate.Generate": "Gerar",
+  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Generate.Padding.Left": "Margem esquerda",
+  "Dialog.Font.Generate.Padding.Right": "Margem direita"
 }

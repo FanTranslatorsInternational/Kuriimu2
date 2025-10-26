@@ -156,9 +156,15 @@
   "Dialog.DependantFiles.Caption": "Zależne pliki",
   "Dialog.DependantFiles.Text": "Każdy plik otwarty z tego i niższych zostanie również zamknięty. Kontynuować?",
 
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
   // Status
   "Status.Plugin.Select.None": "Nie wybrano żadnej wtyczki.",
   "Status.Plugin.Select.Unknown": "Nieznany typ wtyczki {0}.",
+  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
   "Status.Plugin.Load.None": "Żadna wtyczka nie mogła otworzyć pliku.",
   "Status.Plugin.Load.NoArchive": "Wtyczka nie reprezentuje archiwum.",
   "Status.Plugin.State.Init.Error": "Nie udało się zainicjować wtyczki.",
@@ -325,6 +331,7 @@
 
   // Generate
   "Font.Generate.Caption": "Generuj Czcionkę",
+  // "Font.Generate.Edit.Caption": "Edit Font", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -388,22 +395,25 @@
   "Dialog.ChoosePlugin.ShowAll": "Pokaż wszystkie wtyczki",
 
   // Font Generation Dialog
-  "Dialog.GenerateFont.Caption": "Generowanie Czcionki",
-  "Dialog.GenerateFont.Family": "Rodzina Czcionki",
-  "Dialog.GenerateFont.Style": "Styl Czcionki",
-  "Dialog.GenerateFont.Size": "Rozmiar Czcionki",
-  "Dialog.GenerateFont.Baseline": "Linia Bazowa",
-  "Dialog.GenerateFont.GlyphHeight": "Wysokość Glifów",
-  "Dialog.GenerateFont.SpaceWidth": "Rozstaw",
-  "Dialog.GenerateFont.Characters": "Znaki",
-  "Dialog.GenerateFont.Style.Bold": "Pogrubione",
-  "Dialog.GenerateFont.Style.Italic": "Kursywa",
-  "Dialog.GenerateFont.Load": "Wczytaj",
-  "Dialog.GenerateFont.Load.Caption": "Wczytaj profil czcionki...",
-  "Dialog.GenerateFont.Save": "Zapisz",
-  "Dialog.GenerateFont.Save.Caption": "Zapisz profil czcionki...",
-  "Dialog.GenerateFont.Profile": "Profil Czcionki",
-  "Dialog.GenerateFont.Generate": "Generuj",
-  "Dialog.GenerateFont.Padding.Left": "Wypełnienie z Lewej",
-  "Dialog.GenerateFont.Padding.Right": "Wypełnienie z Prawej"
+  "Dialog.Font.Generate.Caption": "Generowanie Czcionki",
+  // "Dialog.Font.Edit.Caption": "Edit Font", // TODO
+  "Dialog.Font.Generate.Family": "Rodzina Czcionki",
+  "Dialog.Font.Generate.Style": "Styl Czcionki",
+  "Dialog.Font.Generate.Size": "Rozmiar Czcionki",
+  "Dialog.Font.Generate.Baseline": "Linia Bazowa",
+  "Dialog.Font.Generate.GlyphHeight": "Wysokość Glifów",
+  "Dialog.Font.Generate.SpaceWidth": "Rozstaw",
+  "Dialog.Font.Generate.Characters": "Znaki",
+  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Style.Bold": "Pogrubione",
+  "Dialog.Font.Generate.Style.Italic": "Kursywa",
+  "Dialog.Font.Generate.Load": "Wczytaj",
+  "Dialog.Font.Generate.Load.Caption": "Wczytaj profil czcionki...",
+  "Dialog.Font.Generate.Save": "Zapisz",
+  "Dialog.Font.Generate.Save.Caption": "Zapisz profil czcionki...",
+  "Dialog.Font.Generate.Profile": "Profil Czcionki",
+  "Dialog.Font.Generate.Generate": "Generuj",
+  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Generate.Padding.Left": "Wypełnienie z Lewej",
+  "Dialog.Font.Generate.Padding.Right": "Wypełnienie z Prawej"
 }

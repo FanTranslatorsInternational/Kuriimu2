@@ -291,6 +291,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 _imageFile = new ImageFile(imageInfo, _encodingDefinition);
                 _imageBox.Image = ImageResource.FromImage(_imageFile.GetImage());
                 _imageEditorBox.Image = _imageBox.Image;
+
+                _imageBox.Reset();
+                _imageEditorBox.Reset();
             }
             catch
             {
@@ -404,9 +407,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 return [];
 
             int dataLength = colorCount * bitDepth / 8;
-
-            if (offset + dataLength >= _fileStream.Length)
-                return [];
+            dataLength = (int)Math.Min(dataLength, _fileStream.Length - offset);
 
             _fileStream.Position = offset;
 
