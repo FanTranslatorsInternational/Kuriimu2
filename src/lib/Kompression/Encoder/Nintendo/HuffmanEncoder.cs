@@ -13,7 +13,7 @@ namespace Kompression.Encoder.Nintendo
 
         private readonly HuffmanHeaderlessEncoder _encoder;
 
-        public HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst)
+        public HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder)
         {
             _bitDepth = bitDepth;
             _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
