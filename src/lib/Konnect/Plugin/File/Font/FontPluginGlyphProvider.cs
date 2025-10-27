@@ -31,6 +31,6 @@ namespace Konnect.Plugin.File.Font
             };
         }
 
-        public int GetMaxHeight() => _characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height);
+        public int GetMaxHeight() => _characters.Count <= 0 ? 0 : _characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height);
     }
 }
