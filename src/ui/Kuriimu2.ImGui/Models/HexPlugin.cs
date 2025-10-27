@@ -12,7 +12,7 @@ namespace Kuriimu2.ImGui.Models
 
         public Guid PluginId => Guid;
         public PluginType PluginType => PluginType.Hex;
-        public string[] FileExtensions => Array.Empty<string>();
+        public string[] FileExtensions => [];
 
         public PluginMetadata Metadata { get; }
 
@@ -23,7 +23,7 @@ namespace Kuriimu2.ImGui.Models
                 Author = ["onepiecefreak"],
                 Name = "Default",
                 Platform = ["PC"],
-                Developer = "FanTranslatorsInternational",
+                Developer = "Various",
                 LongDescription = "No description"
             };
         }

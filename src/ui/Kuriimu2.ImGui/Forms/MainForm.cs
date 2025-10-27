@@ -344,7 +344,7 @@ namespace Kuriimu2.ImGui.Forms
         {
             string pluginPath = Path.Combine(GetBaseDirectory(), "plugins");
 
-            return new PluginManager(new PluginLoader<IFilePlugin>(pluginPath), new PluginLoader<IGamePlugin>(pluginPath));
+            return new PluginManager(new PluginLoader<IFilePlugin>(pluginPath), new PluginLoader<IGamePlugin>(pluginPath), new PluginLoader<IFilePlugin>(Assembly.GetExecutingAssembly()));
         }
 
         private IFileManager LoadFileManager(ILogger logger, IPluginManager pluginManager, IProgressContext progress)
