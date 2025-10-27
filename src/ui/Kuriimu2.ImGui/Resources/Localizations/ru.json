@@ -161,6 +161,10 @@
   // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
   // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
 
+  // Remove Font Characters Dialog
+  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
+  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+
   // Status
   "Status.Plugin.Select.None": "Плагин не выбран.",
   "Status.Plugin.Select.Unknown": "Неизвестный тип плагина {0}.",
@@ -331,7 +335,8 @@
 
   // Generate
   "Font.Generate.Caption": "Сгенерировать шрифт",
-  // "Font.Generate.Edit.Caption": "Edit Font", // TODO
+  // "Font.Generate.Edit.Caption": "Edit Characters", // TODO
+  // "Font.Generate.Remove.Caption": "Remove Characters", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -396,7 +401,7 @@
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Генерация шрифта",
-  // "Dialog.Font.Edit.Caption": "Edit Font", // TODO
+  // "Dialog.Font.Edit.Caption": "Edit Characters", // TODO
   "Dialog.Font.Generate.Family": "Семейство шрифтов",
   "Dialog.Font.Generate.Style": "Стиль шрифта",
   "Dialog.Font.Generate.Size": "Размер шрифта",

@@ -164,6 +164,10 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogDeprecatedTextGeneral(string pluginName) => LocalizedString.FromId("Dialog.Deprecated.Text.General", () => pluginName);
         public static LocalizedString DialogDeprecatedTextAlternatives => LocalizedString.FromId("Dialog.Deprecated.Text.Alternatives");
 
+        // Remove Font Characters Dialog
+        public static LocalizedString DialogFontRemoveCaption => LocalizedString.FromId("Dialog.Font.Remove.Caption");
+        public static LocalizedString DialogFontRemoveText => LocalizedString.FromId("Dialog.Font.Remove.Text");
+
         // Status
         public static LocalizedString StatusPluginSelectNone => LocalizedString.FromId("Status.Plugin.Select.None");
         public static LocalizedString StatusPluginSelectUnknown(IFilePluginState state)
@@ -336,6 +340,7 @@ namespace Kuriimu2.ImGui.Resources
         // Generate
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
         public static LocalizedString FontGenerateEditCaption => LocalizedString.FromId("Font.Generate.Edit.Caption");
+        public static LocalizedString FontGenerateRemoveCaption => LocalizedString.FromId("Font.Generate.Remove.Caption");
         public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
 
         // Text Form

@@ -15,6 +15,7 @@ using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Layout;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
+using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Konnect.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
@@ -49,6 +50,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _searchCharBox.TextChanged += _searchCharBox_TextChanged;
             _generateBtn.Clicked += _generateBtn_Clicked;
             _editBtn.Clicked += _editBtn_Clicked;
+            _removeBtn.Clicked += _removeBtn_Clicked;
 
             _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
 
@@ -127,6 +129,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (result is not DialogResult.Ok)
                 return;
 
+            _state.FormCommunicator.Update(true, false);
+
             ResetState();
             UpdateFormInternal();
         }
@@ -140,6 +144,53 @@ namespace Kuriimu2.ImGui.Forms.Formats
             DialogResult result = await generationDialog.ShowAsync();
             if (result is not DialogResult.Ok)
                 return;
+
+            _state.FormCommunicator.Update(true, false);
+
+            UpdateState();
+            UpdateFormInternal();
+        }
+
+        private async void _removeBtn_Clicked(object? sender, EventArgs e)
+        {
+            if (_selectedCharacters.Count <= 0)
+                return;
+
+            DialogResult result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogFontRemoveCaption, LocalizationResources.DialogFontRemoveText);
+            if (result is not DialogResult.Yes)
+                return;
+
+            if (_selectedCharacters.Count >= _state.PluginState.Characters.Count)
+            {
+                _state.PluginState.AttemptRemoveAll();
+
+                _charLookup.Clear();
+                _infoLookup.Clear();
+
+                _selectedCharacters.Clear();
+
+                _glyphsLayout.Items.Clear();
+            }
+            else
+            {
+                foreach (CharacterInfo character in _selectedCharacters)
+                {
+                    if (!_state.PluginState.AttemptRemoveCharacter(character))
+                        continue;
+
+                    if (_infoLookup.TryGetValue(character, out GlyphElement? element))
+                        _glyphsLayout.Items.Remove(element);
+
+                    _charLookup.Remove(character.CodePoint);
+                    _infoLookup.Remove(character);
+
+                    _selectedCharacters.Remove(character);
+                }
+            }
+
+            _lastSelectedElement = null;
+
+            _state.FormCommunicator.Update(true, false);
 
             UpdateState();
             UpdateFormInternal();

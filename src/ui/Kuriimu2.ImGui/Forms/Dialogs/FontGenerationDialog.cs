@@ -239,7 +239,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
                 if (characterInfo is null)
                 {
-                    if (_fontState.CanAddCharacter)
+                    if (!_fontState.CanAddCharacter)
                         continue;
 
                     characterInfo = _fontState.AttemptCreateCharacterInfo(character);

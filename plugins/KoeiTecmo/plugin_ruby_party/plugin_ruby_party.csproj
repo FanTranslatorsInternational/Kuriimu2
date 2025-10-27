@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Kompression" Version="2.1.11" />
-    <PackageReference Include="Konnect" Version="2.1.73" />
+    <PackageReference Include="Konnect" Version="2.1.74" />
   </ItemGroup>
 
 </Project>

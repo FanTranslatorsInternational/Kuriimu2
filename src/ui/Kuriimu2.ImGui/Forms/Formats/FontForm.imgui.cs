@@ -30,7 +30,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private ImageButton _saveBtn;
         private ImageButton _saveAsBtn;
         private Button _generateBtn;
-        private Button _editBtn;
+        private ImageButton _editBtn;
+        private ImageButton _removeBtn;
 
         private TextEditor _previewTextEditor;
         private ZoomablePictureBox _textPreview;
@@ -57,7 +58,21 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Size = new Size(SizeValue.Parent, .75f)
             };
 
-            _editBtn = new Button { Text = LocalizationResources.FontGenerateEditCaption, Width = SizeValue.Absolute(100) };
+            _editBtn = new ImageButton
+            {
+                Image = ImageResources.FontEdit,
+                Tooltip = LocalizationResources.FontGenerateEditCaption,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5)
+            };
+            _removeBtn = new ImageButton
+            {
+                Image = ImageResources.FontRemove,
+                Tooltip = LocalizationResources.FontGenerateRemoveCaption,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5),
+                Enabled = fontState.CanRemoveCharacter
+            };
 
             _searchCharBox = new TextBox
             {
@@ -85,6 +100,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                         Items =
                         {
                             _editBtn,
+                            _removeBtn,
                             new StackItem(_searchCharBox) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right },
                         }
                     },

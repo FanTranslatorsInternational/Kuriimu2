@@ -17,6 +17,8 @@
     <None Remove="Resources\Images\dark\arrow_right.png" />
     <None Remove="Resources\Images\dark\batch_image_export.png" />
     <None Remove="Resources\Images\dark\batch_image_import.png" />
+    <None Remove="Resources\Images\dark\font_edit.png" />
+    <None Remove="Resources\Images\dark\font_remove.png" />
     <None Remove="Resources\Images\dark\image_export.png" />
     <None Remove="Resources\Images\dark\image_import.png" />
     <None Remove="Resources\Images\dark\kup_export.png" />
@@ -30,6 +32,8 @@
     <None Remove="Resources\Images\light\arrow_right.png" />
     <None Remove="Resources\Images\light\batch_image_export.png" />
     <None Remove="Resources\Images\light\batch_image_import.png" />
+    <None Remove="Resources\Images\light\font_edit.png" />
+    <None Remove="Resources\Images\light\font_remove.png" />
     <None Remove="Resources\Images\light\image_export.png" />
     <None Remove="Resources\Images\light\image_import.png" />
     <None Remove="Resources\Images\light\kup_export.png" />
@@ -63,6 +67,8 @@
     <EmbeddedResource Include="Resources\Images\dark\arrow_right.png" />
     <EmbeddedResource Include="Resources\Images\dark\batch_image_export.png" />
     <EmbeddedResource Include="Resources\Images\dark\batch_image_import.png" />
+    <EmbeddedResource Include="Resources\Images\dark\font_edit.png" />
+    <EmbeddedResource Include="Resources\Images\dark\font_remove.png" />
     <EmbeddedResource Include="Resources\Images\dark\image_export.png" />
     <EmbeddedResource Include="Resources\Images\dark\image_import.png" />
     <EmbeddedResource Include="Resources\Images\dark\kup_export.png" />
@@ -76,6 +82,8 @@
     <EmbeddedResource Include="Resources\Images\light\arrow_right.png" />
     <EmbeddedResource Include="Resources\Images\light\batch_image_export.png" />
     <EmbeddedResource Include="Resources\Images\light\batch_image_import.png" />
+    <EmbeddedResource Include="Resources\Images\light\font_edit.png" />
+    <EmbeddedResource Include="Resources\Images\light\font_remove.png" />
     <EmbeddedResource Include="Resources\Images\light\image_export.png" />
     <EmbeddedResource Include="Resources\Images\light\image_import.png" />
     <EmbeddedResource Include="Resources\Images\light\kup_export.png" />

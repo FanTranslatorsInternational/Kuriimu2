@@ -161,6 +161,10 @@
   "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.",
   "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:",
 
+  // Remove Font Characters Dialog
+  "Dialog.Font.Remove.Caption": "Remove Characters",
+  "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?",
+
   // Status
   "Status.Plugin.Select.None": "No plugin selected.",
   "Status.Plugin.Select.Unknown": "Unknown plugin type {0}.",
@@ -331,7 +335,8 @@
 
   // Generate
   "Font.Generate.Caption": "Generate Font",
-  "Font.Generate.Edit.Caption": "Edit Font",
+  "Font.Generate.Edit.Caption": "Edit Characters",
+  "Font.Generate.Remove.Caption": "Remove Characters",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -396,7 +401,7 @@
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Generate Font",
-  "Dialog.Font.Edit.Caption": "Edit Font",
+  "Dialog.Font.Edit.Caption": "Edit Characters",
   "Dialog.Font.Generate.Family": "Font Family",
   "Dialog.Font.Generate.Style": "Font Style",
   "Dialog.Font.Generate.Size": "Font Size",

@@ -161,6 +161,10 @@
   "Dialog.Deprecated.Text.General": "Kuriimu2 unterstützt diese Datei nicht länger mit Plugin '{0}'.",
   "Dialog.Deprecated.Text.Alternatives": "Verwende stattdessen eine der folgenden Alternativen:",
 
+  // Remove Font Characters Dialog
+  "Dialog.Font.Remove.Caption": "Glyphen entfernen",
+  "Dialog.Font.Remove.Text": "Möchtest du die ausgewählten Glyphen entfernen?",
+
   // Status
   "Status.Plugin.Select.None": "Kein Plugin ausgewählt.",
   "Status.Plugin.Select.Unknown": "Unbekannter Plugin-Typ {0}.",
@@ -331,7 +335,8 @@
 
   // Generate
   "Font.Generate.Caption": "Schriftart erstellen",
-  "Font.Generate.Edit.Caption": "Schriftart bearbeiten",
+  "Font.Generate.Edit.Caption": "Glyphen bearbeiten",
+  "Font.Generate.Remove.Caption": "Glyphen entfernen",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -396,7 +401,7 @@
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Schriftart erstellen",
-  "Dialog.Font.Edit.Caption": "Schriftart bearbeiten",
+  "Dialog.Font.Edit.Caption": "Glyphen bearbeiten",
   "Dialog.Font.Generate.Family": "Schriftfamilie",
   "Dialog.Font.Generate.Style": "Schriftstil",
   "Dialog.Font.Generate.Size": "Schriftgröße",
