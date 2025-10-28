@@ -165,6 +165,11 @@
   "Dialog.Font.Remove.Caption": "Remove Characters",
   "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?",
 
+  // Remap Font Characters Dialog
+  "Dialog.Font.Remapping.Caption": "Remap Characters",
+  "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:",
+  "Dialog.Font.Remapping.Remap": "Remap",
+
   // Status
   "Status.Plugin.Select.None": "No plugin selected.",
   "Status.Plugin.Select.Unknown": "Unknown plugin type {0}.",
@@ -337,6 +342,7 @@
   "Font.Generate.Caption": "Generate Font",
   "Font.Generate.Edit.Caption": "Edit Characters",
   "Font.Generate.Remove.Caption": "Remove Characters",
+  "Font.Generate.Remapping.Caption": "Remap Characters",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form

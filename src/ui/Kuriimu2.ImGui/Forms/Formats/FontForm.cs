@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO.Windows;
@@ -51,6 +52,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _generateBtn.Clicked += _generateBtn_Clicked;
             _editBtn.Clicked += _editBtn_Clicked;
             _removeBtn.Clicked += _removeBtn_Clicked;
+            _remapBtn.Clicked += _remapBtn_Clicked;
 
             _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
 
@@ -196,6 +198,22 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
+        private async void _remapBtn_Clicked(object? sender, EventArgs e)
+        {
+            var selectedCharacters = _selectedCharacters.OrderBy(c => c.CodePoint).ToArray();
+
+            var remapDialog = new FontRemappingDialog(_state.PluginState, selectedCharacters);
+            var result = await remapDialog.ShowAsync();
+
+            if (result is not DialogResult.Ok)
+                return;
+
+            _state.FormCommunicator.Update(true, false);
+
+            UpdateState();
+            UpdateFormInternal();
+        }
+
         private void _previewTextEditor_TextChanged(object? sender, string e)
         {
             UpdateTextPreview();
@@ -260,6 +278,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void UpdateState()
         {
             UpdateGlyphs(_state.PluginState.Characters);
+
+            if (_selectedElement is not null)
+                _glyphBox.SetCharacterInfo(_selectedElement.CharacterInfo);
 
             UpdateTextPreview();
         }

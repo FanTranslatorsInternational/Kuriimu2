@@ -165,6 +165,11 @@
   "Dialog.Font.Remove.Caption": "Glyphen entfernen",
   "Dialog.Font.Remove.Text": "Möchtest du die ausgewählten Glyphen entfernen?",
 
+  // Remap Font Characters Dialog
+  "Dialog.Font.Remapping.Caption": "Glyphen zuordnen",
+  "Dialog.Font.Remapping.Text": "Wähle eine zusammenhängende Reihe von Glyphen zum Zuordnen:",
+  "Dialog.Font.Remapping.Remap": "Zuordnen",
+
   // Status
   "Status.Plugin.Select.None": "Kein Plugin ausgewählt.",
   "Status.Plugin.Select.Unknown": "Unbekannter Plugin-Typ {0}.",
@@ -337,6 +342,7 @@
   "Font.Generate.Caption": "Schriftart erstellen",
   "Font.Generate.Edit.Caption": "Glyphen bearbeiten",
   "Font.Generate.Remove.Caption": "Glyphen entfernen",
+  "Font.Generate.Remapping.Caption": "Glyphen zuordnen",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form

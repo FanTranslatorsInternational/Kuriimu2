@@ -168,6 +168,11 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogFontRemoveCaption => LocalizedString.FromId("Dialog.Font.Remove.Caption");
         public static LocalizedString DialogFontRemoveText => LocalizedString.FromId("Dialog.Font.Remove.Text");
 
+        // Remap Font Characters Dialog
+        public static LocalizedString DialogFontRemappingCaption => LocalizedString.FromId("Dialog.Font.Remapping.Caption");
+        public static LocalizedString DialogFontRemappingText => LocalizedString.FromId("Dialog.Font.Remapping.Text");
+        public static LocalizedString DialogFontRemappingRemap => LocalizedString.FromId("Dialog.Font.Remapping.Remap");
+
         // Status
         public static LocalizedString StatusPluginSelectNone => LocalizedString.FromId("Status.Plugin.Select.None");
         public static LocalizedString StatusPluginSelectUnknown(IFilePluginState state)
@@ -341,6 +346,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
         public static LocalizedString FontGenerateEditCaption => LocalizedString.FromId("Font.Generate.Edit.Caption");
         public static LocalizedString FontGenerateRemoveCaption => LocalizedString.FromId("Font.Generate.Remove.Caption");
+        public static LocalizedString FontGenerateRemappingCaption => LocalizedString.FromId("Font.Generate.Remapping.Caption");
         public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
 
         // Text Form

@@ -32,6 +32,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private Button _generateBtn;
         private ImageButton _editBtn;
         private ImageButton _removeBtn;
+        private ImageButton _remapBtn;
 
         private TextEditor _previewTextEditor;
         private ZoomablePictureBox _textPreview;
@@ -45,6 +46,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private TextBox _searchCharBox;
         private UniformZLayout _glyphsLayout;
         private readonly HashSet<CharacterInfo> _selectedCharacters = [];
+        private GlyphElement? _selectedElement;
         private GlyphElement? _lastSelectedElement;
 
         private void InitializeComponent(IFontFilePluginState fontState)
@@ -72,6 +74,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = fontState.CanRemoveCharacter
+            };
+            _remapBtn = new ImageButton
+            {
+                Image = ImageResources.FontRemap,
+                Tooltip = LocalizationResources.FontGenerateRemappingCaption,
+                ImageSize = new Vector2(16, 16),
+                Padding = new Vector2(5, 5)
             };
 
             _searchCharBox = new TextBox
@@ -101,6 +110,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                         {
                             _editBtn,
                             _removeBtn,
+                            _remapBtn,
                             new StackItem(_searchCharBox) { Size = Size.WidthAlign, HorizontalAlignment = HorizontalAlignment.Right },
                         }
                     },
@@ -142,7 +152,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 Padding = new Vector2(5, 5)
             };
 
-            _generateBtn = new Button { Text = LocalizationResources.FontGenerateCaption, Width = SizeValue.Absolute(100), Enabled = fontState is { CanAddCharacter: true, CanRemoveCharacter: true } };
+            _generateBtn = new Button
+            {
+                Text = LocalizationResources.FontGenerateCaption,
+                Width = SizeValue.Absolute(100),
+                Enabled = fontState is { CanAddCharacter: true, CanRemoveCharacter: true }
+            };
 
             _previewTextEditor = new TextEditor();
             _textPreview = new ZoomablePictureBox
@@ -230,6 +245,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void SetGlyphs(IReadOnlyList<CharacterInfo> characters)
         {
             _lastSelectedElement = null;
+            _selectedElement = null;
             _selectedCharacters.Clear();
 
             _glyphsLayout.Items.Clear();
@@ -332,6 +348,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                 _lastSelectedElement = element;
             }
+
+            _selectedElement = element;
 
             element.IsSelected = true;
 
