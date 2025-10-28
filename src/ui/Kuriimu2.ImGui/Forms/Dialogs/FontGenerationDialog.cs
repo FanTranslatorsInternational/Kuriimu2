@@ -203,8 +203,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 if (characterInfo is null)
                     continue;
 
-                characterInfo.ContentChanged = true;
-
                 if (char.IsWhiteSpace(character))
                 {
                     characterInfo.BoundingBox = new SixLabors.ImageSharp.Size(_profile.SpaceWidth, _profile.GlyphHeight);
@@ -213,12 +211,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
                 else
                 {
-                    PaddedGlyph paddedGlyph = GetPaddedGlyph(character, font);
+                    PaddedGlyph? paddedGlyph = GetPaddedGlyph(character, font);
+
+                    if (paddedGlyph is null)
+                        continue;
 
                     characterInfo.BoundingBox = paddedGlyph.BoundingBox;
                     characterInfo.GlyphPosition = paddedGlyph.GlyphPosition;
                     characterInfo.Glyph = paddedGlyph.Glyph;
                 }
+
+                characterInfo.ContentChanged = true;
 
                 _fontState.AttemptAddCharacter(characterInfo);
             }
@@ -247,8 +250,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                         continue;
                 }
 
-                characterInfo.ContentChanged = true;
-
                 if (char.IsWhiteSpace(character))
                 {
                     characterInfo.BoundingBox = new SixLabors.ImageSharp.Size(_profile.SpaceWidth, _profile.GlyphHeight);
@@ -257,12 +258,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
                 else
                 {
-                    PaddedGlyph paddedGlyph = GetPaddedGlyph(character, font);
+                    PaddedGlyph? paddedGlyph = GetPaddedGlyph(character, font);
+
+                    if (paddedGlyph is null)
+                        continue;
 
                     characterInfo.BoundingBox = paddedGlyph.BoundingBox;
                     characterInfo.GlyphPosition = paddedGlyph.GlyphPosition;
                     characterInfo.Glyph = paddedGlyph.Glyph;
                 }
+
+                characterInfo.ContentChanged = true;
 
                 if (isNew)
                     _fontState.AttemptAddCharacter(characterInfo);
@@ -482,12 +488,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return new Font(_fontFamilyBox.SelectedItem.Content, _profile.FontSize, fontStyle);
         }
 
-        private PaddedGlyph GetPaddedGlyph(char character, Font font)
+        private PaddedGlyph? GetPaddedGlyph(char character, Font font)
         {
             if (!_profile.Paddings.TryGetValue(character, out (int, int) padding))
                 padding = (DefaultPaddingLeft_, DefaultPaddingRight_);
 
-            Image<Rgba32> glyph = GetGlyph(character, font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition);
+            Image<Rgba32>? glyph = GetGlyph(character, font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition);
+
+            if (glyph is null)
+                return null;
 
             return new PaddedGlyph
             {
@@ -498,9 +507,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             };
         }
 
-        private Image<Rgba32> GetGlyph(char character, Font font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition)
+        private Image<Rgba32>? GetGlyph(char character, Font font, out SixLabors.ImageSharp.Size boundingBox, out Point glyphPosition)
         {
-            System.Drawing.Image glyphImage = GetNativeGlyph(character, font);
+            boundingBox = SixLabors.ImageSharp.Size.Empty;
+            glyphPosition = Point.Empty;
+
+            System.Drawing.Image? glyphImage = GetNativeGlyph(character, font);
+
+            if (glyphImage is null)
+                return null;
 
             using Graphics gfx = Graphics.FromImage(glyphImage);
             float glyphY = _profile.Baseline - gfx.DpiY / 72f *
@@ -524,11 +539,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return glyph;
         }
 
-        private System.Drawing.Image GetNativeGlyph(char character, Font font)
+        private System.Drawing.Image? GetNativeGlyph(char character, Font font)
         {
             int measuredWidth = _profile.SpaceWidth;
             if (!char.IsWhiteSpace(character))
                 measuredWidth = (int)Math.Ceiling(MeasureCharacter(character, font).Width);
+
+            if (measuredWidth <= 0)
+                return null;
 
             var glyphImage = new Bitmap(measuredWidth, _profile.GlyphHeight);
             using Graphics gfx = Graphics.FromImage(glyphImage);
