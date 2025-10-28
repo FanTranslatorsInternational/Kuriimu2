@@ -114,12 +114,12 @@ namespace plugin_level5.Common.Image
                 ["Professor Layton 6"] = 1, // TODO: Unconfirmed
                 ["Professor Layton vs Phoenix Wright"] = 1, // TODO: Unconfirmed
                 ["Time Travelers"] = 1,
+                ["The Snack World TreJarers"] = 1, // TODO: Unconfirmed
                 ["Yo-Kai Watch"] = 1, // TODO: Unconfirmed
                 ["Yo-Kai Watch 2"] = 1, // TODO: Unconfirmed
                 ["Yo-Kai Watch 3"] = 1, // TODO: Unconfirmed
                 ["Yo-Kai Watch Blasters"] = 1, // TODO: Unconfirmed
                 ["Yo-Kai Watch Blasters 2"] = 1, // TODO: Unconfirmed
-                ["Yo-Kai Watch Sangokushi"] = 1, // TODO: Unconfirmed
             };
 
             string[] availableGames = gameMapping.Keys.ToArray();
