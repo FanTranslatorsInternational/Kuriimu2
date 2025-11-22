@@ -59,7 +59,7 @@ namespace plugin_level5_preview.Preview.Narration
                 var layout = layouter.Create(characterSet, initPoint, screen.Size);
                 renderer.Render(screen, layout);
 
-                initPoint = new Point(initPoint.X, initPoint.Y + layout.BoundingBox.Height);
+                initPoint = new Point(initPoint.X, initPoint.Y + (int)layout.BoundingBox.Height);
             }
 
             return [screen];
