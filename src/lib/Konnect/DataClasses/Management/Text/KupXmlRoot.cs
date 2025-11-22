@@ -1,11 +1,10 @@
 ﻿using System.Xml.Serialization;
 
-namespace Konnect.DataClasses.Management.Text
+namespace Konnect.DataClasses.Management.Text;
+
+[XmlRoot("kup")]
+public class KupXmlRoot
 {
-    [XmlRoot("kup")]
-    public class KupXmlRoot
-    {
-        [XmlElement("entries")]
-        public required KupXmlEntries Entries { get; init; }
-    }
+    [XmlElement("entries")]
+    public required KupXmlEntries Entries { get; init; }
 }

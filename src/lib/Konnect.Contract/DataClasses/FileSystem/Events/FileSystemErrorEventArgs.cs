@@ -22,17 +22,16 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-namespace Konnect.Contract.DataClasses.FileSystem.Events
+namespace Konnect.Contract.DataClasses.FileSystem.Events;
+
+/// <summary>
+/// Contains information about a filesystem error event.
+/// </summary>
+/// <inheritdoc />
+public class FileSystemErrorEventArgs : EventArgs
 {
     /// <summary>
-    /// Contains information about a filesystem error event.
+    /// Exception that was thrown in the filesystem.
     /// </summary>
-    /// <inheritdoc />
-    public class FileSystemErrorEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Exception that was thrown in the filesystem.
-        /// </summary>
-        public required Exception Exception { get; init; }
-    }
+    public required Exception Exception { get; init; }
 }

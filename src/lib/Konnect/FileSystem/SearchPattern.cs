@@ -31,144 +31,143 @@ using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.FileSystem;
 using Konnect.Extensions;
 
-namespace Konnect.FileSystem
+namespace Konnect.FileSystem;
+
+/// <summary>
+/// Search pattern compiler used for custom <see cref="IFileSystem.EnumeratePaths"/> implementations.
+/// Use the method <see cref="Parse"/> to create a pattern.
+/// </summary>
+internal struct SearchPattern
 {
+    private static readonly char[] WildcardChars = { '?', '*' };
+
+    private readonly string _exactMatch;
+    private readonly Regex _regexMatch;
+
     /// <summary>
-    /// Search pattern compiler used for custom <see cref="IFileSystem.EnumeratePaths"/> implementations.
-    /// Use the method <see cref="Parse"/> to create a pattern.
+    /// Tries to match the specified path with this instance.
     /// </summary>
-    internal struct SearchPattern
+    /// <param name="path">The path to match.</param>
+    /// <returns><c>true</c> if the path was matched, <c>false</c> otherwise.</returns>
+    public bool Match(UPath path)
     {
-        private static readonly char[] WildcardChars = { '?', '*' };
+        path.AssertNotNull();
+        var name = path.FullName;
+        // if _execMatch is null and _regexMatch is null, we have a * match
+        return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
+    }
 
-        private readonly string _exactMatch;
-        private readonly Regex _regexMatch;
+    /// <summary>
+    /// Tries to match the specified path with this instance.
+    /// </summary>
+    /// <param name="name">The path to match.</param>
+    /// <returns><c>true</c> if the path was matched, <c>false</c> otherwise.</returns>
+    public bool Match(string name)
+    {
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        // if _execMatch is null and _regexMatch is null, we have a * match
+        return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
+    }
 
-        /// <summary>
-        /// Tries to match the specified path with this instance.
-        /// </summary>
-        /// <param name="path">The path to match.</param>
-        /// <returns><c>true</c> if the path was matched, <c>false</c> otherwise.</returns>
-        public bool Match(UPath path)
+    /// <summary>
+    /// Parses and normalize the specified path and <see cref="SearchPattern"/>.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <param name="searchPattern">The search pattern.</param>
+    /// <returns>An instance of <see cref="SearchPattern"/> in order to use <see cref="System.Text.RegularExpressions.Match"/> on a path.</returns>
+    public static SearchPattern Parse(ref UPath path, ref string searchPattern)
+    {
+        return new SearchPattern(ref path, ref searchPattern);
+    }
+
+    /// <summary>
+    /// Normalizes the specified path and <see cref="SearchPattern"/>.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <param name="searchPattern">The search pattern.</param>
+    public static void Normalize(ref UPath path, ref string searchPattern)
+    {
+        Parse(ref path, ref searchPattern);
+    }
+
+    private SearchPattern(ref UPath path, ref string searchPattern)
+    {
+        path.AssertAbsolute();
+        if (searchPattern == null) throw new ArgumentNullException(nameof(searchPattern));
+
+        _exactMatch = null;
+        _regexMatch = null;
+
+        //Optimized path, most common case
+        if (searchPattern == "*" && path == UPath.Root)
         {
-            path.AssertNotNull();
-            var name = path.FullName;
-            // if _execMatch is null and _regexMatch is null, we have a * match
-            return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
+            return;
         }
 
-        /// <summary>
-        /// Tries to match the specified path with this instance.
-        /// </summary>
-        /// <param name="name">The path to match.</param>
-        /// <returns><c>true</c> if the path was matched, <c>false</c> otherwise.</returns>
-        public bool Match(string name)
+        if (searchPattern.StartsWith("/"))
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            // if _execMatch is null and _regexMatch is null, we have a * match
-            return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
+            throw new ArgumentException($"The search pattern `{searchPattern}` cannot start by an absolute path `/`");
         }
 
-        /// <summary>
-        /// Parses and normalize the specified path and <see cref="SearchPattern"/>.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="searchPattern">The search pattern.</param>
-        /// <returns>An instance of <see cref="SearchPattern"/> in order to use <see cref="System.Text.RegularExpressions.Match"/> on a path.</returns>
-        public static SearchPattern Parse(ref UPath path, ref string searchPattern)
+        // Normalize path separators
+        searchPattern = searchPattern.Replace('\\', '/');
+
+        // If the path contains any directory, we need to concatenate the directory part with the input path (?)
+        if (searchPattern.IndexOf('/') > 0)
         {
-            return new SearchPattern(ref path, ref searchPattern);
-        }
+            var pathPattern = new UPath(searchPattern);
+            var directory = pathPattern.GetDirectory();
+            if (!directory.IsNull && !directory.IsEmpty)
+            {
+                path /= directory;
+            }
+            searchPattern = pathPattern.GetName();
 
-        /// <summary>
-        /// Normalizes the specified path and <see cref="SearchPattern"/>.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="searchPattern">The search pattern.</param>
-        public static void Normalize(ref UPath path, ref string searchPattern)
-        {
-            Parse(ref path, ref searchPattern);
-        }
-
-        private SearchPattern(ref UPath path, ref string searchPattern)
-        {
-            path.AssertAbsolute();
-            if (searchPattern == null) throw new ArgumentNullException(nameof(searchPattern));
-
-            _exactMatch = null;
-            _regexMatch = null;
-
-            //Optimized path, most common case
-            if (searchPattern == "*" && path == UPath.Root)
+            // If the search pattern is again a plain any, optimized path
+            if (searchPattern == "*")
             {
                 return;
             }
-
-            if (searchPattern.StartsWith("/"))
-            {
-                throw new ArgumentException($"The search pattern `{searchPattern}` cannot start by an absolute path `/`");
-            }
-
-            // Normalize path separators
-            searchPattern = searchPattern.Replace('\\', '/');
-
-            // If the path contains any directory, we need to concatenate the directory part with the input path (?)
-            if (searchPattern.IndexOf('/') > 0)
-            {
-                var pathPattern = new UPath(searchPattern);
-                var directory = pathPattern.GetDirectory();
-                if (!directory.IsNull && !directory.IsEmpty)
-                {
-                    path /= directory;
-                }
-                searchPattern = pathPattern.GetName();
-
-                // If the search pattern is again a plain any, optimized path
-                if (searchPattern == "*")
-                {
-                    return;
-                }
-            }
+        }
             
-            var regexBuilder = new StringBuilder("^");
-            bool containsWildcards = false;
+        var regexBuilder = new StringBuilder("^");
+        bool containsWildcards = false;
             
-            // Loop through parts of searchPattern separated by wildcards
-            for (int index = 0, nextWildcard = 0; nextWildcard != -1; index = nextWildcard + 1)
-            {
-                // Next wildcard occurence
-                nextWildcard = searchPattern.IndexOfAny(WildcardChars, index);
+        // Loop through parts of searchPattern separated by wildcards
+        for (int index = 0, nextWildcard = 0; nextWildcard != -1; index = nextWildcard + 1)
+        {
+            // Next wildcard occurence
+            nextWildcard = searchPattern.IndexOfAny(WildcardChars, index);
                 
-                // Escape & append text up to next wildcard
-                // If no new wildcard, append up to end of string
-                var endOfPart = nextWildcard != -1 ? nextWildcard : searchPattern.Length;
-                regexBuilder.Append(Regex.Escape(searchPattern.Substring(index, endOfPart - index)));
+            // Escape & append text up to next wildcard
+            // If no new wildcard, append up to end of string
+            var endOfPart = nextWildcard != -1 ? nextWildcard : searchPattern.Length;
+            regexBuilder.Append(Regex.Escape(searchPattern.Substring(index, endOfPart - index)));
 
-                // Convert & append wildcard, if applicable
-                if (nextWildcard != -1)
+            // Convert & append wildcard, if applicable
+            if (nextWildcard != -1)
+            {
+                var wc = searchPattern[nextWildcard];
+                var regexPatternPart = wc switch
                 {
-                    var wc = searchPattern[nextWildcard];
-                    var regexPatternPart = wc switch
-                    {
-                        '*' => ".*",
-                        '?' => ".",
-                        _ => throw new ArgumentException($"Unknown wildcard: {wc}")
-                    };
-                    regexBuilder.Append(regexPatternPart);
-                    containsWildcards = true;
-                }
+                    '*' => ".*",
+                    '?' => ".",
+                    _ => throw new ArgumentException($"Unknown wildcard: {wc}")
+                };
+                regexBuilder.Append(regexPatternPart);
+                containsWildcards = true;
             }
+        }
             
-            regexBuilder.Append("$");
+        regexBuilder.Append("$");
             
-            if (!containsWildcards)
-            {
-                _exactMatch = searchPattern;
-            }
-            else
-            {
-                _regexMatch = new Regex(regexBuilder.ToString());
-            }
+        if (!containsWildcards)
+        {
+            _exactMatch = searchPattern;
+        }
+        else
+        {
+            _regexMatch = new Regex(regexBuilder.ToString());
         }
     }
 }

@@ -1,17 +1,16 @@
-﻿namespace Konnect.Contract.Plugin.Game
+﻿namespace Konnect.Contract.Plugin.Game;
+
+public interface IGamePluginState
 {
-    public interface IGamePluginState
-    {
-        #region Optional feature checks
+    #region Optional feature checks
 
-        bool CanProcessTexts => this is ITextProcessingState;
+    bool CanProcessTexts => this is ITextProcessingState;
 
-        #endregion
+    #endregion
 
-        #region Optional feature casting defaults
+    #region Optional feature casting defaults
 
-        ITextProcessingState? TextProcessing => this as ITextProcessingState;
+    ITextProcessingState? TextProcessing => this as ITextProcessingState;
 
-        #endregion
-    }
+    #endregion
 }

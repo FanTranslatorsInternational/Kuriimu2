@@ -1,9 +1,8 @@
-﻿namespace Konnect.Contract.Enums.Management.Files
+﻿namespace Konnect.Contract.Enums.Management.Files;
+
+public enum SelectionStatus
 {
-    public enum SelectionStatus
-    {
-        All,
-        MultipleMatches,
-        NonIdentifiable
-    }
+    All,
+    MultipleMatches,
+    NonIdentifiable
 }

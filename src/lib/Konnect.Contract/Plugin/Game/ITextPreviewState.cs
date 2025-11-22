@@ -2,10 +2,9 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Konnect.Contract.Plugin.Game
+namespace Konnect.Contract.Plugin.Game;
+
+public interface ITextPreviewState : ITextProcessingState
 {
-    public interface ITextPreviewState : ITextProcessingState
-    {
-        Task<IList<Image<Rgba32>>?> RenderPreviews(IList<IList<CharacterData>> characters);
-    }
+    Task<IList<Image<Rgba32>>?> RenderPreviews(IList<IList<CharacterData>> characters);
 }

@@ -3,26 +3,25 @@
 
 using Konnect.Contract.FileSystem;
 
-namespace Konnect.Contract.Enums.FileSystem
+namespace Konnect.Contract.Enums.FileSystem;
+
+/// <summary>
+/// Defines the behavior of <see cref="IFileSystem.EnumeratePaths"/> when looking for files and/or folders.
+/// </summary>
+public enum SearchTarget
 {
     /// <summary>
-    /// Defines the behavior of <see cref="IFileSystem.EnumeratePaths"/> when looking for files and/or folders.
+    /// Search for both files and folders.
     /// </summary>
-    public enum SearchTarget
-    {
-        /// <summary>
-        /// Search for both files and folders.
-        /// </summary>
-        Both,
+    Both,
 
-        /// <summary>
-        /// Search for files.
-        /// </summary>
-        File,
+    /// <summary>
+    /// Search for files.
+    /// </summary>
+    File,
 
-        /// <summary>
-        /// Search for directories.
-        /// </summary>
-        Directory
-    }
+    /// <summary>
+    /// Search for directories.
+    /// </summary>
+    Directory
 }

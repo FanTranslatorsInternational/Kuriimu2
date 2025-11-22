@@ -22,17 +22,16 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-namespace Konnect.Contract.DataClasses.FileSystem.Events
+namespace Konnect.Contract.DataClasses.FileSystem.Events;
+
+/// <summary>
+/// Represents a file or directory rename event.
+/// </summary>
+/// <inheritdoc />
+public class FileRenamedEventArgs : FileChangedEventArgs
 {
     /// <summary>
-    /// Represents a file or directory rename event.
+    /// Absolute path to the old location of the file or directory.
     /// </summary>
-    /// <inheritdoc />
-    public class FileRenamedEventArgs : FileChangedEventArgs
-    {
-        /// <summary>
-        /// Absolute path to the old location of the file or directory.
-        /// </summary>
-        public required UPath OldFullPath { get; init; }
-    }
+    public required UPath OldFullPath { get; init; }
 }

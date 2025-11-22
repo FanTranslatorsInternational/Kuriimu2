@@ -2,71 +2,70 @@
 using Konnect.Contract.DataClasses.Progress;
 using Konnect.Contract.Progress;
 
-namespace Konnect.Progress
+namespace Konnect.Progress;
+
+public abstract class ConcurrentProgressOutput : IProgressOutput
 {
-    public abstract class ConcurrentProgressOutput : IProgressOutput
+    private readonly System.Timers.Timer _timer;
+    private ProgressState _progressState;
+
+    private readonly object _lock = new object();
+    private bool _isUpdating;
+
+    public ConcurrentProgressOutput(int updateInterval)
     {
-        private readonly System.Timers.Timer _timer;
-        private ProgressState _progressState;
+        _timer = new System.Timers.Timer(updateInterval);
+        _timer.Elapsed += Timer_Elapsed;
+    }
 
-        private readonly object _lock = new object();
-        private bool _isUpdating;
+    public void SetProgress(ProgressState state)
+    {
+        _progressState = state;
+    }
 
-        public ConcurrentProgressOutput(int updateInterval)
+    public void StartProgress()
+    {
+        _timer.Start();
+    }
+
+    public void FinishProgress()
+    {
+        _timer.Stop();
+
+        OutputProgress();
+    }
+
+    protected abstract void OutputProgressInternal(double completion, string message);
+
+    private void OutputProgress()
+    {
+        lock (_lock)
         {
-            _timer = new System.Timers.Timer(updateInterval);
-            _timer.Elapsed += Timer_Elapsed;
+            if (_isUpdating || _progressState == null)
+                return;
+
+            _isUpdating = true;
         }
 
-        public void SetProgress(ProgressState state)
-        {
-            _progressState = state;
-        }
+        var localProgress = _progressState;
 
-        public void StartProgress()
-        {
-            _timer.Start();
-        }
+        var percentageValue = localProgress.PartialValue / (double)localProgress.MaxValue;
+        var percentageInRange = (localProgress.MaxPercentage - localProgress.MinPercentage) * percentageValue;
 
-        public void FinishProgress()
-        {
-            _timer.Stop();
+        var message = string.IsNullOrWhiteSpace(localProgress.PreText) ?
+            localProgress.Message :
+            localProgress.PreText + localProgress.Message;
+        message = string.IsNullOrWhiteSpace(message) ? string.Empty : message;
 
-            OutputProgress();
-        }
+        var completion = localProgress.MinPercentage + percentageInRange;
 
-        protected abstract void OutputProgressInternal(double completion, string message);
+        OutputProgressInternal(completion, message);
 
-        private void OutputProgress()
-        {
-            lock (_lock)
-            {
-                if (_isUpdating || _progressState == null)
-                    return;
+        _isUpdating = false;
+    }
 
-                _isUpdating = true;
-            }
-
-            var localProgress = _progressState;
-
-            var percentageValue = localProgress.PartialValue / (double)localProgress.MaxValue;
-            var percentageInRange = (localProgress.MaxPercentage - localProgress.MinPercentage) * percentageValue;
-
-            var message = string.IsNullOrWhiteSpace(localProgress.PreText) ?
-                localProgress.Message :
-                localProgress.PreText + localProgress.Message;
-            message = string.IsNullOrWhiteSpace(message) ? string.Empty : message;
-
-            var completion = localProgress.MinPercentage + percentageInRange;
-
-            OutputProgressInternal(completion, message);
-
-            _isUpdating = false;
-        }
-
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            OutputProgress();
-        }
+    private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        OutputProgress();
     }
 }

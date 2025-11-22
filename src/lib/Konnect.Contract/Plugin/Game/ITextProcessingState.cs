@@ -3,26 +3,25 @@ using Kaligraphy.Contract.Parsing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
 
-namespace Konnect.Contract.Plugin.Game
+namespace Konnect.Contract.Plugin.Game;
+
+public interface ITextProcessingState : IGamePluginState
 {
-    public interface ITextProcessingState : IGamePluginState
-    {
-        ICharacterParser? Parser { get; }
-        ICharacterComposer? Composer { get; }
-        ICharacterSerializer? Serializer { get; }
-        ICharacterDeserializer? Deserializer { get; }
+    ICharacterParser? Parser { get; }
+    ICharacterComposer? Composer { get; }
+    ICharacterSerializer? Serializer { get; }
+    ICharacterDeserializer? Deserializer { get; }
 
-        #region Optional feature checks
+    #region Optional feature checks
 
-        public bool CanRenderPreviews => this is ITextPreviewState;
+    public bool CanRenderPreviews => this is ITextPreviewState;
 
-        #endregion
+    #endregion
 
-        #region Optional feature casting defaults
+    #region Optional feature casting defaults
 
-        Task<IList<Image<Rgba32>>?> AttemptRenderPreviews(IList<IList<CharacterData>> characters) =>
-            (this as ITextPreviewState)?.RenderPreviews(characters) ?? Task.FromResult<IList<Image<Rgba32>>?>(null);
+    Task<IList<Image<Rgba32>>?> AttemptRenderPreviews(IList<IList<CharacterData>> characters) =>
+        (this as ITextPreviewState)?.RenderPreviews(characters) ?? Task.FromResult<IList<Image<Rgba32>>?>(null);
 
-        #endregion
-    }
+    #endregion
 }

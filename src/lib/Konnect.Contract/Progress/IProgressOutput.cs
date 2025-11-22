@@ -1,13 +1,12 @@
 ﻿using Konnect.Contract.DataClasses.Progress;
 
-namespace Konnect.Contract.Progress
+namespace Konnect.Contract.Progress;
+
+public interface IProgressOutput
 {
-    public interface IProgressOutput
-    {
-        void SetProgress(ProgressState state);
+    void SetProgress(ProgressState state);
 
-        void StartProgress();
+    void StartProgress();
 
-        void FinishProgress();
-    }
+    void FinishProgress();
 }

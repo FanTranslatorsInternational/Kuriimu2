@@ -30,61 +30,60 @@ using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Streams;
 using Konnect.Extensions;
 
-namespace Konnect.FileSystem
+namespace Konnect.FileSystem;
+
+/// <summary>
+/// Provides a secure view on a sub folder of another delegate <see cref="IFileSystem"/>
+/// </summary>
+public class SubFileSystem : ComposeFileSystem
 {
     /// <summary>
-    /// Provides a secure view on a sub folder of another delegate <see cref="IFileSystem"/>
+    /// Initializes a new instance of the <see cref="SubFileSystem"/> class.
     /// </summary>
-    public class SubFileSystem : ComposeFileSystem
+    /// <param name="fileSystem">The file system to create a view from.</param>
+    /// <param name="subPath">The sub path view to create filesystem.</param>
+    /// <param name="owned">True if <paramref name="fileSystem"/> should be disposed when this instance is disposed.</param>
+    /// <exception cref="DirectoryNotFoundException">If the directory subPath does not exist in the delegate FileSystem</exception>
+    public SubFileSystem(IFileSystem fileSystem, UPath subPath, bool owned = true) : base(fileSystem, owned)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SubFileSystem"/> class.
-        /// </summary>
-        /// <param name="fileSystem">The file system to create a view from.</param>
-        /// <param name="subPath">The sub path view to create filesystem.</param>
-        /// <param name="owned">True if <paramref name="fileSystem"/> should be disposed when this instance is disposed.</param>
-        /// <exception cref="DirectoryNotFoundException">If the directory subPath does not exist in the delegate FileSystem</exception>
-        public SubFileSystem(IFileSystem fileSystem, UPath subPath, bool owned = true) : base(fileSystem, owned)
+        SubPath = subPath.AssertAbsolute(nameof(subPath));
+        if (!fileSystem.DirectoryExists(SubPath))
         {
-            SubPath = subPath.AssertAbsolute(nameof(subPath));
-            if (!fileSystem.DirectoryExists(SubPath))
-            {
-                throw new DirectoryNotFoundException($"Could not find a part of the path `{SubPath}`.");
-            }
+            throw new DirectoryNotFoundException($"Could not find a part of the path `{SubPath}`.");
+        }
+    }
+
+    /// <inheritdoc />
+    public override IFileSystem Clone(IStreamManager streamManager)
+    {
+        var clonedFs = base.Clone(streamManager);
+        return new SubFileSystem(clonedFs, SubPath, Owned);
+    }
+
+    /// <summary>
+    /// Gets the sub path relative to the delegate <see cref="ComposeFileSystem.NextFileSystem"/>
+    /// </summary>
+    public UPath SubPath { get; }
+
+    /// <inheritdoc />
+    protected override UPath ConvertPathToDelegate(UPath path)
+    {
+        var safePath = path.ToRelative();
+        return SubPath / safePath;
+    }
+
+    /// <inheritdoc />
+    protected override UPath ConvertPathFromDelegate(UPath path)
+    {
+        var fullPath = path.FullName;
+        if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
+        {
+            // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
+            // we are throwing an exception here
+            throw new InvalidOperationException($"The path `{path}` returned by the delegate filesystem is not rooted to the subpath `{SubPath}`");
         }
 
-        /// <inheritdoc />
-        public override IFileSystem Clone(IStreamManager streamManager)
-        {
-            var clonedFs = base.Clone(streamManager);
-            return new SubFileSystem(clonedFs, SubPath, Owned);
-        }
-
-        /// <summary>
-        /// Gets the sub path relative to the delegate <see cref="ComposeFileSystem.NextFileSystem"/>
-        /// </summary>
-        public UPath SubPath { get; }
-
-        /// <inheritdoc />
-        protected override UPath ConvertPathToDelegate(UPath path)
-        {
-            var safePath = path.ToRelative();
-            return SubPath / safePath;
-        }
-
-        /// <inheritdoc />
-        protected override UPath ConvertPathFromDelegate(UPath path)
-        {
-            var fullPath = path.FullName;
-            if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
-            {
-                // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
-                // we are throwing an exception here
-                throw new InvalidOperationException($"The path `{path}` returned by the delegate filesystem is not rooted to the subpath `{SubPath}`");
-            }
-
-            var subPath = fullPath.Substring(SubPath.FullName.Length);
-            return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
-        }
+        var subPath = fullPath.Substring(SubPath.FullName.Length);
+        return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
     }
 }

@@ -1,34 +1,33 @@
 ﻿using Konnect.Contract.Plugin.File.Archive;
 using Konnect.DataClasses.FileSystem;
 
-namespace Konnect.Extensions
+namespace Konnect.Extensions;
+
+public static class ListExtensions
 {
-    public static class ListExtensions
+    public static DirectoryEntry ToTree(this IList<IArchiveFile> files)
     {
-        public static DirectoryEntry ToTree(this IList<IArchiveFile> files)
+        var root = new DirectoryEntry(string.Empty);
+
+        foreach (IArchiveFile file in files)
         {
-            var root = new DirectoryEntry(string.Empty);
+            DirectoryEntry parent = root;
 
-            foreach (IArchiveFile file in files)
+            foreach (string part in file.FilePath.GetDirectory().Split())
             {
-                DirectoryEntry parent = root;
-
-                foreach (string part in file.FilePath.GetDirectory().Split())
+                DirectoryEntry? entry = parent.Directories.FirstOrDefault(x => x.Name == part);
+                if (entry == null)
                 {
-                    DirectoryEntry? entry = parent.Directories.FirstOrDefault(x => x.Name == part);
-                    if (entry == null)
-                    {
-                        entry = new DirectoryEntry(part);
-                        parent.AddDirectory(entry);
-                    }
-
-                    parent = entry;
+                    entry = new DirectoryEntry(part);
+                    parent.AddDirectory(entry);
                 }
 
-                parent.Files.Add(file);
+                parent = entry;
             }
 
-            return root;
+            parent.Files.Add(file);
         }
+
+        return root;
     }
 }

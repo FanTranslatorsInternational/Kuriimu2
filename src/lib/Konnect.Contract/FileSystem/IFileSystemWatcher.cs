@@ -33,52 +33,51 @@
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.FileSystem.Events;
 
-namespace Konnect.Contract.FileSystem
+namespace Konnect.Contract.FileSystem;
+
+/// <summary>
+/// Interface for a filesystem watcher.
+/// </summary>
+/// <inheritdoc />
+public interface IFileSystemWatcher : IDisposable
 {
     /// <summary>
-    /// Interface for a filesystem watcher.
+    /// Event for when a file was opened.
     /// </summary>
-    /// <inheritdoc />
-    public interface IFileSystemWatcher : IDisposable
-    {
-        /// <summary>
-        /// Event for when a file was opened.
-        /// </summary>
-        event EventHandler<FileOpenedEventArgs> Opened;
+    event EventHandler<FileOpenedEventArgs> Opened;
 
-        /// <summary>
-        /// Event for when a file or directory changes.
-        /// </summary>
-        event EventHandler<FileChangedEventArgs> Changed;
+    /// <summary>
+    /// Event for when a file or directory changes.
+    /// </summary>
+    event EventHandler<FileChangedEventArgs> Changed;
 
-        /// <summary>
-        /// Event for when a file or directory is created.
-        /// </summary>
-        event EventHandler<FileChangedEventArgs> Created;
+    /// <summary>
+    /// Event for when a file or directory is created.
+    /// </summary>
+    event EventHandler<FileChangedEventArgs> Created;
 
-        /// <summary>
-        /// Event for when a file or directory is deleted.
-        /// </summary>
-        event EventHandler<FileChangedEventArgs> Deleted;
+    /// <summary>
+    /// Event for when a file or directory is deleted.
+    /// </summary>
+    event EventHandler<FileChangedEventArgs> Deleted;
 
-        /// <summary>
-        /// Event for when the filesystem encounters an error.
-        /// </summary>
-        event EventHandler<FileSystemErrorEventArgs> Error;
+    /// <summary>
+    /// Event for when the filesystem encounters an error.
+    /// </summary>
+    event EventHandler<FileSystemErrorEventArgs> Error;
 
-        /// <summary>
-        /// Event for when a file or directory is renamed.
-        /// </summary>
-        event EventHandler<FileRenamedEventArgs> Renamed;
+    /// <summary>
+    /// Event for when a file or directory is renamed.
+    /// </summary>
+    event EventHandler<FileRenamedEventArgs> Renamed;
 
-        /// <summary>
-        /// The <see cref="IFileSystem"/> this instance is watching.
-        /// </summary>
-        IFileSystem FileSystem { get; }
+    /// <summary>
+    /// The <see cref="IFileSystem"/> this instance is watching.
+    /// </summary>
+    IFileSystem FileSystem { get; }
 
-        /// <summary>
-        /// The path being watched by the filesystem.
-        /// </summary>
-        UPath Path { get; }
-    }
+    /// <summary>
+    /// The path being watched by the filesystem.
+    /// </summary>
+    UPath Path { get; }
 }

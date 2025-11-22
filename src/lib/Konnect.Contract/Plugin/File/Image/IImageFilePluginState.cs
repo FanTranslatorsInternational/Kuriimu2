@@ -1,7 +1,6 @@
-﻿namespace Konnect.Contract.Plugin.File.Image
+﻿namespace Konnect.Contract.Plugin.File.Image;
+
+public interface IImageFilePluginState : IFilePluginState
 {
-    public interface IImageFilePluginState : IFilePluginState
-    {
-        IReadOnlyList<IImageFile> Images { get; }
-    }
+    IReadOnlyList<IImageFile> Images { get; }
 }

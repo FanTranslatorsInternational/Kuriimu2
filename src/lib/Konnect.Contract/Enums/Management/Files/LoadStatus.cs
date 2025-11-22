@@ -1,9 +1,8 @@
-﻿namespace Konnect.Contract.Enums.Management.Files
+﻿namespace Konnect.Contract.Enums.Management.Files;
+
+public enum LoadStatus
 {
-    public enum LoadStatus
-    {
-        Successful,
-        Cancelled,
-        Errored
-    }
+    Successful,
+    Cancelled,
+    Errored
 }

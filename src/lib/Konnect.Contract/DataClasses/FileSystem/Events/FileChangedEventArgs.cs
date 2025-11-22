@@ -24,29 +24,28 @@
 
 using Konnect.Contract.FileSystem;
 
-namespace Konnect.Contract.DataClasses.FileSystem.Events
+namespace Konnect.Contract.DataClasses.FileSystem.Events;
+
+/// <summary>
+/// The <see cref="EventArgs"/> base class for file and directory events. Used for
+/// <see cref="WatcherChangeTypes.Created"/>, <see cref="WatcherChangeTypes.Deleted"/>,
+/// and <see cref="WatcherChangeTypes.Changed"/>.
+/// </summary>
+/// <inheritdoc />
+public class FileChangedEventArgs : EventArgs
 {
     /// <summary>
-    /// The <see cref="EventArgs"/> base class for file and directory events. Used for
-    /// <see cref="WatcherChangeTypes.Created"/>, <see cref="WatcherChangeTypes.Deleted"/>,
-    /// and <see cref="WatcherChangeTypes.Changed"/>.
+    /// The type of change that occurred.
     /// </summary>
-    /// <inheritdoc />
-    public class FileChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The type of change that occurred.
-        /// </summary>
-        public required WatcherChangeTypes ChangeType { get; init; }
+    public required WatcherChangeTypes ChangeType { get; init; }
 
-        /// <summary>
-        /// The filesystem originating this change.
-        /// </summary>
-        public required IFileSystem FileSystem { get; init; }
+    /// <summary>
+    /// The filesystem originating this change.
+    /// </summary>
+    public required IFileSystem FileSystem { get; init; }
 
-        /// <summary>
-        /// Absolute path to the file or directory.
-        /// </summary>
-        public required UPath FullPath { get; init; }
-    }
+    /// <summary>
+    /// Absolute path to the file or directory.
+    /// </summary>
+    public required UPath FullPath { get; init; }
 }

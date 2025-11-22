@@ -27,311 +27,310 @@ using Konnect.Contract.DataClasses.FileSystem.Events;
 using Konnect.Contract.FileSystem;
 using Konnect.Extensions;
 
-namespace Konnect.FileSystem.Watcher
+namespace Konnect.FileSystem.Watcher;
+
+public class FileSystemWatcher : IFileSystemWatcher
 {
-    public class FileSystemWatcher : IFileSystemWatcher
+    /// <inheritdoc />
+    public event EventHandler<FileOpenedEventArgs> Opened;
+
+    /// <inheritdoc />
+    public event EventHandler<FileChangedEventArgs> Changed;
+
+    /// <inheritdoc />
+    public event EventHandler<FileChangedEventArgs> Created;
+
+    /// <inheritdoc />
+    public event EventHandler<FileChangedEventArgs> Deleted;
+
+    /// <inheritdoc />
+    public event EventHandler<FileSystemErrorEventArgs> Error;
+
+    /// <inheritdoc />
+    public event EventHandler<FileRenamedEventArgs> Renamed;
+
+    /// <summary>
+    /// Event for when this watcher is disposed.
+    /// </summary>
+    public event EventHandler<EventArgs> Disposed;
+
+    /// <inheritdoc />
+    public IFileSystem FileSystem { get; }
+
+    /// <inheritdoc />
+    public UPath Path { get; }
+
+    public FileSystemWatcher(IFileSystem fileSystem, UPath path)
     {
-        /// <inheritdoc />
-        public event EventHandler<FileOpenedEventArgs> Opened;
+        if (fileSystem == null)
+            throw new ArgumentNullException(nameof(fileSystem));
 
-        /// <inheritdoc />
-        public event EventHandler<FileChangedEventArgs> Changed;
+        path.AssertAbsolute();
 
-        /// <inheritdoc />
-        public event EventHandler<FileChangedEventArgs> Created;
+        FileSystem = fileSystem;
+        Path = path;
+    }
 
-        /// <inheritdoc />
-        public event EventHandler<FileChangedEventArgs> Deleted;
+    ~FileSystemWatcher()
+    {
+        Dispose(false);
+    }
 
-        /// <inheritdoc />
-        public event EventHandler<FileSystemErrorEventArgs> Error;
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        /// <inheritdoc />
-        public event EventHandler<FileRenamedEventArgs> Renamed;
+    protected virtual void Dispose(bool disposing)
+    {
+        RaiseDisposed();
+    }
 
-        /// <summary>
-        /// Event for when this watcher is disposed.
-        /// </summary>
-        public event EventHandler<EventArgs> Disposed;
-
-        /// <inheritdoc />
-        public IFileSystem FileSystem { get; }
-
-        /// <inheritdoc />
-        public UPath Path { get; }
-
-        public FileSystemWatcher(IFileSystem fileSystem, UPath path)
+    /// <summary>
+    /// Raises the <see cref="Opened"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseOpened(FileOpenedEventArgs args)
+    {
+        if (!ShouldRaiseEvent(args))
         {
-            if (fileSystem == null)
-                throw new ArgumentNullException(nameof(fileSystem));
-
-            path.AssertAbsolute();
-
-            FileSystem = fileSystem;
-            Path = path;
+            return;
         }
 
-        ~FileSystemWatcher()
+        Opened?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="Changed"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseChanged(FileChangedEventArgs args)
+    {
+        if (!ShouldRaiseEvent(args))
         {
-            Dispose(false);
+            return;
         }
 
-        public void Dispose()
+        Changed?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="Created"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseCreated(FileChangedEventArgs args)
+    {
+        if (!ShouldRaiseEvent(args))
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            return;
         }
 
-        protected virtual void Dispose(bool disposing)
+        Created?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="Deleted"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseDeleted(FileChangedEventArgs args)
+    {
+        if (!ShouldRaiseEvent(args))
         {
-            RaiseDisposed();
+            return;
         }
 
-        /// <summary>
-        /// Raises the <see cref="Opened"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseOpened(FileOpenedEventArgs args)
-        {
-            if (!ShouldRaiseEvent(args))
-            {
-                return;
-            }
+        Deleted?.Invoke(this, args);
+    }
 
-            Opened?.Invoke(this, args);
+    /// <summary>
+    /// Raises the <see cref="Error"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseError(FileSystemErrorEventArgs args)
+    {
+        Error?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="Renamed"/> event. 
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    public void RaiseRenamed(FileRenamedEventArgs args)
+    {
+        if (!ShouldRaiseEvent(args))
+        {
+            return;
         }
 
-        /// <summary>
-        /// Raises the <see cref="Changed"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseChanged(FileChangedEventArgs args)
-        {
-            if (!ShouldRaiseEvent(args))
-            {
-                return;
-            }
+        Renamed?.Invoke(this, args);
+    }
 
-            Changed?.Invoke(this, args);
+    /// <summary>
+    /// Raises the <see cref="Disposed"/> event.
+    /// </summary>
+    private void RaiseDisposed()
+    {
+        Disposed?.Invoke(this, new EventArgs());
+    }
+
+    private bool ShouldRaiseEvent(FileChangedEventArgs args)
+    {
+        return ShouldRaiseEventImpl(args);
+    }
+
+    private bool ShouldRaiseEvent(FileOpenedEventArgs args)
+    {
+        return ShouldRaiseEventImpl(args);
+    }
+
+    /// <summary>
+    /// Checks if the event should be raised for the given arguments. Default implementation
+    /// checks if the <see cref="FileChangedEventArgs.FullPath"/> is contained in <see cref="Path"/>.
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    /// <returns>True if the event should be raised, false to ignore it.</returns>
+    protected virtual bool ShouldRaiseEventImpl(FileChangedEventArgs args)
+    {
+        return args.FullPath.IsInDirectory(Path, true);
+    }
+
+    /// <summary>
+    /// Checks if the event should be raised for the given arguments. Default implementation
+    /// checks if the <see cref="FileOpenedEventArgs.OpenedPath"/> is contained in <see cref="Path"/>.
+    /// </summary>
+    /// <param name="args">Arguments for the event.</param>
+    /// <returns>True if the event should be raised, false to ignore it.</returns>
+    protected virtual bool ShouldRaiseEventImpl(FileOpenedEventArgs args)
+    {
+        return args.OpenedPath.IsInDirectory(Path, true);
+    }
+
+    /// <summary>
+    /// Listens to events from another <see cref="IFileSystemWatcher"/> instance to forward them
+    /// into this instance.
+    /// </summary>
+    /// <param name="watcher">Other instance to listen to.</param>
+    protected void RegisterEvents(IFileSystemWatcher watcher)
+    {
+        if (watcher == null)
+        {
+            throw new ArgumentNullException(nameof(watcher));
         }
 
-        /// <summary>
-        /// Raises the <see cref="Created"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseCreated(FileChangedEventArgs args)
-        {
-            if (!ShouldRaiseEvent(args))
-            {
-                return;
-            }
+        watcher.Changed += OnChanged;
+        watcher.Created += OnCreated;
+        watcher.Deleted += OnDeleted;
+        watcher.Error += OnError;
+        watcher.Renamed += OnRenamed;
+    }
 
-            Created?.Invoke(this, args);
+    /// <summary>
+    /// Stops listening to events from another <see cref="IFileSystemWatcher"/>.
+    /// </summary>
+    /// <param name="watcher">Instance to remove event handlers from.</param>
+    protected void UnregisterEvents(IFileSystemWatcher watcher)
+    {
+        if (watcher == null)
+        {
+            throw new ArgumentNullException(nameof(watcher));
         }
 
-        /// <summary>
-        /// Raises the <see cref="Deleted"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseDeleted(FileChangedEventArgs args)
-        {
-            if (!ShouldRaiseEvent(args))
-            {
-                return;
-            }
+        watcher.Changed -= OnChanged;
+        watcher.Created -= OnCreated;
+        watcher.Deleted -= OnDeleted;
+        watcher.Error -= OnError;
+        watcher.Renamed -= OnRenamed;
+    }
 
-            Deleted?.Invoke(this, args);
+    /// <summary>
+    /// Attempts to convert paths from an existing event in another <see cref="IFileSystem"/> into
+    /// this <see cref="FileSystem"/>. If this returns <c>null</c> the event will be discarded.
+    /// </summary>
+    /// <param name="pathFromEvent">Path from the other filesystem.</param>
+    /// <returns>Path in this filesystem, or null if it cannot be converted.</returns>
+    protected virtual UPath? TryConvertPath(UPath pathFromEvent)
+    {
+        return pathFromEvent;
+    }
+
+    private void OnChanged(object sender, FileChangedEventArgs args)
+    {
+        var newPath = TryConvertPath(args.FullPath);
+        if (!newPath.HasValue)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Raises the <see cref="Error"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseError(FileSystemErrorEventArgs args)
+        var newArgs = new FileChangedEventArgs
         {
-            Error?.Invoke(this, args);
+            FileSystem = FileSystem,
+            ChangeType = args.ChangeType,
+            FullPath = newPath.Value
+        };
+        RaiseChanged(newArgs);
+    }
+
+    private void OnCreated(object sender, FileChangedEventArgs args)
+    {
+        var newPath = TryConvertPath(args.FullPath);
+        if (!newPath.HasValue)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Raises the <see cref="Renamed"/> event. 
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        public void RaiseRenamed(FileRenamedEventArgs args)
+        var newArgs = new FileChangedEventArgs
         {
-            if (!ShouldRaiseEvent(args))
-            {
-                return;
-            }
+            FileSystem = FileSystem,
+            ChangeType = args.ChangeType,
+            FullPath = newPath.Value
+        };
+        RaiseCreated(newArgs);
+    }
 
-            Renamed?.Invoke(this, args);
+    private void OnDeleted(object sender, FileChangedEventArgs args)
+    {
+        var newPath = TryConvertPath(args.FullPath);
+        if (!newPath.HasValue)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Raises the <see cref="Disposed"/> event.
-        /// </summary>
-        private void RaiseDisposed()
+        var newArgs = new FileChangedEventArgs
         {
-            Disposed?.Invoke(this, new EventArgs());
+            FileSystem = FileSystem,
+            ChangeType = args.ChangeType,
+            FullPath = newPath.Value
+        };
+        RaiseDeleted(newArgs);
+    }
+
+    private void OnError(object sender, FileSystemErrorEventArgs args)
+    {
+        RaiseError(args);
+    }
+
+    private void OnRenamed(object sender, FileRenamedEventArgs args)
+    {
+        var newPath = TryConvertPath(args.FullPath);
+        if (!newPath.HasValue)
+        {
+            return;
         }
 
-        private bool ShouldRaiseEvent(FileChangedEventArgs args)
+        var newOldPath = TryConvertPath(args.OldFullPath);
+        if (!newOldPath.HasValue)
         {
-            return ShouldRaiseEventImpl(args);
+            return;
         }
 
-        private bool ShouldRaiseEvent(FileOpenedEventArgs args)
+        var newArgs = new FileRenamedEventArgs
         {
-            return ShouldRaiseEventImpl(args);
-        }
-
-        /// <summary>
-        /// Checks if the event should be raised for the given arguments. Default implementation
-        /// checks if the <see cref="FileChangedEventArgs.FullPath"/> is contained in <see cref="Path"/>.
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        /// <returns>True if the event should be raised, false to ignore it.</returns>
-        protected virtual bool ShouldRaiseEventImpl(FileChangedEventArgs args)
-        {
-            return args.FullPath.IsInDirectory(Path, true);
-        }
-
-        /// <summary>
-        /// Checks if the event should be raised for the given arguments. Default implementation
-        /// checks if the <see cref="FileOpenedEventArgs.OpenedPath"/> is contained in <see cref="Path"/>.
-        /// </summary>
-        /// <param name="args">Arguments for the event.</param>
-        /// <returns>True if the event should be raised, false to ignore it.</returns>
-        protected virtual bool ShouldRaiseEventImpl(FileOpenedEventArgs args)
-        {
-            return args.OpenedPath.IsInDirectory(Path, true);
-        }
-
-        /// <summary>
-        /// Listens to events from another <see cref="IFileSystemWatcher"/> instance to forward them
-        /// into this instance.
-        /// </summary>
-        /// <param name="watcher">Other instance to listen to.</param>
-        protected void RegisterEvents(IFileSystemWatcher watcher)
-        {
-            if (watcher == null)
-            {
-                throw new ArgumentNullException(nameof(watcher));
-            }
-
-            watcher.Changed += OnChanged;
-            watcher.Created += OnCreated;
-            watcher.Deleted += OnDeleted;
-            watcher.Error += OnError;
-            watcher.Renamed += OnRenamed;
-        }
-
-        /// <summary>
-        /// Stops listening to events from another <see cref="IFileSystemWatcher"/>.
-        /// </summary>
-        /// <param name="watcher">Instance to remove event handlers from.</param>
-        protected void UnregisterEvents(IFileSystemWatcher watcher)
-        {
-            if (watcher == null)
-            {
-                throw new ArgumentNullException(nameof(watcher));
-            }
-
-            watcher.Changed -= OnChanged;
-            watcher.Created -= OnCreated;
-            watcher.Deleted -= OnDeleted;
-            watcher.Error -= OnError;
-            watcher.Renamed -= OnRenamed;
-        }
-
-        /// <summary>
-        /// Attempts to convert paths from an existing event in another <see cref="IFileSystem"/> into
-        /// this <see cref="FileSystem"/>. If this returns <c>null</c> the event will be discarded.
-        /// </summary>
-        /// <param name="pathFromEvent">Path from the other filesystem.</param>
-        /// <returns>Path in this filesystem, or null if it cannot be converted.</returns>
-        protected virtual UPath? TryConvertPath(UPath pathFromEvent)
-        {
-            return pathFromEvent;
-        }
-
-        private void OnChanged(object sender, FileChangedEventArgs args)
-        {
-            var newPath = TryConvertPath(args.FullPath);
-            if (!newPath.HasValue)
-            {
-                return;
-            }
-
-            var newArgs = new FileChangedEventArgs
-            {
-                FileSystem = FileSystem,
-                ChangeType = args.ChangeType,
-                FullPath = newPath.Value
-            };
-            RaiseChanged(newArgs);
-        }
-
-        private void OnCreated(object sender, FileChangedEventArgs args)
-        {
-            var newPath = TryConvertPath(args.FullPath);
-            if (!newPath.HasValue)
-            {
-                return;
-            }
-
-            var newArgs = new FileChangedEventArgs
-            {
-                FileSystem = FileSystem,
-                ChangeType = args.ChangeType,
-                FullPath = newPath.Value
-            };
-            RaiseCreated(newArgs);
-        }
-
-        private void OnDeleted(object sender, FileChangedEventArgs args)
-        {
-            var newPath = TryConvertPath(args.FullPath);
-            if (!newPath.HasValue)
-            {
-                return;
-            }
-
-            var newArgs = new FileChangedEventArgs
-            {
-                FileSystem = FileSystem,
-                ChangeType = args.ChangeType,
-                FullPath = newPath.Value
-            };
-            RaiseDeleted(newArgs);
-        }
-
-        private void OnError(object sender, FileSystemErrorEventArgs args)
-        {
-            RaiseError(args);
-        }
-
-        private void OnRenamed(object sender, FileRenamedEventArgs args)
-        {
-            var newPath = TryConvertPath(args.FullPath);
-            if (!newPath.HasValue)
-            {
-                return;
-            }
-
-            var newOldPath = TryConvertPath(args.OldFullPath);
-            if (!newOldPath.HasValue)
-            {
-                return;
-            }
-
-            var newArgs = new FileRenamedEventArgs
-            {
-                FileSystem = FileSystem,
-                ChangeType = args.ChangeType,
-                FullPath = newPath.Value,
-                OldFullPath = newOldPath.Value
-            };
-            RaiseRenamed(newArgs);
-        }
+            FileSystem = FileSystem,
+            ChangeType = args.ChangeType,
+            FullPath = newPath.Value,
+            OldFullPath = newOldPath.Value
+        };
+        RaiseRenamed(newArgs);
     }
 }
