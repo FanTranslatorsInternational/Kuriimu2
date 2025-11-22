@@ -1,9 +1,8 @@
-﻿namespace Kaligraphy.Enums.Layout
+﻿namespace Kaligraphy.Enums.Layout;
+
+public enum HorizontalTextAlignment
 {
-    public enum HorizontalTextAlignment
-    {
-        Left,
-        Center,
-        Right
-    }
+    Left,
+    Center,
+    Right
 }

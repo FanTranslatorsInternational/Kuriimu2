@@ -1,11 +1,10 @@
 ﻿using System.Text;
 
-namespace Kaligraphy.DataClasses.Parsing
-{
-    public class CharacterParserContext
-    {
-        public byte[]? Data { get; init; }
+namespace Kaligraphy.DataClasses.Parsing;
 
-        public Decoder? EncodingDecoder { get; init; }
-    }
+public class CharacterParserContext
+{
+    public byte[]? Data { get; init; }
+
+    public Decoder? EncodingDecoder { get; init; }
 }

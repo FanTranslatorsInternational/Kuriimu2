@@ -1,9 +1,8 @@
-﻿namespace Kaligraphy.Enums.Layout
+﻿namespace Kaligraphy.Enums.Layout;
+
+public enum VerticalTextAlignment
 {
-    public enum VerticalTextAlignment
-    {
-        Top,
-        Center,
-        Bottom
-    }
+    Top,
+    Center,
+    Bottom
 }

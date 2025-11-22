@@ -1,9 +1,8 @@
 ﻿using Kaligraphy.Contract.DataClasses.Parsing;
 
-namespace Kaligraphy.Contract.Parsing
+namespace Kaligraphy.Contract.Parsing;
+
+public interface ICharacterDeserializer
 {
-    public interface ICharacterDeserializer
-    {
-        IList<CharacterData> Deserialize(string text);
-    }
+    IList<CharacterData> Deserialize(string text);
 }

@@ -2,91 +2,90 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Kaligraphy.Generation
+namespace Kaligraphy.Generation;
+
+/// <summary>
+/// Static methods for font measurements.
+/// </summary>
+public static class WhiteSpaceMeasurer
 {
     /// <summary>
-    /// Static methods for font measurements.
+    /// Measure the whitespace of a glyph.
     /// </summary>
-    public static class WhiteSpaceMeasurer
+    /// <param name="glyph">The glyph to measure.</param>
+    /// <returns>The measured whitespace.</returns>
+    public static GlyphDescriptionData MeasureWhiteSpace(Image<Rgba32> glyph)
     {
-        /// <summary>
-        /// Measure the whitespace of a glyph.
-        /// </summary>
-        /// <param name="glyph">The glyph to measure.</param>
-        /// <returns>The measured whitespace.</returns>
-        public static GlyphDescriptionData MeasureWhiteSpace(Image<Rgba32> glyph)
+        return MeasureWhiteSpace(glyph, new Rectangle(0, 0, glyph.Width, glyph.Height));
+    }
+
+    /// <summary>
+    /// Measure the whitespace of a glyph.
+    /// </summary>
+    /// <param name="image">The image to measure on.</param>
+    /// <param name="cropRect">The area to measure in.</param>
+    /// <returns>The measured whitespace.</returns>
+    public static GlyphDescriptionData MeasureWhiteSpace(Image<Rgba32> image, Rectangle cropRect)
+    {
+        int top = MeasureWhiteSpaceTop(image, cropRect);
+        int left = MeasureWhiteSpaceLeft(image, cropRect);
+
+        if (top >= cropRect.Bottom || left >= cropRect.Right)
         {
-            return MeasureWhiteSpace(glyph, new Rectangle(0, 0, glyph.Width, glyph.Height));
-        }
-
-        /// <summary>
-        /// Measure the whitespace of a glyph.
-        /// </summary>
-        /// <param name="image">The image to measure on.</param>
-        /// <param name="cropRect">The area to measure in.</param>
-        /// <returns>The measured whitespace.</returns>
-        public static GlyphDescriptionData MeasureWhiteSpace(Image<Rgba32> image, Rectangle cropRect)
-        {
-            int top = MeasureWhiteSpaceTop(image, cropRect);
-            int left = MeasureWhiteSpaceLeft(image, cropRect);
-
-            if (top >= cropRect.Bottom || left >= cropRect.Right)
-            {
-                return new GlyphDescriptionData
-                {
-                    Position = new Point(left, top),
-                    Size = Size.Empty
-                };
-            }
-
-            int bottom = MeasureWhiteSpaceBottom(image, cropRect);
-            int right = MeasureWhiteSpaceRight(image, cropRect);
-
             return new GlyphDescriptionData
             {
                 Position = new Point(left, top),
-                Size = new Size(right - left, bottom - top)
+                Size = Size.Empty
             };
         }
 
-        private static int MeasureWhiteSpaceTop(Image<Rgba32> glyph, Rectangle cropRect)
+        int bottom = MeasureWhiteSpaceBottom(image, cropRect);
+        int right = MeasureWhiteSpaceRight(image, cropRect);
+
+        return new GlyphDescriptionData
         {
-            for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-                for (int x = cropRect.Left; x < cropRect.Right; x++)
-                    if (glyph[x, y].A > 0)
-                        return y;
+            Position = new Point(left, top),
+            Size = new Size(right - left, bottom - top)
+        };
+    }
 
-            return cropRect.Bottom;
-        }
+    private static int MeasureWhiteSpaceTop(Image<Rgba32> glyph, Rectangle cropRect)
+    {
+        for (int y = cropRect.Top; y < cropRect.Bottom; y++)
+        for (int x = cropRect.Left; x < cropRect.Right; x++)
+            if (glyph[x, y].A > 0)
+                return y;
 
-        private static int MeasureWhiteSpaceLeft(Image<Rgba32> glyph, Rectangle cropRect)
-        {
-            for (int x = cropRect.Left; x < cropRect.Right; x++)
-                for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-                    if (glyph[x, y].A > 0)
-                        return x;
+        return cropRect.Bottom;
+    }
 
-            return cropRect.Right;
-        }
+    private static int MeasureWhiteSpaceLeft(Image<Rgba32> glyph, Rectangle cropRect)
+    {
+        for (int x = cropRect.Left; x < cropRect.Right; x++)
+        for (int y = cropRect.Top; y < cropRect.Bottom; y++)
+            if (glyph[x, y].A > 0)
+                return x;
 
-        private static int MeasureWhiteSpaceBottom(Image<Rgba32> glyph, Rectangle cropRect)
-        {
-            for (int y = cropRect.Bottom - 1; y >= cropRect.Top; y--)
-                for (int x = cropRect.Left; x < cropRect.Right; x++)
-                    if (glyph[x, y].A > 0)
-                        return y + 1;
+        return cropRect.Right;
+    }
 
-            return cropRect.Top;
-        }
+    private static int MeasureWhiteSpaceBottom(Image<Rgba32> glyph, Rectangle cropRect)
+    {
+        for (int y = cropRect.Bottom - 1; y >= cropRect.Top; y--)
+        for (int x = cropRect.Left; x < cropRect.Right; x++)
+            if (glyph[x, y].A > 0)
+                return y + 1;
 
-        private static int MeasureWhiteSpaceRight(Image<Rgba32> glyph, Rectangle cropRect)
-        {
-            for (int x = cropRect.Right - 1; x >= cropRect.Left; x--)
-                for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-                    if (glyph[x, y].A > 0)
-                        return x + 1;
+        return cropRect.Top;
+    }
 
-            return cropRect.Left;
-        }
+    private static int MeasureWhiteSpaceRight(Image<Rgba32> glyph, Rectangle cropRect)
+    {
+        for (int x = cropRect.Right - 1; x >= cropRect.Left; x--)
+        for (int y = cropRect.Top; y < cropRect.Bottom; y++)
+            if (glyph[x, y].A > 0)
+                return x + 1;
+
+        return cropRect.Left;
     }
 }

@@ -2,10 +2,9 @@
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
 
-namespace Kaligraphy.Contract.Rendering
+namespace Kaligraphy.Contract.Rendering;
+
+public interface ITextRenderer
 {
-    public interface ITextRenderer
-    {
-        void Render(Image<Rgba32> image, TextLayoutData layout);
-    }
+    void Render(Image<Rgba32> image, TextLayoutData layout);
 }

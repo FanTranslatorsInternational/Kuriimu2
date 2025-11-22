@@ -1,7 +1,6 @@
-﻿namespace Kaligraphy.DataClasses.Parsing
+﻿namespace Kaligraphy.DataClasses.Parsing;
+
+public class LineBreakCharacterData : TextCharacterData
 {
-    public class LineBreakCharacterData : TextCharacterData
-    {
-        public required string LineBreak { get; init; }
-    }
+    public required string LineBreak { get; init; }
 }

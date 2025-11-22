@@ -3,57 +3,56 @@ using Kaligraphy.Contract.Parsing;
 using Kaligraphy.DataClasses.Parsing;
 using System.Text;
 
-namespace Kaligraphy.Parsing
+namespace Kaligraphy.Parsing;
+
+public class CharacterSerializer : ICharacterSerializer
 {
-    public class CharacterSerializer : ICharacterSerializer
+    public string Serialize(IList<CharacterData> characters, bool includeControlCodes)
     {
-        public string Serialize(IList<CharacterData> characters, bool includeControlCodes)
+        var result = new StringBuilder();
+
+        foreach (CharacterData character in characters)
         {
-            var result = new StringBuilder();
+            string? data = SerializeCharacterData(character, includeControlCodes);
+            if (data is null)
+                continue;
 
-            foreach (CharacterData character in characters)
-            {
-                string? data = SerializeCharacterData(character, includeControlCodes);
-                if (data is null)
-                    continue;
-
-                result.Append(data);
-            }
-
-            return result.ToString();
+            result.Append(data);
         }
 
-        private string? SerializeCharacterData(CharacterData character, bool includeControlCodes)
+        return result.ToString();
+    }
+
+    private string? SerializeCharacterData(CharacterData character, bool includeControlCodes)
+    {
+        switch (character)
         {
-            switch (character)
-            {
-                case ControlCodeCharacterData controlCode when includeControlCodes:
-                    return SerializeControlCode(controlCode);
+            case ControlCodeCharacterData controlCode when includeControlCodes:
+                return SerializeControlCode(controlCode);
 
-                case TextCharacterData textCharacter:
-                    return SerializeCharacter(textCharacter);
-            }
-
-            return null;
+            case TextCharacterData textCharacter:
+                return SerializeCharacter(textCharacter);
         }
 
-        protected virtual string? SerializeControlCode(ControlCodeCharacterData controlCode)
+        return null;
+    }
+
+    protected virtual string? SerializeControlCode(ControlCodeCharacterData controlCode)
+    {
+        return null;
+    }
+
+    protected virtual string? SerializeCharacter(CharacterData character)
+    {
+        switch (character)
         {
-            return null;
+            case LineBreakCharacterData lineBreak:
+                return lineBreak.LineBreak;
+
+            case FontCharacterData fontCharacter:
+                return $"{(char)fontCharacter.Character}";
         }
 
-        protected virtual string? SerializeCharacter(CharacterData character)
-        {
-            switch (character)
-            {
-                case LineBreakCharacterData lineBreak:
-                    return lineBreak.LineBreak;
-
-                case FontCharacterData fontCharacter:
-                    return $"{(char)fontCharacter.Character}";
-            }
-
-            return null;
-        }
+        return null;
     }
 }

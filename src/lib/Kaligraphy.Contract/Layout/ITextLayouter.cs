@@ -2,14 +2,13 @@
 using Kaligraphy.Contract.DataClasses.Parsing;
 using SixLabors.ImageSharp;
 
-namespace Kaligraphy.Contract.Layout
+namespace Kaligraphy.Contract.Layout;
+
+public interface ITextLayouter
 {
-    public interface ITextLayouter
-    {
-        IList<TextLayoutLineData> Create(IList<CharacterData> characters);
+    IList<TextLayoutLineData> Create(IList<CharacterData> characters);
 
-        TextLayoutData Create(IList<CharacterData> characters, Point initPoint, Size boundingBox);
+    TextLayoutData Create(IList<CharacterData> characters, Point initPoint, Size boundingBox);
 
-        TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Point initPoint, Size boundingBox);
-    }
+    TextLayoutData Create(IList<TextLayoutLineData> layoutLines, Point initPoint, Size boundingBox);
 }

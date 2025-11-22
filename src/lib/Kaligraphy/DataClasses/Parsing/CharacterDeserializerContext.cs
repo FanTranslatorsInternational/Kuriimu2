@@ -1,7 +1,6 @@
-﻿namespace Kaligraphy.DataClasses.Parsing
+﻿namespace Kaligraphy.DataClasses.Parsing;
+
+public class CharacterDeserializerContext
 {
-    public class CharacterDeserializerContext
-    {
-        public string? Text { get; init; }
-    }
+    public string? Text { get; init; }
 }

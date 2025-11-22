@@ -1,12 +1,11 @@
 ﻿using Kaligraphy.Contract.DataClasses.Parsing;
 using SixLabors.ImageSharp;
 
-namespace Kaligraphy.Contract.DataClasses.Layout
+namespace Kaligraphy.Contract.DataClasses.Layout;
+
+public class TextLayoutCharacterData
 {
-    public class TextLayoutCharacterData
-    {
-        public CharacterData Character { get; set; }
-        public Rectangle BoundingBox { get; set; }
-        public Rectangle GlyphBoundingBox { get; set; }
-    }
+    public CharacterData Character { get; set; }
+    public RectangleF BoundingBox { get; set; }
+    public RectangleF GlyphBoundingBox { get; set; }
 }
