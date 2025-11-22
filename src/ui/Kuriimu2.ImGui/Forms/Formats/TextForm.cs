@@ -893,12 +893,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             foreach (IList<CharacterData> parsedText in parsedTexts)
                 layoutLines.Add(layouter.Create(parsedText));
 
-            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Count <= 0 ? 0 : t.Max(l => l.BoundingBox.Width));
-            int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(l => l.BoundingBox.Height));
+            float imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Count <= 0 ? 0 : t.Max(l => l.BoundingBox.Width));
+            float imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(l => l.BoundingBox.Height));
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
 
-            var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
+            var image = new Image<Rgba32>((int)imageWidth + 1, (int)imageHeight + 1);
 
             var initPoint = Point.Empty;
             foreach (IList<TextLayoutLineData> layoutLine in layoutLines)
@@ -908,7 +908,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
                 renderer.Render(image, layout);
 
-                initPoint = new Point(initPoint.X, initPoint.Y + layout.BoundingBox.Height);
+                initPoint = new Point(initPoint.X, initPoint.Y + (int)layout.BoundingBox.Height);
             }
 
             return [image];

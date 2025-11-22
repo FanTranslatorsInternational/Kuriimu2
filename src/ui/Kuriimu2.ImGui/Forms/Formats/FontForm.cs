@@ -243,12 +243,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             var layouter = new TextLayouter(layoutOptions, glyphProvider);
             IList<TextLayoutLineData> layoutLines = layouter.Create(parsedText);
 
-            int imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
-            int imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(l => l.BoundingBox.Height);
+            float imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(l => l.BoundingBox.Width);
+            float imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(l => l.BoundingBox.Height);
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
 
-            var image = new Image<Rgba32>(imageWidth + 1, imageHeight + 1);
+            var image = new Image<Rgba32>((int)imageWidth + 1, (int)imageHeight + 1);
             TextLayoutData layout = layouter.Create(layoutLines, Point.Empty, image.Size);
 
             var renderOptions = new RenderOptions

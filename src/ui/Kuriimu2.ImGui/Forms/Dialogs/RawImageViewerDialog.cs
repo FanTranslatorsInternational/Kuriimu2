@@ -381,17 +381,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private byte[] ReadImageData(int offset, Size size, int bitDepth, CreatePixelRemapperDelegate? swizzleDelegate)
         {
+            int dataLength = size.Width * size.Height * bitDepth / 8;
+
             if (_fileStream is null)
-                return [];
+                return new byte[dataLength];
 
             IImageSwizzle? swizzle = CreateSwizzle(swizzleDelegate);
             if (swizzle is not null)
                 size = new Size(SizePadding.Multiple(size.Width, swizzle.MacroTileWidth), SizePadding.Multiple(size.Height, swizzle.MacroTileHeight));
 
-            int dataLength = size.Width * size.Height * bitDepth / 8;
-
             if (offset + dataLength > _fileStream.Length)
-                return [];
+                return new byte[dataLength];
 
             _fileStream.Position = offset;
 
