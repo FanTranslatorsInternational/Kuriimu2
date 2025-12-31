@@ -27,7 +27,13 @@ namespace Kompression.Configuration
 
         public ILempelZivInputAdjustmentOptionsBuilder Prepend(int byteCount, byte value)
         {
-            _options.InputManipulations.Add(new PrependInput(byteCount, value));
+            _options.InputManipulations.Add(new PrependInputValue(byteCount, value));
+            return this;
+        }
+
+        public ILempelZivInputAdjustmentOptionsBuilder Prepend(byte[] data)
+        {
+            _options.InputManipulations.Add(new PrependInputData(data));
             return this;
         }
     }

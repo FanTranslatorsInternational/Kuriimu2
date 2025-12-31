@@ -4,12 +4,12 @@ using Kompression.Encoder.LempelZiv.InputManipulation.Streams;
 
 namespace Kompression.Encoder.LempelZiv.InputManipulation
 {
-    internal class PrependInput : IInputManipulation
+    internal class PrependInputValue : IInputManipulation
     {
         private readonly int _preBufferSize;
         private readonly byte _value;
 
-        public PrependInput(int preBufferSize, byte value)
+        public PrependInputValue(int preBufferSize, byte value)
         {
             _preBufferSize = preBufferSize;
             _value = value;

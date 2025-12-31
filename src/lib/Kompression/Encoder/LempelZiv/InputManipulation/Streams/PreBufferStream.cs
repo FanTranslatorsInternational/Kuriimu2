@@ -2,8 +2,9 @@
 {
     class PreBufferStream : Stream
     {
-        private readonly int _preBufferSize;
-        private readonly byte _value;
+        //private readonly int _preBufferSize;
+        //private readonly byte _value;
+        private byte[] _data;
         private Stream _baseStream;
 
         /// <inheritdoc cref="CanRead"/>
@@ -16,7 +17,7 @@
         public override bool CanWrite => false;
 
         /// <inheritdoc cref="Length"/>
-        public override long Length => _baseStream.Length + _preBufferSize;
+        public override long Length => _baseStream.Length + _data.Length;
 
         /// <inheritdoc cref="Position"/>
         public override long Position { get; set; }
@@ -25,13 +26,25 @@
         /// Create a new instance of <see cref="PreBufferStream"/>.
         /// </summary>
         /// <param name="baseStream">The stream to be preset with a buffer.</param>
-        /// <param name="preBufferSize">The size of the zero filled buffer.</param>
+        /// <param name="preBufferSize">The size of the pre-filled buffer.</param>
         /// <param name="value">The value to fill into the buffer.</param>
         public PreBufferStream(Stream baseStream, int preBufferSize, byte value = 0)
         {
             _baseStream = baseStream;
-            _preBufferSize = preBufferSize;
-            _value = value;
+            _data = new byte[preBufferSize];
+
+            Array.Fill(_data, value, 0, preBufferSize);
+        }
+
+        /// <summary>
+        /// Create a new instance of <see cref="PreBufferStream"/>.
+        /// </summary>
+        /// <param name="baseStream">The stream to be preset with a buffer.</param>
+        /// <param name="data">The pre-filled buffer.</param>
+        public PreBufferStream(Stream baseStream, byte[] data)
+        {
+            _baseStream = baseStream;
+            _data = data;
         }
 
         /// <inheritdoc cref="Flush"/>
@@ -76,16 +89,11 @@
             int readBytes;
             var cappedCount = readBytes = (int)Math.Min(Length - Position, count);
 
-            if (Position < _preBufferSize)
+            if (Position < _data.Length)
             {
-                var toRead = Math.Min(cappedCount, (int)(_preBufferSize - Position));
+                var toRead = Math.Min(cappedCount, (int)(_data.Length - Position));
 
-#if NET_CORE_31
-                Array.Fill<byte>(buffer, _value, offset, toRead);
-#else
-                for (var i = 0; i < toRead; i++)
-                    buffer[offset + i] = _value;
-#endif
+                Array.Copy(_data, Position, buffer, offset, toRead);
 
                 offset += toRead;
                 Position += toRead;
@@ -94,10 +102,10 @@
 
             if (cappedCount > 0)
             {
-                var toRead = Math.Min(cappedCount, (int)(_baseStream.Length - (Position - _preBufferSize)));
+                var toRead = Math.Min(cappedCount, (int)(_baseStream.Length - (Position - _data.Length)));
 
                 var bkPos = _baseStream.Position;
-                _baseStream.Position = Position - _preBufferSize;
+                _baseStream.Position = Position - _data.Length;
                 _baseStream.Read(buffer, offset, toRead);
                 _baseStream.Position = bkPos;
 
