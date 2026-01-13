@@ -7,7 +7,7 @@
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ApplicationIcon>Resources\Images\kuriimu2.ico</ApplicationIcon>
-  </PropertyGroup>
+  </PropertyGroup> 
 
   <ItemGroup>
     <None Remove="Resources\Fonts\notojp.ttf" />
