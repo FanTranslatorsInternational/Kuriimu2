@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Resources;
 using Kaligraphy.Contract.DataClasses.Layout;
@@ -53,6 +53,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _editBtn.Clicked += _editBtn_Clicked;
             _removeBtn.Clicked += _removeBtn_Clicked;
             _remapBtn.Clicked += _remapBtn_Clicked;
+            _changeBtn.Clicked += _changeBtn_Clicked;
 
             _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
 
@@ -164,30 +165,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             if (_selectedCharacters.Count >= _state.PluginState.Characters.Count)
             {
-                _state.PluginState.AttemptRemoveAll();
-
-                _charLookup.Clear();
-                _infoLookup.Clear();
-
-                _selectedCharacters.Clear();
-
-                _glyphsLayout.Items.Clear();
+                ClearCharacters();
             }
             else
             {
                 foreach (CharacterInfo character in _selectedCharacters)
-                {
-                    if (!_state.PluginState.AttemptRemoveCharacter(character))
-                        continue;
-
-                    if (_infoLookup.TryGetValue(character, out GlyphElement? element))
-                        _glyphsLayout.Items.Remove(element);
-
-                    _charLookup.Remove(character.CodePoint);
-                    _infoLookup.Remove(character);
-
-                    _selectedCharacters.Remove(character);
-                }
+                    RemoveCharacter(character);
             }
 
             _lastSelectedElement = null;
@@ -214,9 +197,73 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
+        private async void _changeBtn_Clicked(object? sender, EventArgs e)
+        {
+            if (_selectedElement is null)
+                return;
+
+            var result = await InputBox.ShowAsync(LocalizationResources.FontGenerateChangeCaption, string.Empty,
+                $"{_selectedElement.CharacterInfo.CodePoint}", LocalizationResources.FontGenerateChangePlaceholder);
+            var code = GetCharacter(result);
+
+            if (!code.HasValue)
+                return;
+
+            if (_state.PluginState.Characters.Any(x => x.CodePoint == code))
+            {
+                await MessageBox.ShowErrorAsync(LocalizationResources.FontGenerateChangeCaption,
+                    LocalizationResources.FontGenerateChangeError(code.Value));
+                return;
+            }
+
+            CharacterInfo? newCharacter = _state.PluginState.AttemptCreateCharacterInfo(code.Value);
+            if (newCharacter is not null)
+            {
+                newCharacter.Glyph = _selectedElement.CharacterInfo.Glyph;
+                newCharacter.GlyphPosition = _selectedElement.CharacterInfo.GlyphPosition;
+                newCharacter.BoundingBox = _selectedElement.CharacterInfo.BoundingBox;
+                newCharacter.ContentChanged = true;
+
+                _state.PluginState.AttemptAddCharacter(newCharacter);
+            }
+
+            RemoveCharacter(_selectedElement.CharacterInfo);
+
+            _state.FormCommunicator.Update(true, false);
+
+            UpdateState();
+            UpdateFormInternal();
+        }
+
         private void _previewTextEditor_TextChanged(object? sender, string e)
         {
             UpdateTextPreview();
+        }
+
+        private void RemoveCharacter(CharacterInfo character)
+        {
+            if (!_state.PluginState.AttemptRemoveCharacter(character))
+                return;
+
+            if (_infoLookup.TryGetValue(character, out GlyphElement? element))
+                _glyphsLayout.Items.Remove(element);
+
+            _charLookup.Remove(character.CodePoint);
+            _infoLookup.Remove(character);
+
+            _selectedCharacters.Remove(character);
+        }
+
+        private void ClearCharacters()
+        {
+            _state.PluginState.AttemptRemoveAll();
+
+            _charLookup.Clear();
+            _infoLookup.Clear();
+
+            _selectedCharacters.Clear();
+
+            _glyphsLayout.Items.Clear();
         }
 
         private void UpdateTextPreview()

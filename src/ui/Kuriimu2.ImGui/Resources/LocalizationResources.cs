@@ -346,7 +346,10 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString FontGenerateCaption => LocalizedString.FromId("Font.Generate.Caption");
         public static LocalizedString FontGenerateEditCaption => LocalizedString.FromId("Font.Generate.Edit.Caption");
         public static LocalizedString FontGenerateRemoveCaption => LocalizedString.FromId("Font.Generate.Remove.Caption");
-        public static LocalizedString FontGenerateRemappingCaption => LocalizedString.FromId("Font.Generate.Remapping.Caption");
+        public static LocalizedString FontGenerateRemapCaption => LocalizedString.FromId("Font.Generate.Remap.Caption");
+        public static LocalizedString FontGenerateChangeCaption => LocalizedString.FromId("Font.Generate.Change.Caption");
+        public static LocalizedString FontGenerateChangePlaceholder => LocalizedString.FromId("Font.Generate.Change.Placeholder");
+        public static LocalizedString FontGenerateChangeError(char character) => LocalizedString.FromId("Font.Generate.Change.Error", () => character);
         public static LocalizedString FontGenerateDefaultCharacters => LocalizedString.FromId("Font.Generate.DefaultCharacters");
 
         // Text Form

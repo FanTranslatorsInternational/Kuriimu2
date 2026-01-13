@@ -321,7 +321,7 @@
   // Font Form
 
   // Labels
-  "Font.Search.Placeholder": "Pesquisar: ¥, \\uFFE3",
+  "Font.Search.Placeholder": "Pesquisar: ¥, \\uFFE5",
 
   // Preview
   "Font.Preview.Placeholder": "Pré-visualização",
@@ -342,7 +342,10 @@
   "Font.Generate.Caption": "Gerar Fonte",
   // "Font.Generate.Edit.Caption": "Edit Characters", // TODO
   // "Font.Generate.Remove.Caption": "Remove Characters", // TODO
-  // "Font.Generate.Remapping.Caption": "Remap Characters", // TODO
+  // "Font.Generate.Remap.Caption": "Remap Characters", // TODO
+  // "Font.Generate.Change.Caption": "Change Character", // TODO
+  // "Font.Generate.Change.Placeholder": "¥, \\uFFE5", // TODO
+  // "Font.Generate.Change.Error": "Character {0} already exists in font.", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
