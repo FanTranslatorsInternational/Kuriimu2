@@ -22,15 +22,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup .NET global.json
-      run: |
-        echo '{"sdk": {"version": "8.0"}}' > ./global.json
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 8.0
-        global-json-file: ./global.json
+        dotnet-version: 10.0
 
     - name: Get manifest version
       id: set_version
@@ -55,50 +50,50 @@ jobs:
 
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Beeworks/Beeworks.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Capcom/Capcom.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/DreamCatcher/DreamCatcher.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Enterbrain/Enterbrain.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Gust/Gust.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/HuneX/HuneX.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Kadokawa/Kadokawa.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KhronosGroup/KhronosGroup.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/MercurySteam/MercurySteam.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/PowerVR/PowerVR.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Primula/Primula.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sega/Sega.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Shade/Shade.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sony/Sony.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SpikeChunsoft/SpikeChunsoft.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/StingEntertainment/StingEntertainment.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SuperflatGames/SuperflatGames.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/ArcSystemWorks/ArcSystemWorks.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Atlus/Atlus.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/BandaiNamco/BandaiNamco.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Beeworks/Beeworks.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Capcom/Capcom.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Circus/Circus.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Criware/Criware.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/DotEmu/DotEmu.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/DreamCatcher/DreamCatcher.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Enterbrain/Enterbrain.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Felistella/Felistella.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/FurYu/FurYu.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Gust/Gust.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/HeadstrongGames/HeadstrongGames.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/HuneX/HuneX.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/IntiCreates/IntiCreates.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Kadokawa/Kadokawa.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/KhronosGroup/KhronosGroup.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/KoeiTecmo/KoeiTecmo.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Konami/Konami.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Level5/Level5.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/MercurySteam/MercurySteam.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Nintendo/Nintendo.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/PowerVR/PowerVR.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Primula/Primula.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Sega/Sega.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Shade/Shade.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/Sony/Sony.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/SpikeChunsoft/SpikeChunsoft.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/SquareEnix/SquareEnix.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/StingEntertainment/StingEntertainment.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/SuperflatGames/SuperflatGames.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/TamSoft/TamSoft.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net10.0 ./plugins/VBlankEntertainment/VBlankEntertainment.sln 
         rm ./dist/final/plugins/*.pdb
         rm ./dist/final/plugins/*.deps.json
         
     - name: Publish Kuriimu2
       run: |
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Windows --configuration Release --framework net8.0 --runtime win-x64 /p:PublishSingleFile=true
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Linux --configuration Release --framework net8.0 --runtime linux-x64 /p:PublishSingleFile=true
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework net8.0 --runtime osx-x64 /p:PublishSingleFile=true -v diag
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Windows --configuration Release --framework net10.0 --runtime win-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Linux --configuration Release --framework net10.0 --runtime linux-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework net10.0 --runtime osx-x64 /p:PublishSingleFile=true
         mv ./dist/final/Windows/Kuriimu2.ImGui.exe ./dist/final/Windows/Kuriimu2.exe
         mv ./dist/final/Linux/Kuriimu2.ImGui ./dist/final/Linux/Kuriimu2
         mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
