@@ -21,7 +21,6 @@ using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Management.Plugin.Loaders;
-using Konnect.Contract.DataClasses.Plugin;
 using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Exceptions.Management.Files;
 using Konnect.Contract.Management.Files;
@@ -113,6 +112,7 @@ namespace Kuriimu2.ImGui.Forms
 
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
+            _tabControl.SelectedPageChanged += _tabControl_SelectedPageChanged;
 
             _pluginsButton.Clicked += _pluginsButton_Clicked;
             _aboutButton.Clicked += _aboutButton_Clicked;
@@ -286,6 +286,11 @@ namespace Kuriimu2.ImGui.Forms
             // Switch to parent tab
             if (parentTab != null)
                 _tabControl.SelectedPage = parentTab;
+        }
+
+        private void _tabControl_SelectedPageChanged(object? sender, EventArgs e)
+        {
+            UpdateFormTitle();
         }
 
         #endregion

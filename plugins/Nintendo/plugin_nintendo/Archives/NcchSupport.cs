@@ -347,7 +347,7 @@ namespace plugin_nintendo.Archives
 
         private static void WriteEntry(NcchExeFsFileEntry entry, BinaryWriterX writer)
         {
-            writer.Write(entry.name);
+            writer.WriteString(entry.name, writeNullTerminator: false);
             writer.Write(entry.offset);
             writer.Write(entry.size);
         }

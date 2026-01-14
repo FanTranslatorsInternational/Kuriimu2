@@ -179,7 +179,7 @@ namespace plugin_nintendo.Archives
 
             // Write and update ExeFs
             var exeFsFiles = files.Where(x => x.FilePath.ToRelative().IsInDirectory(ExeFsFolder_, true)).ToArray();
-            if (exeFsFiles.Any())
+            if (exeFsFiles.Length > 0)
             {
                 var exeFsPosition = bw.BaseStream.Position;
                 var exeFsSize = ExeFsBuilder.Build(output, exeFsFiles);
@@ -201,7 +201,7 @@ namespace plugin_nintendo.Archives
 
             // Write and update RomFs
             var romFsFiles = files.Where(x => x.FilePath.ToRelative().IsInDirectory(RomFsFolder_, true)).ToArray();
-            if (romFsFiles.Any())
+            if (romFsFiles.Length > 0)
             {
                 var romFsPosition = bw.BaseStream.Position;
                 var romFsSize1 = RomFsBuilder.CalculateRomFsSize(romFsFiles, RomFsFolder_);

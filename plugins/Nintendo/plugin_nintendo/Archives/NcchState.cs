@@ -1,12 +1,14 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Plugin.File.Archive;
 
 namespace plugin_nintendo.Archives
 {
-    class NcchState : ILoadFiles, ISaveFiles, IReplaceFiles
+    class NcchState : ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRenameFiles, IRemoveFiles
     {
         private readonly Ncch _ncch = new();
 
@@ -33,9 +35,38 @@ namespace plugin_nintendo.Archives
             afi.SetFileData(fileData);
         }
 
+        public IArchiveFile AddFile(Stream fileData, UPath filePath)
+        {
+            var newFile = new ArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = filePath,
+                FileData = fileData,
+                ContentChanged = true
+            });
+
+            _files.Add(newFile);
+
+            return newFile;
+        }
+
+        public void RenameFile(IArchiveFile file, UPath path)
+        {
+            file.FilePath = path;
+        }
+
         private bool IsChanged()
         {
             return Files.Any(x => x.ContentChanged);
+        }
+
+        public void RemoveFile(IArchiveFile file)
+        {
+            _files.Remove(file);
+        }
+
+        public void RemoveAll()
+        {
+            _files.Clear();
         }
     }
 }
