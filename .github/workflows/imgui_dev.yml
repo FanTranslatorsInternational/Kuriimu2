@@ -91,8 +91,6 @@ jobs:
         
     - name: Publish Kuriimu2
       run: |
-        REM dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Windows --configuration Release --framework net8.0 --runtime win-x64 /p:PublishSingleFile=true
-        REM dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Linux --configuration Release --framework net8.0 --runtime linux-x64 /p:PublishSingleFile=true
         dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework net8.0 --runtime osx-x64 /p:PublishSingleFile=true
         cd ./dist/final/Mac
         tree
