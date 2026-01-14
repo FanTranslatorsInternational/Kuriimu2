@@ -16,15 +16,16 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - uses: nuget/setup-nuget@v2
-    
+
     - name: Wait for other dev builds
       uses: softprops/turnstyle@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - name: Setup .NET global.json
-      run: echo '{"sdk": {"version": "8.0"}' > ./global.json
-    
+      run: |
+        echo '{"sdk": {"version": "8.0"}}' > ./global.json
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
