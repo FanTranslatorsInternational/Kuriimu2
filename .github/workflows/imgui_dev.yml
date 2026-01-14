@@ -163,17 +163,14 @@ jobs:
         cd ./update_repo
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add -A
-        git commit -m "Update binaries"
-        git branch -M main
-        git push --force origin main
+        git add *
+        git commit -m "Update binaries" -a
         
     - name: Push changes to update repo
-      uses: ad-m/github-push-action@master
-      with:
-        directory: ./update_repo
-        repository: FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update
-        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN  }}
+      run: |
+        cd ./update_repo
+        git branch -M main
+        git push https://oauth2:${{ secrets.PRIVATE_ACCESS_TOKEN }}@github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update.git --force origin main
       
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
