@@ -148,7 +148,9 @@ jobs:
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY_IMGUI }}
       
     - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update ./update_repo
+      run: |
+        git clone https://github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update ./update_repo
+        git checkout --orphan squash HEAD
         
     - name: Move update files to update repo
       run: |
@@ -161,8 +163,10 @@ jobs:
         cd ./update_repo
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add *
-        git commit -m "Update binaries" -a
+        git add -A
+        git commit -m "Update binaries"
+        git branch -M main
+        git push --force origin main
         
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
