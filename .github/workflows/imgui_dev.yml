@@ -53,6 +53,7 @@ jobs:
         dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework net8.0 --runtime osx-x64 /p:PublishSingleFile=true
         cd ./dist/final/Mac
         tree /F
+        cd ../../..
         mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
         rm ./dist/final/Mac/*.pdb
         
