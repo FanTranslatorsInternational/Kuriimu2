@@ -50,12 +50,15 @@ jobs:
         
     - name: Publish Kuriimu2
       run: |
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Windows --configuration Release --framework net8.0 --runtime win-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Linux --configuration Release --framework net8.0 --runtime linux-x64 /p:PublishSingleFile=true
         dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework net8.0 --runtime osx-x64 /p:PublishSingleFile=true
-        cd ./dist/final/Mac
-        tree /F
-        cd ../../..
+        mv ./dist/final/Windows/Kuriimu2.ImGui.exe ./dist/final/Windows/Kuriimu2.exe
+        mv ./dist/final/Linux/Kuriimu2.ImGui ./dist/final/Linux/Kuriimu2
         mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
         rm ./dist/final/Mac/*.pdb
+        rm ./dist/final/Windows/*.pdb
+        rm ./dist/final/Linux/*.pdb
         
     - name: Copy plugins to Kuriimu2 folder
       run: |
