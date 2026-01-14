@@ -22,10 +22,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Setup .NET global.json
+      run: echo '{"sdk": {"version": "8.0"}' > ./global.json
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 8.0
+        global-json-file: ./global.json
 
     - name: Get manifest version
       id: set_version
