@@ -48,7 +48,8 @@ namespace plugin_level5.NDS.Image
             [2] = ImageFormats.I4(BitOrder.LeastSignificantBitFirst),
             [3] = ImageFormats.I8(),
             [4] = new Index(3, 5, "AI"),
-            [5] = new Index(5, 3, "AI")
+            [5] = new Index(5, 3, "AI"),
+            [19] = ImageFormats.I8()
         };
 
         public static readonly IDictionary<int, IColorEncoding> PaletteFormats = new Dictionary<int, IColorEncoding>
