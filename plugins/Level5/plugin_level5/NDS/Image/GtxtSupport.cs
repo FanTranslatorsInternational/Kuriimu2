@@ -3,6 +3,7 @@ using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
 using Komponent.Contract.Enums;
 using Konnect.Plugin.File.Image;
+using Index = Kanvas.Encoding.Index;
 
 namespace plugin_level5.NDS.Image
 {
@@ -45,7 +46,9 @@ namespace plugin_level5.NDS.Image
         public static readonly IDictionary<int, IIndexEncoding> IndexFormats = new Dictionary<int, IIndexEncoding>
         {
             [2] = ImageFormats.I4(BitOrder.LeastSignificantBitFirst),
-            [3] = ImageFormats.I8()
+            [3] = ImageFormats.I8(),
+            [4] = new Index(3, 5, "AI"),
+            [5] = new Index(5, 3, "AI")
         };
 
         public static readonly IDictionary<int, IColorEncoding> PaletteFormats = new Dictionary<int, IColorEncoding>
@@ -55,7 +58,7 @@ namespace plugin_level5.NDS.Image
 
         public static EncodingDefinition GetEncodingDefinition()
         {
-            var encodingDefinition = new EncodingDefinition(); 
+            var encodingDefinition = new EncodingDefinition();
             encodingDefinition.AddPaletteEncodings(PaletteFormats);
 
             foreach (int format in IndexFormats.Keys)
