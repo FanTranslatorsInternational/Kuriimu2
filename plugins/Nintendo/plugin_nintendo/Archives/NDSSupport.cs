@@ -343,8 +343,10 @@ namespace plugin_nintendo.Archives
 
     static class NdsSupport
     {
-        public static IEnumerable<IArchiveFile> ReadFnt(BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
+        public static IEnumerable<IArchiveFile> ReadFnt(Stream input, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
         {
+            using var br = new BinaryReaderX(input, Encoding.GetEncoding("Shift-JIS"), true);
+
             br.BaseStream.Position = fntOffset;
             var mainEntry = ReadFntEntry(br);
 
@@ -355,8 +357,10 @@ namespace plugin_nintendo.Archives
                 yield return file;
         }
 
-        public static void WriteFnt(BinaryWriterX bw, int fntOffset, IList<IArchiveFile> files, int startFileId = 0)
+        public static void WriteFnt(Stream output, int fntOffset, IList<IArchiveFile> files, int startFileId = 0)
         {
+            using var bw = new BinaryWriterX(output, Encoding.GetEncoding("Shift-JIS"), true);
+
             var fileTree = files.ToTree();
             var totalDirectories = CountTotalDirectories(fileTree);
             var contentOffset = fntOffset + totalDirectories * 0x8;
@@ -417,7 +421,7 @@ namespace plugin_nintendo.Archives
             bw.BaseStream.Position = contentOffset;
             foreach (var file in entry.Files.Cast<IFileIdArchiveFile>())
             {
-                bw.WriteString(file.FilePath.GetName(), Encoding.ASCII, true, false);
+                bw.WriteString(file.FilePath.GetName(), true, false);
                 file.FileId = fileId++;
             }
             contentOffset = (int)bw.BaseStream.Position;
@@ -430,7 +434,7 @@ namespace plugin_nintendo.Archives
                 bw.BaseStream.Position = contentOffset;
 
                 bw.Write((byte)(dir.Name.Length + 0x80));
-                bw.WriteString(dir.Name, Encoding.ASCII, false, false);
+                bw.WriteString(dir.Name, false, false);
                 bw.Write((ushort)(0xF000 + ++dirId));
 
                 contentOffset = (int)bw.BaseStream.Position;

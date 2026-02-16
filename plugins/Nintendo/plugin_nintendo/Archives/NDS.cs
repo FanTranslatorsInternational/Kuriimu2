@@ -82,7 +82,7 @@ namespace plugin_nintendo.Archives
 
             // Read FNT
             var fntOffset = _ndsHeader?.fntOffset ?? _dsiHeader.fntOffset;
-            foreach (var file in NdsSupport.ReadFnt(br, fntOffset, 0, fileEntries))
+            foreach (var file in NdsSupport.ReadFnt(br.BaseStream, fntOffset, 0, fileEntries))
                 result.Add(file);
 
             // Add banner
@@ -189,7 +189,7 @@ namespace plugin_nintendo.Archives
 
             // Write FNT
             var fntOffset = arm7OverlayPosition;
-            NdsSupport.WriteFnt(bw, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
+            NdsSupport.WriteFnt(bw.BaseStream, (int)fntOffset, romFiles, arm9Overlays.Length + arm7Overlays.Length);
 
             var fntSize = bw.BaseStream.Position - fntOffset;
             bw.WriteAlignment(0x200, 0xFF);

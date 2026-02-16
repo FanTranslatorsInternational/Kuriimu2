@@ -381,9 +381,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private byte[] ReadImageData(int offset, Size size, int bitDepth, CreatePixelRemapperDelegate? swizzleDelegate)
         {
-            int dataLength = size.Width * size.Height * bitDepth / 8;
+            int dataLength = size.Width * size.Height * ((bitDepth + 7) & ~7) / 8;
 
-            if (_fileStream is null)
+            if (_fileStream is null || offset >= _fileStream.Length)
                 return new byte[dataLength];
 
             IImageSwizzle? swizzle = CreateSwizzle(swizzleDelegate);
@@ -403,10 +403,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private byte[] ReadPaletteData(int offset, int colorCount, int bitDepth)
         {
-            if (_fileStream is null)
+            if (_fileStream is null || offset >= _fileStream.Length)
                 return [];
 
-            int dataLength = colorCount * bitDepth / 8;
+            int dataLength = colorCount * ((bitDepth + 7) & ~7) / 8;
             dataLength = (int)Math.Min(dataLength, _fileStream.Length - offset);
 
             _fileStream.Position = offset;

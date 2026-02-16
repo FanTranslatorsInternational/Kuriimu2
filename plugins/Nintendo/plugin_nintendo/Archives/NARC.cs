@@ -37,7 +37,7 @@ namespace plugin_nintendo.Archives
 
             _hasNames = br.ReadInt32() >= 8;
             if (_hasNames)
-                return NdsSupport.ReadFnt(br, fntOffset + 8, gmifOffset + 8, entries).ToList();
+                return NdsSupport.ReadFnt(br.BaseStream, fntOffset + 8, gmifOffset + 8, entries).ToList();
 
             return entries.Select((x, i) => NdsSupport.CreateAfi(br.BaseStream, x.offset + gmifOffset + 8, x.Length, $"{i:00000000}.bin", i)).ToList();
         }
@@ -61,7 +61,7 @@ namespace plugin_nintendo.Archives
             }
             else
             {
-                NdsSupport.WriteFnt(bw, fntOffset + 8, files);
+                NdsSupport.WriteFnt(bw.BaseStream, fntOffset + 8, files);
                 fntSize = (int)(bw.BaseStream.Position - fntOffset);
             }
 
