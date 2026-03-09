@@ -20,7 +20,7 @@
       <group targetFramework="net8.0">
         <dependency id="PVRTexLib.NET" version="1.0.3" />
         <dependency id="BCnEncoder.Net" version="2.2.1" />
-        <dependency id="SixLabors.ImageSharp" version="3.1.10" />
+        <dependency id="SixLabors.ImageSharp" version="3.1.12" />
         <dependency id="Komponent" version="2.1.7" />
       </group>
     </dependencies>
