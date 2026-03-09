@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kaligraphy" Version="2.1.25" />
-    <PackageReference Include="Kanvas" Version="2.1.28" />
+    <PackageReference Include="Kaligraphy" Version="2.1.26" />
+    <PackageReference Include="Kanvas" Version="2.1.29" />
     <PackageReference Include="Kompression" Version="2.1.12" />
     <PackageReference Include="Serilog" Version="4.2.0" />
   </ItemGroup>
