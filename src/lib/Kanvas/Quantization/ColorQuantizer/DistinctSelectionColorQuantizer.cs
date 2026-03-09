@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorQuantizer;
 using Kanvas.DataClasses.Quantization.Quantizer.DistinctSelection;
@@ -30,15 +30,28 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// <inheritdoc />
         public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors)
         {
+            return CreatePalette(colors, []);
+        }
+
+        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
+        {
+            var fixedPalette = NormalizeInitialPalette(initialPalette, _colorCount);
+
+            int remainingColorCount = _colorCount - fixedPalette.Count;
+            if (remainingColorCount <= 0)
+                return fixedPalette;
+
             // Step 1: Filter out distinct colors
-            var distinctColors = FillDistinctColors(colors.ToArray());
+            var distinctColors = FillDistinctColors(colors.ToArray(), fixedPalette);
 
             // Step 2: Filter colors by hue, saturation and brightness
             // Step 2.1: If color count not reached, take top(n) colors
-            var palette = FilterColorInfos(distinctColors);
+            var palette = FilterColorInfos(distinctColors, remainingColorCount);
 
             // Step 3: Return palette
-            return palette;
+            fixedPalette.AddRange(palette);
+
+            return fixedPalette;
         }
 
         /// <inheritdoc />
@@ -47,30 +60,33 @@ namespace Kanvas.Quantization.ColorQuantizer
             throw new NotSupportedException();
         }
 
-        private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Rgba32> colors)
+        private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Rgba32> colors, IList<Rgba32> initialPalette)
         {
             var distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
+            var initialColorSet = new HashSet<uint>(initialPalette.Select(c => c.PackedValue));
 
             colors.AsParallel()
                 .WithDegreeOfParallelism(_taskCount)
-                .ForAll(c => AddOrUpdateDistinctColors(distinctColors, c));
+                .ForAll(c => AddOrUpdateDistinctColors(distinctColors, c, initialColorSet));
 
             return distinctColors;
         }
 
-        private void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Rgba32 color)
+        private void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Rgba32 color, HashSet<uint> initialPaletteSet)
         {
+            if (initialPaletteSet.Contains(color.PackedValue))
+                return;
+
             distinctColors.AddOrUpdate(color.PackedValue,
-                key => new DistinctColorInfo(color),
-                (key, info) => info.IncreaseCount());
+                _ => new DistinctColorInfo(color),
+                (_, info) => info.IncreaseCount());
         }
 
-        // TODO: Review method
-        private List<Rgba32> FilterColorInfos(IDictionary<uint, DistinctColorInfo> distinctColors)
+        private List<Rgba32> FilterColorInfos(IDictionary<uint, DistinctColorInfo> distinctColors, int colorCount)
         {
             var colorInfoList = distinctColors.Values.ToList();
             var foundColorCount = colorInfoList.Count;
-            var maxColorCount = _colorCount;
+            var maxColorCount = colorCount;
 
             if (foundColorCount < maxColorCount)
                 return colorInfoList.Select(info => new Rgba32(info.Color)).ToList();
@@ -112,6 +128,17 @@ namespace Kanvas.Quantization.ColorQuantizer
             palette.AddRange(colorInfoList.Select(colorInfo => new Rgba32(colorInfo.Color)));
 
             return palette;
+        }
+
+        private static List<Rgba32> NormalizeInitialPalette(IList<Rgba32> initialPalette, int maxColorCount)
+        {
+            if (maxColorCount <= 0 || initialPalette.Count <= 0)
+                return [];
+
+            return initialPalette
+                .DistinctBy(color => color.PackedValue)
+                .Take(maxColorCount)
+                .ToList();
         }
 
         private static bool ProcessList(int colorCount, List<DistinctColorInfo> list, ICollection<IEqualityComparer<DistinctColorInfo>> comparers, out List<DistinctColorInfo> outputList)

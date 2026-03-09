@@ -1,4 +1,4 @@
-﻿using Kanvas.Contract.Configuration;
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Quantization;
 using Kanvas.DataClasses.Configuration;
 using Kanvas.Quantization;
@@ -35,6 +35,14 @@ namespace Kanvas.Configuration
         public IQuantizationConfigurationBuilder WithPalette(CreatePaletteDelegate paletteDelegate)
         {
             _options.PaletteDelegate = paletteDelegate;
+            _options.InitialPaletteDelegate = null;
+            return this;
+        }
+
+        public IQuantizationConfigurationBuilder WithInitialPalette(CreateInitialPaletteDelegate initialPaletteDelegate)
+        {
+            _options.PaletteDelegate = null;
+            _options.InitialPaletteDelegate = initialPaletteDelegate;
             return this;
         }
 
@@ -57,6 +65,7 @@ namespace Kanvas.Configuration
                 TaskCount = _options.TaskCount,
                 ColorCount = _options.ColorCount,
                 PaletteDelegate = _options.PaletteDelegate,
+                InitialPaletteDelegate = _options.InitialPaletteDelegate,
                 ColorCacheDelegate = _options.ColorCacheDelegate,
                 ColorDithererDelegate = _options.ColorDithererDelegate,
                 ColorQuantizerDelegate = _options.ColorQuantizerDelegate

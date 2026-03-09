@@ -31,8 +31,8 @@ namespace Kanvas.Quantization
             IColorCache colorCache = GetColorCache(colorList);
             IColorDitherer? colorDitherer = _options.ColorDithererDelegate?.Invoke(imageSize, _options.TaskCount);
 
-            IEnumerable<int> indices = colorDitherer == null ? 
-                colorList.ToIndices(colorCache) : 
+            IEnumerable<int> indices = colorDitherer == null ?
+                colorList.ToIndices(colorCache) :
                 colorDitherer.Process(colorList, colorCache);
 
             return (indices, colorCache.Palette);
@@ -40,23 +40,31 @@ namespace Kanvas.Quantization
 
         private IColorCache GetColorCache(IEnumerable<Rgba32> colors)
         {
-            // Create a palette for the input colors
+            IList<Rgba32> palette;
+
             if (_options.PaletteDelegate != null)
             {
-                // Retrieve the preset palette
-                IList<Rgba32> palette = _options.PaletteDelegate();
+                // Retrieve and return the preset palette
+                palette = _options.PaletteDelegate();
                 return _options.ColorCacheDelegate(palette);
+            }
+
+            IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount);
+
+            if (_options.InitialPaletteDelegate != null)
+            {
+                // Create a new palette through quantization, primed by an initial set of colors
+                palette = quantizer.CreatePalette(colors, _options.InitialPaletteDelegate());
             }
             else
             {
                 // Create a new palette through quantization
-                IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount);
-                IList<Rgba32> palette = quantizer.CreatePalette(colors);
-
-                return quantizer.IsColorCacheFixed ?
-                    quantizer.GetFixedColorCache(palette) :
-                    _options.ColorCacheDelegate(palette);
+                palette = quantizer.CreatePalette(colors);
             }
+
+            return quantizer.IsColorCacheFixed ?
+                quantizer.GetFixedColorCache(palette) :
+                _options.ColorCacheDelegate(palette);
         }
     }
 }

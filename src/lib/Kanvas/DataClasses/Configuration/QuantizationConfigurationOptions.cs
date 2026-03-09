@@ -9,6 +9,7 @@ namespace Kanvas.DataClasses.Configuration
         public int TaskCount { get; set; } = Environment.ProcessorCount;
         public int ColorCount { get; set; } = -1;
         public CreatePaletteDelegate? PaletteDelegate { get; set; }
+        public CreateInitialPaletteDelegate? InitialPaletteDelegate { get; set; }
         public CreateColorQuantizerDelegate ColorQuantizerDelegate { get; set; } = (colorCount, _) => new WuColorQuantizer(6, 2, colorCount);
         public CreateColorCacheDelegate ColorCacheDelegate { get; set; } = palette => new EuclideanDistanceColorCache(palette);
         public CreateColorDithererDelegate? ColorDithererDelegate { get; set; }

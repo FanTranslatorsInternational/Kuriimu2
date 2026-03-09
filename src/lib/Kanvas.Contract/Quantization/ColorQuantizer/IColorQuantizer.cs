@@ -26,9 +26,17 @@ namespace Kanvas.Contract.Quantization.ColorQuantizer
         /// <summary>
         /// Creates a palette out of a collection of colors.
         /// </summary>
-        /// <param name="colors"></param>
-        /// <returns></returns>
+        /// <param name="colors">The colors to quantize.</param>
+        /// <returns>The palette.</returns>
         IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors);
+
+        /// <summary>
+        /// Creates a palette out of a collection of colors.
+        /// </summary>
+        /// <param name="colors">The colors to quantize.</param>
+        /// <param name="initialPalette">A pre-determined set of colors guaranteed to be in the palette.</param>
+        /// <returns>The palette.</returns>
+        IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette);
 
         /// <summary>
         /// Gets the fixed color cache for this quantizer.

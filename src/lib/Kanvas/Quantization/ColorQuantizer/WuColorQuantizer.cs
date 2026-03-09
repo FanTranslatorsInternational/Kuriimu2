@@ -1,4 +1,4 @@
-﻿using Kanvas.Contract.Quantization.ColorCache;
+using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorQuantizer;
 using Kanvas.Quantization.ColorCache;
 using SixLabors.ImageSharp;
@@ -36,16 +36,28 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// <inheritdoc />
         public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors)
         {
+            return CreatePalette(colors, []);
+        }
+
+        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
+        {
+            var fixedPalette = NormalizeInitialPalette(initialPalette, _colorCount);
+            
+            int remainingColorCount = _colorCount - fixedPalette.Count;
+            if (remainingColorCount <= 0)
+                return fixedPalette;
+
             Array.Clear(_colorCache.Tag, 0, _colorCache.Tag.Length);
 
             // Step 1: Build a 3-dimensional histogram of all colors and calculate their moments
-            _histogram.Create(colors.ToList());
+            _histogram.Create(colors.ToList(), new HashSet<uint>(fixedPalette.Select(color => color.PackedValue)));
 
             // Step 2: Create color cube
-            var cube = Wu.WuColorCube.Create(_histogram, _colorCount);
+            var cube = Wu.WuColorCube.Create(_histogram, remainingColorCount);
 
             // Step 3: Create palette from color cube
-            return CreatePalette(cube).ToList();
+            fixedPalette.AddRange(CreatePalette(cube, fixedPalette.Count));
+            return fixedPalette;
         }
 
         /// <inheritdoc />
@@ -55,12 +67,12 @@ namespace Kanvas.Quantization.ColorQuantizer
             return _colorCache;
         }
 
-        private IEnumerable<Rgba32> CreatePalette(Wu.WuColorCube cube)
+        private IEnumerable<Rgba32> CreatePalette(Wu.WuColorCube cube, int paletteOffset)
         {
             for (int k = 0; k < cube.ColorCount; k++)
             {
                 var box = cube.Boxes[k];
-                Mark(box, (byte)k);
+                Mark(box, (byte)(k + paletteOffset));
 
                 var weight = box.GetPartialVolume(5);
                 yield return weight == 0 ?
@@ -69,8 +81,19 @@ namespace Kanvas.Quantization.ColorQuantizer
                         (byte)(box.GetPartialVolume(1) / weight),
                         (byte)(box.GetPartialVolume(2) / weight),
                         (byte)(box.GetPartialVolume(3) / weight),
-						(byte)(box.GetPartialVolume(4) / weight));
+                        (byte)(box.GetPartialVolume(4) / weight));
             }
+        }
+
+        private static List<Rgba32> NormalizeInitialPalette(IList<Rgba32> initialPalette, int maxColorCount)
+        {
+            if (maxColorCount <= 0 || initialPalette.Count <= 0)
+                return [];
+
+            return initialPalette
+                .DistinctBy(color => color.PackedValue)
+                .Take(maxColorCount)
+                .ToList();
         }
 
         private void Mark(Wu.WuColorBox box, byte label)

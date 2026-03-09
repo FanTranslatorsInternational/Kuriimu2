@@ -1,4 +1,4 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization.ColorQuantizer.Wu
 {
@@ -57,9 +57,14 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
         public void Create(IList<Rgba32> colors)
         {
+            Create(colors, null);
+        }
+
+        public void Create(IList<Rgba32> colors, ISet<uint>? excludedColors)
+        {
             InitializeTables(IndexCount * IndexCount * IndexCount * IndexAlphaCount);
 
-            FillTables(colors);
+            FillTables(colors, excludedColors);
             CalculateMoments();
         }
 
@@ -73,10 +78,13 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             M2 = new double[tableLength];
         }
 
-        private void FillTables(IList<Rgba32> colors)
+        private void FillTables(IList<Rgba32> colors, ISet<uint>? excludedColors)
         {
             foreach (var color in colors)
             {
+                if (excludedColors?.Contains(color.PackedValue) == true)
+                    continue;
+
                 int a = color.A;
                 int r = color.R;
                 int g = color.G;
