@@ -16,7 +16,7 @@ public class GlyphData
     public required Image<Rgba32> Glyph { get; init; }
 
     /// <summary>
-    /// Gets a description of the glyph, including position and size of the glyph to be rendered.
+    /// Gets a border space of the glyph, including position and size of the glyph to be rendered.
     /// </summary>
-    public required GlyphDescriptionData Description { get; init; }
+    public required BorderSpaceData Description { get; init; }
 }

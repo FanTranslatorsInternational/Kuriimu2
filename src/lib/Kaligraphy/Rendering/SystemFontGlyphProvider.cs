@@ -62,7 +62,7 @@ public class SystemFontGlyphProvider : IGlyphProvider
         gfx.DrawString($"{(char)codePoint}", _font, new SolidBrush(glyphColor), PointF.Empty, StringFormat.GenericTypographic);
 
         Image<Rgba32> glyph = ConvertSystemDrawing(glyphImage);
-        GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
+        BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
 
         if (glyphDescription.Size is { Width: > 0, Height: > 0 })
             glyph = glyph.Clone(context => context.Crop(new SixLabors.ImageSharp.Rectangle(glyphDescription.Position, glyphDescription.Size)));

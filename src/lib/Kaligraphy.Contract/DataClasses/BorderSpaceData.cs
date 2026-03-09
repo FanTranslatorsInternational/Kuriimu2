@@ -2,15 +2,15 @@
 
 namespace Kaligraphy.Contract.DataClasses;
 
-public class GlyphDescriptionData
+public class BorderSpaceData
 {
     /// <summary>
-    /// The position into the glyph.
+    /// The position where non-border data starts.
     /// </summary>
     public required Point Position { get; init; }
 
     /// <summary>
-    /// The size of the glyph.
+    /// The size of the non-border data.
     /// </summary>
     public required Size Size { get; init; }
 }

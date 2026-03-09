@@ -5,30 +5,32 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace Kaligraphy.Generation;
 
 /// <summary>
-/// Static methods for measuring transparent border space.
+/// Static methods for measuring colored border space.
 /// </summary>
-public static class WhiteSpaceMeasurer
+public class ColorMeasurer
 {
     /// <summary>
-    /// Measure the whitespace of an image.
+    /// Measure the colored border of an image.
     /// </summary>
     /// <param name="image">The image to measure.</param>
-    /// <returns>The measured whitespace.</returns>
-    public static BorderSpaceData MeasureWhiteSpace(Image<Rgba32> image)
+    /// <param name="color">The color of the border.</param>
+    /// <returns>The measured border.</returns>
+    public static BorderSpaceData MeasureColor(Image<Rgba32> image, Rgba32 color)
     {
-        return MeasureWhiteSpace(image, new Rectangle(0, 0, image.Width, image.Height));
+        return MeasureColor(image, new Rectangle(0, 0, image.Width, image.Height), color);
     }
 
     /// <summary>
-    /// Measure the whitespace of a glyph.
+    /// Measure the colored border of an image.
     /// </summary>
     /// <param name="image">The image to measure on.</param>
     /// <param name="cropRect">The area to measure in.</param>
-    /// <returns>The measured whitespace.</returns>
-    public static BorderSpaceData MeasureWhiteSpace(Image<Rgba32> image, Rectangle cropRect)
+    /// <param name="color">The color of the border.</param>
+    /// <returns>The measured border.</returns>
+    public static BorderSpaceData MeasureColor(Image<Rgba32> image, Rectangle cropRect, Rgba32 color)
     {
-        int top = MeasureWhiteSpaceTop(image, cropRect);
-        int left = MeasureWhiteSpaceLeft(image, cropRect);
+        int top = MeasureColorTop(image, cropRect, color);
+        int left = MeasureColorLeft(image, cropRect, color);
 
         if (top >= cropRect.Bottom || left >= cropRect.Right)
         {
@@ -39,8 +41,8 @@ public static class WhiteSpaceMeasurer
             };
         }
 
-        int bottom = MeasureWhiteSpaceBottom(image, cropRect);
-        int right = MeasureWhiteSpaceRight(image, cropRect);
+        int bottom = MeasureColorBottom(image, cropRect, color);
+        int right = MeasureColorRight(image, cropRect, color);
 
         return new BorderSpaceData
         {
@@ -49,41 +51,41 @@ public static class WhiteSpaceMeasurer
         };
     }
 
-    private static int MeasureWhiteSpaceTop(Image<Rgba32> glyph, Rectangle cropRect)
+    private static int MeasureColorTop(Image<Rgba32> glyph, Rectangle cropRect, Rgba32 color)
     {
         for (int y = cropRect.Top; y < cropRect.Bottom; y++)
         for (int x = cropRect.Left; x < cropRect.Right; x++)
-            if (glyph[x, y].A > 0)
+            if (glyph[x, y] != color)
                 return y;
 
         return cropRect.Bottom;
     }
 
-    private static int MeasureWhiteSpaceLeft(Image<Rgba32> glyph, Rectangle cropRect)
+    private static int MeasureColorLeft(Image<Rgba32> glyph, Rectangle cropRect, Rgba32 color)
     {
         for (int x = cropRect.Left; x < cropRect.Right; x++)
         for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-            if (glyph[x, y].A > 0)
+            if (glyph[x, y] != color)
                 return x;
 
         return cropRect.Right;
     }
 
-    private static int MeasureWhiteSpaceBottom(Image<Rgba32> glyph, Rectangle cropRect)
+    private static int MeasureColorBottom(Image<Rgba32> glyph, Rectangle cropRect, Rgba32 color)
     {
         for (int y = cropRect.Bottom - 1; y >= cropRect.Top; y--)
         for (int x = cropRect.Left; x < cropRect.Right; x++)
-            if (glyph[x, y].A > 0)
+            if (glyph[x, y] != color)
                 return y + 1;
 
         return cropRect.Top;
     }
 
-    private static int MeasureWhiteSpaceRight(Image<Rgba32> glyph, Rectangle cropRect)
+    private static int MeasureColorRight(Image<Rgba32> glyph, Rectangle cropRect, Rgba32 color)
     {
         for (int x = cropRect.Right - 1; x >= cropRect.Left; x--)
         for (int y = cropRect.Top; y < cropRect.Bottom; y++)
-            if (glyph[x, y].A > 0)
+            if (glyph[x, y] != color)
                 return x + 1;
 
         return cropRect.Left;
