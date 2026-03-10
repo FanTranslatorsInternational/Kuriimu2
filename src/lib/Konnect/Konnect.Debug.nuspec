@@ -19,7 +19,7 @@
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Kaligraphy" version="2.1.26" />
-        <dependency id="Kanvas" version="2.1.30" />
+        <dependency id="Kanvas" version="2.1.31" />
         <dependency id="Kompression" version="2.1.12" />
         <dependency id="Serilog" version="4.2.0" />
       </group>
