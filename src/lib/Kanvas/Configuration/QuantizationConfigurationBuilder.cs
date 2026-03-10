@@ -46,6 +46,12 @@ namespace Kanvas.Configuration
             return this;
         }
 
+        public IQuantizationConfigurationBuilder OrderPalette(OrderPaletteDelegate orderPaletteDelegate)
+        {
+            _options.OrderPaletteDelegate = orderPaletteDelegate;
+            return this;
+        }
+
         public IQuantizationConfigurationBuilder WithColorQuantizer(CreateColorQuantizerDelegate quantizerDelegate)
         {
             _options.ColorQuantizerDelegate = quantizerDelegate;

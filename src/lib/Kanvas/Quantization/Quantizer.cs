@@ -54,12 +54,26 @@ namespace Kanvas.Quantization
             if (_options.InitialPaletteDelegate != null)
             {
                 // Create a new palette through quantization, primed by an initial set of colors
-                palette = quantizer.CreatePalette(colors, _options.InitialPaletteDelegate());
+                var initialPalette = _options.InitialPaletteDelegate();
+                palette = quantizer.CreatePalette(colors, initialPalette);
+
+                // Order palette colors
+                if (_options.OrderPaletteDelegate != null)
+                {
+                    IList<Rgba32> dynamicPalette = palette.Skip(initialPalette.Count).ToArray();
+                    dynamicPalette = _options.OrderPaletteDelegate(dynamicPalette);
+
+                    palette = initialPalette.Concat(dynamicPalette).ToArray();
+                }
             }
             else
             {
                 // Create a new palette through quantization
                 palette = quantizer.CreatePalette(colors);
+
+                // Order palette colors
+                if (_options.OrderPaletteDelegate != null)
+                    palette = _options.OrderPaletteDelegate(palette);
             }
 
             return quantizer.IsColorCacheFixed ?

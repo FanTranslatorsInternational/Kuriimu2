@@ -9,6 +9,7 @@ namespace Kanvas.Contract.Configuration
     public delegate IColorCache CreateColorCacheDelegate(IList<Rgba32> palette);
     public delegate IList<Rgba32> CreatePaletteDelegate();
     public delegate IList<Rgba32> CreateInitialPaletteDelegate();
+    public delegate IList<Rgba32> OrderPaletteDelegate(IList<Rgba32> palette);
     public delegate IColorQuantizer CreateColorQuantizerDelegate(int colorCount, int taskCount);
     public delegate IColorDitherer CreateColorDithererDelegate(Size imageSize, int taskCount);
 
@@ -23,6 +24,7 @@ namespace Kanvas.Contract.Configuration
 
         IQuantizationConfigurationBuilder WithPalette(CreatePaletteDelegate paletteDelegate);
         IQuantizationConfigurationBuilder WithInitialPalette(CreateInitialPaletteDelegate initialPaletteDelegate);
+        IQuantizationConfigurationBuilder OrderPalette(OrderPaletteDelegate orderPaletteDelegate);
 
         IQuantizationConfigurationBuilder WithColorQuantizer(CreateColorQuantizerDelegate quantizerDelegate);
 
