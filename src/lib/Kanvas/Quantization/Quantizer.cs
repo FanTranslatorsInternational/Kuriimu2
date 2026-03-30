@@ -51,11 +51,14 @@ namespace Kanvas.Quantization
 
             IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount);
 
+            var fixedColorCount = 0;
             if (_options.InitialPaletteDelegate != null)
             {
                 // Create a new palette through quantization, primed by an initial set of colors
                 IList<Rgba32> initialPalette = _options.InitialPaletteDelegate();
                 palette = quantizer.CreatePalette(colors, initialPalette);
+
+                fixedColorCount = initialPalette.Count;
             }
             else
             {
@@ -64,7 +67,7 @@ namespace Kanvas.Quantization
             }
 
             // Order palette colors
-            palette = quantizer.ReorderPalette(palette, _options.OrderPaletteDelegate);
+            palette = quantizer.ReorderPalette(palette, _options.OrderPaletteDelegate, fixedColorCount);
 
             // Get color cache based on palette
             return quantizer.IsColorCacheFixed ?

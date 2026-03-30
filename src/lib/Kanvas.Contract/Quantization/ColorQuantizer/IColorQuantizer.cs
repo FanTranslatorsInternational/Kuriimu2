@@ -51,8 +51,18 @@ namespace Kanvas.Contract.Quantization.ColorQuantizer
         /// </summary>
         /// <param name="palette">The generated palette.</param>
         /// <param name="orderPaletteDelegate">Delegate used to reorder colors.</param>
+        /// <param name="fixedColorCount">The amount of fixed colors at the start of the palette.</param>
         /// <returns>The reordered palette.</returns>
-        IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate) =>
-            orderPaletteDelegate is null ? palette : orderPaletteDelegate(palette);
+        IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate, int fixedColorCount)
+        {
+            if (orderPaletteDelegate is null || palette.Count <= fixedColorCount)
+                return palette;
+
+            List<Rgba32> fixedPalette = palette.Take(fixedColorCount).ToList();
+            Rgba32[] dynamicPalette = palette.Skip(fixedColorCount).ToArray();
+
+            fixedPalette.AddRange(orderPaletteDelegate(dynamicPalette));
+            return fixedPalette;
+        }
     }
 }

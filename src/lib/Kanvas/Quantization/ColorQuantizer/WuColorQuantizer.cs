@@ -75,15 +75,20 @@ namespace Kanvas.Quantization.ColorQuantizer
         }
 
         /// <inheritdoc />
-        public IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate)
+        public IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate, int fixedColorCount)
         {
-            if (orderPaletteDelegate == null || palette.Count <= 0)
+            if (orderPaletteDelegate is null || palette.Count <= fixedColorCount)
                 return palette;
 
-            IList<Rgba32> orderedPalette = orderPaletteDelegate(palette);
+            List<Rgba32> fixedPalette = palette.Take(fixedColorCount).ToList();
+            Rgba32[] dynamicPalette = palette.Skip(fixedColorCount).ToArray();
 
+            IList<Rgba32> orderedPalette = orderPaletteDelegate(dynamicPalette);
+
+            fixedPalette.AddRange(orderedPalette);
             RemapCacheTagTable(palette, orderedPalette);
-            return orderedPalette;
+
+            return fixedPalette;
         }
 
         private IEnumerable<Rgba32> CreatePalette(Wu.WuColorCube cube, int paletteOffset)
