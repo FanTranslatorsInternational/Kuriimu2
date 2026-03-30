@@ -1,4 +1,4 @@
-﻿using Kanvas.Contract.Quantization;
+using Kanvas.Contract.Quantization;
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorDitherer;
 using Kanvas.Contract.Quantization.ColorQuantizer;
@@ -54,28 +54,19 @@ namespace Kanvas.Quantization
             if (_options.InitialPaletteDelegate != null)
             {
                 // Create a new palette through quantization, primed by an initial set of colors
-                var initialPalette = _options.InitialPaletteDelegate();
+                IList<Rgba32> initialPalette = _options.InitialPaletteDelegate();
                 palette = quantizer.CreatePalette(colors, initialPalette);
-
-                // Order palette colors
-                if (_options.OrderPaletteDelegate != null)
-                {
-                    IList<Rgba32> dynamicPalette = palette.Skip(initialPalette.Count).ToArray();
-                    dynamicPalette = _options.OrderPaletteDelegate(dynamicPalette);
-
-                    palette = initialPalette.Concat(dynamicPalette).ToArray();
-                }
             }
             else
             {
                 // Create a new palette through quantization
                 palette = quantizer.CreatePalette(colors);
-
-                // Order palette colors
-                if (_options.OrderPaletteDelegate != null)
-                    palette = _options.OrderPaletteDelegate(palette);
             }
 
+            // Order palette colors
+            palette = quantizer.ReorderPalette(palette, _options.OrderPaletteDelegate);
+
+            // Get color cache based on palette
             return quantizer.IsColorCacheFixed ?
                 quantizer.GetFixedColorCache(palette) :
                 _options.ColorCacheDelegate(palette);

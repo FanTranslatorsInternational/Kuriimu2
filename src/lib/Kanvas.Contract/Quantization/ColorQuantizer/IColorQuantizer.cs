@@ -1,4 +1,5 @@
-﻿using Kanvas.Contract.Quantization.ColorCache;
+using Kanvas.Contract.Quantization.ColorCache;
+using Kanvas.Contract.Configuration;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Contract.Quantization.ColorQuantizer
@@ -44,5 +45,14 @@ namespace Kanvas.Contract.Quantization.ColorQuantizer
         /// <param name="palette">The palette to store in the fixed color cache.</param>
         /// <returns>The fixed color cache for this quantizer.</returns>
         IColorCache GetFixedColorCache(IList<Rgba32> palette);
+
+        /// <summary>
+        /// Reorders a palette while keeping fixed colors in front.
+        /// </summary>
+        /// <param name="palette">The generated palette.</param>
+        /// <param name="orderPaletteDelegate">Delegate used to reorder colors.</param>
+        /// <returns>The reordered palette.</returns>
+        IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate) =>
+            orderPaletteDelegate is null ? palette : orderPaletteDelegate(palette);
     }
 }

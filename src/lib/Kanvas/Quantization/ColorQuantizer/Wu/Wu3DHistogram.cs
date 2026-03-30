@@ -42,7 +42,6 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
         /// <summary>
         /// Creates a 3-dimensional color histogram.
         /// </summary>
-        /// <param name="colors">The colors to put into the histogram.</param>
         /// <param name="indexBits"></param>
         /// <param name="alphaBits"></param>
         /// <param name="indexCount"></param>
@@ -60,11 +59,13 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             Create(colors, null);
         }
 
-        public void Create(IList<Rgba32> colors, ISet<uint>? excludedColors)
+        public void Create(IList<Rgba32> colors, IList<Rgba32>? biasPalette)
         {
             InitializeTables(IndexCount * IndexCount * IndexCount * IndexAlphaCount);
 
-            FillTables(colors, excludedColors);
+            FillTables(colors, biasPalette);
+            ApplyPaletteBias(colors.Count, biasPalette);
+
             CalculateMoments();
         }
 
@@ -78,11 +79,11 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             M2 = new double[tableLength];
         }
 
-        private void FillTables(IList<Rgba32> colors, ISet<uint>? excludedColors)
+        private void FillTables(IList<Rgba32> colors, IList<Rgba32>? biasPalette)
         {
             foreach (var color in colors)
             {
-                if (excludedColors?.Contains(color.PackedValue) == true)
+                if (biasPalette?.Contains(color) ?? false)
                     continue;
 
                 int a = color.A;
@@ -95,15 +96,84 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
                 int inb = b >> 8 - IndexBits;
                 int ina = a >> 8 - IndexAlphaBits;
 
-                int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexBits, IndexAlphaBits);
-
-                Vwt[ind]++;
-                Vmr[ind] += r;
-                Vmg[ind] += g;
-                Vmb[ind] += b;
-                Vma[ind] += a;
-                M2[ind] += r * r + g * g + b * b + a * a;      // Euclidean distance as moment
+                AddWeightedSample(inr, ing, inb, ina, r, g, b, a, 1);
             }
+        }
+
+        private void ApplyPaletteBias(int sourceColorCount, IList<Rgba32>? biasPalette)
+        {
+            if (sourceColorCount <= 0 || biasPalette == null || biasPalette.Count == 0)
+                return;
+
+            // Keep synthetic mass small relative to image size.
+            int baseWeight = Math.Clamp(sourceColorCount / 8192, 1, 16);
+            int centerWeight = baseWeight * 4;
+            int neighborWeight = baseWeight;
+
+            var uniqueColors = new HashSet<uint>();
+            foreach (var color in biasPalette)
+            {
+                if (!uniqueColors.Add(color.PackedValue))
+                    continue;
+
+                int inr = color.R >> 8 - IndexBits;
+                int ing = color.G >> 8 - IndexBits;
+                int inb = color.B >> 8 - IndexBits;
+                int ina = color.A >> 8 - IndexAlphaBits;
+
+                AddBiasSample(inr, ing, inb, ina, centerWeight);
+                AddBiasSample(inr - 1, ing, inb, ina, neighborWeight);
+                AddBiasSample(inr + 1, ing, inb, ina, neighborWeight);
+                AddBiasSample(inr, ing - 1, inb, ina, neighborWeight);
+                AddBiasSample(inr, ing + 1, inb, ina, neighborWeight);
+                AddBiasSample(inr, ing, inb - 1, ina, neighborWeight);
+                AddBiasSample(inr, ing, inb + 1, ina, neighborWeight);
+                AddBiasSample(inr, ing, inb, ina - 1, neighborWeight);
+                AddBiasSample(inr, ing, inb, ina + 1, neighborWeight);
+            }
+        }
+
+        private void AddBiasSample(int inr, int ing, int inb, int ina, int weight)
+        {
+            if (weight <= 0)
+                return;
+
+            int maxColorIndex = IndexCount - 2;
+            int maxAlphaIndex = IndexAlphaCount - 2;
+
+            if (inr < 0 || inr > maxColorIndex ||
+                ing < 0 || ing > maxColorIndex ||
+                inb < 0 || inb > maxColorIndex ||
+                ina < 0 || ina > maxAlphaIndex)
+            {
+                return;
+            }
+
+            int r = GetBinCenterValue(inr, IndexBits);
+            int g = GetBinCenterValue(ing, IndexBits);
+            int b = GetBinCenterValue(inb, IndexBits);
+            int a = GetBinCenterValue(ina, IndexAlphaBits);
+
+            AddWeightedSample(inr, ing, inb, ina, r, g, b, a, weight);
+        }
+
+        private void AddWeightedSample(int inr, int ing, int inb, int ina, int r, int g, int b, int a, int weight)
+        {
+            int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexBits, IndexAlphaBits);
+
+            Vwt[ind] += weight;
+            Vmr[ind] += weight * r;
+            Vmg[ind] += weight * g;
+            Vmb[ind] += weight * b;
+            Vma[ind] += weight * a;
+            M2[ind] += weight * (r * r + g * g + b * b + a * a); // Euclidean distance as moment
+        }
+
+        private static int GetBinCenterValue(int index, int bits)
+        {
+            int bucketSize = 1 << (8 - bits);
+            int value = index * bucketSize + (bucketSize >> 1);
+            return Math.Clamp(value, 0, 255);
         }
 
         private void CalculateMoments()

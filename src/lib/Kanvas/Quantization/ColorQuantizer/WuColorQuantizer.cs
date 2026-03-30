@@ -1,5 +1,6 @@
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorQuantizer;
+using Kanvas.Contract.Configuration;
 using Kanvas.Quantization.ColorCache;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -42,21 +43,27 @@ namespace Kanvas.Quantization.ColorQuantizer
         public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
         {
             var fixedPalette = NormalizeInitialPalette(initialPalette, _colorCount);
-            
-            int remainingColorCount = _colorCount - fixedPalette.Count;
-            if (remainingColorCount <= 0)
-                return fixedPalette;
 
             Array.Clear(_colorCache.Tag, 0, _colorCache.Tag.Length);
 
-            // Step 1: Build a 3-dimensional histogram of all colors and calculate their moments
-            _histogram.Create(colors.ToList(), new HashSet<uint>(fixedPalette.Select(color => color.PackedValue)));
+            int remainingColorCount = _colorCount - fixedPalette.Count;
+            if (remainingColorCount <= 0)
+            {
+                FillFixedOnlyTagTable(fixedPalette);
+                return fixedPalette;
+            }
+
+            // Step 1: Build a 3-dimensional histogram of all non-fixed colors and calculate moments.
+            //         Apply a small synthetic bias around the initial palette to guide cube cuts.
+            _histogram.Create(colors.ToList(), fixedPalette);
 
             // Step 2: Create color cube
             var cube = Wu.WuColorCube.Create(_histogram, remainingColorCount);
 
             // Step 3: Create palette from color cube
             fixedPalette.AddRange(CreatePalette(cube, fixedPalette.Count));
+            MarkFixedPaletteBins(fixedPalette, fixedPalette.Count);
+
             return fixedPalette;
         }
 
@@ -65,6 +72,18 @@ namespace Kanvas.Quantization.ColorQuantizer
         {
             _colorCache.SetPalette(palette);
             return _colorCache;
+        }
+
+        /// <inheritdoc />
+        public IList<Rgba32> ReorderPalette(IList<Rgba32> palette, OrderPaletteDelegate? orderPaletteDelegate)
+        {
+            if (orderPaletteDelegate == null || palette.Count <= 0)
+                return palette;
+
+            IList<Rgba32> orderedPalette = orderPaletteDelegate(palette);
+
+            RemapCacheTagTable(palette, orderedPalette);
+            return orderedPalette;
         }
 
         private IEnumerable<Rgba32> CreatePalette(Wu.WuColorCube cube, int paletteOffset)
@@ -94,6 +113,118 @@ namespace Kanvas.Quantization.ColorQuantizer
                 .DistinctBy(color => color.PackedValue)
                 .Take(maxColorCount)
                 .ToList();
+        }
+
+        private void FillFixedOnlyTagTable(IList<Rgba32> fixedPalette)
+        {
+            if (fixedPalette.Count <= 0)
+                return;
+
+            int maxRgbaIndex = _histogram.IndexCount - 1;
+            int maxAlphaIndex = _histogram.IndexAlphaCount - 1;
+            for (int r = 1; r <= maxRgbaIndex; r++)
+            {
+                int red = GetBinCenterValue(r - 1, _histogram.IndexBits);
+
+                for (int g = 1; g <= maxRgbaIndex; g++)
+                {
+                    int green = GetBinCenterValue(g - 1, _histogram.IndexBits);
+
+                    for (int b = 1; b <= maxRgbaIndex; b++)
+                    {
+                        int blue = GetBinCenterValue(b - 1, _histogram.IndexBits);
+
+                        for (int a = 1; a <= maxAlphaIndex; a++)
+                        {
+                            int alpha = GetBinCenterValue(a - 1, _histogram.IndexAlphaBits);
+                            int closestIndex = FindClosestPaletteIndex(red, green, blue, alpha, fixedPalette);
+
+                            _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexBits, _histogram.IndexAlphaBits)] = (byte)closestIndex;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MarkFixedPaletteBins(IList<Rgba32> palette, int fixedCount)
+        {
+            if (fixedCount <= 0)
+                return;
+
+            for (int i = 0; i < fixedCount; i++)
+            {
+                var color = palette[i];
+
+                int r = (color.R >> (8 - _histogram.IndexBits)) + 1;
+                int g = (color.G >> (8 - _histogram.IndexBits)) + 1;
+                int b = (color.B >> (8 - _histogram.IndexBits)) + 1;
+                int a = (color.A >> (8 - _histogram.IndexAlphaBits)) + 1;
+
+                _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexBits, _histogram.IndexAlphaBits)] = (byte)i;
+            }
+        }
+
+        private int FindClosestPaletteIndex(int r, int g, int b, int a, IList<Rgba32> palette)
+        {
+            int bestIndex = 0;
+            long bestDistance = long.MaxValue;
+
+            for (int i = 0; i < palette.Count; i++)
+            {
+                var color = palette[i];
+                long dr = r - color.R;
+                long dg = g - color.G;
+                long db = b - color.B;
+                long da = a - color.A;
+                long distance = dr * dr + dg * dg + db * db + da * da;
+
+                if (distance >= bestDistance)
+                    continue;
+
+                bestDistance = distance;
+                bestIndex = i;
+            }
+
+            return bestIndex;
+        }
+
+        private static int GetBinCenterValue(int index, int bits)
+        {
+            int bucketSize = 1 << (8 - bits);
+            int value = index * bucketSize + (bucketSize >> 1);
+            return Math.Clamp(value, 0, 255);
+        }
+
+        private void RemapCacheTagTable(IList<Rgba32> sourcePalette, IList<Rgba32> orderedPalette)
+        {
+            if (sourcePalette.Count != orderedPalette.Count)
+                throw new InvalidOperationException("Ordered palette size must match source palette size.");
+
+            var sourceIndexByColor = new Dictionary<uint, Queue<int>>(sourcePalette.Count);
+            for (int sourceIndex = 0; sourceIndex < sourcePalette.Count; sourceIndex++)
+            {
+                uint colorKey = sourcePalette[sourceIndex].PackedValue;
+                if (!sourceIndexByColor.TryGetValue(colorKey, out Queue<int>? sourceIndices))
+                {
+                    sourceIndices = new Queue<int>();
+                    sourceIndexByColor[colorKey] = sourceIndices;
+                }
+
+                sourceIndices.Enqueue(sourceIndex);
+            }
+
+            var remapTable = new byte[sourcePalette.Count];
+            for (int orderedIndex = 0; orderedIndex < orderedPalette.Count; orderedIndex++)
+            {
+                uint colorKey = orderedPalette[orderedIndex].PackedValue;
+                if (!sourceIndexByColor.TryGetValue(colorKey, out Queue<int>? sourceIndices) || sourceIndices.Count == 0)
+                    throw new InvalidOperationException("Ordered palette must contain the same colors as source palette.");
+
+                remapTable[sourceIndices.Dequeue()] = (byte)orderedIndex;
+            }
+
+            for (int tagIndex = 0; tagIndex < _colorCache.Tag.Length; tagIndex++)
+                _colorCache.Tag[tagIndex] = remapTable[_colorCache.Tag[tagIndex]];
         }
 
         private void Mark(Wu.WuColorBox box, byte label)
