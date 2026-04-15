@@ -288,7 +288,9 @@ class ArchivePluginFileSystem : FileSystem
                 if (fileExists)
                 {
                     afi = GetAfi(path);
-                    afi?.SetFileData(new MemoryStream());
+
+                    if (afi is not null)
+                        _fileState.PluginState.Archive?.AttemptReplaceFile(afi, new MemoryStream());
                 }
                 else
                 {
@@ -342,9 +344,11 @@ class ArchivePluginFileSystem : FileSystem
             throw new FileNotFoundException($"Could not find file `{savePath}`.");
         }
 
-        GetAfi(savePath)?.SetFileData(saveData);
+        var afi = GetAfi(savePath);
+        if (afi is not null)
+            _fileState.PluginState.Archive?.AttemptReplaceFile(afi, saveData);
 
-        GetOrCreateDispatcher().RaiseCreated(savePath);
+        GetOrCreateDispatcher().RaiseChanged(savePath);
     }
 
     // ----------------------------------------------
@@ -481,8 +485,8 @@ class ArchivePluginFileSystem : FileSystem
 
         // Enumerate subdirectories of current path
         foreach (var directory in directories)
-        foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
-            yield return enumeratedPath;
+            foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
+                yield return enumeratedPath;
     }
 
     #endregion
