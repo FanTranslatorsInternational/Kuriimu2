@@ -149,7 +149,7 @@ namespace plugin_nintendo.Font
                     imageSection.cellHeight);
 
                 Image<Rgba32> image = images[imageIndex].GetImage();
-                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, srcRect);
+                BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, srcRect);
                 Image<Rgba32>? glyph = glyphDescription.Size is { Width: > 0, Height: > 0 }
                     ? image.Clone(context => context.Crop(new Rectangle(glyphDescription.Position, glyphDescription.Size)))
                     : null;

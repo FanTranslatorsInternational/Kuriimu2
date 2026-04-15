@@ -61,7 +61,7 @@ namespace plugin_grezzo.Fonts
                 int y = entry.row * _header.glyphHeight;
 
                 Image<Rgba32> image = images[entry.imageIndex];
-                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, new Rectangle(x, y, _header.glyphWidth, _header.glyphHeight));
+                BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(image, new Rectangle(x, y, _header.glyphWidth, _header.glyphHeight));
 
                 if (glyphDescription.Size is { Width: > 0, Height: > 0 })
                 {

@@ -15,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kaligraphy" Version="2.1.25" />
-    <PackageReference Include="Kanvas" Version="2.1.28" />
-    <PackageReference Include="Konnect" Version="2.1.76" />
+    <PackageReference Include="Kaligraphy" Version="2.1.26" />
+    <PackageReference Include="Kanvas" Version="2.1.33" />
+    <PackageReference Include="Konnect" Version="2.1.82" />
     <PackageReference Include="Kryptography" Version="2.1.10" />
   </ItemGroup>
 

@@ -52,7 +52,7 @@ namespace plugin_grezzo.Fonts
                 };
 
                 Image<Rgba32> rawGlyph = ImageFile.Decode(imageInfo, encodingDefinition);
-                GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(rawGlyph);
+                BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(rawGlyph);
 
                 if (glyphDescription.Size is { Width: > 0, Height: > 0 })
                 {

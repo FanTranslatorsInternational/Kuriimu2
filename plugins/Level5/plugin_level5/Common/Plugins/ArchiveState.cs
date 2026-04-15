@@ -4,6 +4,7 @@ using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
+using Konnect.Extensions;
 using Konnect.Plugin.File.Archive;
 using plugin_level5.Common.Archive;
 using plugin_level5.Common.Archive.Models;
@@ -53,7 +54,7 @@ namespace plugin_level5.Common.Plugins
 
         public void ReplaceFile(IArchiveFile file, Stream fileData)
         {
-            ArchiveNamedEntry? entry = _archiveData?.Files.FirstOrDefault(x => x.Name == file.FilePath);
+            ArchiveNamedEntry? entry = _archiveData?.Files.FirstOrDefault(x => x.Name == file.FilePath.ToRelative());
             if (entry is null)
                 return;
 
@@ -71,7 +72,7 @@ namespace plugin_level5.Common.Plugins
 
             _archiveData?.Files.Add(new ArchiveNamedEntry
             {
-                Name = filePath.FullName,
+                Name = filePath.ToRelative().FullName,
                 Content = fileData
             });
             _files?.Add(archiveFile);
@@ -81,7 +82,7 @@ namespace plugin_level5.Common.Plugins
 
         public void RemoveFile(IArchiveFile file)
         {
-            ArchiveNamedEntry? entry = _archiveData?.Files.FirstOrDefault(x => x.Name == file.FilePath);
+            ArchiveNamedEntry? entry = _archiveData?.Files.FirstOrDefault(x => x.Name == file.FilePath.ToRelative());
             if (entry is null)
                 return;
 
