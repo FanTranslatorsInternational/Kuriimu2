@@ -74,7 +74,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _fileStream = File.OpenRead(selectedFile);
 
-            UpdatePreview();
+            UpdatePreview(true);
             UpdateFormInternal();
         }
 
@@ -240,7 +240,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             }
         }
 
-        private void UpdatePreview()
+        private void UpdatePreview(bool resetZoom = false)
         {
             if (_fileStream is null)
                 return;
@@ -292,8 +292,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 _imageBox.Image = ImageResource.FromImage(_imageFile.GetImage());
                 _imageEditorBox.Image = _imageBox.Image;
 
-                _imageBox.Reset();
-                _imageEditorBox.Reset();
+                if (resetZoom)
+                {
+                    _imageBox.Reset();
+                    _imageEditorBox.Reset();
+                }
             }
             catch
             {

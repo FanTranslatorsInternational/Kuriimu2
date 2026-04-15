@@ -218,6 +218,7 @@ namespace plugin_level5.Common.Image
             var result = new EncodingDefinition();
 
             result.AddColorEncoding(0x00, new Rgba(8, 8, 8, 8, "ABGR"));
+            result.AddColorEncoding(0x03, ImageFormats.Rgb888());
             result.AddColorEncoding(0x0E, ImageFormats.A8());
 
             return result;

@@ -528,7 +528,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             ms.Position = 0;
             Image<Rgba32> glyph = Image.Load<Rgba32>(ms);
 
-            GlyphDescriptionData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
+            BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
 
             boundingBox = new SixLabors.ImageSharp.Size(glyphImage.Width, glyphImage.Height);
             glyphPosition = glyphDescription.Position with { Y = (int)(glyphDescription.Position.Y + glyphY) };
