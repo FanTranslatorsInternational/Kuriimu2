@@ -22,7 +22,7 @@ namespace plugin_level5.Common.Font
                 {
                     Character = c.CodePoint,
                     Glyph = c.Glyph!,
-                    Description = new GlyphDescriptionData
+                    Description = new BorderSpaceData
                     {
                         Position = Point.Empty,
                         Size = c.Glyph!.Size
