@@ -127,7 +127,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
-#if DEBUG
+#if !DEBUG
             // Check if updates are available
             await CheckForUpdate();
 #endif
