@@ -24,10 +24,10 @@ namespace Kuriimu2.Cmd.Contexts
         private readonly IFileSystem _archiveFileSystem;
         private readonly IContext _parentContext;
 
-        public ArchiveContext(ContextNode node, IContext parentContext, IFileManager fileManager, IProgressContext progressContext) :
+        public ArchiveContext(ContextNode node, IFileState stateInfo, IContext parentContext, IFileManager fileManager, IProgressContext progressContext) :
             base(fileManager, node, progressContext)
         {
-            _stateInfo = node.StateInfo!;
+            _stateInfo = stateInfo;
             _archiveState = _stateInfo.PluginState.Archive!;
             _archiveFileSystem = FileSystemFactory.CreateArchivePluginFileSystem(_stateInfo);
             _parentContext = parentContext;

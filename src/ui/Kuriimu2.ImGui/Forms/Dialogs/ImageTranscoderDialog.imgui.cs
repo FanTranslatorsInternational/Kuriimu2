@@ -179,9 +179,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void InitializeQuantizers()
         {
             _quantizers.Items.Add(new DropDownItem<CreateColorQuantizerDelegate>(
-                (count, taskCount) => new DistinctSelectionColorQuantizer(count, taskCount), "Distinct Selection"));
+                (count, taskCount, _) => new DistinctSelectionColorQuantizer(count, taskCount), "Distinct Selection"));
             _quantizers.Items.Add(new DropDownItem<CreateColorQuantizerDelegate>(
-                (count, _) => new WuColorQuantizer(6, 2, count), "Wu"));
+                (count, _, bitDepths) => new WuColorQuantizer(bitDepths, count), "Wu"));
 
             _quantizers.SelectedItem = _quantizers.Items.FirstOrDefault()!;
         }

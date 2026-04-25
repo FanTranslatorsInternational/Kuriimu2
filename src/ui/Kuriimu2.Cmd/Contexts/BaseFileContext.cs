@@ -398,7 +398,7 @@ namespace Kuriimu2.Cmd.Contexts
                     return new ImageContext(loadedFile, this, Progress);
 
                 case IArchiveFilePluginState:
-                    return new ArchiveContext(Node, this, FileManager, Progress);
+                    return new ArchiveContext(Node, loadedFile, this, FileManager, Progress);
 
                 case IFontFilePluginState:
                     return new FontContext(loadedFile, this, Progress);

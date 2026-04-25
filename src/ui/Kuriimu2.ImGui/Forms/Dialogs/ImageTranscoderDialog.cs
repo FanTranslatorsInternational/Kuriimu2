@@ -6,6 +6,7 @@ using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Resources;
 using Kanvas.Contract.Configuration;
+using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Quantization.ColorQuantizer;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Plugin.File.Image;
@@ -175,13 +176,19 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _exportBtn.Enabled = _transcodedImage is not null;
 
             bool isIndexEncoding = IsSelectedIndexEncoding();
-
             _paletteFormats.Enabled = isIndexEncoding;
 
-            IColorQuantizer quantizer = _quantizers.SelectedItem.Content(GetColorCount(), 1);
+            var bitDepths = GetSelectedPaletteColorBitDepths();
+            var isFixedCache = false;
+
+            if (bitDepths is not null)
+            {
+                IColorQuantizer quantizer = _quantizers.SelectedItem.Content(GetColorCount(), 1, bitDepths.Value);
+                isFixedCache = quantizer.IsColorCacheFixed;
+            }
 
             _quantizers.Enabled = isIndexEncoding;
-            _caches.Enabled = isIndexEncoding && !quantizer.IsColorCacheFixed;
+            _caches.Enabled = isIndexEncoding && !isFixedCache;
             _ditherers.Enabled = isIndexEncoding;
             _countText.Enabled = isIndexEncoding;
         }
@@ -269,6 +276,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private int GetSelectedPaletteBitDepth()
         {
             return _encodingDefinition.GetPaletteEncoding(_paletteFormats.SelectedItem.Content)!.BitDepth;
+        }
+
+        private ColorChannelBitDepths? GetSelectedPaletteColorBitDepths()
+        {
+            return _encodingDefinition.GetPaletteEncoding(_paletteFormats.SelectedItem.Content)?.ColorChannelBitDepths;
         }
 
         private bool IsSelectedIndexEncoding()
