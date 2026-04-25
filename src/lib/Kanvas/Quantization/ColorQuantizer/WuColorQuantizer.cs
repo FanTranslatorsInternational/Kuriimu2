@@ -26,13 +26,26 @@ namespace Kanvas.Quantization.ColorQuantizer
 
         public WuColorQuantizer(ColorChannelBitDepths bitDepths, int colorCount)
         {
-            _colorCache = new WuColorCache(bitDepths);
-            _histogram = new Wu.Wu3DHistogram(bitDepths);
+            ColorChannelBitDepths normalizedBitDepths = NormalizeBitDepths(bitDepths);
+
+            _colorCache = new WuColorCache(normalizedBitDepths);
+            _histogram = new Wu.Wu3DHistogram(normalizedBitDepths);
 
             var tableLength = _histogram.IndexRedCount * _histogram.IndexGreenCount * _histogram.IndexBlueCount * _histogram.IndexAlphaCount;
             _colorCache.Tag = new byte[tableLength];
 
             _colorCount = colorCount;
+        }
+
+        private static ColorChannelBitDepths NormalizeBitDepths(ColorChannelBitDepths bitDepths)
+        {
+            // Histogram indexing is based on 8-bit RGBA samples, so higher bit depths provide no extra precision.
+            int redBits = Math.Clamp(bitDepths.Red, 1, 6);
+            int greenBits = Math.Clamp(bitDepths.Green, 1, 6);
+            int blueBits = Math.Clamp(bitDepths.Blue, 1, 6);
+            int alphaBits = Math.Clamp(bitDepths.Alpha, 1, 2);
+
+            return new ColorChannelBitDepths(redBits, greenBits, blueBits, alphaBits);
         }
 
         /// <inheritdoc />
