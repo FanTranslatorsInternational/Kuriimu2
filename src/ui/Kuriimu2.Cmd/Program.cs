@@ -37,7 +37,7 @@ namespace Kuriimu2.Cmd
 
         static async Task Main(string[] args)
         {
-            Manifest? localManifest = LoadLocalManifest();
+            Manifest? localManifest = LoadLocalManifest(); 
 
             PrintWelcomeText(localManifest);
             await CheckForUpdate(localManifest);
