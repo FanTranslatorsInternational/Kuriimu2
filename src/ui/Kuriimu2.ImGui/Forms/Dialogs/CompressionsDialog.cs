@@ -86,9 +86,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private async Task<string?> SelectFolder()
         {
-            var sfd = new SelectFolderDialog
+            var sfd = new WindowsSelectFolderDialog
             {
-                Directory = SettingsResources.LastDirectory
+                InitialDirectory = SettingsResources.LastDirectory
             };
 
             // Show dialog and wait for result

@@ -1240,9 +1240,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task<UPath> SelectFolder()
         {
-            var sfd = new SelectFolderDialog
+            var sfd = new WindowsSelectFolderDialog
             {
-                Directory = SettingsResources.LastDirectory
+                InitialDirectory = SettingsResources.LastDirectory
             };
             var result = await sfd.ShowAsync() == DialogResult.Ok ? sfd.Directory : UPath.Empty;
 
