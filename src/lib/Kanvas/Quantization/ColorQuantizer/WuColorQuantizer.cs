@@ -1,9 +1,10 @@
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorQuantizer;
-using Kanvas.Contract.Configuration;
 using Kanvas.Quantization.ColorCache;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Kanvas.Contract.DataClasses;
 
 namespace Kanvas.Quantization.ColorQuantizer
 {
@@ -23,12 +24,12 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// <inheritdoc />
         public bool SupportsAlpha => true;
 
-        public WuColorQuantizer(int indexBits, int indexAlphaBits, int colorCount)
+        public WuColorQuantizer(ColorChannelBitDepths bitDepths, int colorCount)
         {
-            _colorCache = new WuColorCache(indexBits, indexAlphaBits);
-            _histogram = new Wu.Wu3DHistogram(indexBits, indexAlphaBits, (1 << indexBits) + 1, (1 << indexAlphaBits) + 1);
+            _colorCache = new WuColorCache(bitDepths);
+            _histogram = new Wu.Wu3DHistogram(bitDepths);
 
-            var tableLength = _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexAlphaCount;
+            var tableLength = _histogram.IndexRedCount * _histogram.IndexGreenCount * _histogram.IndexBlueCount * _histogram.IndexAlphaCount;
             _colorCache.Tag = new byte[tableLength];
 
             _colorCount = colorCount;
@@ -61,8 +62,10 @@ namespace Kanvas.Quantization.ColorQuantizer
             var cube = Wu.WuColorCube.Create(_histogram, remainingColorCount);
 
             // Step 3: Create palette from color cube
-            fixedPalette.AddRange(CreatePalette(cube, fixedPalette.Count));
+            var dynamicPalette = CreatePalette(cube, fixedPalette.Count).ToArray();
             MarkFixedPaletteBins(fixedPalette, fixedPalette.Count);
+
+            fixedPalette.AddRange(dynamicPalette);
 
             return fixedPalette;
         }
@@ -86,7 +89,7 @@ namespace Kanvas.Quantization.ColorQuantizer
             IList<Rgba32> orderedPalette = orderPaletteDelegate(dynamicPalette);
 
             fixedPalette.AddRange(orderedPalette);
-            RemapCacheTagTable(palette, orderedPalette);
+            RemapCacheTagTable(dynamicPalette, orderedPalette, fixedColorCount);
 
             return fixedPalette;
         }
@@ -125,26 +128,28 @@ namespace Kanvas.Quantization.ColorQuantizer
             if (fixedPalette.Count <= 0)
                 return;
 
-            int maxRgbaIndex = _histogram.IndexCount - 1;
+            int maxRedIndex = _histogram.IndexRedCount - 1;
+            int maxGreenIndex = _histogram.IndexGreenCount - 1;
+            int maxBlueIndex = _histogram.IndexBlueCount - 1;
             int maxAlphaIndex = _histogram.IndexAlphaCount - 1;
-            for (int r = 1; r <= maxRgbaIndex; r++)
+            for (int r = 1; r <= maxRedIndex; r++)
             {
-                int red = GetBinCenterValue(r - 1, _histogram.IndexBits);
+                int red = GetBinCenterValue(r - 1, _histogram.IndexRedBits);
 
-                for (int g = 1; g <= maxRgbaIndex; g++)
+                for (int g = 1; g <= maxGreenIndex; g++)
                 {
-                    int green = GetBinCenterValue(g - 1, _histogram.IndexBits);
+                    int green = GetBinCenterValue(g - 1, _histogram.IndexGreenBits);
 
-                    for (int b = 1; b <= maxRgbaIndex; b++)
+                    for (int b = 1; b <= maxBlueIndex; b++)
                     {
-                        int blue = GetBinCenterValue(b - 1, _histogram.IndexBits);
+                        int blue = GetBinCenterValue(b - 1, _histogram.IndexBlueBits);
 
                         for (int a = 1; a <= maxAlphaIndex; a++)
                         {
                             int alpha = GetBinCenterValue(a - 1, _histogram.IndexAlphaBits);
                             int closestIndex = FindClosestPaletteIndex(red, green, blue, alpha, fixedPalette);
 
-                            _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexBits, _histogram.IndexAlphaBits)] = (byte)closestIndex;
+                            _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexRedCount, _histogram.IndexGreenCount, _histogram.IndexBlueCount, _histogram.IndexAlphaCount)] = (byte)closestIndex;
                         }
                     }
                 }
@@ -160,12 +165,13 @@ namespace Kanvas.Quantization.ColorQuantizer
             {
                 var color = palette[i];
 
-                int r = (color.R >> (8 - _histogram.IndexBits)) + 1;
-                int g = (color.G >> (8 - _histogram.IndexBits)) + 1;
-                int b = (color.B >> (8 - _histogram.IndexBits)) + 1;
+                int r = (color.R >> (8 - _histogram.IndexRedBits)) + 1;
+                int g = (color.G >> (8 - _histogram.IndexGreenBits)) + 1;
+                int b = (color.B >> (8 - _histogram.IndexBlueBits)) + 1;
                 int a = (color.A >> (8 - _histogram.IndexAlphaBits)) + 1;
 
-                _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexBits, _histogram.IndexAlphaBits)] = (byte)i;
+                var tagIndex = Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexRedCount, _histogram.IndexGreenCount, _histogram.IndexBlueCount, _histogram.IndexAlphaCount);
+                _colorCache.Tag[tagIndex] = (byte)i;
             }
         }
 
@@ -200,7 +206,7 @@ namespace Kanvas.Quantization.ColorQuantizer
             return Math.Clamp(value, 0, 255);
         }
 
-        private void RemapCacheTagTable(IList<Rgba32> sourcePalette, IList<Rgba32> orderedPalette)
+        private void RemapCacheTagTable(IList<Rgba32> sourcePalette, IList<Rgba32> orderedPalette, int fixedColorCount)
         {
             if (sourcePalette.Count != orderedPalette.Count)
                 throw new InvalidOperationException("Ordered palette size must match source palette size.");
@@ -225,11 +231,16 @@ namespace Kanvas.Quantization.ColorQuantizer
                 if (!sourceIndexByColor.TryGetValue(colorKey, out Queue<int>? sourceIndices) || sourceIndices.Count == 0)
                     throw new InvalidOperationException("Ordered palette must contain the same colors as source palette.");
 
-                remapTable[sourceIndices.Dequeue()] = (byte)orderedIndex;
+                remapTable[sourceIndices.Dequeue()] = (byte)(fixedColorCount + orderedIndex);
             }
 
             for (int tagIndex = 0; tagIndex < _colorCache.Tag.Length; tagIndex++)
-                _colorCache.Tag[tagIndex] = remapTable[_colorCache.Tag[tagIndex]];
+            {
+                var remapIndex = _colorCache.Tag[tagIndex];
+
+                if (remapIndex >= fixedColorCount)
+                    _colorCache.Tag[tagIndex] = remapTable[remapIndex - fixedColorCount];
+            }
         }
 
         private void Mark(Wu.WuColorBox box, byte label)
@@ -242,7 +253,7 @@ namespace Kanvas.Quantization.ColorQuantizer
                     {
                         for (int a = box.A0 + 1; a <= box.A1; a++)
                         {
-                            _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexBits, _histogram.IndexAlphaBits)] = label;
+                            _colorCache.Tag[Wu.WuCommon.GetIndex(r, g, b, a, _histogram.IndexRedCount, _histogram.IndexGreenCount, _histogram.IndexBlueCount, _histogram.IndexAlphaCount)] = label;
                         }
                     }
                 }

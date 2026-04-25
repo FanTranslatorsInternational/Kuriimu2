@@ -57,53 +57,58 @@
             _histogram = histogram;
         }
 
+        private int GetIndex(int r, int g, int b, int a)
+        {
+            return WuCommon.GetIndex(r, g, b, a, _histogram.IndexRedCount, _histogram.IndexGreenCount, _histogram.IndexBlueCount, _histogram.IndexAlphaCount);
+        }
+
         private long Bottom(int direction, long[] moment)
         {
             switch (direction)
             {
                 // Red
                 case 3:
-                    return -moment[WuCommon.GetIndex(R0, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return -moment[GetIndex(R0, G1, B1, A1)]
+                        + moment[GetIndex(R0, G1, B1, A0)]
+                        + moment[GetIndex(R0, G1, B0, A1)]
+                        - moment[GetIndex(R0, G1, B0, A0)]
+                        + moment[GetIndex(R0, G0, B1, A1)]
+                        - moment[GetIndex(R0, G0, B1, A0)]
+                        - moment[GetIndex(R0, G0, B0, A1)]
+                        + moment[GetIndex(R0, G0, B0, A0)];
 
                 // Green
                 case 2:
-                    return -moment[WuCommon.GetIndex(R1, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return -moment[GetIndex(R1, G0, B1, A1)]
+                        + moment[GetIndex(R1, G0, B1, A0)]
+                        + moment[GetIndex(R1, G0, B0, A1)]
+                        - moment[GetIndex(R1, G0, B0, A0)]
+                        + moment[GetIndex(R0, G0, B1, A1)]
+                        - moment[GetIndex(R0, G0, B1, A0)]
+                        - moment[GetIndex(R0, G0, B0, A1)]
+                        + moment[GetIndex(R0, G0, B0, A0)];
 
                 // Blue
                 case 1:
-                    return -moment[WuCommon.GetIndex(R1, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return -moment[GetIndex(R1, G1, B0, A1)]
+                        + moment[GetIndex(R1, G1, B0, A0)]
+                        + moment[GetIndex(R1, G0, B0, A1)]
+                        - moment[GetIndex(R1, G0, B0, A0)]
+                        + moment[GetIndex(R0, G1, B0, A1)]
+                        - moment[GetIndex(R0, G1, B0, A0)]
+                        - moment[GetIndex(R0, G0, B0, A1)]
+                        + moment[GetIndex(R0, G0, B0, A0)];
 
                 // Alpha
                 case 0:
-                    return -moment[WuCommon.GetIndex(R1, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return -moment[GetIndex(R1, G1, B1, A0)]
+                        + moment[GetIndex(R1, G1, B0, A0)]
+                        + moment[GetIndex(R1, G0, B1, A0)]
+                        - moment[GetIndex(R1, G0, B0, A0)]
+                        + moment[GetIndex(R0, G1, B1, A0)]
+                        - moment[GetIndex(R0, G1, B0, A0)]
+                        - moment[GetIndex(R0, G0, B1, A0)]
+                        + moment[GetIndex(R0, G0, B0, A0)];
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction));
@@ -116,47 +121,47 @@
             {
                 // Red
                 case 3:
-                    return moment[WuCommon.GetIndex(position, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(position, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(position, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(position, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(position, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(position, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(position, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(position, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return moment[GetIndex(position, G1, B1, A1)]
+                        - moment[GetIndex(position, G1, B1, A0)]
+                        - moment[GetIndex(position, G1, B0, A1)]
+                        + moment[GetIndex(position, G1, B0, A0)]
+                        - moment[GetIndex(position, G0, B1, A1)]
+                        + moment[GetIndex(position, G0, B1, A0)]
+                        + moment[GetIndex(position, G0, B0, A1)]
+                        - moment[GetIndex(position, G0, B0, A0)];
 
                 // Green
                 case 2:
-                    return moment[WuCommon.GetIndex(R1, position, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, position, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, position, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, position, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, position, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, position, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, position, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, position, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return moment[GetIndex(R1, position, B1, A1)]
+                        - moment[GetIndex(R1, position, B1, A0)]
+                        - moment[GetIndex(R1, position, B0, A1)]
+                        + moment[GetIndex(R1, position, B0, A0)]
+                        - moment[GetIndex(R0, position, B1, A1)]
+                        + moment[GetIndex(R0, position, B1, A0)]
+                        + moment[GetIndex(R0, position, B0, A1)]
+                        - moment[GetIndex(R0, position, B0, A0)];
 
                 // Blue
                 case 1:
-                    return moment[WuCommon.GetIndex(R1, G1, position, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G1, position, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G0, position, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, position, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G1, position, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, position, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, position, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, position, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return moment[GetIndex(R1, G1, position, A1)]
+                        - moment[GetIndex(R1, G1, position, A0)]
+                        - moment[GetIndex(R1, G0, position, A1)]
+                        + moment[GetIndex(R1, G0, position, A0)]
+                        - moment[GetIndex(R0, G1, position, A1)]
+                        + moment[GetIndex(R0, G1, position, A0)]
+                        + moment[GetIndex(R0, G0, position, A1)]
+                        - moment[GetIndex(R0, G0, position, A0)];
 
                 // Alpha
                 case 0:
-                    return moment[WuCommon.GetIndex(R1, G1, B1, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G1, B0, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R1, G0, B1, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R1, G0, B0, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G1, B1, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G1, B0, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        + moment[WuCommon.GetIndex(R0, G0, B1, position, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                        - moment[WuCommon.GetIndex(R0, G0, B0, position, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                    return moment[GetIndex(R1, G1, B1, position)]
+                        - moment[GetIndex(R1, G1, B0, position)]
+                        - moment[GetIndex(R1, G0, B1, position)]
+                        + moment[GetIndex(R1, G0, B0, position)]
+                        - moment[GetIndex(R0, G1, B1, position)]
+                        + moment[GetIndex(R0, G1, B0, position)]
+                        + moment[GetIndex(R0, G0, B1, position)]
+                        - moment[GetIndex(R0, G0, B0, position)];
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction));
@@ -236,22 +241,22 @@
                     throw new ArgumentOutOfRangeException(nameof(direction));
             }
 
-            return moment[WuCommon.GetIndex(R1, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R1, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R1, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R1, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R1, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R1, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R1, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R1, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R0, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R0, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R0, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R0, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R0, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R0, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   - moment[WuCommon.GetIndex(R0, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                   + moment[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+            return moment[GetIndex(R1, G1, B1, A1)]
+                   - moment[GetIndex(R1, G1, B1, A0)]
+                   - moment[GetIndex(R1, G1, B0, A1)]
+                   + moment[GetIndex(R1, G1, B0, A0)]
+                   - moment[GetIndex(R1, G0, B1, A1)]
+                   + moment[GetIndex(R1, G0, B1, A0)]
+                   + moment[GetIndex(R1, G0, B0, A1)]
+                   - moment[GetIndex(R1, G0, B0, A0)]
+                   - moment[GetIndex(R0, G1, B1, A1)]
+                   + moment[GetIndex(R0, G1, B1, A0)]
+                   + moment[GetIndex(R0, G1, B0, A1)]
+                   - moment[GetIndex(R0, G1, B0, A0)]
+                   + moment[GetIndex(R0, G0, B1, A1)]
+                   - moment[GetIndex(R0, G0, B1, A0)]
+                   - moment[GetIndex(R0, G0, B0, A1)]
+                   + moment[GetIndex(R0, G0, B0, A0)];
         }
 
         public double GetVariance()
@@ -262,22 +267,22 @@
             double da = GetPartialVolume(4);
 
             double xx =
-                _histogram.M2[WuCommon.GetIndex(R1, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R1, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R1, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R1, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R1, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R1, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R1, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R1, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R0, G1, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R0, G1, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R0, G1, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R0, G1, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R0, G0, B1, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R0, G0, B1, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                - _histogram.M2[WuCommon.GetIndex(R0, G0, B0, A1, _histogram.IndexBits, _histogram.IndexAlphaBits)]
-                + _histogram.M2[WuCommon.GetIndex(R0, G0, B0, A0, _histogram.IndexBits, _histogram.IndexAlphaBits)];
+                _histogram.M2[GetIndex(R1, G1, B1, A1)]
+                - _histogram.M2[GetIndex(R1, G1, B1, A0)]
+                - _histogram.M2[GetIndex(R1, G1, B0, A1)]
+                + _histogram.M2[GetIndex(R1, G1, B0, A0)]
+                - _histogram.M2[GetIndex(R1, G0, B1, A1)]
+                + _histogram.M2[GetIndex(R1, G0, B1, A0)]
+                + _histogram.M2[GetIndex(R1, G0, B0, A1)]
+                - _histogram.M2[GetIndex(R1, G0, B0, A0)]
+                - _histogram.M2[GetIndex(R0, G1, B1, A1)]
+                + _histogram.M2[GetIndex(R0, G1, B1, A0)]
+                + _histogram.M2[GetIndex(R0, G1, B0, A1)]
+                - _histogram.M2[GetIndex(R0, G1, B0, A0)]
+                + _histogram.M2[GetIndex(R0, G0, B1, A1)]
+                - _histogram.M2[GetIndex(R0, G0, B1, A0)]
+                - _histogram.M2[GetIndex(R0, G0, B0, A1)]
+                + _histogram.M2[GetIndex(R0, G0, B0, A0)];
 
             return xx - (dr * dr + dg * dg + db * db + da * da) / GetPartialVolume(5);
         }

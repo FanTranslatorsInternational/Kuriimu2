@@ -2,16 +2,9 @@
 {
     static class WuCommon
     {
-        public static int GetIndex(int r, int g, int b, int a, int indexBits, int indexAlphaBits)
+        public static int GetIndex(int r, int g, int b, int a, int redIndexCount, int greenIndexCount, int blueIndexCount, int alphaIndexCount)
         {
-            return (r << indexBits * 2 + indexAlphaBits)
-                   + (r << indexBits + indexAlphaBits + 1)
-                   + (g << indexBits + indexAlphaBits)
-                   + (r << indexBits * 2)
-                   + (r << indexBits + 1)
-                   + (g << indexBits)
-                   + (r + g + b << indexAlphaBits)
-                   + r + g + b + a;
+            return ((r * greenIndexCount + g) * blueIndexCount + b) * alphaIndexCount + a;
         }
 
         public static bool Cut(WuColorBox set1, WuColorBox set2)

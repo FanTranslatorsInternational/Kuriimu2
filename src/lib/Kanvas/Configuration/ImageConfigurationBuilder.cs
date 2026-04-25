@@ -110,6 +110,7 @@ namespace Kanvas.Configuration
                 {
                     TaskCount = _options.QuantizationOptions.TaskCount,
                     ColorCount = _options.QuantizationOptions.ColorCount,
+                    ColorChannelBitDepths = _options.QuantizationOptions.ColorChannelBitDepths,
                     PaletteDelegate = _options.QuantizationOptions.PaletteDelegate,
                     InitialPaletteDelegate = _options.QuantizationOptions.InitialPaletteDelegate,
                     ColorCacheDelegate = _options.QuantizationOptions.ColorCacheDelegate,

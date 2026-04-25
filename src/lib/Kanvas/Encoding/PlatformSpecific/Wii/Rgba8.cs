@@ -7,6 +7,7 @@ namespace Kanvas.Encoding.PlatformSpecific.Wii
     class Rgba8 : IColorEncoding
     {
         public int BitDepth => 32;
+        public ColorChannelBitDepths ColorChannelBitDepths => new(8, 8, 8, 8);
         public int BitsPerValue => 512;
         public int ColorsPerValue => 16;
         public string FormatName => "RGBA8_Wii";

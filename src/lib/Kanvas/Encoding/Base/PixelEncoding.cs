@@ -16,6 +16,9 @@ namespace Kanvas.Encoding.Base
         /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
 
+        /// <inheritdoc cref="ColorChannelBitDepths"/>
+        public ColorChannelBitDepths ColorChannelBitDepths { get; }
+
         /// <inheritdoc cref="BitsPerValue"/>
         public int BitsPerValue { get; private set; }
 
@@ -30,6 +33,7 @@ namespace Kanvas.Encoding.Base
             _descriptor = pixelDescriptor;
 
             BitDepth = pixelDescriptor.GetBitDepth();
+            ColorChannelBitDepths = pixelDescriptor.GetColorChannelBitDepths();
             FormatName = pixelDescriptor.GetPixelName();
             ColorsPerValue = 1;
 

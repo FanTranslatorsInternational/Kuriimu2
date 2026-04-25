@@ -149,6 +149,8 @@ namespace Kanvas
                 if (_options.QuantizationOptions.ColorCount < 0)
                     _options.QuantizationOptions.ColorCount = 256;
 
+                _options.QuantizationOptions.ColorChannelBitDepths = GetPaletteQuantizationBitDepths();
+
                 // If we have quantization enabled
                 IQuantizer quantizer = new Quantizer(_options.QuantizationOptions);
 
@@ -202,6 +204,7 @@ namespace Kanvas
             quantizationOptions.ColorCount = quantizationOptions.ColorCount < 0 
                 ? indexEncoding.MaxColors 
                 : Math.Min(quantizationOptions.ColorCount, indexEncoding.MaxColors);
+            quantizationOptions.ColorChannelBitDepths = GetPaletteQuantizationBitDepths();
 
             IQuantizer quantizer = new Quantizer(quantizationOptions);
             (IEnumerable<int> indices, IList<Rgba32> palette) = QuantizeImage(image, finalSize, quantizer, swizzle);
@@ -293,6 +296,12 @@ namespace Kanvas
 
             // Otherwise just return the already padded size
             return paddedSize;
+        }
+
+        private ColorChannelBitDepths GetPaletteQuantizationBitDepths()
+        {
+            IColorEncoding? paletteEncoding = _options.EncodingOptions.PaletteEncoding;
+            return paletteEncoding?.ColorChannelBitDepths ?? ColorChannelBitDepths.Unknown;
         }
     }
 }

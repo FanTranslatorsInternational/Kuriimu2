@@ -15,6 +15,7 @@ namespace Kanvas.Encoding.PlatformSpecific.Wii
         private readonly RgbaPixelDescriptor _desc2 = new RgbaPixelDescriptor("RGB", 5, 5, 5, 0);
 
         public int BitDepth => 16;
+        public ColorChannelBitDepths ColorChannelBitDepths => new(5, 5, 5, 3);
         public int BitsPerValue => 16;
         public int ColorsPerValue => 1;
         public string FormatName => "RGB5A3_Wii";

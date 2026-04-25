@@ -1,7 +1,5 @@
 using Kanvas.Contract.Configuration;
-using Kanvas.Contract.Quantization;
 using Kanvas.DataClasses.Configuration;
-using Kanvas.Quantization;
 
 namespace Kanvas.Configuration
 {
@@ -70,6 +68,7 @@ namespace Kanvas.Configuration
             {
                 TaskCount = _options.TaskCount,
                 ColorCount = _options.ColorCount,
+                ColorChannelBitDepths = _options.ColorChannelBitDepths,
                 PaletteDelegate = _options.PaletteDelegate,
                 InitialPaletteDelegate = _options.InitialPaletteDelegate,
                 ColorCacheDelegate = _options.ColorCacheDelegate,

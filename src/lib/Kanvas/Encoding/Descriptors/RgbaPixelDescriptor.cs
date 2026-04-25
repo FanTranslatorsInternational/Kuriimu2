@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Encoding.Descriptor;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -50,6 +51,15 @@ namespace Kanvas.Encoding.Descriptors
         public int GetBitDepth()
         {
             return _depthTable[0] + _depthTable[1] + _depthTable[2] + _depthTable[3];
+        }
+
+        public ColorChannelBitDepths GetColorChannelBitDepths()
+        {
+            return new ColorChannelBitDepths(
+                GetComponentDepth(1),
+                GetComponentDepth(2),
+                GetComponentDepth(3),
+                GetComponentDepth(0));
         }
 
         public Rgba32 GetColor(long value)
@@ -122,21 +132,21 @@ namespace Kanvas.Encoding.Descriptors
 
                 if (depth <= 8)
                 {
-	                if (depth == 0)
-	                {
-		                _readBitDepthDelegates[tableIndex] = value => 0;
-		                _writeBitDepthDelegates[tableIndex] = value => 0;
+                    if (depth == 0)
+                    {
+                        _readBitDepthDelegates[tableIndex] = value => 0;
+                        _writeBitDepthDelegates[tableIndex] = value => 0;
                     }
                     else
                     {
-	                    _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
-	                    _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
+                        _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
+                        _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
                     }
                 }
                 else
                 {
-	                _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
-	                _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
+                    _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
+                    _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
                 }
 
                 shiftValue += depth;
@@ -214,7 +224,7 @@ namespace Kanvas.Encoding.Descriptors
 
         private int ReadComponent(long value, int shift, int mask)
         {
-	        return (int) ((value >> shift) & mask);
+            return (int) ((value >> shift) & mask);
         }
 
         private void WriteComponent(int value, int shift, int mask, ref long result)
@@ -258,6 +268,12 @@ namespace Kanvas.Encoding.Descriptors
 
             // HINT: This case should never occur!
             throw new InvalidOperationException("No color component was marked as missing, but a missing color component was expected.");
+        }
+
+        private int GetComponentDepth(int componentColorBufferIndex)
+        {
+            int depthIndex = _componentIndexTable[componentColorBufferIndex];
+            return _depthTable[depthIndex];
         }
     }
 }

@@ -1,12 +1,17 @@
+using Kanvas.Contract.DataClasses;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization.ColorQuantizer.Wu
 {
     class Wu3DHistogram
     {
-        public int IndexBits { get; }
+        public int IndexRedBits { get; }
+        public int IndexGreenBits { get; }
+        public int IndexBlueBits { get; }
         public int IndexAlphaBits { get; }
-        public int IndexCount { get; }
+        public int IndexRedCount { get; }
+        public int IndexGreenCount { get; }
+        public int IndexBlueCount { get; }
         public int IndexAlphaCount { get; }
 
         /// <summary>
@@ -42,16 +47,17 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
         /// <summary>
         /// Creates a 3-dimensional color histogram.
         /// </summary>
-        /// <param name="indexBits"></param>
-        /// <param name="alphaBits"></param>
-        /// <param name="indexCount"></param>
-        /// <param name="alphaCount"></param>
-        public Wu3DHistogram(int indexBits, int alphaBits, int indexCount, int alphaCount)
+        /// <param name="bitDepths"></param>
+        public Wu3DHistogram(ColorChannelBitDepths bitDepths)
         {
-            IndexBits = indexBits;
-            IndexAlphaBits = alphaBits;
-            IndexCount = indexCount;
-            IndexAlphaCount = alphaCount;
+            IndexRedBits = bitDepths.Red;
+            IndexGreenBits = bitDepths.Green;
+            IndexBlueBits = bitDepths.Blue;
+            IndexAlphaBits = bitDepths.Alpha;
+            IndexRedCount = (1 << bitDepths.Red) + 1;
+            IndexGreenCount = (1 << bitDepths.Green) + 1;
+            IndexBlueCount = (1 << bitDepths.Blue) + 1;
+            IndexAlphaCount = (1 << bitDepths.Alpha) + 1;
         }
 
         public void Create(IList<Rgba32> colors)
@@ -61,10 +67,9 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
         public void Create(IList<Rgba32> colors, IList<Rgba32>? biasPalette)
         {
-            InitializeTables(IndexCount * IndexCount * IndexCount * IndexAlphaCount);
+            InitializeTables(IndexRedCount * IndexGreenCount * IndexBlueCount * IndexAlphaCount);
 
             FillTables(colors, biasPalette);
-            ApplyPaletteBias(colors.Count, biasPalette);
 
             CalculateMoments();
         }
@@ -91,75 +96,18 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
                 int g = color.G;
                 int b = color.B;
 
-                int inr = r >> 8 - IndexBits;
-                int ing = g >> 8 - IndexBits;
-                int inb = b >> 8 - IndexBits;
+                int inr = r >> 8 - IndexRedBits;
+                int ing = g >> 8 - IndexGreenBits;
+                int inb = b >> 8 - IndexBlueBits;
                 int ina = a >> 8 - IndexAlphaBits;
 
                 AddWeightedSample(inr, ing, inb, ina, r, g, b, a, 1);
             }
         }
 
-        private void ApplyPaletteBias(int sourceColorCount, IList<Rgba32>? biasPalette)
-        {
-            if (sourceColorCount <= 0 || biasPalette == null || biasPalette.Count == 0)
-                return;
-
-            // Keep synthetic mass small relative to image size.
-            int baseWeight = Math.Clamp(sourceColorCount / 8192, 1, 16);
-            int centerWeight = baseWeight * 4;
-            int neighborWeight = baseWeight;
-
-            var uniqueColors = new HashSet<uint>();
-            foreach (var color in biasPalette)
-            {
-                if (!uniqueColors.Add(color.PackedValue))
-                    continue;
-
-                int inr = color.R >> 8 - IndexBits;
-                int ing = color.G >> 8 - IndexBits;
-                int inb = color.B >> 8 - IndexBits;
-                int ina = color.A >> 8 - IndexAlphaBits;
-
-                AddBiasSample(inr, ing, inb, ina, centerWeight);
-                AddBiasSample(inr - 1, ing, inb, ina, neighborWeight);
-                AddBiasSample(inr + 1, ing, inb, ina, neighborWeight);
-                AddBiasSample(inr, ing - 1, inb, ina, neighborWeight);
-                AddBiasSample(inr, ing + 1, inb, ina, neighborWeight);
-                AddBiasSample(inr, ing, inb - 1, ina, neighborWeight);
-                AddBiasSample(inr, ing, inb + 1, ina, neighborWeight);
-                AddBiasSample(inr, ing, inb, ina - 1, neighborWeight);
-                AddBiasSample(inr, ing, inb, ina + 1, neighborWeight);
-            }
-        }
-
-        private void AddBiasSample(int inr, int ing, int inb, int ina, int weight)
-        {
-            if (weight <= 0)
-                return;
-
-            int maxColorIndex = IndexCount - 2;
-            int maxAlphaIndex = IndexAlphaCount - 2;
-
-            if (inr < 0 || inr > maxColorIndex ||
-                ing < 0 || ing > maxColorIndex ||
-                inb < 0 || inb > maxColorIndex ||
-                ina < 0 || ina > maxAlphaIndex)
-            {
-                return;
-            }
-
-            int r = GetBinCenterValue(inr, IndexBits);
-            int g = GetBinCenterValue(ing, IndexBits);
-            int b = GetBinCenterValue(inb, IndexBits);
-            int a = GetBinCenterValue(ina, IndexAlphaBits);
-
-            AddWeightedSample(inr, ing, inb, ina, r, g, b, a, weight);
-        }
-
         private void AddWeightedSample(int inr, int ing, int inb, int ina, int r, int g, int b, int a, int weight)
         {
-            int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexBits, IndexAlphaBits);
+            int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
             Vwt[ind] += weight;
             Vmr[ind] += weight * r;
@@ -178,12 +126,12 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
         private void CalculateMoments()
         {
-            long[] volume = new long[IndexCount * IndexAlphaCount];
-            long[] volumeR = new long[IndexCount * IndexAlphaCount];
-            long[] volumeG = new long[IndexCount * IndexAlphaCount];
-            long[] volumeB = new long[IndexCount * IndexAlphaCount];
-            long[] volumeA = new long[IndexCount * IndexAlphaCount];
-            double[] volume2 = new double[IndexCount * IndexAlphaCount];
+            long[] volume = new long[IndexBlueCount * IndexAlphaCount];
+            long[] volumeR = new long[IndexBlueCount * IndexAlphaCount];
+            long[] volumeG = new long[IndexBlueCount * IndexAlphaCount];
+            long[] volumeB = new long[IndexBlueCount * IndexAlphaCount];
+            long[] volumeA = new long[IndexBlueCount * IndexAlphaCount];
+            double[] volume2 = new double[IndexBlueCount * IndexAlphaCount];
 
             long[] area = new long[IndexAlphaCount];
             long[] areaR = new long[IndexAlphaCount];
@@ -192,16 +140,16 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             long[] areaA = new long[IndexAlphaCount];
             double[] area2 = new double[IndexAlphaCount];
 
-            for (int r = 1; r < IndexCount; r++)
+            for (int r = 1; r < IndexRedCount; r++)
             {
-                Array.Clear(volume, 0, IndexCount * IndexAlphaCount);
-                Array.Clear(volumeR, 0, IndexCount * IndexAlphaCount);
-                Array.Clear(volumeG, 0, IndexCount * IndexAlphaCount);
-                Array.Clear(volumeB, 0, IndexCount * IndexAlphaCount);
-                Array.Clear(volumeA, 0, IndexCount * IndexAlphaCount);
-                Array.Clear(volume2, 0, IndexCount * IndexAlphaCount);
+                Array.Clear(volume, 0, IndexBlueCount * IndexAlphaCount);
+                Array.Clear(volumeR, 0, IndexBlueCount * IndexAlphaCount);
+                Array.Clear(volumeG, 0, IndexBlueCount * IndexAlphaCount);
+                Array.Clear(volumeB, 0, IndexBlueCount * IndexAlphaCount);
+                Array.Clear(volumeA, 0, IndexBlueCount * IndexAlphaCount);
+                Array.Clear(volume2, 0, IndexBlueCount * IndexAlphaCount);
 
-                for (int g = 1; g < IndexCount; g++)
+                for (int g = 1; g < IndexGreenCount; g++)
                 {
                     Array.Clear(area, 0, IndexAlphaCount);
                     Array.Clear(areaR, 0, IndexAlphaCount);
@@ -210,7 +158,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
                     Array.Clear(areaA, 0, IndexAlphaCount);
                     Array.Clear(area2, 0, IndexAlphaCount);
 
-                    for (int b = 1; b < IndexCount; b++)
+                    for (int b = 1; b < IndexBlueCount; b++)
                     {
                         long line = 0;
                         long lineR = 0;
@@ -221,7 +169,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
                         for (int a = 1; a < IndexAlphaCount; a++)
                         {
-                            int ind1 = WuCommon.GetIndex(r, g, b, a, IndexBits, IndexAlphaBits);
+                            int ind1 = WuCommon.GetIndex(r, g, b, a, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
                             line += Vwt[ind1];
                             lineR += Vmr[ind1];
@@ -246,7 +194,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
                             volumeA[inv] += areaA[a];
                             volume2[inv] += area2[a];
 
-                            int ind2 = ind1 - WuCommon.GetIndex(1, 0, 0, 0, IndexBits, IndexAlphaBits);
+                            int ind2 = ind1 - WuCommon.GetIndex(1, 0, 0, 0, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
                             Vwt[ind1] = Vwt[ind2] + volume[inv];
                             Vmr[ind1] = Vmr[ind2] + volumeR[inv];

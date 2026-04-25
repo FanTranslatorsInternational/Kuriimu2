@@ -49,7 +49,7 @@ namespace Kanvas.Quantization
                 return _options.ColorCacheDelegate(palette);
             }
 
-            IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount);
+            IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount, _options.ColorChannelBitDepths);
 
             var fixedColorCount = 0;
             if (_options.InitialPaletteDelegate != null)

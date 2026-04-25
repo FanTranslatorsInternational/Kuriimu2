@@ -23,7 +23,9 @@
             }
 
             boxes[0].R0 = boxes[0].G0 = boxes[0].B0 = boxes[0].A0 = 0;
-            boxes[0].R1 = boxes[0].G1 = boxes[0].B1 = histogram.IndexCount - 1;
+            boxes[0].R1 = histogram.IndexRedCount - 1;
+            boxes[0].G1 = histogram.IndexGreenCount - 1;
+            boxes[0].B1 = histogram.IndexBlueCount - 1;
             boxes[0].A1 = histogram.IndexAlphaCount - 1;
 
             int next = 0;

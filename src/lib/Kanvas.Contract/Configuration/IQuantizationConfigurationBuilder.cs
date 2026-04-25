@@ -1,6 +1,7 @@
 ﻿using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorDitherer;
 using Kanvas.Contract.Quantization.ColorQuantizer;
+using Kanvas.Contract.DataClasses;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -10,7 +11,7 @@ namespace Kanvas.Contract.Configuration
     public delegate IList<Rgba32> CreatePaletteDelegate();
     public delegate IList<Rgba32> CreateInitialPaletteDelegate();
     public delegate IList<Rgba32> OrderPaletteDelegate(IList<Rgba32> palette);
-    public delegate IColorQuantizer CreateColorQuantizerDelegate(int colorCount, int taskCount);
+    public delegate IColorQuantizer CreateColorQuantizerDelegate(int colorCount, int taskCount, ColorChannelBitDepths colorChannelBitDepths);
     public delegate IColorDitherer CreateColorDithererDelegate(Size imageSize, int taskCount);
 
     public delegate IQuantizationConfigurationBuilder CreateQuantizationDelegate(IQuantizationConfigurationBuilder options);

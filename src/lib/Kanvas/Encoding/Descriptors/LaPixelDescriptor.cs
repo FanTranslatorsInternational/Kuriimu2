@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using Kanvas.Contract.DataClasses;
 using Kanvas.Contract.Encoding.Descriptor;
 using Kanvas.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
@@ -49,6 +50,12 @@ namespace Kanvas.Encoding.Descriptors
         public int GetBitDepth()
         {
             return _depthTable[0] + _depthTable[1];
+        }
+
+        public ColorChannelBitDepths GetColorChannelBitDepths()
+        {
+            int luminanceDepth = GetComponentDepth(0);
+            return new ColorChannelBitDepths(luminanceDepth, luminanceDepth, luminanceDepth, GetComponentDepth(1));
         }
 
         public Rgba32 GetColor(long value)
@@ -224,6 +231,12 @@ namespace Kanvas.Encoding.Descriptors
 
             // HINT: This case should never occur!
             throw new InvalidOperationException("No color component was marked as missing, but a missing color component was expected.");
+        }
+
+        private int GetComponentDepth(int componentColorBufferIndex)
+        {
+            int depthIndex = _componentIndexTable[componentColorBufferIndex];
+            return _depthTable[depthIndex];
         }
     }
 }

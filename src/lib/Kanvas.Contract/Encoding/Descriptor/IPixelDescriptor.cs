@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
+﻿using Kanvas.Contract.DataClasses;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Contract.Encoding.Descriptor
 {
@@ -7,6 +8,8 @@ namespace Kanvas.Contract.Encoding.Descriptor
         string GetPixelName();
 
         int GetBitDepth();
+
+        ColorChannelBitDepths GetColorChannelBitDepths();
 
         Rgba32 GetColor(long value);
 
