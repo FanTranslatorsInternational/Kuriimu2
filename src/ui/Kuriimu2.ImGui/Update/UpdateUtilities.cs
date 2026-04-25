@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Kuriimu2.ImGui.Models;
 using Version = Kuriimu2.ImGui.Models.Version;
 
@@ -14,15 +15,21 @@ namespace Kuriimu2.ImGui.Update
         private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
         private const string ExecutableName_ = "update.exe";
 
-        public static Manifest GetRemoteManifest(string manifestUrl)
+        public static async Task<Manifest?> GetRemoteManifestAsync(string manifestUrl)
         {
-            var resourceStream = GetResourceStream(manifestUrl);
-            return resourceStream != null ? JsonSerializer.Deserialize<Manifest>(new StreamReader(resourceStream).ReadToEnd()) : null;
+            var resourceStream = await GetResourceStreamAsync(manifestUrl);
+            if (resourceStream is null)
+                return null;
+
+            var reader = new StreamReader(resourceStream);
+            var text = await reader.ReadToEndAsync();
+
+            return JsonSerializer.Deserialize<Manifest>(text);
         }
 
-        public static bool IsUpdateAvailable(Manifest remoteManifest, Manifest localManifest, bool includeDevBuilds)
+        public static bool IsUpdateAvailable(Manifest? remoteManifest, Manifest? localManifest, bool includeDevBuilds)
         {
-            if (remoteManifest == null || localManifest == null)
+            if (remoteManifest is null || localManifest is null)
                 return false;
 
             var localVersion = new Version(localManifest.Version);
@@ -36,18 +43,18 @@ namespace Kuriimu2.ImGui.Update
             return includeDevBuilds && localVersion == remoteVersion ? buildCheck : result;
         }
 
-        public static string DownloadUpdateExecutable()
+        public static async Task<string> DownloadUpdateExecutableAsync()
         {
             var platform = GetCurrentPlatform();
 
             var updateUrl = UpdateUrl_ + "/" + platform + "/" + ExecutableName_;
-            var resourceStream = GetResourceStream(updateUrl);
+            var resourceStream = await GetResourceStreamAsync(updateUrl);
             var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 
             var executablePath = Path.Combine(currentDirectory, ExecutableName_);
             var executableFileStream = File.Open(executablePath, FileMode.Create);
 
-            resourceStream.CopyTo(executableFileStream);
+            await resourceStream.CopyToAsync(executableFileStream);
 
             resourceStream.Close();
             executableFileStream.Close();
@@ -69,40 +76,16 @@ namespace Kuriimu2.ImGui.Update
             throw new InvalidOperationException($"The platform {RuntimeInformation.OSDescription} is not supported.");
         }
 
-        private static Stream GetResourceStream(string resourceUrl)
+        private static async Task<Stream?> GetResourceStreamAsync(string resourceUrl)
         {
-            var request = WebRequest.CreateHttp(resourceUrl);
+            var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Get, resourceUrl);
 
-            Stream responseStream;
-            try
-            {
-                responseStream = request.GetResponse().GetResponseStream();
-            }
-            catch
-            {
-                return null;
-            }
+            var response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStreamAsync();
 
-            return responseStream != null ? ToMemoryStream(responseStream) : null;
-        }
-
-        private static Stream ToMemoryStream(Stream input)
-        {
-            var ms = new MemoryStream();
-
-            var buffer = new byte[4096];
-            while (true)
-            {
-                var readBytes = input.Read(buffer, 0, buffer.Length);
-                if (readBytes == 0)
-                    break;
-
-                var length = Math.Min(readBytes, buffer.Length);
-                ms.Write(buffer, 0, length);
-            }
-
-            ms.Position = 0;
-            return ms;
+            return null;
         }
     }
 }

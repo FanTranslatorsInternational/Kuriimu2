@@ -139,7 +139,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuAboutDescription => LocalizedString.FromId("Menu.About.Description");
 
         // Update Available Dialog
-        public static LocalizedString DialogUpdateAvailableCaption => LocalizedString.FromId("Dialog.UpdateAvailable.Text");
+        public static LocalizedString DialogUpdateAvailableCaption => LocalizedString.FromId("Dialog.UpdateAvailable.Caption");
         public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
             => LocalizedString.FromId("Dialog.UpdateAvailable.Text", () => version, () => build, () => remoteVersion, () => remoteBuild);
 

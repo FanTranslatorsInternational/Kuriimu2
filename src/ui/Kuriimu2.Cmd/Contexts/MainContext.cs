@@ -84,7 +84,7 @@ namespace Kuriimu2.Cmd.Contexts
 
         private async Task Update()
         {
-            string? executablePath = await UpdateUtilities.DownloadUpdateExecutable();
+            string? executablePath = await UpdateUtilities.DownloadUpdateExecutableAsync();
             if (executablePath is null)
                 return;
 

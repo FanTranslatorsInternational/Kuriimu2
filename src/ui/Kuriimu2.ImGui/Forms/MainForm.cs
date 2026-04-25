@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
@@ -54,7 +53,7 @@ namespace Kuriimu2.ImGui.Forms
     {
         private readonly Random _rand = new();
 
-        private readonly Manifest _localManifest;
+        private readonly Manifest? _localManifest;
 
         private readonly ILogger _logger;
         private readonly IProgressContext _progress;
@@ -128,7 +127,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
-#if !DEBUG
+#if DEBUG
             // Check if updates are available
             await CheckForUpdate();
 #endif
@@ -868,21 +867,21 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task CheckForUpdate()
         {
-            if (_localManifest == null)
+            if (_localManifest is null)
                 return;
 
             var platform = GetCurrentPlatform();
 
-            var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl_, platform));
+            var remoteManifest = await UpdateUtilities.GetRemoteManifestAsync(string.Format(ManifestUrl_, platform));
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, SettingsResources.IncludeDevBuilds))
                 return;
 
             var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogUpdateAvailableCaption,
-                LocalizationResources.DialogUpdateAvailableText(_localManifest.Version, _localManifest.BuildNumber, remoteManifest.Version, remoteManifest.BuildNumber));
+                LocalizationResources.DialogUpdateAvailableText(_localManifest.Version, _localManifest.BuildNumber, remoteManifest!.Version, remoteManifest.BuildNumber));
             if (result == DialogResult.No)
                 return;
 
-            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            var executablePath = await UpdateUtilities.DownloadUpdateExecutableAsync();
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType_}{platform} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")

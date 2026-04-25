@@ -13,10 +13,16 @@ namespace Kuriimu2.Cmd.Update
         private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
         private const string ExecutableName_ = "update.exe";
 
-        public static async Task<Manifest?> GetRemoteManifest(string manifestUrl)
+        public static async Task<Manifest?> GetRemoteManifestAsync(string manifestUrl)
         {
-            string? resource = await GetResourceString(manifestUrl);
-            return resource is null ? null : JsonSerializer.Deserialize<Manifest>(resource);
+            var resourceStream = await GetResourceStreamAsync(manifestUrl);
+            if (resourceStream is null)
+                return null;
+
+            var reader = new StreamReader(resourceStream);
+            var text = await reader.ReadToEndAsync();
+
+            return JsonSerializer.Deserialize<Manifest>(text);
         }
 
         public static bool IsUpdateAvailable(Manifest? remoteManifest, Manifest? localManifest, bool includeDevBuilds)
@@ -35,12 +41,12 @@ namespace Kuriimu2.Cmd.Update
             return includeDevBuilds && localVersion == remoteVersion ? buildCheck : result;
         }
 
-        public static async Task<string?> DownloadUpdateExecutable()
+        public static async Task<string?> DownloadUpdateExecutableAsync()
         {
             string platform = GetCurrentPlatform();
 
             var updateUrl = $"{UpdateUrl_}/{platform}/{ExecutableName_}";
-            Stream? resourceStream = await GetResourceStream(updateUrl);
+            Stream? resourceStream = await GetResourceStreamAsync(updateUrl);
             if (resourceStream is null)
                 return null;
 
@@ -71,32 +77,16 @@ namespace Kuriimu2.Cmd.Update
             throw new InvalidOperationException($"The platform {RuntimeInformation.OSDescription} is not supported.");
         }
 
-        private static async Task<string?> GetResourceString(string resourceUrl)
+        private static async Task<Stream?> GetResourceStreamAsync(string resourceUrl)
         {
             var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Get, resourceUrl);
 
-            try
-            {
-                return await client.GetStringAsync(resourceUrl);
-            }
-            catch
-            {
-                return null;
-            }
-        }
+            var response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStreamAsync();
 
-        private static async Task<Stream?> GetResourceStream(string resourceUrl)
-        {
-            var client = new HttpClient();
-
-            try
-            {
-                return await client.GetStreamAsync(resourceUrl);
-            }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

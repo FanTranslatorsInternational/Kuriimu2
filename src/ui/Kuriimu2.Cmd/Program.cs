@@ -87,7 +87,7 @@ namespace Kuriimu2.Cmd
         {
             string platform = GetCurrentPlatform();
 
-            Manifest? remoteManifest = await UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl_, platform));
+            Manifest? remoteManifest = await UpdateUtilities.GetRemoteManifestAsync(string.Format(ManifestUrl_, platform));
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest, true))
                 return;
 
