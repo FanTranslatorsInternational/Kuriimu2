@@ -103,11 +103,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdatePreview();
         }
 
-        private void RawImageViewerDialog_DragDrop(object? sender, Veldrid.Sdl2.DragDropEvent[] e)
+        private void RawImageViewerDialog_DragDrop(object? sender, string[] e)
         {
             _fileStream?.Dispose();
 
-            _fileStream = File.OpenRead(e[0].File);
+            _fileStream = File.OpenRead(e[0]);
 
             UpdatePreview();
             UpdateFormInternal();
@@ -289,8 +289,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             try
             {
                 _imageFile = new ImageFile(imageInfo, _encodingDefinition);
-                _imageBox.Image = ImageResource.FromImage(_imageFile.GetImage());
-                _imageEditorBox.Image = _imageBox.Image;
+
+                var imageResource = ImageResource.FromImage(_imageFile.GetImage());
+                _imageBox.SetImage(imageResource);
+                _imageEditorBox.SetImage(imageResource);
 
                 if (resetZoom)
                 {
@@ -301,8 +303,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             catch
             {
                 _imageFile = null;
-                _imageBox.Image = null;
-                _imageEditorBox.Image = null;
+                _imageBox.SetImage(null);
+                _imageEditorBox.SetImage(null);
             }
         }
 

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Extensions;
-using ImGuiNET;
 using Kanvas.Contract;
 using SixLabors.ImageSharp;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
@@ -27,16 +27,16 @@ namespace Kuriimu2.ImGui.Components
 
             // Render image border
             Rectangle imageRect = GetTransformedImageRect(contentRect);
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
             if (!RenderSwizzle || _swizzle is null)
                 return;
 
             // Render swizzle macro block border
             var endPos = new Vector2(_swizzle.MacroTileWidth, _swizzle.MacroTileHeight);
-            Rectangle macroBlockRect = Transform(contentRect, new Rectangle(0, 0, (int)endPos.X, (int)endPos.Y));
+            Rectangle macroBlockRect = Transform(contentRect, new Rectangle(Vector2.Zero, endPos));
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + macroBlockRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + macroBlockRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
             // Render swizzle path
             DrawSwizzlePath(contentRect, macroBlockRect, imageRect, endPos);
@@ -61,7 +61,7 @@ namespace Kuriimu2.ImGui.Components
             }
 
             Vector2[] pointsArray = points.ToArray();
-            ImGuiNET.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
         }
     }
 }

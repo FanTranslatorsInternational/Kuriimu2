@@ -1,12 +1,12 @@
-﻿using ImGui.Forms;
+﻿using Hexa.NET.ImGui;
+using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Localization;
 using ImGui.Forms.Models;
-using ImGuiNET;
+using ImGui.Forms.Support;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Components
 {

@@ -1,9 +1,9 @@
 ﻿using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Models;
+using ImGui.Forms.Support;
 using Konnect.Contract.Plugin.File.Hex;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {

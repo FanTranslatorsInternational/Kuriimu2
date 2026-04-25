@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Controls.Menu;
@@ -25,16 +21,20 @@ using Kuriimu2.ImGui.Extensions;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp;
-using Veldrid;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class ArchiveForm : Component, IKuriimuForm
     {
-        private static readonly KeyCommand DeleteCommand = new(Key.Delete);
+        private static readonly KeyCommand DeleteCommand = new(ImGuiKey.Delete);
 
         private readonly ArchiveFormInfo _formInfo;
         private readonly IPluginManager _pluginManager;

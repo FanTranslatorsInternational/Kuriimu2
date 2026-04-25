@@ -1,6 +1,5 @@
 ﻿using System;
 using ImGui.Forms.Factories;
-using ImGui.Forms.Models;
 using ImGui.Forms.Resources;
 
 namespace Kuriimu2.ImGui.Resources
@@ -9,10 +8,10 @@ namespace Kuriimu2.ImGui.Resources
     {
         public static void RegisterFonts()
         {
-            FontFactory.RegisterFromResource("Roboto", "roboto.ttf", FontGlyphRange.Latin | FontGlyphRange.Cyrillic | FontGlyphRange.Greek);
-            FontFactory.RegisterFromResource("NotoJp", "notojp.ttf", FontGlyphRange.ChineseJapanese);
-            FontFactory.RegisterFromResource("NotoKr", "notokr.ttf", FontGlyphRange.Korean);
-            FontFactory.RegisterFromResource("NotoZhTc", "notozhtc.ttf", FontGlyphRange.ChineseJapanese);
+            FontFactory.RegisterFromResource("Roboto", "roboto.ttf");
+            FontFactory.RegisterFromResource("NotoJp", "notojp.ttf");
+            FontFactory.RegisterFromResource("NotoKr", "notokr.ttf");
+            FontFactory.RegisterFromResource("NotoZhTc", "notozhtc.ttf");
         }
 
         public static FontResource GetFont(FontType type, int size)

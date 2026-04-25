@@ -100,9 +100,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _transcodedImageBox.CopyTransformTo(_origImageBox);
         }
 
-        private void ImageTranscoderDialog_DragDrop(object? sender, Veldrid.Sdl2.DragDropEvent[] e)
+        private void ImageTranscoderDialog_DragDrop(object? sender, string[] e)
         {
-            InitializeImages(e[0].File);
+            InitializeImages(e[0]);
 
             UpdateImages();
             UpdateFormInternal();
@@ -196,7 +196,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void UpdateImages()
         {
             if (_origImage is not null)
-                _origImageBox.Image = ImageResource.FromImage(_origImage);
+                _origImageBox.SetImage(ImageResource.FromImage(_origImage));
 
             UpdateTranscodedImage();
         }
@@ -204,7 +204,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void UpdateTranscodedImage()
         {
             if (_transcodedImage is not null)
-                _transcodedImageBox.Image = ImageResource.FromImage(_transcodedImage.GetImage());
+                _transcodedImageBox.SetImage(ImageResource.FromImage(_transcodedImage.GetImage()));
         }
 
         private void InitializeImages(string filePath)

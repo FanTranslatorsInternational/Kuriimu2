@@ -5,7 +5,7 @@ using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Models;
-using Veldrid;
+using ImGui.Forms.Support;
 
 namespace Kuriimu2.ImGui.Components
 {
@@ -140,7 +140,7 @@ namespace Kuriimu2.ImGui.Components
 
         private void SetupHexLayout()
         {
-            _positionTextBox = new TextBox { MaxCharacters = 8, Width = (int)ImGuiNET.ImGui.CalcTextSize(new string('A', 8)).X};
+            _positionTextBox = new TextBox { MaxCharacters = 8, Width = (int)Hexa.NET.ImGui.ImGui.CalcTextSize(new string('A', 8)).X};
             _positionsLineListing = new PositionLineListing();
             _positionsListing = new PositionListing();
             _byteContainer = new ByteContainer();
@@ -205,7 +205,7 @@ namespace Kuriimu2.ImGui.Components
 
             public override Size GetSize()
             {
-                var width = (int)ImGuiNET.ImGui.CalcTextSize(new string('A', MaxCharacters)).X;
+                var width = (int)Hexa.NET.ImGui.ImGui.CalcTextSize(new string('A', MaxCharacters)).X;
 
                 return new Size(width, 1f);
             }
@@ -215,14 +215,14 @@ namespace Kuriimu2.ImGui.Components
                 var lineHeight = GetTextHeight() + LineSpace;
                 for (var row = 0; row < contentRect.Height / lineHeight; row++)
                 {
-                    ImGuiNET.ImGui.SetCursorPosY(row * lineHeight);
-                    ImGuiNET.ImGui.Text(((row + CurrentLine) * BytesPerLine).ToString($"X{MaxCharacters}"));
+                    Hexa.NET.ImGui.ImGui.SetCursorPosY(row * lineHeight);
+                    Hexa.NET.ImGui.ImGui.Text(((row + CurrentLine) * BytesPerLine).ToString($"X{MaxCharacters}"));
                 }
             }
 
             private int GetTextHeight()
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize("A").Y;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize("A").Y;
             }
         }
 
@@ -241,17 +241,17 @@ namespace Kuriimu2.ImGui.Components
 
             protected override void UpdateInternal(Rectangle contentRect)
             {
-                var x = ImGuiNET.ImGui.GetCursorPosX();
-                var y = ImGuiNET.ImGui.GetCursorPosY();
+                var x = Hexa.NET.ImGui.ImGui.GetCursorPosX();
+                var y = Hexa.NET.ImGui.ImGui.GetCursorPosY();
 
                 var textWidth = GetTextWidth("AA");
                 for (var i = 0; i < BytesPerLine; i++)
                 {
-                    ImGuiNET.ImGui.SetCursorPosX(x);
-                    ImGuiNET.ImGui.SetCursorPosY(y);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosX(x);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosY(y);
 
                     var text = i.ToString("X2");
-                    ImGuiNET.ImGui.Text(text);
+                    Hexa.NET.ImGui.ImGui.Text(text);
 
                     var groupSplit = ByteSpacing_;
                     if (i != 0 && GroupSize > 0 && (i + 1) % GroupSize == 0)
@@ -262,12 +262,12 @@ namespace Kuriimu2.ImGui.Components
 
             private int GetTextHeight(string input = "A")
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).Y;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).Y;
             }
 
             private int GetTextWidth(string input)
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).X;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).X;
             }
         }
 
@@ -314,7 +314,7 @@ namespace Kuriimu2.ImGui.Components
                 var textWidth = GetTextWidth("AA");
 
                 // Update scroll delta
-                var wheel = ImGuiNET.ImGui.GetIO().MouseWheel;
+                var wheel = Hexa.NET.ImGui.ImGui.GetIO().MouseWheel;
 
                 // Update scroll line
                 if (wheel > 0)
@@ -326,34 +326,34 @@ namespace Kuriimu2.ImGui.Components
                 var lines = contentRect.Height / textHeight;
                 var totalLines = Data.Length / BytesPerLine + (Data.Length % BytesPerLine > 0 ? 1 : 0);
 
-                _scrollLine = Math.Max(0, Math.Min(totalLines - lines, _scrollLine));
+                _scrollLine = (long)Math.Max(0, Math.Min(totalLines - lines, _scrollLine));
 
                 // Fire scroll events
                 if (wheel != 0)
                     OnMouseScrolled(_scrollLine);
 
                 // Read data
-                var bufferLength = Math.Min(Data.Length - _scrollLine * BytesPerLine, lines * BytesPerLine);
+                var bufferLength = (int)Math.Min(Data.Length - _scrollLine * BytesPerLine, lines * BytesPerLine);
                 var buffer = new byte[bufferLength];
 
                 var bkPos = Data.Position;
                 Data.Position = _scrollLine * BytesPerLine;
-                Data.Read(buffer, 0, (int)bufferLength);
+                Data.Read(buffer, 0, bufferLength);
                 Data.Position = bkPos;
 
                 // Draw bytes from buffer
-                var x = ImGuiNET.ImGui.GetCursorPosX();
+                var x = Hexa.NET.ImGui.ImGui.GetCursorPosX();
                 var origX = x;
-                var y = ImGuiNET.ImGui.GetCursorPosY();
+                var y = Hexa.NET.ImGui.ImGui.GetCursorPosY();
 
                 for (var i = 0; i < buffer.Length; i++)
                 {
                     // Draw component
-                    ImGuiNET.ImGui.SetCursorPosX(x);
-                    ImGuiNET.ImGui.SetCursorPosY(y);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosX(x);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosY(y);
 
                     var value = $"{buffer[i]:X2}";
-                    ImGuiNET.ImGui.Text(value);
+                    Hexa.NET.ImGui.ImGui.Text(value);
 
                     // Reset position to new value
                     var valueSplit = ByteSpacing_;
@@ -376,12 +376,12 @@ namespace Kuriimu2.ImGui.Components
 
             private int GetTextHeight(string input = "A")
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).Y;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).Y;
             }
 
             private int GetTextWidth(string input)
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).X;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).X;
             }
         }
 
@@ -409,27 +409,27 @@ namespace Kuriimu2.ImGui.Components
                 var lines = contentRect.Height / textHeight;
 
                 // Read data
-                var bufferLength = Math.Min(Data.Length - CurrentLine * BytesPerLine, lines * BytesPerLine);
+                var bufferLength = (int)Math.Min(Data.Length - CurrentLine * BytesPerLine, lines * BytesPerLine);
                 var buffer = new byte[bufferLength];
 
                 var bkPos = Data.Position;
                 Data.Position = CurrentLine * BytesPerLine;
-                Data.Read(buffer, 0, (int)bufferLength);
+                Data.Read(buffer, 0, bufferLength);
                 Data.Position = bkPos;
 
                 // Update data
-                var x = ImGuiNET.ImGui.GetCursorPosX();
+                var x = Hexa.NET.ImGui.ImGui.GetCursorPosX();
                 var origX = x;
-                var y = ImGuiNET.ImGui.GetCursorPosY();
+                var y = Hexa.NET.ImGui.ImGui.GetCursorPosY();
 
                 for (var i = 0; i < buffer.Length; i++)
                 {
                     // Draw component
-                    ImGuiNET.ImGui.SetCursorPosX(x);
-                    ImGuiNET.ImGui.SetCursorPosY(y);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosX(x);
+                    Hexa.NET.ImGui.ImGui.SetCursorPosY(y);
 
                     var value = ((char)buffer[i]).ToString();
-                    ImGuiNET.ImGui.Text(value);
+                    Hexa.NET.ImGui.ImGui.Text(value);
 
                     // Reset position to new value
                     x += textWidth;
@@ -443,12 +443,12 @@ namespace Kuriimu2.ImGui.Components
 
             private int GetTextHeight(string input = "A")
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).Y;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).Y;
             }
 
             private int GetTextWidth(string input)
             {
-                return (int)ImGuiNET.ImGui.CalcTextSize(input).X;
+                return (int)Hexa.NET.ImGui.ImGui.CalcTextSize(input).X;
             }
         }
 

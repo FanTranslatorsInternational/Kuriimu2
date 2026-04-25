@@ -1,10 +1,9 @@
 ﻿using System;
 using ImGui.Forms.Controls;
 using System.Numerics;
-using ImGui.Forms.Models.IO;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Resources;
-using ImGuiNET;
-using Veldrid;
+using ImGui.Forms.Support;
 using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Components
@@ -25,7 +24,7 @@ namespace Kuriimu2.ImGui.Components
 
             Rectangle imageRect = GetTransformedImageRect(contentRect);
 
-            Vector2 mousePos = ImGuiNET.ImGui.GetMousePos();
+            Vector2 mousePos = Hexa.NET.ImGui.ImGui.GetMousePos();
             mousePos = UnTransform(contentRect, mousePos);
 
             Vector2 imagePos = UnTransform(contentRect, imageRect.Position);
@@ -33,14 +32,14 @@ namespace Kuriimu2.ImGui.Components
             var x = (int)(mousePos.X - imagePos.X);
             var y = (int)(mousePos.Y - imagePos.Y);
 
-            if (ImGuiNET.ImGui.IsItemHovered())
+            if (Hexa.NET.ImGui.ImGui.IsItemHovered())
             {
                 if (IsInImage(x, y))
                 {
-                    bool isSelect = ImGuiNET.ImGui.IsKeyDown(ImGuiKey.ModCtrl);
-                    bool isSet = ImGuiNET.ImGui.IsKeyDown(ImGuiKey.ModAlt);
+                    bool isSelect = Hexa.NET.ImGui.ImGui.IsKeyDown(ImGuiKey.ModCtrl);
+                    bool isSet = Hexa.NET.ImGui.ImGui.IsKeyDown(ImGuiKey.ModAlt);
 
-                    if (ImGuiNET.ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                    if (Hexa.NET.ImGui.ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         OnPixelSelected(x, y, isSelect, isSet);
                 }
             }
@@ -55,8 +54,8 @@ namespace Kuriimu2.ImGui.Components
 
         private void DrawControlLegend(Rectangle contentRect)
         {
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position, ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSelectColorControl);
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSetColorControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSelectColorControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSetColorControl);
         }
 
         private bool IsInImage(float x, float y)

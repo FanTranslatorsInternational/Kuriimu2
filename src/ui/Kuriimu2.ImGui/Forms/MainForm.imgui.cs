@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Models;
-using ImGuiNET;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace Kuriimu2.ImGui.Forms
 {
@@ -50,18 +49,18 @@ namespace Kuriimu2.ImGui.Forms
             _openButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpen,
-                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuFileOpenShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.MenuFileOpenShortcut)
             };
             _openWithButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpenWith,
-                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.O, LocalizationResources.MenuFileOpenWithShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.O, LocalizationResources.MenuFileOpenWithShortcut)
             };
             _saveAllButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileSaveAll,
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control | ModifierKeys.Shift, Key.S, LocalizationResources.MenuFileSaveAllShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.S, LocalizationResources.MenuFileSaveAllShortcut)
             };
 
             _imageTranscoderButton = new MenuBarButton

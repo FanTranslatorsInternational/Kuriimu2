@@ -1,24 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Layouts;
+using ImGui.Forms.Controls.Menu;
+using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Controls.Tree;
 using ImGui.Forms.Models;
-using Kuriimu2.ImGui.Resources;
-using System.Numerics;
-using ImGui.Forms.Controls.Text.Editor;
-using ImGuiNET;
-using Konnect.Contract.Plugin.Game;
-using Veldrid;
-using Rectangle = Veldrid.Rectangle;
-using Size = ImGui.Forms.Models.Size;
-using Kuriimu2.ImGui.Models.Forms.Formats;
-using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Models.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
+using Konnect.Contract.Plugin.Game;
+using Kuriimu2.ImGui.Models.Forms.Formats;
+using Kuriimu2.ImGui.Resources;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Numerics;
+using Rectangle = ImGui.Forms.Support.Rectangle;
+using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -79,7 +78,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control, Key.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -88,22 +87,22 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
             _poExportBtn = new ImageButton { Image = ImageResources.PoExport, Tooltip = LocalizationResources.TextMenuExportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _poImportBtn = new ImageButton { Image = ImageResources.PoImport, Tooltip = LocalizationResources.TextMenuImportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _kupExportBtn = new ImageButton { Image = ImageResources.KupExport, Tooltip = LocalizationResources.TextMenuExportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _kupImportBtn = new ImageButton { Image = ImageResources.KupImport, Tooltip = LocalizationResources.TextMenuImportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
 
-            _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(Key.Left) };
-            _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(Key.Right) };
+            _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(ImGuiKey.LeftArrow) };
+            _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(ImGuiKey.RightArrow) };
 
             _renameEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextRename };
             _addEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextAdd };
             _deleteEntryButton = new MenuBarButton
             {
                 Text = LocalizationResources.TextContextDelete,
-                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.TextContextDeleteShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.Delete, LocalizationResources.TextContextDeleteShortcut)
             };
 
             _entryContext = new ContextMenu

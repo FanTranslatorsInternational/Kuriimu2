@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using ImGui.Forms;
 using ImGui.Forms.Models;
-using ImGuiNET;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

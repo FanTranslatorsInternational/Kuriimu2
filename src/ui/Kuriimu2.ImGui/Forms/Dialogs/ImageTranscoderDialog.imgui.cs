@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
@@ -16,7 +17,6 @@ using Kanvas.Quantization.ColorDitherer.Ordered;
 using Kanvas.Quantization.ColorQuantizer;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -51,7 +51,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _openBtn = new MenuBarButton
             {
                 Text = LocalizationResources.MenuToolsImageTranscoderFileOpen,
-                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuToolsImageTranscoderFileOpenShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl,ImGuiKey.O, LocalizationResources.MenuToolsImageTranscoderFileOpenShortcut)
             };
 
             _exportBtn = new ImageButton(ImageResources.ImageExport)

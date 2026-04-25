@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
@@ -8,6 +9,7 @@ using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
 using ImGui.Forms.Models.IO;
+using ImGui.Forms.Support;
 using Kanvas;
 using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Encoding;
@@ -16,13 +18,12 @@ using Kanvas.Swizzle;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class RawImageViewerDialog : Modal
     {
-        private static readonly KeyCommand CustomSwizzleCopyCommand = new(ModifierKeys.Alt, Key.C);
+        private static readonly KeyCommand CustomSwizzleCopyCommand = new(ImGuiKey.ModAlt, ImGuiKey.C);
 
         private MenuBarButton _openBtn;
 
@@ -62,7 +63,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _openBtn = new MenuBarButton
             {
                 Text = LocalizationResources.MenuToolsRawImageViewerFileOpen,
-                KeyAction = new(ModifierKeys.Control, Key.O, LocalizationResources.MenuToolsRawImageViewerFileOpenShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.MenuToolsRawImageViewerFileOpenShortcut)
             };
 
             _renderSwizzleBox = new CheckBox
@@ -211,7 +212,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             if (CustomSwizzleCopyCommand.IsPressed() && IsCustomSwizzle())
             {
                 (int, int)[] coords = GetCustomSwizzleCoordinates();
-                ImGuiNET.ImGui.SetClipboardText(string.Join(',', coords.Select(c => $"({c.Item1},{c.Item2})")));
+                Hexa.NET.ImGui.ImGui.SetClipboardText(string.Join(',', coords.Select(c => $"({c.Item1},{c.Item2})")));
             }
 
             base.UpdateInternal(contentRect);

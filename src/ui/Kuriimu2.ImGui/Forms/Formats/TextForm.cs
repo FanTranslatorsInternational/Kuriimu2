@@ -1,11 +1,9 @@
-﻿using Kuriimu2.ImGui.Interfaces;
-using Kuriimu2.ImGui.Models;
-using Konnect.Contract.Plugin.File.Text;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using Hexa.NET.ImGui;
+using ImGui.Forms.Controls.Tree;
+using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO;
+using ImGui.Forms.Modals.IO.Windows;
+using ImGui.Forms.Models.IO;
 using ImGui.Forms.Resources;
 using Kaligraphy.Contract.DataClasses.Layout;
 using Kaligraphy.Contract.DataClasses.Parsing;
@@ -15,31 +13,32 @@ using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
 using Kaligraphy.Parsing;
 using Kaligraphy.Rendering;
-using Kuriimu2.ImGui.Models.Forms.Formats;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using ImGui.Forms.Controls.Tree;
-using ImGui.Forms.Modals;
-using ImGui.Forms.Modals.IO;
-using ImGui.Forms.Modals.IO.Windows;
 using Konnect.Contract.DataClasses.Plugin.File.Text;
-using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Files;
+using Konnect.Contract.Management.Plugin;
+using Konnect.Contract.Plugin.File.Text;
 using Konnect.Contract.Plugin.Game;
-using Kuriimu2.ImGui.Resources;
-using Point = SixLabors.ImageSharp.Point;
-using ImGui.Forms.Models.IO;
+using Konnect.DataClasses.Management.Text;
 using Konnect.Extensions;
 using Konnect.Management.Text;
-using Veldrid;
-using Konnect.DataClasses.Management.Text;
+using Kuriimu2.ImGui.Interfaces;
+using Kuriimu2.ImGui.Models;
+using Kuriimu2.ImGui.Models.Forms.Formats;
+using Kuriimu2.ImGui.Resources;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Point = SixLabors.ImageSharp.Point;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class TextForm : IKuriimuForm
     {
-        private static readonly KeyCommand DeleteCommand = new(Key.Delete);
+        private static readonly KeyCommand DeleteCommand = new(ImGuiKey.Delete);
 
         private readonly FormInfo<ITextFilePluginState> _state;
         private readonly IPluginManager _pluginManager;
@@ -50,7 +49,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly Dictionary<TranslatedTextEntry, string> _serializedTranslatedTexts = [];
         private readonly Dictionary<TranslatedTextEntry, string> _serializedControlTexts = [];
 
-        private IList<Image<Rgba32>>? _previewPages;
+        private IList<SixLabors.ImageSharp.Image<Rgba32>>? _previewPages;
         private int _previewPageIndex = -1;
 
         public TextForm(FormInfo<ITextFilePluginState> state, IPluginManager pluginManager, IFileManager fileManager)
@@ -847,17 +846,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void UpdatePreview()
         {
-            Image<Rgba32>? preview = GetPreviewPage();
+            SixLabors.ImageSharp.Image<Rgba32>? preview = GetPreviewPage();
             if (preview is null)
             {
-                _textPreview.Image = null;
+                _textPreview.SetImage(null);
                 return;
             }
 
-            _textPreview.Image = ImageResource.FromImage(preview);
+            _textPreview.SetImage(ImageResource.FromImage(preview));
         }
 
-        private Image<Rgba32>? GetPreviewPage()
+        private SixLabors.ImageSharp.Image<Rgba32>? GetPreviewPage()
         {
             if (_previewPages is null || _previewPageIndex < 0 || _previewPageIndex >= _previewPages.Count)
                 return null;
@@ -865,14 +864,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return _previewPages[_previewPageIndex];
         }
 
-        private async Task<IList<Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
+        private async Task<IList<SixLabors.ImageSharp.Image<Rgba32>>?> GeneratePreviews(IList<IList<CharacterData>> parsedTexts)
         {
             if (_selectedGamePlugin is not null)
             {
                 _editTextEditor.IsReadOnly = true;
                 _treeView.Enabled = false;
 
-                IList<Image<Rgba32>>? previews = await CreatePreviewPages(parsedTexts);
+                IList<SixLabors.ImageSharp.Image<Rgba32>>? previews = await CreatePreviewPages(parsedTexts);
 
                 _editTextEditor.IsReadOnly = false;
                 _treeView.Enabled = true;
@@ -898,7 +897,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
 
-            var image = new Image<Rgba32>((int)imageWidth + 1, (int)imageHeight + 1);
+            var image = new SixLabors.ImageSharp.Image<Rgba32>((int)imageWidth + 1, (int)imageHeight + 1);
 
             var initPoint = Point.Empty;
             foreach (IList<TextLayoutLineData> layoutLine in layoutLines)
@@ -955,7 +954,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return _selectedGameState?.TextProcessing?.Deserializer ?? new CharacterDeserializer();
         }
 
-        private async Task<IList<Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> parsedTexts)
+        private async Task<IList<SixLabors.ImageSharp.Image<Rgba32>>?> CreatePreviewPages(IList<IList<CharacterData>> parsedTexts)
         {
             if (_selectedGameState is null || !_selectedGameState.CanProcessTexts)
                 return null;

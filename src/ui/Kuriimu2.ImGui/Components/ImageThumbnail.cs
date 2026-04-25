@@ -1,16 +1,16 @@
 ﻿using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Models;
 using ImGui.Forms.Resources;
-using ImGuiNET;
 using Konnect.Contract.Plugin.File.Image;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Components
@@ -48,10 +48,10 @@ namespace Kuriimu2.ImGui.Components
         {
             // Add thumbnail
             Vector2 centerPos = contentRect.Position + new Vector2((ThumbnailSize.X - _thumbnail.Width) / 2, (ThumbnailSize.Y - _thumbnail.Height) / 2);
-            ImGuiNET.ImGui.GetWindowDrawList().AddImage((nint)_thumbnail, centerPos, centerPos + _thumbnail.Size);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddImage(_thumbnail.GetTextureRef(), centerPos, centerPos + _thumbnail.Size);
 
             if (ShowThumbnailBorder)
-                ImGuiNET.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + ThumbnailSize, Style.GetColor(ImGuiCol.Border).ToUInt32());
+                Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + ThumbnailSize, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
             // Add name
             if (Name != null)
@@ -62,7 +62,7 @@ namespace Kuriimu2.ImGui.Components
                     ? ColorResources.Changed.ToUInt32()
                     : Style.GetColor(ImGuiCol.Text).ToUInt32();
 
-                ImGuiNET.ImGui.GetWindowDrawList().AddText(textPosition, textColor, Name);
+                Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(textPosition, textColor, Name);
             }
         }
 

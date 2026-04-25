@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Layouts;
-using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Modals;
@@ -14,7 +14,6 @@ using Kryptography.Encryption.AES;
 using Kryptography.Encryption.Blowfish;
 using Kryptography.Encryption.IntiCreates;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -57,7 +56,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersInputFile };
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersInputFolder };
             _subDirCheckBox = new CheckBox { Text = LocalizationResources.MenuToolsCiphersInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersExecute, KeyAction = new(Key.Enter) };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersExecute, KeyAction = new(ImGuiKey.Enter) };
             _logEditor = new TextEditor { IsReadOnly = true };
 
             _progress = new ProgressBar

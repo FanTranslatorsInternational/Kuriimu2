@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
-using ImGuiNET;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Components
@@ -55,7 +55,7 @@ namespace Kuriimu2.ImGui.Components
 
         protected override void UpdateInternal(Rectangle contentRect)
         {
-            ImGuiNET.ImGui.Dummy(contentRect.Size);
+            Hexa.NET.ImGui.ImGui.Dummy(contentRect.Size);
 
             if (Palette is null || Palette.Count <= 0)
                 return;
@@ -78,24 +78,24 @@ namespace Kuriimu2.ImGui.Components
                         break;
                     }
 
-                    if (ImGuiNET.ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup)
-                        && ImGuiNET.ImGui.IsMouseHoveringRect(colorPos, colorPos + _colorSize))
+                    if (Hexa.NET.ImGui.ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup)
+                        && Hexa.NET.ImGui.ImGui.IsMouseHoveringRect(colorPos, colorPos + _colorSize))
                     {
-                        if (ImGuiNET.ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        if (Hexa.NET.ImGui.ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
                             if (_selectedColorIndex == index)
                                 _selectedColorIndex = -1;
                             else
                                 _selectedColorIndex = index;
                         }
-                        else if (ImGuiNET.ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        else if (Hexa.NET.ImGui.ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                         {
                             if (_selectedColorIndex != index)
                                 _selectedColorIndex = index;
                         }
                     }
 
-                    ImGuiNET.ImGui.GetWindowDrawList().AddRectFilled(colorPos, colorPos + _colorSize, ((Color)Palette[index]).ToUInt32());
+                    Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRectFilled(colorPos, colorPos + _colorSize, ((Color)Palette[index]).ToUInt32());
 
                     colorPos = colorPos with { X = colorPos.X + _colorSize.X + Spacing.X };
                 }
@@ -111,19 +111,19 @@ namespace Kuriimu2.ImGui.Components
                 var spacedColorSize = new Vector2(_colorSize.X + Spacing.X, _colorSize.Y + Spacing.Y);
                 Vector2 selectedColorPos = new Vector2(_selectedColorIndex % _cols, _selectedColorIndex / _cols) * spacedColorSize + contentRect.Position;
 
-                ImGuiNET.ImGui.GetWindowDrawList().AddRect(selectedColorPos, selectedColorPos + _colorSize, Color.Red.ToUInt32(), 0f, ImDrawFlags.None, 2f);
+                Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(selectedColorPos, selectedColorPos + _colorSize, Color.Red.ToUInt32(), 0f, ImDrawFlags.None, 2f);
             }
 
-            if (_selectedColorIndex >= 0 && ImGuiNET.ImGui.BeginPopupContextWindow($"{Id}context", ImGuiPopupFlags.NoOpenOverExistingPopup | ImGuiPopupFlags.MouseButtonRight))
+            if (_selectedColorIndex >= 0 && Hexa.NET.ImGui.ImGui.BeginPopupContextWindow($"{Id}context", ImGuiPopupFlags.NoOpenOverExistingPopup | ImGuiPopupFlags.MouseButtonRight))
             {
-                int width = _colorPicker.GetWidth(contentRect.Width, contentRect.Height);
-                int height = _colorPicker.GetHeight(contentRect.Width, contentRect.Height);
-                var pos = ImGuiNET.ImGui.GetCursorPos();
+                int width = _colorPicker.GetWidth((int)contentRect.Width, (int)contentRect.Height);
+                int height = _colorPicker.GetHeight((int)contentRect.Width, (int)contentRect.Height);
+                var pos = Hexa.NET.ImGui.ImGui.GetCursorPos();
 
                 _colorPicker.PickedColor = Palette[_selectedColorIndex];
-                _colorPicker.Update(new Rectangle((int)pos.X, (int)pos.Y, width, height));
+                _colorPicker.Update(new Rectangle(pos, new Vector2(width, height)));
 
-                ImGuiNET.ImGui.EndPopup();
+                Hexa.NET.ImGui.ImGui.EndPopup();
             }
 
             _previousSize = contentRect.Size;

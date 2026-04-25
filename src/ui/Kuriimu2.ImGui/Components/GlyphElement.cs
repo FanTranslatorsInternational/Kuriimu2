@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
-using ImGuiNET;
+using ImGui.Forms.Support;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Kuriimu2.ImGui.Resources;
-using Rectangle = Veldrid.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Components
@@ -46,11 +46,11 @@ namespace Kuriimu2.ImGui.Components
         {
             // Draw background
             if (!BackgroundColor.IsEmpty)
-                ImGuiNET.ImGui.GetWindowDrawList().AddRectFilled(contentRect.Position, contentRect.Position + contentRect.Size, BackgroundColor.ToUInt32());
+                Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRectFilled(contentRect.Position, contentRect.Position + contentRect.Size, BackgroundColor.ToUInt32());
 
             // Draw selection
             bool isSelected = IsSelected;
-            ImGuiNET.ImGui.Selectable($"##{Id}", ref isSelected, ImGuiSelectableFlags.None, contentRect.Size);
+            Hexa.NET.ImGui.ImGui.Selectable($"##{Id}", ref isSelected, ImGuiSelectableFlags.None, contentRect.Size);
 
             if (IsSelected != isSelected)
             {
@@ -64,8 +64,8 @@ namespace Kuriimu2.ImGui.Components
                 var imageSize = new Vector2(Math.Min(GlyphMaxSize.X, _glyph.Width), Math.Min(GlyphMaxSize.Y, _glyph.Height));
                 var imgPosition = contentRect.Position + (GlyphMaxSize - imageSize) / 2;
 
-                ImGuiNET.ImGui.SetCursorScreenPos(imgPosition);
-                ImGuiNET.ImGui.Image((nint)_glyph, imageSize);
+                Hexa.NET.ImGui.ImGui.SetCursorScreenPos(imgPosition);
+                Hexa.NET.ImGui.ImGui.Image(_glyph.GetTextureRef(), imageSize);
             }
 
             // Draw character and code
@@ -85,23 +85,23 @@ namespace Kuriimu2.ImGui.Components
             var codeUpperPosition = contentRect.Position + new Vector2(characterX + characterSize.X + 5, GlyphMaxSize.Y);
             var codeLowerPosition = contentRect.Position + new Vector2(characterX + characterSize.X + 5, GlyphMaxSize.Y + codeUpperSize.Y);
 
-            ImGuiNET.ImGui.SetCursorScreenPos(characterPosition);
-            ImGuiNET.ImGui.Text(character);
+            Hexa.NET.ImGui.ImGui.SetCursorScreenPos(characterPosition);
+            Hexa.NET.ImGui.ImGui.Text(character);
 
             if (_codeFont.GetPointer().HasValue)
-                ImGuiNET.ImGui.PushFont(_codeFont.GetPointer()!.Value);
+                Hexa.NET.ImGui.ImGui.PushFont(_codeFont.GetPointer()!.Value, _codeFont.Data.Size);
 
-            ImGuiNET.ImGui.SetCursorScreenPos(codeUpperPosition);
-            ImGuiNET.ImGui.Text(codeUpper);
+            Hexa.NET.ImGui.ImGui.SetCursorScreenPos(codeUpperPosition);
+            Hexa.NET.ImGui.ImGui.Text(codeUpper);
 
-            ImGuiNET.ImGui.SetCursorScreenPos(codeLowerPosition);
-            ImGuiNET.ImGui.Text(codeLower);
+            Hexa.NET.ImGui.ImGui.SetCursorScreenPos(codeLowerPosition);
+            Hexa.NET.ImGui.ImGui.Text(codeLower);
 
             if (_codeFont.GetPointer().HasValue)
-                ImGuiNET.ImGui.PopFont();
+                Hexa.NET.ImGui.ImGui.PopFont();
 
             // Draw border
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + contentRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + contentRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
         }
 
         protected override int GetContentWidth(int parentWidth, int parentHeight, float layoutCorrection = 1)

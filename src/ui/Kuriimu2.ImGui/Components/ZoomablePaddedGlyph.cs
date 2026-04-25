@@ -3,10 +3,9 @@ using System.Numerics;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
-using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 using SixLabors.ImageSharp;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
@@ -31,7 +30,7 @@ namespace Kuriimu2.ImGui.Components
             int boundingWidth = Math.Max(_paddedGlyph.GlyphPosition.X, 0) + Math.Max(_paddedGlyph.Glyph?.Width ?? 0, _paddedGlyph.BoundingBox.Width);
             int boundingHeight = Math.Max(_paddedGlyph.GlyphPosition.Y, 0) + Math.Max(_paddedGlyph.Glyph?.Height ?? 0, _paddedGlyph.BoundingBox.Height);
 
-            var totalBoundingBox = new Rectangle(boundingX, boundingY, boundingWidth - boundingX, boundingHeight - boundingY);
+            var totalBoundingBox = new Rectangle(new Vector2(boundingX, boundingY), new Vector2(boundingWidth - boundingX, boundingHeight - boundingY));
 
             DrawGlyph(contentRect);
             DrawBoundingBox(contentRect);
@@ -46,10 +45,10 @@ namespace Kuriimu2.ImGui.Components
                 return;
 
             Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + new Vector2(Math.Max(_paddedGlyph.GlyphPosition.X, 0), Math.Max(_paddedGlyph.GlyphPosition.Y, 0));
-            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyphResource.Width, _paddedGlyphResource.Height);
+            var imageRect = new Rectangle(boundingStartPosition, _paddedGlyphResource.Size);
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddImage((nint)_paddedGlyphResource, imageRect.Position, imageRect.Position + imageRect.Size);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddImage(_paddedGlyphResource.GetTextureRef(), imageRect.Position, imageRect.Position + imageRect.Size);
         }
 
         private void DrawBoundingBox(Rectangle contentRect)
@@ -58,10 +57,10 @@ namespace Kuriimu2.ImGui.Components
                 return;
 
             Vector2 boundingStartPosition = -(new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height) / 2) + new Vector2(Math.Max(_paddedGlyph.GlyphPosition.X, 0), Math.Max(_paddedGlyph.GlyphPosition.Y, 0));
-            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, _paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height);
+            var imageRect = new Rectangle(boundingStartPosition, new Vector2(_paddedGlyph.BoundingBox.Width, _paddedGlyph.BoundingBox.Height));
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.OrangeRed.ToUInt32(), 5f);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.OrangeRed.ToUInt32(), 5f);
         }
 
         private void DrawTotalBoundingBox(Rectangle contentRect, Rectangle totalBoundingBox)
@@ -70,19 +69,19 @@ namespace Kuriimu2.ImGui.Components
                 return;
 
             Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2);
-            var imageRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y, totalBoundingBox.Width, totalBoundingBox.Height);
+            var imageRect = new Rectangle(boundingStartPosition, totalBoundingBox.Size);
             imageRect = Transform(contentRect, imageRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.Gold.ToUInt32(), 5f);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Color.Gold.ToUInt32(), 5f);
         }
 
         private void DrawBaseline(Rectangle contentRect, Rectangle totalBoundingBox)
         {
             Vector2 boundingStartPosition = -(new Vector2(totalBoundingBox.Width, totalBoundingBox.Height) / 2);
-            var baseLineRect = new Rectangle((int)boundingStartPosition.X, (int)boundingStartPosition.Y + _paddedGlyph!.Baseline, totalBoundingBox.Width, 0);
+            var baseLineRect = new Rectangle(boundingStartPosition with { Y = boundingStartPosition.Y + _paddedGlyph!.Baseline }, new Vector2(totalBoundingBox.Width, 0));
             var baseLineRectTransformed = Transform(contentRect, baseLineRect);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddLine(baseLineRectTransformed.Position, baseLineRectTransformed.Position + baseLineRectTransformed.Size,
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddLine(baseLineRectTransformed.Position, baseLineRectTransformed.Position + baseLineRectTransformed.Size,
                 Color.Red.ToUInt32(), 3f);
         }
     }

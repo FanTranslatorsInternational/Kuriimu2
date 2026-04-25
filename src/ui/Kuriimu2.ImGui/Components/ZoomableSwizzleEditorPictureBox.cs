@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Hexa.NET.ImGui;
 using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Extensions;
 using ImGui.Forms.Resources;
-using ImGuiNET;
 using Kanvas.Swizzle;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using EventArgs = System.EventArgs;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
@@ -43,7 +43,7 @@ namespace Kuriimu2.ImGui.Components
 
             // Render image border
             Rectangle imageRect = GetTransformedImageRect(contentRect);
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + imageRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
             if (RenderSwizzle)
             {
@@ -55,16 +55,16 @@ namespace Kuriimu2.ImGui.Components
                 {
                     // Render swizzle macro block border
                     var endPos = new Vector2(_swizzle.MacroTileWidth, _swizzle.MacroTileHeight);
-                    Rectangle macroBlockRect = Transform(contentRect, new Rectangle(0, 0, (int)endPos.X, (int)endPos.Y));
+                    Rectangle macroBlockRect = Transform(contentRect, new Rectangle(Vector2.Zero, endPos));
 
-                    ImGuiNET.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + macroBlockRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
+                    Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(imageRect.Position, imageRect.Position + macroBlockRect.Size, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
                     // Render swizzle path
                     DrawSwizzlePath(contentRect, macroBlockRect, imageRect, endPos);
                 }
             }
 
-            Vector2 mousePos = ImGuiNET.ImGui.GetMousePos();
+            Vector2 mousePos = Hexa.NET.ImGui.ImGui.GetMousePos();
             mousePos = UnTransform(contentRect, mousePos);
 
             Vector2 imagePos = UnTransform(contentRect, imageRect.Position);
@@ -74,14 +74,14 @@ namespace Kuriimu2.ImGui.Components
 
             var pixelPos = new Vector2((int)x, (int)y);
 
-            if (ImGuiNET.ImGui.IsItemHovered())
+            if (Hexa.NET.ImGui.ImGui.IsItemHovered())
             {
                 // Render border for mouse hovered pixel
                 if (IsInImage(x, y))
                     DrawPixelBorder(contentRect, pixelPos, Style.GetColor(ImGuiCol.Border), 1f);
 
                 // Handle active coordinate
-                if (ImGuiNET.ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                if (Hexa.NET.ImGui.ImGui.IsMouseDown(ImGuiMouseButton.Left))
                 {
                     if (!_isMouseDown && _activeCoordIndex < 0)
                     {
@@ -121,7 +121,7 @@ namespace Kuriimu2.ImGui.Components
 
                     _isMouseDown = true;
                 }
-                else if (ImGuiNET.ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                else if (Hexa.NET.ImGui.ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
                     _isMouseDown = false;
 
@@ -145,10 +145,10 @@ namespace Kuriimu2.ImGui.Components
 
         private void DrawControlLegend(Rectangle contentRect)
         {
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position, ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorAddControl);
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorRemoveControl);
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorMoveControl);
-            ImGuiNET.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 3), ImGuiNET.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorCopyControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorAddControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorRemoveControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorMoveControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 3), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorCopyControl);
         }
 
         private void DrawPixelBorder(Rectangle contentRect, Vector2 pixelPos, Color color, float thickness)
@@ -156,7 +156,7 @@ namespace Kuriimu2.ImGui.Components
             Vector2 coordinateStartPos = Transform(contentRect, pixelPos - new Vector2(Image!.Width / 2f, Image.Height / 2f));
             Vector2 coordinateEndPos = Transform(contentRect, pixelPos - new Vector2(Image.Width / 2f, Image.Height / 2f) + Vector2.One);
 
-            ImGuiNET.ImGui.GetWindowDrawList().AddRect(coordinateStartPos, coordinateEndPos, color.ToUInt32(), 0f, ImDrawFlags.None, thickness);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(coordinateStartPos, coordinateEndPos, color.ToUInt32(), 0f, ImDrawFlags.None, thickness);
         }
 
         private void DrawSwizzlePath(Rectangle contentRect, Rectangle macroBlockRect, Rectangle imageRect, Vector2 endPos)
@@ -178,7 +178,7 @@ namespace Kuriimu2.ImGui.Components
             }
 
             Vector2[] pointsArray = points.ToArray();
-            ImGuiNET.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
         }
 
         private bool IsInImage(float x, float y)

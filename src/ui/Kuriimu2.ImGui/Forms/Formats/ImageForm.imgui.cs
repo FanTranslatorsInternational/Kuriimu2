@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Models;
@@ -12,7 +9,10 @@ using Konnect.Contract.Progress;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp.PixelFormats;
-using Veldrid;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using ImageResources = Kuriimu2.ImGui.Resources.ImageResources;
 using Size = ImGui.Forms.Models.Size;
 
@@ -79,7 +79,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control, Key.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -88,7 +88,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
             _imgExportBtn = new ImageButton { Image = ImageResources.ImageExport, Tooltip = LocalizationResources.ImageMenuExport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _imgImportBtn = new ImageButton { Image = ImageResources.ImageImport, Tooltip = LocalizationResources.ImageMenuImport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
@@ -220,15 +220,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 _imageInfoLayout.Items[1] = _indexedImageBox;
 
-                _indexedImageBox.Image = ImageResource.FromImage(image);
-                _imageBox.Image = null;
+                _indexedImageBox.SetImage(ImageResource.FromImage(image));
+                _imageBox.SetImage(null);
             }
             else
             {
                 _imageInfoLayout.Items[1] = _imageBox;
 
-                _indexedImageBox.Image = null;
-                _imageBox.Image = ImageResource.FromImage(image);
+                _indexedImageBox.SetImage(null);
+                _imageBox.SetImage(ImageResource.FromImage(image));
             }
 
             _imgList.SelectedItem.SetThumbnail(image);

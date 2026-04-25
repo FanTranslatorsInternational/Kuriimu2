@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Lists;
@@ -10,7 +10,7 @@ using ImGui.Forms.Models.IO;
 using Konnect.DataClasses.FileSystem;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
+using System.Numerics;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
@@ -58,7 +58,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _deleteDirectoryButton = new MenuBarButton
             {
                 Text = LocalizationResources.ArchiveDirectoryDelete,
-                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.ArchiveDirectoryDeleteShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.Delete, LocalizationResources.ArchiveDirectoryDeleteShortcut)
             };
 
             _openFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileOpen };
@@ -69,7 +69,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _deleteFileButton = new MenuBarButton
             {
                 Text = LocalizationResources.ArchiveFileDelete,
-                KeyAction = new KeyCommand(Key.Delete, LocalizationResources.ArchiveFileDeleteShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.Delete, LocalizationResources.ArchiveFileDeleteShortcut)
             };
 
             _directoryContext = new ContextMenu
@@ -105,7 +105,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control, Key.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -114,7 +114,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
 
             _searchBox = new TextBox { Placeholder = LocalizationResources.ArchiveSearchPlaceholder };

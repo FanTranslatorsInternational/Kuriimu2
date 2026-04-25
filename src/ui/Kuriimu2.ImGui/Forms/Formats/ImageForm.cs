@@ -16,7 +16,7 @@ using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Rectangle = Veldrid.Rectangle;
+using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats

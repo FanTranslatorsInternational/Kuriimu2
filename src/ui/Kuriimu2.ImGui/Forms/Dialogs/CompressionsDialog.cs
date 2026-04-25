@@ -53,9 +53,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void CompressionsDialog_DragDrop(object? sender, Veldrid.Sdl2.DragDropEvent[] e)
+        private void CompressionsDialog_DragDrop(object? sender, string[] e)
         {
-            _inputTextBox.Text = e[0].File;
+            _inputTextBox.Text = e[0];
 
             UpdateFormInternal();
         }

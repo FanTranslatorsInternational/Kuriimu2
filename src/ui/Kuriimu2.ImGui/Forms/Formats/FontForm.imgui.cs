@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
@@ -11,16 +9,18 @@ using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
-using Rectangle = Veldrid.Rectangle;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
+using ImGui.Forms.Support;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
     partial class FontForm
     {
-        private static readonly KeyCommand SelectMultipleGlyphsCommand = new(ModifierKeys.Control, MouseButton.Left);
-        private static readonly KeyCommand SelectGlyphRangeCommand = new(ModifierKeys.Shift, MouseButton.Left);
+        private static readonly KeyCommand SelectMultipleGlyphsCommand = new(ImGuiKey.ModCtrl, ImGuiMouseButton.Left);
+        private static readonly KeyCommand SelectGlyphRangeCommand = new(ImGuiKey.ModShift, ImGuiMouseButton.Left);
 
         private readonly Dictionary<CharacterInfo, GlyphElement> _infoLookup = new();
         private readonly Dictionary<char, GlyphElement> _charLookup = new();
@@ -135,7 +135,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ModifierKeys.Control, Key.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -144,7 +144,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(Key.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
 
             _exportBtn = new ImageButton

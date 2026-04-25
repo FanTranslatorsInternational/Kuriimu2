@@ -1,4 +1,5 @@
-﻿using ImGui.Forms.Controls;
+﻿using Hexa.NET.ImGui;
+using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
@@ -7,7 +8,6 @@ using ImGui.Forms.Models;
 using Kompression;
 using Kompression.Contract;
 using Kuriimu2.ImGui.Resources;
-using Veldrid;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -47,7 +47,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsInputFile };
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsInputFolder };
             _subDirCheckBox = new CheckBox { Text = LocalizationResources.MenuToolsCompressionsInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsExecute, KeyAction = new(Key.Enter) };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsExecute, KeyAction = new(ImGuiKey.Enter) };
             _logEditor = new TextEditor { IsReadOnly = true };
 
             _progress = new ProgressBar
