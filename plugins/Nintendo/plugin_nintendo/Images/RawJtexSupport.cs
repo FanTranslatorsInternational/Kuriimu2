@@ -18,8 +18,9 @@ namespace plugin_nintendo.Images
         private static readonly Dictionary<int, IColorEncoding> JtexFormats = new()
         {
             [2] = ImageFormats.Rgba8888(),
-            [3] = ImageFormats.Rgb888(),
-            [4] = ImageFormats.Rgba4444()
+            [3] = ImageFormats.Bgr888(),
+            [4] = ImageFormats.Rgba4444(),
+            [6] = ImageFormats.Rgb565()
         };
 
         public static EncodingDefinition GetEncodingDefinition()
