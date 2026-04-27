@@ -4,7 +4,6 @@ using plugin_level5.Common.Compression;
 
 namespace plugin_level5.N3DS.Archive
 {
-    // TODO: Test plugin
     // Game: PWvPL, Inazuma Eleven 2 GO Chrono Stones
     public class Xfsa
     {
@@ -50,5 +49,7 @@ namespace plugin_level5.N3DS.Archive
 
             _xfsaParser.Save(output, files);
         }
+
+        public int GetVersion() => _xfsaParser is XFSA1 ? 1 : 2;
     }
 }

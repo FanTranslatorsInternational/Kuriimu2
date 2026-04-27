@@ -62,8 +62,7 @@ namespace plugin_level5.N3DS.Archive
                     var fileInfo = new ArchiveFileInfo
                     {
                         FileData = fileStream,
-                        FilePath = directoryName + fileName,
-                        PluginIds = Arc0Support.RetrievePluginMapping(fileStream, fileName)
+                        FilePath = directoryName + fileName
                     };
 
                     result.Add(new Arc0ArchiveFile(fileInfo, file));

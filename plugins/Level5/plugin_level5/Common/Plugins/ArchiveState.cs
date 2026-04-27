@@ -11,17 +11,20 @@ using plugin_level5.Common.Archive.Models;
 
 namespace plugin_level5.Common.Plugins
 {
-    class ArchiveState : ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRemoveFiles
+    class ArchiveState : ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRemoveFiles, IRenameFiles
     {
         private readonly ArchiveParser _parser = new();
         private readonly ArchiveComposer _composer = new();
 
         private ArchiveData? _archiveData;
         private List<IArchiveFile>? _files;
+        private bool _hasDeletedFiles;
+        private bool _hasAddedFiles;
+        private bool _hasRenamedFiles;
 
         public IReadOnlyList<IArchiveFile> Files => _files ?? [];
 
-        public bool ContentChanged => _files?.Any(x => x.ContentChanged) ?? false;
+        public bool ContentChanged => _hasDeletedFiles || _hasAddedFiles || _hasRenamedFiles || Files.Any(x => x.ContentChanged);
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
@@ -50,6 +53,10 @@ namespace plugin_level5.Common.Plugins
             Stream output = await fileSystem.OpenFileAsync(savePath, FileMode.Create, FileAccess.Write);
 
             _composer.Compose(_archiveData, output);
+
+            _hasDeletedFiles = false;
+            _hasAddedFiles = false;
+            _hasRenamedFiles = false;
         }
 
         public void ReplaceFile(IArchiveFile file, Stream fileData)
@@ -77,7 +84,21 @@ namespace plugin_level5.Common.Plugins
             });
             _files?.Add(archiveFile);
 
+            _hasAddedFiles = true;
+
             return archiveFile;
+        }
+
+        public void RenameFile(IArchiveFile file, UPath path)
+        {
+            ArchiveNamedEntry? entry = _archiveData?.Files.FirstOrDefault(x => x.Name == file.FilePath.ToRelative());
+            if (entry is null)
+                return;
+
+            file.FilePath = path;
+            entry.Name = path.ToRelative().FullName;
+
+            _hasRenamedFiles = true;
         }
 
         public void RemoveFile(IArchiveFile file)
@@ -88,12 +109,16 @@ namespace plugin_level5.Common.Plugins
 
             _archiveData?.Files.Remove(entry);
             _files?.Remove(file);
+
+            _hasRenamedFiles = true;
         }
 
         public void RemoveAll()
         {
             _archiveData?.Files.Clear();
             _files?.Clear();
+
+            _hasRenamedFiles = true;
         }
     }
 }

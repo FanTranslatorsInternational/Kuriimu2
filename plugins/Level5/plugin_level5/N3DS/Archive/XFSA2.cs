@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using Komponent.IO;
 using Komponent.Streams;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
@@ -46,7 +47,7 @@ namespace plugin_level5.N3DS.Archive
 
             // Add Files
             var names = new BinaryReaderX(nameStream);
-            var result = new List<ArchiveFile>();
+            var result = new List<ArchiveFile>(directoryEntries.Sum(x => x.fileCount));
             foreach (var directory in directoryEntries)
             {
                 names.BaseStream.Position = directory.directoryNameOffset;
@@ -56,15 +57,13 @@ namespace plugin_level5.N3DS.Archive
                 foreach (var file in filesInDirectory)
                 {
                     var fileStream = new SubStream(input, _header.dataOffset + file.FileOffset, file.FileSize);
-
                     names.BaseStream.Position = directory.fileNameStartOffset + file.NameOffset;
                     var fileName = names.ReadNullTerminatedString();
 
                     var fileInfo = new ArchiveFileInfo
                     {
                         FileData = fileStream,
-                        FilePath = directoryName + fileName,
-                        PluginIds = XfsaSupport.RetrievePluginMapping(fileStream, fileName)
+                        FilePath = directoryName + fileName
                     };
 
                     result.Add(new XfsaArchiveFile<Xfsa2FileEntry>(fileInfo, file));

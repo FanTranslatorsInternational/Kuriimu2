@@ -62,39 +62,4 @@ namespace plugin_level5.N3DS.Archive
             Entry = entry;
         }
     }
-
-    static class B123Support
-    {
-        public static Guid[] RetrievePluginMapping(Stream fileStream, string fileName)
-        {
-            var extension = Path.GetExtension(fileName);
-            using var br = new BinaryReaderX(fileStream, true);
-
-            var magic = br.ReadString(4);
-
-            switch (extension)
-            {
-                case ".xi":
-                    return new[] { Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c") };
-
-                case ".xf":
-                    return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };
-
-                case ".xr":
-                case ".xc":
-                case ".xa":
-                case ".xk":
-                    if (magic == "XPCK")
-                        return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
-
-                    return null;
-
-                case ".arc":
-                    return new[] { Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896") };
-
-                default:
-                    return null;
-            }
-        }
-    }
 }

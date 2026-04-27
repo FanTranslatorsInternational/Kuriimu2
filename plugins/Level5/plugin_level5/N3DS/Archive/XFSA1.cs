@@ -63,8 +63,7 @@ namespace plugin_level5.N3DS.Archive
                     var fileInfo = new ArchiveFileInfo
                     {
                         FileData = fileStream,
-                        FilePath = directoryName + fileName,
-                        PluginIds = XfsaSupport.RetrievePluginMapping(fileStream, fileName)
+                        FilePath = directoryName + fileName
                     };
 
                     result.Add(new XfsaArchiveFile<Xfsa1FileEntry>(fileInfo, file));

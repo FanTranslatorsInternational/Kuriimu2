@@ -1,10 +1,11 @@
-﻿using System.Text;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Komponent.Streams;
 using Kompression;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Extensions;
+using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
+using System.Text;
 
 namespace plugin_level5.N3DS.Archive
 {
@@ -138,8 +139,7 @@ namespace plugin_level5.N3DS.Archive
                 fileInfo = new ArchiveFileInfo
                 {
                     FileData = input,
-                    FilePath = filePath,
-                    PluginIds = B123Support.RetrievePluginMapping(input, filePath)
+                    FilePath = filePath
                 };
                 return new B123ArchiveFile(fileInfo, entry);
             }
@@ -152,8 +152,7 @@ namespace plugin_level5.N3DS.Archive
                 FileData = input,
                 FilePath = filePath,
                 Compression = Compressions.Level5.Inazuma3Lzss.Build(),
-                DecompressedSize = decompressedSize,
-                PluginIds = B123Support.RetrievePluginMapping(input, filePath)
+                DecompressedSize = decompressedSize
             };
             return new B123ArchiveFile(fileInfo, entry);
         }

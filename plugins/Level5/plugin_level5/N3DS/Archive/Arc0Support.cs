@@ -1,6 +1,4 @@
-﻿using Komponent.Contract.Aspects;
-using Komponent.IO;
-using Konnect.Contract.DataClasses.Plugin.File.Archive;
+﻿using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 
 #pragma warning disable 649
@@ -59,38 +57,6 @@ namespace plugin_level5.N3DS.Archive
         public Arc0ArchiveFile(ArchiveFileInfo fileInfo, Arc0FileEntry entry) : base(fileInfo)
         {
             Entry = entry;
-        }
-    }
-
-    static class Arc0Support
-    {
-        public static Guid[]? RetrievePluginMapping(Stream fileStream, string fileName)
-        {
-            string extension = Path.GetExtension(fileName);
-
-            using var br = new BinaryReaderX(fileStream, true);
-            string magic = br.PeekString(4);
-
-            switch (extension)
-            {
-                case ".xi":
-                    return [Guid.Parse("79159dba-3689-448f-8343-167d58a54b2c")];
-
-                case ".xf":
-                    return [Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a")];
-
-                case ".xr":
-                case ".xc":
-                case ".xa":
-                case ".xk":
-                    if (magic == "XPCK")
-                        return [Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f")];
-
-                    goto default;
-
-                default:
-                    return null;
-            }
         }
     }
 }
