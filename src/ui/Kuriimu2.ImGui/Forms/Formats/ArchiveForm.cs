@@ -102,6 +102,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _extractDirectoryButton.Clicked += _extractDirectoryButton_Clicked;
             _replaceDirectoryButton.Clicked += _replaceDirectoryButton_Clicked;
             _renameDirectoryButton.Clicked += _renameDirectoryButton_Clicked;
+            _addFileButton.Clicked += _addFileButton_Clicked;
             _addDirectoryButton.Clicked += _addDirectoryButton_Clicked;
             _deleteDirectoryButton.Clicked += _deleteDirectoryButton_Clicked;
 
@@ -306,9 +307,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             await RenameSelectedDirectory();
         }
 
+        private async void _addFileButton_Clicked(object? sender, EventArgs e)
+        {
+            await AddSelectedFiles();
+        }
+
         private async void _addDirectoryButton_Clicked(object sender, EventArgs e)
         {
-            await AddFolderToSelectedNode();
+            await AddSelectedFolder();
         }
 
         private async void _deleteDirectoryButton_Clicked(object sender, EventArgs e)
@@ -878,13 +884,91 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Add methods
 
-        private Task AddFilesToSelectedNode()
+        private Task AddSelectedFiles()
         {
-            //return AddFiles(_treeView.SelectedNode);
-            return Task.CompletedTask;
+            return AddFiles(_treeView.SelectedNode);
         }
 
-        private Task AddFolderToSelectedNode()
+        private async Task AddFiles(TreeNode<DirectoryEntry> node)
+        {
+            // Select files
+            var selectedFiles = await SelectFiles();
+            if (selectedFiles.Length <= 0)
+            {
+                _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusSelectNone);
+                return;
+            }
+
+            // Add files
+            var subFolder = node.Data.AbsolutePath.ToAbsolute();
+
+            _formInfo.FormCommunicator.ReportStatus(StatusKind.Info, string.Empty);
+
+            _formInfo.Progress.StartProgress();
+            var filesNotAdded = false;
+            await _asyncOperation.StartAsync(async cts =>
+            {
+                var count = 0;
+                foreach (var filePath in selectedFiles)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    var fileName = filePath.GetName();
+                    _formInfo.Progress.ReportProgress(LocalizationResources.ArchiveProgressAdd, count++, selectedFiles.Length);
+
+                    // Do not add file if it already exists
+                    // This would be replacement and is not part of this operation
+                    if (_fileSystem.FileExists(subFolder / fileName))
+                        continue;
+
+                    Stream createdFile;
+                    try
+                    {
+                        // The plugin can throw if a file is not addable
+                        createdFile = await _fileSystem.OpenFileAsync(subFolder / fileName, FileMode.Create, FileAccess.Write);
+                    }
+                    catch (Exception e)
+                    {
+                        // HINT: Log messages are not localized
+                        _formInfo.Logger.Fatal(e, CouldNotAddFileLog_, filePath);
+                        filesNotAdded = true;
+
+                        continue;
+                    }
+
+                    var sourceFile = File.OpenRead(filePath.FullName);
+                    await sourceFile.CopyToAsync(createdFile, cts.Token);
+
+                    sourceFile.Close();
+
+                    // Add file to directory entries and tree
+                    var afi = ((AfiFileEntry)_fileSystem.GetFileEntry(subFolder / fileName)).ArchiveFile;
+                    AddTreeFile(node, fileName, afi);
+
+                    _changedFiles.Add(afi);
+                }
+            });
+
+            _formInfo.Progress.ReportProgress(LocalizationResources.ArchiveProgressAdd, 1, 1);
+            _formInfo.Progress.FinishProgress();
+
+            AddChangedDirectory(subFolder);
+
+            if (_asyncOperation.WasCancelled)
+                _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusAddCancel);
+            else if (filesNotAdded)
+                _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusAddError);
+            else
+                _formInfo.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ArchiveStatusAddSuccess);
+
+            UpdateFileView(_treeView.SelectedNode?.Data);
+            UpdateForm();
+
+            _formInfo.FormCommunicator.Update(true, false);
+        }
+
+        private Task AddSelectedFolder()
         {
             return AddFolder(_treeView.SelectedNode);
         }
@@ -1234,6 +1318,19 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 SettingsResources.LastDirectory = Path.GetDirectoryName(result.FullName);
             }
+
+            return result;
+        }
+
+        private async Task<UPath[]> SelectFiles()
+        {
+            var ofd = new WindowsOpenFileDialog
+            {
+                InitialDirectory = string.IsNullOrEmpty(SettingsResources.LastDirectory) ? Path.GetFullPath(".") : SettingsResources.LastDirectory,
+                Multiselect = true
+            };
+
+            var result = await ofd.ShowAsync() == DialogResult.Ok ? ofd.Files.Select(x => (UPath)x).ToArray() : [];
 
             return result;
         }

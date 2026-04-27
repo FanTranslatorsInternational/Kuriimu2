@@ -241,6 +241,8 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ArchiveDirectoryDelete => LocalizedString.FromId("Archive.Directory.Delete");
         public static LocalizedString ArchiveDirectoryDeleteShortcut => LocalizedString.FromId("Archive.Directory.Delete.Shortcut");
         public static LocalizedString ArchiveDirectoryAdd => LocalizedString.FromId("Archive.Directory.Add");
+        public static LocalizedString ArchiveDirectoryAddFile => LocalizedString.FromId("Archive.Directory.Add.File");
+        public static LocalizedString ArchiveDirectoryAddDirectory => LocalizedString.FromId("Archive.Directory.Add.Directory");
 
         // Archive Status
         public static LocalizedString ArchiveStatusExtractCancel => LocalizedString.FromId("Archive.Status.Extract.Cancel");

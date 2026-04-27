@@ -237,6 +237,8 @@
   "Archive.Directory.Delete": "Excluir",
   "Archive.Directory.Delete.Shortcut": "Del",
   "Archive.Directory.Add": "Adicionar",
+  // "Archive.Directory.Add.File": "File", // TODO
+  // "Archive.Directory.Add.Directory": "Directory", // TODO
 
   // Status
   "Archive.Status.Extract.Cancel": "Extração de arquivo cancelada.",

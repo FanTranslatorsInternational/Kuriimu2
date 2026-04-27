@@ -237,6 +237,8 @@
   "Archive.Directory.Delete": "Löschen",
   "Archive.Directory.Delete.Shortcut": "Entf",
   "Archive.Directory.Add": "Hinzufügen",
+  "Archive.Directory.Add.File": "Datei",
+  "Archive.Directory.Add.Directory": "Ordner",
 
   // Status
   "Archive.Status.Extract.Cancel": "Extrahieren der Datei abgebrochen.",

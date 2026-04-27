@@ -237,6 +237,8 @@
   "Archive.Directory.Delete": "Xóa",
   "Archive.Directory.Delete.Shortcut": "Xóa",
   "Archive.Directory.Add": "Thêm",
+  // "Archive.Directory.Add.File": "File", // TODO
+  // "Archive.Directory.Add.Directory": "Directory", // TODO
 
   // Status
   "Archive.Status.Extract.Cancel": "Đã hủy giải nén.",

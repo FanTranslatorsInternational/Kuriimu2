@@ -237,6 +237,8 @@
   "Archive.Directory.Delete": "Usuń",
   "Archive.Directory.Delete.Shortcut": "Usuń",
   "Archive.Directory.Add": "Dodaj",
+  // "Archive.Directory.Add.File": "File", // TODO
+  // "Archive.Directory.Add.Directory": "Directory", // TODO
 
   // Status
   "Archive.Status.Extract.Cancel": "Anulowano wypakowanie pliku.",
