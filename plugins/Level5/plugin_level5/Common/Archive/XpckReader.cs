@@ -23,7 +23,7 @@ namespace plugin_level5.Common.Archive
             Stream nameStream = _decompressor.Decompress(compressedNameStream, 0);
 
             using var nameReader = new BinaryReaderX(nameStream);
-            IList<ArchiveNamedEntry> files = CreateFileEntries(br, header.dataOffset << 2, entries, nameReader);
+            List<ArchiveNamedEntry> files = CreateFileEntries(br, header.dataOffset << 2, entries, nameReader);
 
             return new ArchiveData
             {
@@ -72,11 +72,11 @@ namespace plugin_level5.Common.Archive
             };
         }
 
-        private IList<ArchiveNamedEntry> CreateFileEntries(BinaryReaderX br, int dataOffset, XpckEntry[] entries, BinaryReaderX nameReader)
+        private List<ArchiveNamedEntry> CreateFileEntries(BinaryReaderX br, int dataOffset, XpckEntry[] entries, BinaryReaderX nameReader)
         {
-            var result = new ArchiveNamedEntry[entries.Length];
-            for (var i = 0; i < entries.Length; i++)
-                result[i] = CreateFileEntry(br, dataOffset, entries[i], nameReader);
+            var result = new List<ArchiveNamedEntry>(entries.Length);
+            foreach (XpckEntry entry in entries)
+                result.Add(CreateFileEntry(br, dataOffset, entry, nameReader));
 
             return result;
         }
