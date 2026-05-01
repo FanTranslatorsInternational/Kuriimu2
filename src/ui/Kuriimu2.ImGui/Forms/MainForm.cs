@@ -353,6 +353,7 @@ namespace Kuriimu2.ImGui.Forms
             return new FileManager(pluginManager)
             {
                 AllowManualSelection = true,
+                UseSelectionCache = true,
 
                 Progress = progress,
                 DialogManager = new ImGuiDialogManager(),

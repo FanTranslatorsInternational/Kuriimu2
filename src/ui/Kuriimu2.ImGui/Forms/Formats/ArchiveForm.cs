@@ -1243,7 +1243,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
         }
 
-        private void UpdateFileView(DirectoryEntry entry = null)
+        private void UpdateFileView(DirectoryEntry? entry = null)
         {
             if (entry == null)
             {
@@ -1480,7 +1480,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 AddChangedDirectory(child.FilePath.GetDirectory());
             }
 
-            UpdateFileView(_treeView.SelectedNode.Data);
+            UpdateFileView(_treeView.SelectedNode?.Data);
         }
 
         private void UpdateSaveButtons()
