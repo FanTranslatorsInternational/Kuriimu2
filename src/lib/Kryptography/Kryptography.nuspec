@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Kryptography</id>
-    <version>2.1.10</version>
+    <version>2.1.11</version>
     <description>A library containing all basic and advanced cryptography and hash algorithms implemented for Kuriimu2.</description>
 
     <authors>onepiecefreak;IcySon55</authors>
@@ -18,7 +18,7 @@
 
     <dependencies>
       <group targetFramework="net8.0">
-        <dependency id="Komponent" version="2.1.7" />
+        <dependency id="Komponent" version="2.1.8" />
       </group>
     </dependencies>
   </metadata>

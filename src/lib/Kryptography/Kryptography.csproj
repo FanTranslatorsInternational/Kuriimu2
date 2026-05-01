@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Komponent" Version="2.1.7" />
+    <PackageReference Include="Komponent" Version="2.1.8" />
   </ItemGroup>
 
   <ItemGroup>
