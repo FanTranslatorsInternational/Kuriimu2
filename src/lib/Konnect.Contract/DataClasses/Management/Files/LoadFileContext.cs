@@ -11,7 +11,7 @@ public class LoadFileContext
     /// <summary>
     /// The options for this load process.
     /// </summary>
-    public IList<string> Options { get; } = new List<string>();
+    public List<string> Options { get; } = [];
 
     /// <summary>
     /// The preset id of the plugin to use to load the file.

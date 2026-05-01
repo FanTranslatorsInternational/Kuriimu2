@@ -40,6 +40,9 @@ internal class FileState : IFileState
     public IList<string> DialogOptions { get; private set; }
 
     /// <inheritdoc />
+    public bool WasPluginManuallySelected { get; init; }
+
+    /// <inheritdoc />
     public bool HasParent => ParentFileState != null;
 
     /// <inheritdoc />

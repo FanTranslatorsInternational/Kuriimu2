@@ -11,6 +11,7 @@ using Konnect.Contract.Management.Streams;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Contract.Progress;
+using Konnect.DataClasses.Management.Files;
 using Konnect.Extensions;
 using Konnect.FileSystem;
 using Konnect.Management.Dialog;
@@ -49,7 +50,10 @@ public class FileManager : IFileManager
     public event ManualSelectionDelegate? OnManualSelection;
 
     /// <inheritdoc />
-    public bool AllowManualSelection { get; set; } = true;
+    public bool AllowManualSelection { get; set; }
+
+    /// <inheritdoc />
+    public bool UseSelectionCache { get; set; }
 
     public IProgressContext Progress { get; set; } = new ProgressContext(new NullProgressOutput());
 
@@ -342,7 +346,7 @@ public class FileManager : IFileManager
         // 2. Load file
         // IArchiveFileInfos have fileState as their parent, if loaded like this
         var loadResult = await LoadFile(fileSystem, afi.FilePath, streamManager, fileState, loadFileContext);
-        if (loadResult.Status != LoadStatus.Successful)
+        if (loadResult.Status != LoadStatus.Successful || loadResult.LoadedFileState is null)
         {
             lock (_loadingLock)
                 _loadingFiles.Remove(absoluteFilePath);
@@ -489,19 +493,17 @@ public class FileManager : IFileManager
 
     #endregion
 
-    private async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IFileState parentFileState, LoadFileContext loadFileContext)
+    private async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IFileState? parentFileState, LoadFileContext loadFileContext)
     {
-        // 1. Find plugin
-        IFilePlugin? plugin = null;
-        if (loadFileContext.PluginId != Guid.Empty)
-            plugin = _pluginManager.GetPlugin<IFilePlugin>(loadFileContext.PluginId);
+        // 1. Select plugin and options
+        (IFilePlugin? plugin, IList<string> options) = SelectFromCache(fileSystem, path, loadFileContext);
 
         var isRunning = Progress.IsRunning();
         if (!isRunning) Progress.StartProgress();
 
         // 2. Load file
         IDialogManager? dialogManager = DialogManager != null
-            ? new DialogManager(DialogManager, loadFileContext.Options)
+            ? new DialogManager(DialogManager, options)
             : DialogManager;
         var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadFileOptions
         {
@@ -512,17 +514,84 @@ public class FileManager : IFileManager
             Progress = Progress,
             DialogManager = dialogManager,
             AllowManualSelection = AllowManualSelection,
-            Logger = loadFileContext.Logger ?? Logger
+            Logger = loadFileContext.Logger
         });
 
         if (!isRunning) Progress.FinishProgress();
 
-        // 5. Add file to loaded files
+        // 3. Persist plugin and options
+        SetToCache(loadResult);
+
+        // 4. Add file to loaded files
         lock (_loadedFilesLock)
-            if (loadResult.Status == LoadStatus.Successful)
+            if (loadResult is { Status: LoadStatus.Successful, LoadedFileState: not null })
                 _loadedFiles.Add(loadResult.LoadedFileState);
 
         return loadResult;
+    }
+
+    private (IFilePlugin?, IList<string>) SelectFromCache(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
+    {
+        Guid pluginId = loadFileContext.PluginId;
+        List<string> options = loadFileContext.Options;
+
+        if (UseSelectionCache)
+        {
+            UPath absolutePath = fileSystem.ConvertPathToInternal(path);
+            SelectionCacheEntry? cacheEntry = SelectionCache.GetOrDefault(absolutePath.FullName);
+
+            if (cacheEntry is not null)
+            {
+                if (pluginId == Guid.Empty)
+                {
+                    pluginId = cacheEntry.Value.PluginId;
+
+                    options.Clear();
+                    options.AddRange(cacheEntry.Value.Options);
+                }
+                else
+                {
+                    if (pluginId == cacheEntry.Value.PluginId && options.Count != cacheEntry.Value.Options.Count)
+                    {
+                        options.Clear();
+                        options.AddRange(cacheEntry.Value.Options);
+                    }
+                }
+            }
+        }
+
+        IFilePlugin? plugin = ResolvePluginIdOrDefault(pluginId);
+
+        return (plugin, loadFileContext.Options);
+    }
+
+    private IFilePlugin? ResolvePluginIdOrDefault(Guid pluginId)
+    {
+        IFilePlugin? plugin = null;
+        if (pluginId != Guid.Empty)
+            plugin = _pluginManager.GetPlugin<IFilePlugin>(pluginId);
+
+        return plugin;
+    }
+
+    private void SetToCache(LoadResult result)
+    {
+        if (!UseSelectionCache)
+            return;
+
+        if (result.LoadedFileState is null)
+            return;
+
+        if (!result.LoadedFileState.WasPluginManuallySelected && result.LoadedFileState.DialogOptions.Count <= 0)
+            return;
+
+        var options = new List<string>();
+        options.AddRange(result.LoadedFileState.DialogOptions);
+
+        var element = new SelectionCacheEntry(result.LoadedFileState.FilePlugin.PluginId, options);
+
+        UPath absolutePath = result.LoadedFileState.FileSystem.ConvertPathToInternal(result.LoadedFileState.FilePath);
+        SelectionCache.Set(absolutePath.FullName, element);
     }
 
     #endregion
@@ -685,11 +754,6 @@ public class FileManager : IFileManager
             Reason = SaveErrorReason.None
         };
     }
-
-    #endregion
-
-    #region Create file
-
 
     #endregion
 

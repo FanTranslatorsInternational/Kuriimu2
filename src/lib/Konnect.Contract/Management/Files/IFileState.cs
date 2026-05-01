@@ -64,6 +64,11 @@ public interface IFileState : IDisposable
     IList<string> DialogOptions { get; }
 
     /// <summary>
+    /// Determines if <see cref="FilePlugin"/> was manually selected.
+    /// </summary>
+    bool WasPluginManuallySelected { get; }
+
+    /// <summary>
     /// Gets a value determining if the state has a parent.
     /// </summary>
     bool HasParent { get; }
