@@ -1,15 +1,18 @@
-﻿using System;
-using System.IO;
-using ImGui.Forms.Modals.IO.Windows;
+﻿using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
-using ImGui.Forms.Modals;
+using ImGui.Forms.Modals.IO.Windows;
 using Kuriimu2.ImGui.Resources;
+using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     partial class CiphersDialog
     {
+        private CancellationTokenSource? _source;
+
         public CiphersDialog()
         {
             InitializeComponent();
@@ -20,6 +23,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _fileBtn.Clicked += _fileBtn_Clicked;
 
             _executeBtn.Clicked += _executeBtn_Clicked;
+            _cancelBtn.Clicked += _cancelBtn_Clicked;
 
             DragDrop += CiphersDialog_DragDrop;
 
@@ -35,9 +39,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private async void _executeBtn_Clicked(object? sender, EventArgs e)
         {
+            _source = new CancellationTokenSource();
+
+            _operations.Enabled = false;
+            _ciphers.Enabled = false;
+
             _executeBtn.Enabled = false;
+            _cancelBtn.Enabled = true;
 
             await Task.Run(Process);
+        }
+
+        private void _cancelBtn_Clicked(object? sender, EventArgs e)
+        {
+            _source?.Cancel();
         }
 
         private async void _folderBtn_Clicked(object? sender, EventArgs e)
@@ -71,7 +86,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateFormInternal()
         {
-            _executeBtn.Enabled = _operations.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
+            _executeBtn.Enabled = _operations.SelectedItem is not null && _ciphers.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
         }
 
         private async Task<string?> SelectFile()
@@ -123,9 +138,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ProcessFile(_inputTextBox.Text);
             }
             else
+            {
                 ProcessDirectory(_inputTextBox.Text);
+            }
+
+            _operations.Enabled = true;
+            _ciphers.Enabled = true;
 
             _executeBtn.Enabled = true;
+            _cancelBtn.Enabled = false;
         }
 
         private void ProcessDirectory(string directoryPath)
@@ -138,7 +159,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _progress.Maximum = files.Length;
 
             foreach (string filePath in files)
+            {
+                if (_source?.IsCancellationRequested ?? false)
+                    break;
+
                 ProcessFile(filePath);
+            }
         }
 
         private void ProcessFile(string filePath)

@@ -44,7 +44,7 @@
   "Menu.Tools.Compressions": "Compressions",
   "Menu.Tools.ImageTranscoder": "Image Transcoder",
   "Menu.Tools.RawImageViewer": "Raw Image Viewer",
-  "Menu.Tools.TextSequenceSearcher": "Text Searcher",
+  "Menu.Tools.TextSequenceSearcher": "Text Sequence Searcher",
   "Menu.Tools.BatchExtractor": "Extract All",
   "Menu.Tools.BatchInjector": "Replace All",
   "Menu.Tools.Hashes": "Hashes",
@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Process file {0}.",
   "Menu.Tools.Ciphers.Log.Error": "Error processing file {0}.",
   "Menu.Tools.Ciphers.Progress": "Process",
+  "Menu.Tools.Ciphers.Cancel": "Cancel",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Compressions",
@@ -82,6 +83,7 @@
   "Menu.Tools.Compressions.Log.Process": "Process file {0}.",
   "Menu.Tools.Compressions.Log.Error": "Error processing file {0}.",
   "Menu.Tools.Compressions.Progress": "Process",
+  "Menu.Tools.Compressions.Cancel": "Cancel",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Image Transcoder",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Left Mouse Click",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Move: Left Mouse Hold + Drag",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copy: Alt + C",
+
+  // Sequence Search Dialog
+  "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher",
+  "Menu.Tools.TextSequenceSearcher.Execute": "Execute",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Select folder",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Select file",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdirectories",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Process",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Cancel",
+  "Menu.Tools.TextSequenceSearcher.Path": "Path",
+  "Menu.Tools.TextSequenceSearcher.Offset": "Position",
+  "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installed Plugins",

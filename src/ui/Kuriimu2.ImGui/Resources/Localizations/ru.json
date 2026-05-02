@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Обработка файла {0}.",
   "Menu.Tools.Ciphers.Log.Error": "Ошибка при обработке файла {0}.",
   "Menu.Tools.Ciphers.Progress": "Процесс",
+  "Menu.Tools.Ciphers.Cancel": "Отмена",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Сжатия",
@@ -82,6 +83,7 @@
   "Menu.Tools.Compressions.Log.Process": "Обработка файла {0}.",
   "Menu.Tools.Compressions.Log.Error": "Ошибка при обработке файла {0}.",
   "Menu.Tools.Compressions.Progress": "Процесс",
+  "Menu.Tools.Compressions.Cancel": "Отмена",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Транскодер изображений",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Удалить: ЛКМ",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Переместить: ЛКМ и перетащить",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Скопировать: Alt + C",
+
+  // Sequence Search Dialog
+  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Menu.Tools.TextSequenceSearcher.Execute": "Исполнить",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Выберите папку",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Выберите файл",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Подпапки",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Процесс",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Отмена",
+  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Установленные плагины",

@@ -5,10 +5,11 @@ namespace Kuriimu2.ImGui.Resources
     internal class SettingsResources
     {
         private const string LastDirectoryName_ = "LastDirectory";
-        private const string TypeExtensionLastDirectoryName_ = "TypeExtensionLastDirectory";
         private const string BatchInputDirectoryName_ = "BatchInputDirectory";
         private const string BatchOutputDirectoryName_ = "BatchOutputDirectory";
-        private const string SequenceSearchDirectoryName_ = "SequenceSearchDirectory";
+        private const string SequenceSearchTargetName_ = "SequenceSearchTarget";
+        private const string SequenceSearchEncodingName_ = "SequenceSearchEncoding";
+        private const string SequenceSearchSubDirectoriesName_ = "SequenceSearchSubDirectories";
         private const string ThumbnailWidthName_ = "ThumbnailWidth";
         private const string ThumbnailHeightName_ = "ThumbnailHeight";
         private const string IncludeDevBuildsName_ = "IncludeDevBuilds";
@@ -20,12 +21,6 @@ namespace Kuriimu2.ImGui.Resources
         {
             get => SettingsProvider.Instance.Get(LastDirectoryName_, string.Empty);
             set => SettingsProvider.Instance.Set(LastDirectoryName_, value);
-        }
-
-        public static string TypeExtensionLastDirectory
-        {
-            get => SettingsProvider.Instance.Get(TypeExtensionLastDirectoryName_, string.Empty);
-            set => SettingsProvider.Instance.Set(TypeExtensionLastDirectoryName_, value);
         }
 
         public static string BatchInputDirectory
@@ -40,21 +35,33 @@ namespace Kuriimu2.ImGui.Resources
             set => SettingsProvider.Instance.Set(BatchOutputDirectoryName_, value);
         }
 
-        public static string SequenceSearchDirectory
+        public static string SequenceSearchTarget
         {
-            get => SettingsProvider.Instance.Get(SequenceSearchDirectoryName_, string.Empty);
-            set => SettingsProvider.Instance.Set(SequenceSearchDirectoryName_, value);
+            get => SettingsProvider.Instance.Get(SequenceSearchTargetName_, string.Empty);
+            set => SettingsProvider.Instance.Set(SequenceSearchTargetName_, value);
+        }
+
+        public static string SequenceSearchEncoding
+        {
+            get => SettingsProvider.Instance.Get(SequenceSearchEncodingName_, string.Empty);
+            set => SettingsProvider.Instance.Set(SequenceSearchEncodingName_, value);
+        }
+
+        public static bool SequenceSearchSubDirectories
+        {
+            get => SettingsProvider.Instance.Get(SequenceSearchSubDirectoriesName_, true);
+            set => SettingsProvider.Instance.Set(SequenceSearchSubDirectoriesName_, value);
         }
 
         public static int ThumbnailWidth
         {
-            get => SettingsProvider.Instance.Get(ThumbnailWidthName_, 96);
+            get => SettingsProvider.Instance.Get(ThumbnailWidthName_, 90);
             set => SettingsProvider.Instance.Set(ThumbnailWidthName_, value);
         }
 
         public static int ThumbnailHeight
         {
-            get => SettingsProvider.Instance.Get(ThumbnailHeightName_, 64);
+            get => SettingsProvider.Instance.Get(ThumbnailHeightName_, 60);
             set => SettingsProvider.Instance.Set(ThumbnailHeightName_, value);
         }
 

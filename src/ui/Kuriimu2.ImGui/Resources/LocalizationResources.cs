@@ -66,6 +66,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsCiphersLogError(string filePath)
             => LocalizedString.FromId("Menu.Tools.Ciphers.Log.Error", () => filePath);
         public static LocalizedString MenuToolsCiphersProgress => LocalizedString.FromId("Menu.Tools.Ciphers.Progress");
+        public static LocalizedString MenuToolsCiphersCancel => LocalizedString.FromId("Menu.Tools.Ciphers.Cancel");
 
         // Compressions Menu
         public static LocalizedString MenuToolsCompressionsCaption => LocalizedString.FromId("Menu.Tools.Compressions.Caption");
@@ -80,6 +81,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsCompressionsLogError(string filePath)
             => LocalizedString.FromId("Menu.Tools.Compressions.Log.Error", () => filePath);
         public static LocalizedString MenuToolsCompressionsProgress => LocalizedString.FromId("Menu.Tools.Compressions.Progress");
+        public static LocalizedString MenuToolsCompressionsCancel => LocalizedString.FromId("Menu.Tools.Compressions.Cancel");
 
         // Image Transcoder
         public static LocalizedString MenuToolsImageTranscoderCaption => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Caption");
@@ -116,6 +118,18 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorRemoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl");
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorMoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl");
         public static LocalizedString MenuToolsRawImageViewerSwizzleEditorCopyControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl");
+
+        // Sequence Search Dialog
+        public static LocalizedString MenuToolsTextSequenceSearcherCaption => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Caption");
+        public static LocalizedString MenuToolsTextSequenceSearcherExecute => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Execute");
+        public static LocalizedString MenuToolsTextSequenceSearcherInputFolder => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.Folder");
+        public static LocalizedString MenuToolsTextSequenceSearcherInputFile => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.File");
+        public static LocalizedString MenuToolsTextSequenceSearcherInputSubDirectories => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.SubDirectories");
+        public static LocalizedString MenuToolsTextSequenceSearcherProgress => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Progress");
+        public static LocalizedString MenuToolsTextSequenceSearcherCancel => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Cancel");
+        public static LocalizedString MenuToolsTextSequenceSearcherPath => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Path");
+        public static LocalizedString MenuToolsTextSequenceSearcherOffset => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Offset");
+        public static LocalizedString MenuToolsTextSequenceSearcherSearchPlaceholder => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Search.Placeholder");
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");

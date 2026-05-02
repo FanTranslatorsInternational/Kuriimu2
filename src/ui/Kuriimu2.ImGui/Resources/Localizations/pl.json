@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Przetwórz plik {0}.",
   "Menu.Tools.Ciphers.Log.Error": "Błąd podczas procesowania pliku {0}.",
   "Menu.Tools.Ciphers.Progress": "Procesuj",
+  "Menu.Tools.Ciphers.Cancel": "Anuluj",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Kompresje",
@@ -82,6 +83,7 @@
   "Menu.Tools.Compressions.Log.Process": "Przetwórz plik {0}.",
   "Menu.Tools.Compressions.Log.Error": "Błąd podczas procesowania pliku {0}.",
   "Menu.Tools.Compressions.Progress": "Procesuj",
+  "Menu.Tools.Compressions.Cancel": "Anuluj",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Transkoder Obrazów",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Usuń: Lewy Przycisk Myszy",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Przesuń: Przytrzymaj Lewy Przycisk + Przeciągnij",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Kopiuj: Alt + C",
+
+  // Sequence Search Dialog
+  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Menu.Tools.TextSequenceSearcher.Execute": "Wykonaj",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Wybierz folder",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Wybierz plik",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Podkatalogi",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Procesuj",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Anuluj",
+  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Zainstalowane Wtyczki",

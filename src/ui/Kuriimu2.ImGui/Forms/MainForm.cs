@@ -108,6 +108,7 @@ namespace Kuriimu2.ImGui.Forms
             _compressionsButton.Clicked += _compressionsButton_Clicked;
             _imageTranscoderButton.Clicked += _imageTranscoderButton_Clicked;
             _rawImageViewerButton.Clicked += _rawImageViewerButton_Clicked;
+            _textSequencerButton.Clicked += _textSequencerButton_Clicked;
 
             _tabControl.PageRemoving += _tabControl_PageRemoving;
             _tabControl.PageRemoved += _tabControl_PageRemoved;
@@ -309,6 +310,11 @@ namespace Kuriimu2.ImGui.Forms
         private async void _rawImageViewerButton_Clicked(object? sender, EventArgs e)
         {
             await ShowRawImageViewerDialog();
+        }
+
+        private async void _textSequencerButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowTextSequenceSearcherDialog();
         }
 
         private async void _pluginsButton_Clicked(object? sender, EventArgs e)
@@ -772,6 +778,12 @@ namespace Kuriimu2.ImGui.Forms
         {
             var imageTranscoderDialog = new RawImageViewerDialog();
             await imageTranscoderDialog.ShowAsync();
+        }
+
+        private async Task ShowTextSequenceSearcherDialog()
+        {
+            var textSequenceSearcherDialog = new TextSequenceSearchDialog();
+            await textSequenceSearcherDialog.ShowAsync();
         }
 
         private async Task ShowPluginsDialog()

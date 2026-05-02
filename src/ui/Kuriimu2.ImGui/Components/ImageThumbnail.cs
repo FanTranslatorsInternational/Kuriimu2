@@ -23,7 +23,7 @@ namespace Kuriimu2.ImGui.Components
 
         public IImageFile ImageFile { get; }
 
-        public Vector2 ThumbnailSize { get; } = new(90, 60);
+        public Vector2 ThumbnailSize { get; } = new(SettingsResources.ThumbnailWidth, SettingsResources.ThumbnailHeight);
         public bool ShowThumbnailBorder { get; set; } = true;
 
         public string Name => ImageFile.ImageInfo.Name ?? $"{_index:00}";

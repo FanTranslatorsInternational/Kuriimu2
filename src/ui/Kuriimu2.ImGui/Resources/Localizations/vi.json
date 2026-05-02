@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Tệp đang xử lý {0}.",
   "Menu.Tools.Ciphers.Log.Error": "Lỗi khi xử lý tệp {0}.",
   "Menu.Tools.Ciphers.Progress": "Xử Lý",
+  "Menu.Tools.Ciphers.Cancel": "Hủy",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Kiểu Nén",
@@ -82,6 +83,7 @@
   "Menu.Tools.Compressions.Log.Process": "Tệp đang xử lý {0}.",
   "Menu.Tools.Compressions.Log.Error": "Lỗi khi xử lý tệp {0}.",
   "Menu.Tools.Compressions.Progress": "Xử Lý",
+  "Menu.Tools.Compressions.Cancel": "Hủy",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Giải Mã Ảnh",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Xóa: Nhấn Chuột Trái",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Di Chuyển: Giữ Chuột Trái + Kéo",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Sao Chép: Alt + C",
+
+  // Sequence Search Dialog
+  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Menu.Tools.TextSequenceSearcher.Execute": "Thực Thi",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Chọn thư mục",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Chọn tệp",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Thư Mục Con",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Xử Lý",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Hủy",
+  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Plugin Đã Cài",

@@ -17,16 +17,17 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarButton _openWithButton;
         private MenuBarButton _saveAllButton;
 
-        private MenuBarButton _imageTranscoderButton;
-        private MenuBarButton _rawImageViewerButton;
-
         private MenuBarButton _batchExtractButton;
         private MenuBarButton _batchInjectButton;
-        private MenuBarButton _textSequencerButton;
         private MenuBarButton _hashesButton;
 
         private MenuBarButton _ciphersButton;
         private MenuBarButton _compressionsButton;
+
+        private MenuBarButton _imageTranscoderButton;
+        private MenuBarButton _rawImageViewerButton;
+
+        private MenuBarButton _textSequencerButton;
 
         private MenuBarCheckBox _includeDevBuildsButton;
         private MenuBarRadio _changeLanguageMenu;
@@ -72,11 +73,11 @@ namespace Kuriimu2.ImGui.Forms
                 Text = LocalizationResources.MenuToolsRawImageViewer
             };
 
+            _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher };
+
             _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor };
             _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector };
-            _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher };
             _hashesButton = new MenuBarButton { Text = LocalizationResources.MenuToolsHashes };
-            _rawImageViewerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsRawImageViewer };
 
             _ciphersButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCiphers };
             _compressionsButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCompressions };
@@ -121,16 +122,16 @@ namespace Kuriimu2.ImGui.Forms
                             _compressionsButton,
                             new MenuBarSplitter(),
                             _imageTranscoderButton,
-                            _rawImageViewerButton
+                            _rawImageViewerButton,
+                            new MenuBarSplitter(),
+                            _textSequencerButton
                         }
                     },
                     //new MenuBarMenu{Text = LocalizationResources.MenuTools, Items =
                     //{
                     //    _batchExtractButton,
                     //    _batchInjectButton,
-                    //    _textSequencerButton,
-                    //    _hashesButton,
-                    //    _rawImageViewerButton
+                    //    _hashesButton
                     //}},
                     new MenuBarMenu
                     {

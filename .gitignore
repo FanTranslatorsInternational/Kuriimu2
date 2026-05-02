@@ -267,3 +267,4 @@ __pycache__/
 /src/KoreUnitTests/temp
 /plugins/Criware/plugin_criware/Scripts
 /*.rar
+/src/ui/Kuriimu2.ImGui/Resources/Localizations/de.json

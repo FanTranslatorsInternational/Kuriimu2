@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Datei {0} wird verarbeitet.",
   "Menu.Tools.Ciphers.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
   "Menu.Tools.Ciphers.Progress": "Verarbeitung",
+  "Menu.Tools.Ciphers.Cancel": "Abbrechen",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Komprimierungen",
@@ -82,6 +83,7 @@
   "Menu.Tools.Compressions.Log.Process": "Datei {0} wird verarbeitet.",
   "Menu.Tools.Compressions.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
   "Menu.Tools.Compressions.Progress": "Verarbeitung",
+  "Menu.Tools.Compressions.Cancel": "Abbrechen",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Bild-Transcoder",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Entfernen: Linksklick",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Bewegen: Linksklick halten + ziehen",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Kopieren: Alt + C",
+
+  // Sequence Search Dialog
+  "Menu.Tools.TextSequenceSearcher.Caption": "Zeichenfolgen-Finder",
+  "Menu.Tools.TextSequenceSearcher.Execute": "Ausführen",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Ordner auswählen",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Datei auswählen",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Unterordner",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Verarbeitung",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Abbrechen",
+  "Menu.Tools.TextSequenceSearcher.Path": "Pfad",
+  "Menu.Tools.TextSequenceSearcher.Offset": "Position",
+  "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Zu suchender Text...",
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installierte Plugins",

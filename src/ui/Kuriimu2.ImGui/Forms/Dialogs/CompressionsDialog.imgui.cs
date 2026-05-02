@@ -24,6 +24,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private Button _folderBtn;
         private CheckBox _subDirCheckBox;
         private Button _executeBtn;
+        private Button _cancelBtn;
         private TextEditor _logEditor;
 
         private ProgressBar _progress;
@@ -48,6 +49,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsInputFolder };
             _subDirCheckBox = new CheckBox { Text = LocalizationResources.MenuToolsCompressionsInputSubDirectories };
             _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsExecute, KeyAction = new(ImGuiKey.Enter) };
+            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsCancel, Enabled = false };
             _logEditor = new TextEditor { IsReadOnly = true };
 
             _progress = new ProgressBar
@@ -82,9 +84,19 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                             _subDirCheckBox
                         }
                     },
-                    new StackItem(_fileBtn){Size = new Size(SizeValue.Relative(.5f), SizeValue.Content)},
-                    new StackItem(_executeBtn){Size = Size.Parent,VerticalAlignment = VerticalAlignment.Bottom},
-                    new StackItem(_progress){Size = Size.WidthAlign}
+                    _fileBtn,
+                    new StackItem(new StackLayout
+                    {
+                        Alignment = Alignment.Horizontal,
+                        Size = Size.Content,
+                        ItemSpacing = 4,
+                        Items =
+                        {
+                            new StackItem(_executeBtn){Size = new Size(SizeValue.Relative(.8f), SizeValue.Content)},
+                            new StackItem(_cancelBtn){Size = new Size(SizeValue.Relative(.2f), SizeValue.Content)}
+                        }
+                    }){Size = Size.Parent, VerticalAlignment = VerticalAlignment.Bottom},
+                    _progress
                 }
             };
 

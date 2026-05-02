@@ -70,6 +70,7 @@
   "Menu.Tools.Ciphers.Log.Process": "Traitement le fichier {0}.",
   "Menu.Tools.Ciphers.Log.Error": "Erreur lors du traitement du fichier {0}.",
   "Menu.Tools.Ciphers.Progress": "Traitement",
+  "Menu.Tools.Ciphers.Cancel": "Annuler",
 
   // Compressions Menu
   "Menu.Tools.Compressions.Caption": "Compressions",
@@ -77,11 +78,12 @@
   "Menu.Tools.Compressions.Compress": "Compresser",
   "Menu.Tools.Compressions.Execute": "Exécuter",
   "Menu.Tools.Compressions.Input.Folder": "Sélectionner un dossier",
-  "Menu.Tools.Compressions.Input.File": "Sélectionner un dossier",
+  "Menu.Tools.Compressions.Input.File": "Sélectionner un fichier",
   "Menu.Tools.Compressions.Input.SubDirectories": "Sous-dossiers",
   "Menu.Tools.Compressions.Log.Process": "Traitement du fichier {0}.",
   "Menu.Tools.Compressions.Log.Error": "Erreur lors du traitement du fichier {0}.",
   "Menu.Tools.Compressions.Progress": "Traitement",
+  "Menu.Tools.Compressions.Cancel": "Annuler",
 
   // Image Transcoder
   "Menu.Tools.ImageTranscoder.Caption": "Transcodeur d'image",
@@ -118,6 +120,18 @@
   "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Clic Droit Souris",
   "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Bouger: Maintenir Clic Gauche + faire glisser",
   "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copier: Alt + C",
+
+  // Sequence Search Dialog
+  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Menu.Tools.TextSequenceSearcher.Execute": "Exécuter",
+  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Sélectionner un dossier",
+  "Menu.Tools.TextSequenceSearcher.Input.File": "Sélectionner un fichier",
+  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Sous-dossiers",
+  "Menu.Tools.TextSequenceSearcher.Progress": "Traitement",
+  "Menu.Tools.TextSequenceSearcher.Cancel": "Annuler",
+  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Plug-ins installés",
