@@ -71,7 +71,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             }
         }
 
-        private DataTable<ChoosePluginElement> CreateDataTable(IList<DataTableRow<ChoosePluginElement>> plugins)
+        private DataTable<ChoosePluginElement> CreateDataTable(System.Collections.Generic.List<DataTableRow<ChoosePluginElement>> plugins)
         {
             var dataTable = new DataTable<ChoosePluginElement>
             {

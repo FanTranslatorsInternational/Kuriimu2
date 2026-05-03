@@ -135,15 +135,28 @@
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Установленные плагины",
+  "Menu.Plugins.Id": "ID",
   "Menu.Plugins.Name": "Название",
   "Menu.Plugins.Publisher": "Издатель",
   "Menu.Plugins.Developer": "Разработчик",
   "Menu.Plugins.Authors": "Авторы",
   "Menu.Plugins.Platforms": "Платформы",
-  "Menu.Plugins.Archive": "Архив",
-  "Menu.Plugins.Image": "Изображение",
-  "Menu.Plugins.Font": "Шрифт",
-  "Menu.Plugins.Text": "Текст",
+  "Menu.Plugins.Type.Archive": "Архив",
+  "Menu.Plugins.Type.Image": "Изображение",
+  "Menu.Plugins.Type.Font": "Шрифт",
+  "Menu.Plugins.Type.Text": "Текст",
+
+  // File Preferences Dialog
+  // "Menu.Preferences.Title": "File Preferences", // TODO
+  // "Menu.Preferences.Path": "Path", // TODO
+  "Menu.Preferences.Id": "ID",
+  "Menu.Preferences.Name": "Название",
+  // "Menu.Preferences.Type.Caption": "Type", // TODO
+  "Menu.Preferences.Type.Archive": "Архив",
+  "Menu.Preferences.Type.Image": "Изображение",
+  "Menu.Preferences.Type.Font": "Шрифт",
+  "Menu.Preferences.Type.Text": "Текст",
+  // "Menu.Preferences.Options": "Options", // TODO
 
   // About Dialog
   "Menu.About.Title": "О Kuriimu2",
@@ -417,7 +430,7 @@
   "Dialog.ChoosePlugin.Plugins.Table.Name": "Название",
   "Dialog.ChoosePlugin.Plugins.Table.Type": "Тип",
   "Dialog.ChoosePlugin.Plugins.Table.Description": "Описание",
-  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
 
   "Dialog.ChoosePlugin.Continue": "Продолжить",
   "Dialog.ChoosePlugin.ViewRaw": "Просмотреть RAW-байты",

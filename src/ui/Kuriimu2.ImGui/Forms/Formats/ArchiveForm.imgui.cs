@@ -228,11 +228,5 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             #endregion
         }
-
-        protected override void SetTabInactiveCore()
-        {
-            _treeView.SetTabInactive();
-            _fileView.SetTabInactive();
-        }
     }
 }

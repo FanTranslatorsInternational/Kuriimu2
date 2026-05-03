@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Konnect" Version="2.1.85" />
+    <PackageReference Include="Konnect" Version="2.1.87" />
   </ItemGroup>
 
 </Project>

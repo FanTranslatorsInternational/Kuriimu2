@@ -303,10 +303,5 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _paletteBox.SelectedItem = _paletteBox.Items.FirstOrDefault(x => x.Content == img.ImageInfo.PaletteFormat);
         }
-
-        protected override void SetTabInactiveCore()
-        {
-            _imgList.SetTabInactive();
-        }
     }
 }

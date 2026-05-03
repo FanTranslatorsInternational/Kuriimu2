@@ -135,15 +135,28 @@
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Installierte Plugins",
+  "Menu.Plugins.Id": "ID",
   "Menu.Plugins.Name": "Name",
   "Menu.Plugins.Publisher": "Publisher",
   "Menu.Plugins.Developer": "Entwickler",
   "Menu.Plugins.Authors": "Autoren",
   "Menu.Plugins.Platforms": "Plattformen",
-  "Menu.Plugins.Archive": "Archiv",
-  "Menu.Plugins.Image": "Bild",
-  "Menu.Plugins.Font": "Schriftart",
-  "Menu.Plugins.Text": "Text",
+  "Menu.Plugins.Type.Archive": "Archiv",
+  "Menu.Plugins.Type.Image": "Bild",
+  "Menu.Plugins.Type.Font": "Schriftart",
+  "Menu.Plugins.Type.Text": "Text",
+
+  // File Preferences Dialog
+  "Menu.Preferences.Title": "Dateieinstellungen",
+  "Menu.Preferences.Path": "Pfad",
+  "Menu.Preferences.Id": "ID",
+  "Menu.Preferences.Name": "Name",
+  "Menu.Preferences.Type.Caption": "Typ",
+  "Menu.Preferences.Type.Archive": "Archiv",
+  "Menu.Preferences.Type.Image": "Bild",
+  "Menu.Preferences.Type.Font": "Schriftart",
+  "Menu.Preferences.Type.Text": "Text",
+  "Menu.Preferences.Options": "Optionen",
 
   // About Dialog
   "Menu.About.Title": "Über Kuriimu2",
@@ -417,7 +430,7 @@
   "Dialog.ChoosePlugin.Plugins.Table.Name": "Name",
   "Dialog.ChoosePlugin.Plugins.Table.Type": "Typ",
   "Dialog.ChoosePlugin.Plugins.Table.Description": "Beschreibung",
-  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
 
   "Dialog.ChoosePlugin.Continue": "Fortfahren",
   "Dialog.ChoosePlugin.ViewRaw": "Rohdaten anzeigen",

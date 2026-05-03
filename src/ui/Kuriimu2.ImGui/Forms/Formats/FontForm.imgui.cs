@@ -365,10 +365,5 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _glyphBox.SetCharacterInfo(element.CharacterInfo);
         }
-
-        protected override void SetTabInactiveCore()
-        {
-            _glyphsLayout.SetTabInactive();
-        }
     }
 }

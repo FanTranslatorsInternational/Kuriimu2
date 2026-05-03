@@ -1256,7 +1256,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _fileView.Rows = entry.Files.Select(afi => new DataTableRow<ArchiveFile>(new ArchiveFile(afi))
             {
                 TextColor = _changedFiles.Contains(afi) ? ColorResources.Changed : Color.Transparent
-            }).ToArray();
+            }).ToList();
 
             UpdateFileCount(entry.Files.Count);
         }

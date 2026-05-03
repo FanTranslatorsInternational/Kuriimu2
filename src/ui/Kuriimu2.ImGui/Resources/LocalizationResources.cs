@@ -133,6 +133,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Plugins Dialog
         public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
+        public static LocalizedString MenuPluginsId => LocalizedString.FromId("Menu.Plugins.Id");
         public static LocalizedString MenuPluginsName => LocalizedString.FromId("Menu.Plugins.Name");
         public static LocalizedString MenuPluginsPublisher => LocalizedString.FromId("Menu.Plugins.Publisher");
         public static LocalizedString MenuPluginsDeveloper => LocalizedString.FromId("Menu.Plugins.Developer");
@@ -140,12 +141,28 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuPluginsPlatforms => LocalizedString.FromId("Menu.Plugins.Platforms");
         public static LocalizedString MenuPluginsType(PluginType type) => type switch
         {
-            PluginType.Archive => LocalizedString.FromId("Menu.Plugins.Archive"),
-            PluginType.Image => LocalizedString.FromId("Menu.Plugins.Image"),
-            PluginType.Font => LocalizedString.FromId("Menu.Plugins.Font"),
-            PluginType.Text => LocalizedString.FromId("Menu.Plugins.Text"),
+            PluginType.Archive => LocalizedString.FromId("Menu.Plugins.Type.Archive"),
+            PluginType.Image => LocalizedString.FromId("Menu.Plugins.Type.Image"),
+            PluginType.Font => LocalizedString.FromId("Menu.Plugins.Type.Font"),
+            PluginType.Text => LocalizedString.FromId("Menu.Plugins.Type.Text"),
             _ => string.Empty
         };
+
+        // File Preferences Dialog
+        public static LocalizedString MenuPreferencesTitle => LocalizedString.FromId("Menu.Preferences.Title");
+        public static LocalizedString MenuPreferencesPath => LocalizedString.FromId("Menu.Preferences.Path");
+        public static LocalizedString MenuPreferencesId => LocalizedString.FromId("Menu.Preferences.Id");
+        public static LocalizedString MenuPreferencesName => LocalizedString.FromId("Menu.Preferences.Name");
+        public static LocalizedString MenuPreferencesTypeCaption => LocalizedString.FromId("Menu.Preferences.Type.Caption");
+        public static LocalizedString MenuPreferencesType(PluginType type) => type switch
+        {
+            PluginType.Archive => LocalizedString.FromId("Menu.Preferences.Type.Archive"),
+            PluginType.Image => LocalizedString.FromId("Menu.Preferences.Type.Image"),
+            PluginType.Font => LocalizedString.FromId("Menu.Preferences.Type.Font"),
+            PluginType.Text => LocalizedString.FromId("Menu.Preferences.Type.Text"),
+            _ => string.Empty
+        };
+        public static LocalizedString MenuPreferencesOptions => LocalizedString.FromId("Menu.Preferences.Options");
 
         // About Dialog
         public static LocalizedString MenuAboutTitle => LocalizedString.FromId("Menu.About.Title");
@@ -421,7 +438,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogChoosePluginPluginsTableName => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Name");
         public static LocalizedString DialogChoosePluginPluginsTableType => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Type");
         public static LocalizedString DialogChoosePluginPluginsTableDescription => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Description");
-        public static LocalizedString DialogChoosePluginPluginsTableId => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.ID");
+        public static LocalizedString DialogChoosePluginPluginsTableId => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Id");
 
         public static LocalizedString DialogChoosePluginContinue => LocalizedString.FromId("Dialog.ChoosePlugin.Continue");
         public static LocalizedString DialogChoosePluginViewRaw => LocalizedString.FromId("Dialog.ChoosePlugin.ViewRaw");

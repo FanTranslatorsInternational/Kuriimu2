@@ -135,15 +135,28 @@
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Plugin Đã Cài",
+  "Menu.Plugins.Id": "ID",
   "Menu.Plugins.Name": "Tên",
   "Menu.Plugins.Publisher": "Xuất Bản",
   "Menu.Plugins.Developer": "Phát Triển",
   "Menu.Plugins.Authors": "Tác Giả",
   "Menu.Plugins.Platforms": "Hệ Máy",
-  "Menu.Plugins.Archive": "Lưu Trữ",
-  "Menu.Plugins.Image": "Ảnh",
-  "Menu.Plugins.Font": "Font",
-  "Menu.Plugins.Text": "Text",
+  "Menu.Plugins.Type.Archive": "Lưu Trữ",
+  "Menu.Plugins.Type.Image": "Ảnh",
+  "Menu.Plugins.Type.Font": "Font",
+  "Menu.Plugins.Type.Text": "Text",
+
+  // File Preferences Dialog
+  // "Menu.Preferences.Title": "File Preferences", // TODO
+  // "Menu.Preferences.Path": "Path", // TODO
+  "Menu.Preferences.Id": "ID",
+  "Menu.Preferences.Name": "Tên",
+  // "Menu.Preferences.Type.Caption": "Type", // TODO
+  "Menu.Preferences.Type.Archive": "Lưu Trữ",
+  "Menu.Preferences.Type.Image": "Ảnh",
+  "Menu.Preferences.Type.Font": "Font",
+  "Menu.Preferences.Type.Text": "Text",
+  // "Menu.Preferences.Options": "Options", // TODO
 
   // About Dialog
   "Menu.About.Title": "Thông Tin Kuriimu2",
@@ -417,7 +430,7 @@
   "Dialog.ChoosePlugin.Plugins.Table.Name": "Tên",
   "Dialog.ChoosePlugin.Plugins.Table.Type": "Loại",
   "Dialog.ChoosePlugin.Plugins.Table.Description": "Mô Tả",
-  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
 
   "Dialog.ChoosePlugin.Continue": "Tiếp Tục",
   "Dialog.ChoosePlugin.ViewRaw": "Xem raw bytes",

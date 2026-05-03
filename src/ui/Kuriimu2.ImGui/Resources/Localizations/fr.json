@@ -135,15 +135,28 @@
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Plug-ins installés",
+  "Menu.Plugins.Id": "ID",
   "Menu.Plugins.Name": "Nom",
   "Menu.Plugins.Publisher": "Éditeur",
   "Menu.Plugins.Developer": "Développeur",
   "Menu.Plugins.Authors": "Auteurs",
   "Menu.Plugins.Platforms": "Plateformes",
-  "Menu.Plugins.Archive": "Archive",
-  "Menu.Plugins.Image": "Image",
-  "Menu.Plugins.Font": "Police",
-  "Menu.Plugins.Text": "Texte",
+  "Menu.Plugins.Type.Archive": "Archive",
+  "Menu.Plugins.Type.Image": "Image",
+  "Menu.Plugins.Type.Font": "Police",
+  "Menu.Plugins.Type.Text": "Texte",
+
+  // File Preferences Dialog
+  // "Menu.Preferences.Title": "File Preferences", // TODO
+  // "Menu.Preferences.Path": "Path", // TODO
+  "Menu.Preferences.Id": "ID",
+  "Menu.Preferences.Name": "Nom",
+  // "Menu.Preferences.Type.Caption": "Type", // TODO
+  "Menu.Preferences.Type.Archive": "Archive",
+  "Menu.Preferences.Type.Image": "Image",
+  "Menu.Preferences.Type.Font": "Police",
+  "Menu.Preferences.Type.Text": "Texte",
+  // "Menu.Preferences.Options": "Options", // TODO
 
   // About Dialog
   "Menu.About.Title": "À propos de Kuriimu2",
@@ -417,7 +430,7 @@
   "Dialog.ChoosePlugin.Plugins.Table.Name": "Nom",
   "Dialog.ChoosePlugin.Plugins.Table.Type": "Type",
   "Dialog.ChoosePlugin.Plugins.Table.Description": "Description",
-  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
 
   "Dialog.ChoosePlugin.Continue": "Continuer",
   "Dialog.ChoosePlugin.ViewRaw": "Voir les octets bruts",

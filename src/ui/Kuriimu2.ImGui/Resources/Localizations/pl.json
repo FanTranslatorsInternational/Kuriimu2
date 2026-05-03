@@ -135,15 +135,28 @@
 
   // Plugins Dialog
   "Menu.Plugins.Title": "Zainstalowane Wtyczki",
+  "Menu.Plugins.Id": "ID",
   "Menu.Plugins.Name": "Nazwa",
   "Menu.Plugins.Publisher": "Wydawca",
   "Menu.Plugins.Developer": "Deweloper",
   "Menu.Plugins.Authors": "Autorzy",
   "Menu.Plugins.Platforms": "Platformy",
-  "Menu.Plugins.Archive": "Archiwum",
-  "Menu.Plugins.Image": "Obraz",
-  "Menu.Plugins.Font": "Czcionka",
-  "Menu.Plugins.Text": "Tekst",
+  "Menu.Plugins.Type.Archive": "Archiwum",
+  "Menu.Plugins.Type.Image": "Obraz",
+  "Menu.Plugins.Type.Font": "Czcionka",
+  "Menu.Plugins.Type.Text": "Tekst",
+
+  // File Preferences Dialog
+  // "Menu.Preferences.Title": "File Preferences", // TODO
+  // "Menu.Preferences.Path": "Path", // TODO
+  "Menu.Preferences.Id": "ID",
+  "Menu.Preferences.Name": "Nazwa",
+  // "Menu.Preferences.Type.Caption": "Type", // TODO
+  "Menu.Preferences.Type.Archive": "Archiwum",
+  "Menu.Preferences.Type.Image": "Obraz",
+  "Menu.Preferences.Type.Font": "Czcionka",
+  "Menu.Preferences.Type.Text": "Tekst",
+  // "Menu.Preferences.Options": "Options", // TODO
 
   // About Dialog
   "Menu.About.Title": "O Programie",
@@ -417,7 +430,7 @@
   "Dialog.ChoosePlugin.Plugins.Table.Name": "Nazwa",
   "Dialog.ChoosePlugin.Plugins.Table.Type": "Typ",
   "Dialog.ChoosePlugin.Plugins.Table.Description": "Opis",
-  "Dialog.ChoosePlugin.Plugins.Table.ID": "GUID",
+  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
 
   "Dialog.ChoosePlugin.Continue": "Kontynuuj",
   "Dialog.ChoosePlugin.ViewRaw": "Wyświetl surowe dane",

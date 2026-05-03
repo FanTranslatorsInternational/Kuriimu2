@@ -115,6 +115,7 @@ namespace Kuriimu2.ImGui.Forms
             _tabControl.SelectedPageChanged += _tabControl_SelectedPageChanged;
 
             _pluginsButton.Clicked += _pluginsButton_Clicked;
+            _preferencesButton.Clicked += _preferencesButton_Clicked;
             _aboutButton.Clicked += _aboutButton_Clicked;
 
             #endregion
@@ -320,6 +321,11 @@ namespace Kuriimu2.ImGui.Forms
         private async void _pluginsButton_Clicked(object? sender, EventArgs e)
         {
             await ShowPluginsDialog();
+        }
+
+        private async void _preferencesButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowPreferencesDialog();
         }
 
         private async void _aboutButton_Clicked(object sender, EventArgs e)
@@ -790,6 +796,12 @@ namespace Kuriimu2.ImGui.Forms
         {
             var pluginsDialog = new PluginsDialog(_pluginManager);
             await pluginsDialog.ShowAsync();
+        }
+
+        private async Task ShowPreferencesDialog()
+        {
+            var preferencesDialog = new FilePreferenceDialog(_pluginManager);
+            await preferencesDialog.ShowAsync();
         }
 
         private async Task ShowAboutDialog()
