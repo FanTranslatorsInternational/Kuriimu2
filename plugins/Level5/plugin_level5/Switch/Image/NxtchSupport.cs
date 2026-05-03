@@ -25,6 +25,7 @@ namespace plugin_level5.Switch.Image
             var encodingDefinition = new EncodingDefinition();
             encodingDefinition.AddColorEncoding(0x25, ImageFormats.Rgba8888());
             encodingDefinition.AddColorEncoding(0x42, ImageFormats.Dxt1());
+            encodingDefinition.AddColorEncoding(0x44, ImageFormats.Dxt5());
             encodingDefinition.AddColorEncoding(0x4D, ImageFormats.Bc7());
 
             return encodingDefinition;
