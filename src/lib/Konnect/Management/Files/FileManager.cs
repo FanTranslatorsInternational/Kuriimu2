@@ -538,7 +538,7 @@ public class FileManager : IFileManager
         if (UseSelectionCache)
         {
             UPath absolutePath = fileSystem.ConvertPathToInternal(path);
-            SelectionCacheEntry? cacheEntry = SelectionCache.GetOrDefault(absolutePath.FullName);
+            FilePreferenceEntry? cacheEntry = FilePreferences.GetOrDefault(absolutePath.FullName);
 
             if (cacheEntry is not null)
             {
@@ -588,10 +588,10 @@ public class FileManager : IFileManager
         var options = new List<string>();
         options.AddRange(result.LoadedFileState.DialogOptions);
 
-        var element = new SelectionCacheEntry(result.LoadedFileState.FilePlugin.PluginId, options);
+        var element = new FilePreferenceEntry(result.LoadedFileState.FilePlugin.PluginId, options);
 
         UPath absolutePath = result.LoadedFileState.FileSystem.ConvertPathToInternal(result.LoadedFileState.FilePath);
-        SelectionCache.Set(absolutePath.FullName, element);
+        FilePreferences.Set(absolutePath.FullName, element);
     }
 
     #endregion

@@ -3,33 +3,44 @@ using Konnect.DataClasses.Management.Files;
 
 namespace Konnect.Management.Files
 {
-    internal static class SelectionCache
+    public static class FilePreferences
     {
-        private const string CacheName = "files.json";
+        private const string CacheName = "preferences.json";
 
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
-        private static readonly Dictionary<string, SelectionCacheEntry> Cache;
+        private static readonly Dictionary<string, FilePreferenceEntry> Cache;
 
-        static SelectionCache()
+        static FilePreferences()
         {
             Cache = LoadCache() ?? [];
         }
 
-        public static SelectionCacheEntry? GetOrDefault(string fullPath)
+        public static string[] GetPaths()
         {
-            if (Cache.TryGetValue(fullPath, out SelectionCacheEntry entry))
+            return Cache.Keys.ToArray();
+        }
+
+        public static FilePreferenceEntry? GetOrDefault(string fullPath)
+        {
+            if (Cache.TryGetValue(fullPath, out FilePreferenceEntry entry))
                 return entry;
 
             return null;
         }
 
-        public static void Set(string fullPath, SelectionCacheEntry entry)
+        public static void Set(string fullPath, FilePreferenceEntry entry)
         {
             Cache[fullPath] = entry;
             PersistCache(Cache);
         }
 
-        private static Dictionary<string, SelectionCacheEntry>? LoadCache()
+        public static void Remove(string filePath)
+        {
+            if (Cache.Remove(filePath))
+                PersistCache(Cache);
+        }
+
+        private static Dictionary<string, FilePreferenceEntry>? LoadCache()
         {
             if (!File.Exists(CacheName))
                 return null;
@@ -37,7 +48,7 @@ namespace Konnect.Management.Files
             try
             {
                 using Stream fileStream = File.OpenRead(CacheName);
-                return JsonSerializer.Deserialize<Dictionary<string, SelectionCacheEntry>>(fileStream);
+                return JsonSerializer.Deserialize<Dictionary<string, FilePreferenceEntry>>(fileStream);
             }
             catch
             {
@@ -45,7 +56,7 @@ namespace Konnect.Management.Files
             }
         }
 
-        private static void PersistCache(Dictionary<string, SelectionCacheEntry> cache)
+        private static void PersistCache(Dictionary<string, FilePreferenceEntry> cache)
         {
             try
             {
