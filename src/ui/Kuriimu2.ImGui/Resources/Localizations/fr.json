@@ -333,11 +333,11 @@
   // Image Status
   "Image.Status.Export.Start": "Exportation de l'image {0}.",
   "Image.Status.Export.Cancel": "Exportation de l'image annulée.",
-  "Image.Status.Export.Success": "Image exportée avec succès.",
+  "Image.Status.Export.Success": "Image exportée avec succès.", // TODO
   "Image.Status.Export.Failure": "L'exportation de l'image a échoué.",
   "Image.Status.Import.Start": "Importation à l'image {0}.",
   "Image.Status.Import.Cancel": "Importation de l'image annulée.",
-  "Image.Status.Import.Success": "L'image a été importée avec succès.",
+  "Image.Status.Import.Success": "L'image a été importée avec succès.", // TODO
   "Image.Status.Import.Failure": "L'importation de l'image a échoué.",
 
   // Image Progress

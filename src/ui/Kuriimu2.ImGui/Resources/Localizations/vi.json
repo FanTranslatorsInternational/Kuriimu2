@@ -333,11 +333,11 @@
   // Image Status
   "Image.Status.Export.Start": "Đang xuất ảnh {0}.",
   "Image.Status.Export.Cancel": "Đã hủy xuất ảnh.",
-  "Image.Status.Export.Success": "Đã xuất ảnh thành công.",
+  "Image.Status.Export.Success": "Đã xuất ảnh thành công.", // TODO
   "Image.Status.Export.Failure": "Đã xuất ảnh thất bại.",
   "Image.Status.Import.Start": "Đang nhập ảnh {0}.",
   "Image.Status.Import.Cancel": "Đã hủy nhập ảnh.",
-  "Image.Status.Import.Success": "Đã nhập ảnh thành công.",
+  "Image.Status.Import.Success": "Đã nhập ảnh thành công.", // TODO
   "Image.Status.Import.Failure": "Đã nhập ảnh thất bại.",
 
   // Image Progress

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Threading.Tasks;
-using ImGui.Forms.Controls;
+﻿using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Modals;
@@ -16,6 +12,11 @@ using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;
 
@@ -42,6 +43,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _saveAsBtn.Clicked += _saveAsBtn_Clicked;
             _imgExportBtn.Clicked += _imgExportBtn_Clicked;
             _imgImportBtn.Clicked += _imgImportBtn_Clicked;
+            _batchImgExportBtn.Clicked += _batchImgExportBtn_Clicked; ;
+            _batchImgImportBtn.Clicked += _batchImgImportBtn_Clicked; ;
             _indexedImageBox.PixelSelected += _indexedImageBox_PixelSelected;
             _paletteView.ColorChanged += _paletteView_ColorChanged;
 
@@ -109,12 +112,22 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async void _imgExportBtn_Clicked(object sender, EventArgs e)
         {
-            await Export();
+            await ExportSelected();
         }
 
         private async void _imgImportBtn_Clicked(object sender, EventArgs e)
         {
-            await Import();
+            await ImportSelected();
+        }
+
+        private async void _batchImgExportBtn_Clicked(object? sender, EventArgs e)
+        {
+            await ExportAll();
+        }
+
+        private async void _batchImgImportBtn_Clicked(object? sender, EventArgs e)
+        {
+            await ImportAll();
         }
 
         private void _paletteView_ColorChanged(object? sender, int colorIndex)
@@ -171,7 +184,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async Task Export()
+        private async Task ExportSelected()
         {
             DisableForm();
 
@@ -184,7 +197,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             {
                 Title = LocalizationResources.ImageMenuExportPng,
                 InitialDirectory = GetLastDirectory(),
-                InitialFileName = GetImageName(selectedItem) + ".png"
+                InitialFileName = GetImageName(selectedItem) + ".png",
+                Filters = { new FileFilter(LocalizationResources.FilterPng, "png") },
             };
 
             if (await sfd.ShowAsync() != DialogResult.Ok)
@@ -214,7 +228,51 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusExportSuccess);
         }
 
-        private async Task Import()
+        private async Task ExportAll()
+        {
+            DisableForm();
+
+            var sfd = new WindowsSelectFolderDialog
+            {
+                Title = LocalizationResources.ImageMenuExportBatch,
+                InitialDirectory = GetLastDirectory()
+            };
+
+            if (await sfd.ShowAsync() != DialogResult.Ok)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusExportCancel);
+
+                UpdateFormInternal();
+                return;
+            }
+
+            // Save selected path
+            SettingsResources.LastDirectory = sfd.Directory;
+
+            var allFailed = true;
+            foreach (var image in _imgList.Items)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusExportStart(image.Name));
+
+                // Export image
+                var path = Path.Combine(sfd.Directory, GetImageName(image) + ".png");
+                await _asyncOperation.StartAsync(_ => image.ImageFile.GetImage(_state.Progress).SaveAsPng(path));
+
+                if (!_asyncOperation.WasSuccessful)
+                    _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                else
+                    allFailed = false;
+            }
+
+            UpdateFormInternal();
+
+            if (allFailed)
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusExportFailure);
+            else
+                _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusExportSuccess);
+        }
+
+        private async Task ImportSelected()
         {
             DisableForm();
 
@@ -262,6 +320,62 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _state.FormCommunicator.Update(true, false);
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusImportSuccess);
+        }
+
+        private async Task ImportAll()
+        {
+            DisableForm();
+
+            var sfd = new WindowsSelectFolderDialog
+            {
+                Title = LocalizationResources.ImageMenuImportBatch,
+                InitialDirectory = GetLastDirectory()
+            };
+
+            if (await sfd.ShowAsync() != DialogResult.Ok)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusImportCancel);
+
+                UpdateFormInternal();
+                return;
+            }
+
+            // Save selected path
+            SettingsResources.LastDirectory = sfd.Directory;
+
+            var allFailed = true;
+            foreach (var image in _imgList.Items)
+            {
+                _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusImportStart(image.Name));
+
+                var path = Path.Combine(sfd.Directory, GetImageName(image) + ".png");
+                if (!File.Exists(path))
+                    continue;
+
+                // Import image
+                var newImage = Image.Load<Rgba32>(path);
+                await _asyncOperation.StartAsync(_ => image.ImageFile.SetImage(newImage, _state.Progress));
+
+                if (!_asyncOperation.WasSuccessful)
+                    _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                else
+                    allFailed = false;
+            }
+
+            UpdateFormInternal();
+
+            if (allFailed)
+                _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusImportFailure);
+            else
+                _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.ImageStatusImportSuccess);
+
+            // Set image
+            var selectedImage = GetSelectedImageItem();
+
+            SetImage(selectedImage.ImageFile, _state.Progress);
+            SetPalette(selectedImage.ImageFile, _state.Progress);
+
+            _state.FormCommunicator.Update(true, false);
         }
 
         public async Task<bool> Import(string filePath)

@@ -333,11 +333,11 @@
   // Image Status
   "Image.Status.Export.Start": "Now exporting image {0}.",
   "Image.Status.Export.Cancel": "Image export cancelled.",
-  "Image.Status.Export.Success": "Image successfully exported.",
+  "Image.Status.Export.Success": "Image(s) successfully exported.",
   "Image.Status.Export.Failure": "Image export failed.",
   "Image.Status.Import.Start": "Now importing to image {0}.",
   "Image.Status.Import.Cancel": "Image import cancelled.",
-  "Image.Status.Import.Success": "Image successfully imported.",
+  "Image.Status.Import.Success": "Image(s) successfully imported.",
   "Image.Status.Import.Failure": "Image import failed.",
 
   // Image Progress
