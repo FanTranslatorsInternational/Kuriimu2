@@ -91,9 +91,9 @@ namespace Kuriimu2.ImGui.Forms
             _changeLanguageMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeLanguage };
             _changeThemeMenu = new MenuBarRadio { Text = LocalizationResources.MenuSettingsChangeTheme };
 
-            _pluginsButton = new MenuBarButton { Text = LocalizationResources.MenuPluginsTitle };
-            _preferencesButton = new MenuBarButton { Text = LocalizationResources.MenuPreferencesTitle };
-            _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuAboutTitle };
+            _pluginsButton = new MenuBarButton { Text = LocalizationResources.MenuHelpPluginsInstalled };
+            _preferencesButton = new MenuBarButton { Text = LocalizationResources.MenuHelpPreferences };
+            _aboutButton = new MenuBarButton { Text = LocalizationResources.MenuHelpAbout };
 
             AddLanguages(_changeLanguageMenu);
             AddThemes(_changeThemeMenu);

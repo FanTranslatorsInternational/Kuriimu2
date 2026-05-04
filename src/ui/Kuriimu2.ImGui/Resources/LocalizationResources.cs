@@ -15,6 +15,8 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ApplicationName => LocalizedString.FromId("Application.Name");
 
         // Menus
+
+        // Main Menu
         public static LocalizedString MenuFile => LocalizedString.FromId("Menu.File");
         public static LocalizedString MenuTools => LocalizedString.FromId("Menu.Tools");
         public static LocalizedString MenuSettings => LocalizedString.FromId("Menu.Settings");
@@ -47,162 +49,13 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuSettingsIncludeDevBuilds => LocalizedString.FromId("Menu.Settings.IncludeDevBuilds");
         public static LocalizedString MenuSettingsChangeLanguage => LocalizedString.FromId("Menu.Settings.ChangeLanguage");
         public static LocalizedString MenuSettingsChangeTheme => LocalizedString.FromId("Menu.Settings.ChangeTheme");
-
-        // Theme Menu
         public static LocalizedString MenuSettingsChangeThemeDark => LocalizedString.FromId("Menu.Settings.ChangeTheme.Dark");
         public static LocalizedString MenuSettingsChangeThemeLight => LocalizedString.FromId("Menu.Settings.ChangeTheme.Light");
 
-        // Ciphers Menu
-        public static LocalizedString MenuToolsCiphersCaption => LocalizedString.FromId("Menu.Tools.Ciphers.Caption");
-        public static LocalizedString MenuToolsCiphersEncrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Encrypt");
-        public static LocalizedString MenuToolsCiphersDecrypt => LocalizedString.FromId("Menu.Tools.Ciphers.Decrypt");
-        public static LocalizedString MenuToolsCiphersExecute => LocalizedString.FromId("Menu.Tools.Ciphers.Execute");
-        public static LocalizedString MenuToolsCiphersInputFolder => LocalizedString.FromId("Menu.Tools.Ciphers.Input.Folder");
-        public static LocalizedString MenuToolsCiphersInputFile => LocalizedString.FromId("Menu.Tools.Ciphers.Input.File");
-        public static LocalizedString MenuToolsCiphersInputSubDirectories => LocalizedString.FromId("Menu.Tools.Ciphers.Input.SubDirectories");
-        public static LocalizedString MenuToolsCiphersInputParameters => LocalizedString.FromId("Menu.Tools.Ciphers.Input.Parameters");
-        public static LocalizedString MenuToolsCiphersLogProcess(string filePath)
-            => LocalizedString.FromId("Menu.Tools.Ciphers.Log.Process", () => filePath);
-        public static LocalizedString MenuToolsCiphersLogError(string filePath)
-            => LocalizedString.FromId("Menu.Tools.Ciphers.Log.Error", () => filePath);
-        public static LocalizedString MenuToolsCiphersProgress => LocalizedString.FromId("Menu.Tools.Ciphers.Progress");
-        public static LocalizedString MenuToolsCiphersCancel => LocalizedString.FromId("Menu.Tools.Ciphers.Cancel");
-
-        // Compressions Menu
-        public static LocalizedString MenuToolsCompressionsCaption => LocalizedString.FromId("Menu.Tools.Compressions.Caption");
-        public static LocalizedString MenuToolsCompressionsDecompress => LocalizedString.FromId("Menu.Tools.Compressions.Decompress");
-        public static LocalizedString MenuToolsCompressionsCompress => LocalizedString.FromId("Menu.Tools.Compressions.Compress");
-        public static LocalizedString MenuToolsCompressionsExecute => LocalizedString.FromId("Menu.Tools.Compressions.Execute");
-        public static LocalizedString MenuToolsCompressionsInputFolder => LocalizedString.FromId("Menu.Tools.Compressions.Input.Folder");
-        public static LocalizedString MenuToolsCompressionsInputFile => LocalizedString.FromId("Menu.Tools.Compressions.Input.File");
-        public static LocalizedString MenuToolsCompressionsInputSubDirectories => LocalizedString.FromId("Menu.Tools.Compressions.Input.SubDirectories");
-        public static LocalizedString MenuToolsCompressionsLogProcess(string filePath)
-            => LocalizedString.FromId("Menu.Tools.Compressions.Log.Process", () => filePath);
-        public static LocalizedString MenuToolsCompressionsLogError(string filePath)
-            => LocalizedString.FromId("Menu.Tools.Compressions.Log.Error", () => filePath);
-        public static LocalizedString MenuToolsCompressionsProgress => LocalizedString.FromId("Menu.Tools.Compressions.Progress");
-        public static LocalizedString MenuToolsCompressionsCancel => LocalizedString.FromId("Menu.Tools.Compressions.Cancel");
-
-        // Image Transcoder
-        public static LocalizedString MenuToolsImageTranscoderCaption => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Caption");
-        public static LocalizedString MenuToolsImageTranscoderFile => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File");
-        public static LocalizedString MenuToolsImageTranscoderFileOpen => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File.Open");
-        public static LocalizedString MenuToolsImageTranscoderFileOpenShortcut => LocalizedString.FromId("Menu.Tools.ImageTranscoder.File.Open.Shortcut");
-        public static LocalizedString MenuToolsImageTranscoderEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Encoding");
-        public static LocalizedString MenuToolsImageTranscoderPaletteEncoding => LocalizedString.FromId("Menu.Tools.ImageTranscoder.PaletteEncoding");
-        public static LocalizedString MenuToolsImageTranscoderQuantizer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Quantizer");
-        public static LocalizedString MenuToolsImageTranscoderColorCache => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCache");
-        public static LocalizedString MenuToolsImageTranscoderDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.Ditherer");
-        public static LocalizedString MenuToolsImageTranscoderNoDitherer => LocalizedString.FromId("Menu.Tools.ImageTranscoder.NoDitherer");
-        public static LocalizedString MenuToolsImageTranscoderColorCount => LocalizedString.FromId("Menu.Tools.ImageTranscoder.ColorCount");
-
-        // Raw Image Viewer
-        public static LocalizedString MenuToolsRawImageViewerCaption => LocalizedString.FromId("Menu.Tools.RawImageViewer.Caption");
-        public static LocalizedString MenuToolsRawImageViewerFile => LocalizedString.FromId("Menu.Tools.RawImageViewer.File");
-        public static LocalizedString MenuToolsRawImageViewerFileOpen => LocalizedString.FromId("Menu.Tools.RawImageViewer.File.Open");
-        public static LocalizedString MenuToolsRawImageViewerFileOpenShortcut => LocalizedString.FromId("Menu.Tools.RawImageViewer.File.Open.Shortcut");
-        public static LocalizedString MenuToolsRawImageViewerPlaceholder => LocalizedString.FromId("Menu.Tools.RawImageViewer.Placeholder");
-        public static LocalizedString MenuToolsRawImageViewerWidth => LocalizedString.FromId("Menu.Tools.RawImageViewer.Width");
-        public static LocalizedString MenuToolsRawImageViewerHeight => LocalizedString.FromId("Menu.Tools.RawImageViewer.Height");
-        public static LocalizedString MenuToolsRawImageViewerOffset => LocalizedString.FromId("Menu.Tools.RawImageViewer.Offset");
-        public static LocalizedString MenuToolsRawImageViewerPaletteOffset => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteOffset");
-        public static LocalizedString MenuToolsRawImageViewerEncoding => LocalizedString.FromId("Menu.Tools.RawImageViewer.Encoding");
-        public static LocalizedString MenuToolsRawImageViewerPaletteEncoding => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncoding");
-        public static LocalizedString MenuToolsRawImageViewerEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.EncodingComponentOrder");
-        public static LocalizedString MenuToolsRawImageViewerPaletteEncodingComponentOrder => LocalizedString.FromId("Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder");
-        public static LocalizedString MenuToolsRawImageViewerSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.Swizzle");
-        public static LocalizedString MenuToolsRawImageViewerNoSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.NoSwizzle");
-        public static LocalizedString MenuToolsRawImageViewerCustomSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.CustomSwizzle");
-        public static LocalizedString MenuToolsRawImageViewerRenderSwizzle => LocalizedString.FromId("Menu.Tools.RawImageViewer.RenderSwizzle");
-        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorAddControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.AddControl");
-        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorRemoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl");
-        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorMoveControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl");
-        public static LocalizedString MenuToolsRawImageViewerSwizzleEditorCopyControl => LocalizedString.FromId("Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl");
-
-        // Sequence Search Dialog
-        public static LocalizedString MenuToolsTextSequenceSearcherCaption => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Caption");
-        public static LocalizedString MenuToolsTextSequenceSearcherExecute => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Execute");
-        public static LocalizedString MenuToolsTextSequenceSearcherInputFolder => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.Folder");
-        public static LocalizedString MenuToolsTextSequenceSearcherInputFile => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.File");
-        public static LocalizedString MenuToolsTextSequenceSearcherInputSubDirectories => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Input.SubDirectories");
-        public static LocalizedString MenuToolsTextSequenceSearcherProgress => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Progress");
-        public static LocalizedString MenuToolsTextSequenceSearcherCancel => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Cancel");
-        public static LocalizedString MenuToolsTextSequenceSearcherPath => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Path");
-        public static LocalizedString MenuToolsTextSequenceSearcherOffset => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Offset");
-        public static LocalizedString MenuToolsTextSequenceSearcherSearchPlaceholder => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher.Search.Placeholder");
-
-        // Plugins Dialog
-        public static LocalizedString MenuPluginsTitle => LocalizedString.FromId("Menu.Plugins.Title");
-        public static LocalizedString MenuPluginsId => LocalizedString.FromId("Menu.Plugins.Id");
-        public static LocalizedString MenuPluginsName => LocalizedString.FromId("Menu.Plugins.Name");
-        public static LocalizedString MenuPluginsPublisher => LocalizedString.FromId("Menu.Plugins.Publisher");
-        public static LocalizedString MenuPluginsDeveloper => LocalizedString.FromId("Menu.Plugins.Developer");
-        public static LocalizedString MenuPluginsAuthors => LocalizedString.FromId("Menu.Plugins.Authors");
-        public static LocalizedString MenuPluginsPlatforms => LocalizedString.FromId("Menu.Plugins.Platforms");
-        public static LocalizedString MenuPluginsType(PluginType type) => type switch
-        {
-            PluginType.Archive => LocalizedString.FromId("Menu.Plugins.Type.Archive"),
-            PluginType.Image => LocalizedString.FromId("Menu.Plugins.Type.Image"),
-            PluginType.Font => LocalizedString.FromId("Menu.Plugins.Type.Font"),
-            PluginType.Text => LocalizedString.FromId("Menu.Plugins.Type.Text"),
-            _ => string.Empty
-        };
-
-        // File Preferences Dialog
-        public static LocalizedString MenuPreferencesTitle => LocalizedString.FromId("Menu.Preferences.Title");
-        public static LocalizedString MenuPreferencesPath => LocalizedString.FromId("Menu.Preferences.Path");
-        public static LocalizedString MenuPreferencesId => LocalizedString.FromId("Menu.Preferences.Id");
-        public static LocalizedString MenuPreferencesName => LocalizedString.FromId("Menu.Preferences.Name");
-        public static LocalizedString MenuPreferencesTypeCaption => LocalizedString.FromId("Menu.Preferences.Type.Caption");
-        public static LocalizedString MenuPreferencesType(PluginType type) => type switch
-        {
-            PluginType.Archive => LocalizedString.FromId("Menu.Preferences.Type.Archive"),
-            PluginType.Image => LocalizedString.FromId("Menu.Preferences.Type.Image"),
-            PluginType.Font => LocalizedString.FromId("Menu.Preferences.Type.Font"),
-            PluginType.Text => LocalizedString.FromId("Menu.Preferences.Type.Text"),
-            _ => string.Empty
-        };
-        public static LocalizedString MenuPreferencesOptions => LocalizedString.FromId("Menu.Preferences.Options");
-
-        // About Dialog
-        public static LocalizedString MenuAboutTitle => LocalizedString.FromId("Menu.About.Title");
-        public static LocalizedString MenuAboutVersion(string version) => LocalizedString.FromId("Menu.About.Version", () => version);
-        public static LocalizedString MenuAboutDescription => LocalizedString.FromId("Menu.About.Description");
-
-        // Update Available Dialog
-        public static LocalizedString DialogUpdateAvailableCaption => LocalizedString.FromId("Dialog.UpdateAvailable.Caption");
-        public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
-            => LocalizedString.FromId("Dialog.UpdateAvailable.Text", () => version, () => build, () => remoteVersion, () => remoteBuild);
-
-        // Exception Dialog
-        public static LocalizedString DialogExceptionCatchedCaption => LocalizedString.FromId("Dialog.ExceptionCatched.Caption");
-
-        // Plugins Not Available Dialog
-        public static LocalizedString DialogPluginsNotAvailableCaption => LocalizedString.FromId("Dialog.PluginsNotAvailable.Caption");
-        public static LocalizedString DialogPluginsNotAvailableText => LocalizedString.FromId("Dialog.PluginsNotAvailable.Text");
-
-        // Unsaved Changes Dialog
-        public static LocalizedString DialogUnsavedChangesCaption => LocalizedString.FromId("Dialog.UnsavedChanges.Caption");
-        public static LocalizedString DialogUnsavedChangesTextGeneric => LocalizedString.FromId("Dialog.UnsavedChanges.Text.Generic");
-        public static LocalizedString DialogUnsavedChangesTextSpecific(UPath path) => LocalizedString.FromId("Dialog.UnsavedChanges.Text.Specific", () => path);
-
-        // Dependant Files Dialog
-        public static LocalizedString DialogDependantFilesCaption => LocalizedString.FromId("Dialog.DependantFiles.Caption");
-        public static LocalizedString DialogDependantFilesText => LocalizedString.FromId("Dialog.DependantFiles.Text");
-
-        // Deprecated Info Dialog
-        public static LocalizedString DialogDeprecatedCaption => LocalizedString.FromId("Dialog.Deprecated.Caption");
-        public static LocalizedString DialogDeprecatedTextGeneral(string pluginName) => LocalizedString.FromId("Dialog.Deprecated.Text.General", () => pluginName);
-        public static LocalizedString DialogDeprecatedTextAlternatives => LocalizedString.FromId("Dialog.Deprecated.Text.Alternatives");
-
-        // Remove Font Characters Dialog
-        public static LocalizedString DialogFontRemoveCaption => LocalizedString.FromId("Dialog.Font.Remove.Caption");
-        public static LocalizedString DialogFontRemoveText => LocalizedString.FromId("Dialog.Font.Remove.Text");
-
-        // Remap Font Characters Dialog
-        public static LocalizedString DialogFontRemappingCaption => LocalizedString.FromId("Dialog.Font.Remapping.Caption");
-        public static LocalizedString DialogFontRemappingText => LocalizedString.FromId("Dialog.Font.Remapping.Text");
-        public static LocalizedString DialogFontRemappingRemap => LocalizedString.FromId("Dialog.Font.Remapping.Remap");
+        // Help Menu
+        public static LocalizedString MenuHelpPluginsInstalled => LocalizedString.FromId("Menu.Help.Plugins.Installed");
+        public static LocalizedString MenuHelpPreferences => LocalizedString.FromId("Menu.Help.Preferences");
+        public static LocalizedString MenuHelpAbout => LocalizedString.FromId("Menu.Help.About");
 
         // Status
         public static LocalizedString StatusPluginSelectNone => LocalizedString.FromId("Status.Plugin.Select.None");
@@ -424,26 +277,178 @@ namespace Kuriimu2.ImGui.Resources
 
         // Dialogs
 
+        // Update Available Dialog
+        public static LocalizedString DialogUpdateAvailableCaption => LocalizedString.FromId("Dialog.UpdateAvailable.Caption");
+        public static LocalizedString DialogUpdateAvailableText(string version, string build, string remoteVersion, string remoteBuild)
+            => LocalizedString.FromId("Dialog.UpdateAvailable.Text", () => version, () => build, () => remoteVersion, () => remoteBuild);
+
+        // Exception Dialog
+        public static LocalizedString DialogExceptionCatchedCaption => LocalizedString.FromId("Dialog.ExceptionCatched.Caption");
+
+        // Plugins Not Available Dialog
+        public static LocalizedString DialogPluginsNotAvailableCaption => LocalizedString.FromId("Dialog.PluginsNotAvailable.Caption");
+        public static LocalizedString DialogPluginsNotAvailableText => LocalizedString.FromId("Dialog.PluginsNotAvailable.Text");
+
+        // Unsaved Changes Dialog
+        public static LocalizedString DialogUnsavedChangesCaption => LocalizedString.FromId("Dialog.UnsavedChanges.Caption");
+        public static LocalizedString DialogUnsavedChangesTextGeneric => LocalizedString.FromId("Dialog.UnsavedChanges.Text.Generic");
+        public static LocalizedString DialogUnsavedChangesTextSpecific(UPath path) => LocalizedString.FromId("Dialog.UnsavedChanges.Text.Specific", () => path);
+
+        // Dependant Files Dialog
+        public static LocalizedString DialogDependantFilesCaption => LocalizedString.FromId("Dialog.DependantFiles.Caption");
+        public static LocalizedString DialogDependantFilesText => LocalizedString.FromId("Dialog.DependantFiles.Text");
+
+        // Deprecated Info Dialog
+        public static LocalizedString DialogDeprecatedCaption => LocalizedString.FromId("Dialog.Deprecated.Caption");
+        public static LocalizedString DialogDeprecatedTextGeneral(string pluginName) => LocalizedString.FromId("Dialog.Deprecated.Text.General", () => pluginName);
+        public static LocalizedString DialogDeprecatedTextAlternatives => LocalizedString.FromId("Dialog.Deprecated.Text.Alternatives");
+
+        // Remove Font Characters Dialog
+        public static LocalizedString DialogFontRemoveCaption => LocalizedString.FromId("Dialog.Font.Remove.Caption");
+        public static LocalizedString DialogFontRemoveText => LocalizedString.FromId("Dialog.Font.Remove.Text");
+
+        // Remap Font Characters Dialog
+        public static LocalizedString DialogFontRemappingCaption => LocalizedString.FromId("Dialog.Font.Remapping.Caption");
+        public static LocalizedString DialogFontRemappingText => LocalizedString.FromId("Dialog.Font.Remapping.Text");
+        public static LocalizedString DialogFontRemappingRemap => LocalizedString.FromId("Dialog.Font.Remapping.Remap");
+
         // Dialog Manager
         public static LocalizedString DialogManagerButtonOk => LocalizedString.FromId("Dialog.Manager.Button.Ok");
 
-        // Choose Plugin Dialog
-        public static LocalizedString DialogChoosePluginCaption => LocalizedString.FromId("Dialog.ChoosePlugin.Caption");
+        // Ciphers Dialog
+        public static LocalizedString DialogToolsCiphersCaption => LocalizedString.FromId("Dialog.Tools.Ciphers.Caption");
+        public static LocalizedString DialogToolsCiphersEncrypt => LocalizedString.FromId("Dialog.Tools.Ciphers.Encrypt");
+        public static LocalizedString DialogToolsCiphersDecrypt => LocalizedString.FromId("Dialog.Tools.Ciphers.Decrypt");
+        public static LocalizedString DialogToolsCiphersExecute => LocalizedString.FromId("Dialog.Tools.Ciphers.Execute");
+        public static LocalizedString DialogToolsCiphersInputFolder => LocalizedString.FromId("Dialog.Tools.Ciphers.Input.Folder");
+        public static LocalizedString DialogToolsCiphersInputFile => LocalizedString.FromId("Dialog.Tools.Ciphers.Input.File");
+        public static LocalizedString DialogToolsCiphersInputSubDirectories => LocalizedString.FromId("Dialog.Tools.Ciphers.Input.SubDirectories");
+        public static LocalizedString DialogToolsCiphersInputParameters => LocalizedString.FromId("Dialog.Tools.Ciphers.Input.Parameters");
+        public static LocalizedString DialogToolsCiphersLogProcess(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Ciphers.Log.Process", () => filePath);
+        public static LocalizedString DialogToolsCiphersLogError(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Ciphers.Log.Error", () => filePath);
+        public static LocalizedString DialogToolsCiphersProgress => LocalizedString.FromId("Dialog.Tools.Ciphers.Progress");
+        public static LocalizedString DialogToolsCiphersCancel => LocalizedString.FromId("Dialog.Tools.Ciphers.Cancel");
 
-        public static LocalizedString DialogChoosePluginHeaderGeneric => LocalizedString.FromId("Dialog.ChoosePlugin.Header.Generic");
-        public static LocalizedString DialogChoosePluginHeaderIdentificationNone => LocalizedString.FromId("Dialog.ChoosePlugin.Header.Identification.None");
-        public static LocalizedString DialogChoosePluginHeaderIdentificationMultiple => LocalizedString.FromId("Dialog.ChoosePlugin.Header.Identification.Multiple");
-        public static LocalizedString DialogChoosePluginHeaderIdentificationNote => LocalizedString.FromId("Dialog.ChoosePlugin.Header.Identification.Note");
+        // Compressions Dialog
+        public static LocalizedString DialogToolsCompressionsCaption => LocalizedString.FromId("Dialog.Tools.Compressions.Caption");
+        public static LocalizedString DialogToolsCompressionsDecompress => LocalizedString.FromId("Dialog.Tools.Compressions.Decompress");
+        public static LocalizedString DialogToolsCompressionsCompress => LocalizedString.FromId("Dialog.Tools.Compressions.Compress");
+        public static LocalizedString DialogToolsCompressionsExecute => LocalizedString.FromId("Dialog.Tools.Compressions.Execute");
+        public static LocalizedString DialogToolsCompressionsInputFolder => LocalizedString.FromId("Dialog.Tools.Compressions.Input.Folder");
+        public static LocalizedString DialogToolsCompressionsInputFile => LocalizedString.FromId("Dialog.Tools.Compressions.Input.File");
+        public static LocalizedString DialogToolsCompressionsInputSubDirectories => LocalizedString.FromId("Dialog.Tools.Compressions.Input.SubDirectories");
+        public static LocalizedString DialogToolsCompressionsLogProcess(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Compressions.Log.Process", () => filePath);
+        public static LocalizedString DialogToolsCompressionsLogError(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Compressions.Log.Error", () => filePath);
+        public static LocalizedString DialogToolsCompressionsProgress => LocalizedString.FromId("Dialog.Tools.Compressions.Progress");
+        public static LocalizedString DialogToolsCompressionsCancel => LocalizedString.FromId("Dialog.Tools.Compressions.Cancel");
 
-        public static LocalizedString DialogChoosePluginPluginsTableName => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Name");
-        public static LocalizedString DialogChoosePluginPluginsTableType => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Type");
-        public static LocalizedString DialogChoosePluginPluginsTableDescription => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Description");
-        public static LocalizedString DialogChoosePluginPluginsTableId => LocalizedString.FromId("Dialog.ChoosePlugin.Plugins.Table.Id");
+        // Image Transcoder Dialog
+        public static LocalizedString DialogToolsImageTranscoderCaption => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.Caption");
+        public static LocalizedString DialogToolsImageTranscoderFile => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.File");
+        public static LocalizedString DialogToolsImageTranscoderFileOpen => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.File.Open");
+        public static LocalizedString DialogToolsImageTranscoderFileOpenShortcut => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.File.Open.Shortcut");
+        public static LocalizedString DialogToolsImageTranscoderEncoding => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.Encoding");
+        public static LocalizedString DialogToolsImageTranscoderPaletteEncoding => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.PaletteEncoding");
+        public static LocalizedString DialogToolsImageTranscoderQuantizer => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.Quantizer");
+        public static LocalizedString DialogToolsImageTranscoderColorCache => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.ColorCache");
+        public static LocalizedString DialogToolsImageTranscoderDitherer => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.Ditherer");
+        public static LocalizedString DialogToolsImageTranscoderNoDitherer => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.NoDitherer");
+        public static LocalizedString DialogToolsImageTranscoderColorCount => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.ColorCount");
 
-        public static LocalizedString DialogChoosePluginContinue => LocalizedString.FromId("Dialog.ChoosePlugin.Continue");
-        public static LocalizedString DialogChoosePluginViewRaw => LocalizedString.FromId("Dialog.ChoosePlugin.ViewRaw");
-        public static LocalizedString DialogChoosePluginCancel => LocalizedString.FromId("Dialog.ChoosePlugin.Cancel");
-        public static LocalizedString DialogChoosePluginShowAll => LocalizedString.FromId("Dialog.ChoosePlugin.ShowAll");
+        // Raw Image Viewer Dialog
+        public static LocalizedString DialogToolsRawImageViewerCaption => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Caption");
+        public static LocalizedString DialogToolsRawImageViewerFile => LocalizedString.FromId("Dialog.Tools.RawImageViewer.File");
+        public static LocalizedString DialogToolsRawImageViewerFileOpen => LocalizedString.FromId("Dialog.Tools.RawImageViewer.File.Open");
+        public static LocalizedString DialogToolsRawImageViewerFileOpenShortcut => LocalizedString.FromId("Dialog.Tools.RawImageViewer.File.Open.Shortcut");
+        public static LocalizedString DialogToolsRawImageViewerPlaceholder => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Placeholder");
+        public static LocalizedString DialogToolsRawImageViewerWidth => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Width");
+        public static LocalizedString DialogToolsRawImageViewerHeight => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Height");
+        public static LocalizedString DialogToolsRawImageViewerOffset => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Offset");
+        public static LocalizedString DialogToolsRawImageViewerPaletteOffset => LocalizedString.FromId("Dialog.Tools.RawImageViewer.PaletteOffset");
+        public static LocalizedString DialogToolsRawImageViewerEncoding => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Encoding");
+        public static LocalizedString DialogToolsRawImageViewerPaletteEncoding => LocalizedString.FromId("Dialog.Tools.RawImageViewer.PaletteEncoding");
+        public static LocalizedString DialogToolsRawImageViewerEncodingComponentOrder => LocalizedString.FromId("Dialog.Tools.RawImageViewer.EncodingComponentOrder");
+        public static LocalizedString DialogToolsRawImageViewerPaletteEncodingComponentOrder => LocalizedString.FromId("Dialog.Tools.RawImageViewer.PaletteEncodingComponentOrder");
+        public static LocalizedString DialogToolsRawImageViewerSwizzle => LocalizedString.FromId("Dialog.Tools.RawImageViewer.Swizzle");
+        public static LocalizedString DialogToolsRawImageViewerNoSwizzle => LocalizedString.FromId("Dialog.Tools.RawImageViewer.NoSwizzle");
+        public static LocalizedString DialogToolsRawImageViewerCustomSwizzle => LocalizedString.FromId("Dialog.Tools.RawImageViewer.CustomSwizzle");
+        public static LocalizedString DialogToolsRawImageViewerRenderSwizzle => LocalizedString.FromId("Dialog.Tools.RawImageViewer.RenderSwizzle");
+        public static LocalizedString DialogToolsRawImageViewerSwizzleEditorAddControl => LocalizedString.FromId("Dialog.Tools.RawImageViewer.SwizzleEditor.AddControl");
+        public static LocalizedString DialogToolsRawImageViewerSwizzleEditorRemoveControl => LocalizedString.FromId("Dialog.Tools.RawImageViewer.SwizzleEditor.RemoveControl");
+        public static LocalizedString DialogToolsRawImageViewerSwizzleEditorMoveControl => LocalizedString.FromId("Dialog.Tools.RawImageViewer.SwizzleEditor.MoveControl");
+        public static LocalizedString DialogToolsRawImageViewerSwizzleEditorCopyControl => LocalizedString.FromId("Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl");
+
+        // Text Sequence Search Dialog
+        public static LocalizedString DialogToolsTextSequenceSearcherCaption => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Caption");
+        public static LocalizedString DialogToolsTextSequenceSearcherExecute => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Execute");
+        public static LocalizedString DialogToolsTextSequenceSearcherInputFolder => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Input.Folder");
+        public static LocalizedString DialogToolsTextSequenceSearcherInputFile => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Input.File");
+        public static LocalizedString DialogToolsTextSequenceSearcherInputSubDirectories => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Input.SubDirectories");
+        public static LocalizedString DialogToolsTextSequenceSearcherProgress => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Progress");
+        public static LocalizedString DialogToolsTextSequenceSearcherCancel => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Cancel");
+        public static LocalizedString DialogToolsTextSequenceSearcherPath => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Path");
+        public static LocalizedString DialogToolsTextSequenceSearcherOffset => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Offset");
+        public static LocalizedString DialogToolsTextSequenceSearcherSearchPlaceholder => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Search.Placeholder");
+
+        // Installed Plugins Dialog
+        public static LocalizedString DialogPluginsInstalledCaption => LocalizedString.FromId("Dialog.Plugins.Installed.Caption");
+        public static LocalizedString DialogPluginsInstalledId => LocalizedString.FromId("Dialog.Plugins.Installed.Id");
+        public static LocalizedString DialogPluginsInstalledName => LocalizedString.FromId("Dialog.Plugins.Installed.Name");
+        public static LocalizedString DialogPluginsInstalledPublisher => LocalizedString.FromId("Dialog.Plugins.Installed.Publisher");
+        public static LocalizedString DialogPluginsInstalledDeveloper => LocalizedString.FromId("Dialog.Plugins.Installed.Developer");
+        public static LocalizedString DialogPluginsInstalledAuthors => LocalizedString.FromId("Dialog.Plugins.Installed.Authors");
+        public static LocalizedString DialogPluginsInstalledPlatforms => LocalizedString.FromId("Dialog.Plugins.Installed.Platforms");
+        public static LocalizedString DialogPluginsInstalledType(PluginType type) => type switch
+        {
+            PluginType.Archive => LocalizedString.FromId("Dialog.Plugins.Installed.Type.Archive"),
+            PluginType.Image => LocalizedString.FromId("Dialog.Plugins.Installed.Type.Image"),
+            PluginType.Font => LocalizedString.FromId("Dialog.Plugins.Installed.Type.Font"),
+            PluginType.Text => LocalizedString.FromId("Dialog.Plugins.Installed.Type.Text"),
+            _ => string.Empty
+        };
+
+        // File Preferences Dialog
+        public static LocalizedString DialogPreferencesCaption => LocalizedString.FromId("Dialog.Preferences.Caption");
+        public static LocalizedString DialogPreferencesPath => LocalizedString.FromId("Dialog.Preferences.Path");
+        public static LocalizedString DialogPreferencesId => LocalizedString.FromId("Dialog.Preferences.Id");
+        public static LocalizedString DialogPreferencesName => LocalizedString.FromId("Dialog.Preferences.Name");
+        public static LocalizedString DialogPreferencesTypeCaption => LocalizedString.FromId("Dialog.Preferences.Type.Caption");
+        public static LocalizedString DialogPreferencesType(PluginType type) => type switch
+        {
+            PluginType.Archive => LocalizedString.FromId("Dialog.Preferences.Type.Archive"),
+            PluginType.Image => LocalizedString.FromId("Dialog.Preferences.Type.Image"),
+            PluginType.Font => LocalizedString.FromId("Dialog.Preferences.Type.Font"),
+            PluginType.Text => LocalizedString.FromId("Dialog.Preferences.Type.Text"),
+            _ => string.Empty
+        };
+        public static LocalizedString DialogPreferencesOptions => LocalizedString.FromId("Dialog.Preferences.Options");
+
+        // About Dialog
+        public static LocalizedString DialogAboutCaption => LocalizedString.FromId("Dialog.About.Caption");
+        public static LocalizedString DialogAboutVersion(string version) => LocalizedString.FromId("Dialog.About.Version", () => version);
+        public static LocalizedString DialogAboutDescription => LocalizedString.FromId("Dialog.About.Description");
+
+        // Manual Selection Plugin Dialog
+        public static LocalizedString DialogPluginsManualSelectionCaption => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Caption");
+
+        public static LocalizedString DialogPluginsManualSelectionIdentification => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Identification");
+        public static LocalizedString DialogPluginsManualSelectionIdentificationNone => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Identification.None");
+        public static LocalizedString DialogPluginsManualSelectionIdentificationMultiple => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Identification.Multiple");
+        public static LocalizedString DialogPluginsManualSelectionIdentificationNote => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Identification.Note");
+
+        public static LocalizedString DialogPluginsManualSelectionName => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Name");
+        public static LocalizedString DialogPluginsManualSelectionType => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Type");
+        public static LocalizedString DialogPluginsManualSelectionDescription => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Description");
+        public static LocalizedString DialogPluginsManualSelectionId => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Id");
+
+        public static LocalizedString DialogPluginsManualSelectionContinue => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Continue");
+        public static LocalizedString DialogPluginsManualSelectionViewRaw => LocalizedString.FromId("Dialog.Plugins.ManualSelection.ViewRaw");
+        public static LocalizedString DialogPluginsManualSelectionCancel => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Cancel");
+        public static LocalizedString DialogPluginsManualSelectionShowAll => LocalizedString.FromId("Dialog.Plugins.ManualSelection.ShowAll");
 
         // Font Generation Dialog
         public static LocalizedString DialogFontGenerateCaption => LocalizedString.FromId("Dialog.Font.Generate.Caption");

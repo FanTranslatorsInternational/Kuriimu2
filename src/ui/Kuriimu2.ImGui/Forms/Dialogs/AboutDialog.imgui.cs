@@ -21,7 +21,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _titleLabel = new Label { Text = LocalizationResources.ApplicationName };
             _versionLabel = new Label { Text = GetVersionText() };
-            _descriptionLabel = new Label { Text = LocalizationResources.MenuAboutDescription };
+            _descriptionLabel = new Label { Text = LocalizationResources.DialogAboutDescription };
             var mainLayout = new StackLayout
             {
                 Size = Size,
@@ -36,7 +36,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
             };
 
-            Caption = LocalizationResources.MenuAboutTitle;
+            Caption = LocalizationResources.DialogAboutCaption;
             Content = mainLayout;
         }
 
@@ -45,7 +45,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             string manifest = BinaryResources.VersionManifest;
             var manifestObject = JsonSerializer.Deserialize<Manifest>(manifest);
 
-            return LocalizationResources.MenuAboutVersion(manifestObject?.Version);
+            return LocalizationResources.DialogAboutVersion(manifestObject?.Version);
         }
     }
 }

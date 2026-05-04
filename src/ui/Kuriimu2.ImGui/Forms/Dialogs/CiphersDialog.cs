@@ -170,7 +170,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void ProcessFile(string filePath)
         {
             string logText = _logEditor.GetText();
-            _logEditor.SetText(logText + LocalizationResources.MenuToolsCiphersLogProcess(filePath) + Environment.NewLine);
+            _logEditor.SetText(logText + LocalizationResources.DialogToolsCiphersLogProcess(filePath) + Environment.NewLine);
 
             string outPath = filePath + ".out";
 
@@ -186,7 +186,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             }
             catch (Exception)
             {
-                _logEditor.SetText(logText + LocalizationResources.MenuToolsCiphersLogError(filePath) + Environment.NewLine);
+                _logEditor.SetText(logText + LocalizationResources.DialogToolsCiphersLogError(filePath) + Environment.NewLine);
 
                 output.Close();
                 File.Delete(outPath);

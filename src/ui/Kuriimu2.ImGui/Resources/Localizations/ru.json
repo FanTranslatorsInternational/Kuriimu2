@@ -21,6 +21,8 @@
   "Application.Name": "Kuriimu2",
 
   // Menu
+
+  // Main Menu
   "Menu.File": "Файл",
   "Menu.Tools": "Инструменты",
   "Menu.Settings": "Настройки",
@@ -53,149 +55,13 @@
   "Menu.Settings.IncludeDevBuilds": "Включить сборки для разработчиков",
   "Menu.Settings.ChangeLanguage": "Сменить язык",
   "Menu.Settings.ChangeTheme": "Сменить тему",
-
-  // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Тёмная",
   "Menu.Settings.ChangeTheme.Light": "Светлая",
 
-  // Ciphers Menu
-  "Menu.Tools.Ciphers.Caption": "Шифры",
-  "Menu.Tools.Ciphers.Encrypt": "Зашифровать",
-  "Menu.Tools.Ciphers.Decrypt": "Расшифровать",
-  "Menu.Tools.Ciphers.Execute": "Исполнить",
-  "Menu.Tools.Ciphers.Input.Folder": "Выберите папку",
-  "Menu.Tools.Ciphers.Input.File": "Выберите файл",
-  "Menu.Tools.Ciphers.Input.SubDirectories": "Подпапки",
-  "Menu.Tools.Ciphers.Input.Parameters": "Параметры",
-  "Menu.Tools.Ciphers.Log.Process": "Обработка файла {0}.",
-  "Menu.Tools.Ciphers.Log.Error": "Ошибка при обработке файла {0}.",
-  "Menu.Tools.Ciphers.Progress": "Процесс",
-  "Menu.Tools.Ciphers.Cancel": "Отмена",
-
-  // Compressions Menu
-  "Menu.Tools.Compressions.Caption": "Сжатия",
-  "Menu.Tools.Compressions.Decompress": "Разжать",
-  "Menu.Tools.Compressions.Compress": "Сжать",
-  "Menu.Tools.Compressions.Execute": "Исполнить",
-  "Menu.Tools.Compressions.Input.Folder": "Выберите папку",
-  "Menu.Tools.Compressions.Input.File": "Выберите файл",
-  "Menu.Tools.Compressions.Input.SubDirectories": "Подпапки",
-  "Menu.Tools.Compressions.Log.Process": "Обработка файла {0}.",
-  "Menu.Tools.Compressions.Log.Error": "Ошибка при обработке файла {0}.",
-  "Menu.Tools.Compressions.Progress": "Процесс",
-  "Menu.Tools.Compressions.Cancel": "Отмена",
-
-  // Image Transcoder
-  "Menu.Tools.ImageTranscoder.Caption": "Транскодер изображений",
-  "Menu.Tools.ImageTranscoder.File": "Файл",
-  "Menu.Tools.ImageTranscoder.File.Open": "Открыть",
-  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl + O",
-  "Menu.Tools.ImageTranscoder.Encoding": "Кодировка",
-  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Кодировка палитры",
-  "Menu.Tools.ImageTranscoder.Quantizer": "Квантизатор",
-  "Menu.Tools.ImageTranscoder.ColorCache": "Кеш цвета",
-  "Menu.Tools.ImageTranscoder.Ditherer": "Дизерер",
-  "Menu.Tools.ImageTranscoder.NoDitherer": "Нет",
-  "Menu.Tools.ImageTranscoder.ColorCount": "Счётчик цвета",
-
-  // Raw Image Viewer
-  "Menu.Tools.RawImageViewer.Caption": "Просмотрщик RAW-изображений",
-  "Menu.Tools.RawImageViewer.File": "Файл",
-  "Menu.Tools.RawImageViewer.File.Open": "Открыть",
-  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl + O",
-  "Menu.Tools.RawImageViewer.Placeholder": "Значение: 128, 0x80",
-  "Menu.Tools.RawImageViewer.Width": "Ширина",
-  "Menu.Tools.RawImageViewer.Height": "Высота",
-  "Menu.Tools.RawImageViewer.Offset": "Сдвиг",
-  "Menu.Tools.RawImageViewer.PaletteOffset": "Сдвиг палитры",
-  "Menu.Tools.RawImageViewer.Encoding": "Кодировка",
-  "Menu.Tools.RawImageViewer.PaletteEncoding": "Кодировка палитры",
-  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Компоненты",
-  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Компоненты палитры",
-  "Menu.Tools.RawImageViewer.Swizzle": "Свизлы",
-  "Menu.Tools.RawImageViewer.NoSwizzle": "Нет",
-  "Menu.Tools.RawImageViewer.CustomSwizzle": "Пользовательский",
-  "Menu.Tools.RawImageViewer.RenderSwizzle": "Отрендерить свизл",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Добавить: ЛКМ",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Удалить: ЛКМ",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Переместить: ЛКМ и перетащить",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Скопировать: Alt + C",
-
-  // Sequence Search Dialog
-  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
-  "Menu.Tools.TextSequenceSearcher.Execute": "Исполнить",
-  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Выберите папку",
-  "Menu.Tools.TextSequenceSearcher.Input.File": "Выберите файл",
-  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Подпапки",
-  "Menu.Tools.TextSequenceSearcher.Progress": "Процесс",
-  "Menu.Tools.TextSequenceSearcher.Cancel": "Отмена",
-  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
-
-  // Plugins Dialog
-  "Menu.Plugins.Title": "Установленные плагины",
-  "Menu.Plugins.Id": "ID",
-  "Menu.Plugins.Name": "Название",
-  "Menu.Plugins.Publisher": "Издатель",
-  "Menu.Plugins.Developer": "Разработчик",
-  "Menu.Plugins.Authors": "Авторы",
-  "Menu.Plugins.Platforms": "Платформы",
-  "Menu.Plugins.Type.Archive": "Архив",
-  "Menu.Plugins.Type.Image": "Изображение",
-  "Menu.Plugins.Type.Font": "Шрифт",
-  "Menu.Plugins.Type.Text": "Текст",
-
-  // File Preferences Dialog
-  // "Menu.Preferences.Title": "File Preferences", // TODO
-  // "Menu.Preferences.Path": "Path", // TODO
-  "Menu.Preferences.Id": "ID",
-  "Menu.Preferences.Name": "Название",
-  // "Menu.Preferences.Type.Caption": "Type", // TODO
-  "Menu.Preferences.Type.Archive": "Архив",
-  "Menu.Preferences.Type.Image": "Изображение",
-  "Menu.Preferences.Type.Font": "Шрифт",
-  "Menu.Preferences.Type.Text": "Текст",
-  // "Menu.Preferences.Options": "Options", // TODO
-
-  // About Dialog
-  "Menu.About.Title": "О Kuriimu2",
-  "Menu.About.Version": "Версия {0}",
-  "Menu.About.Description": "Kuriimu2 — универсальный менеджер переводов игр и набор утилит для переводчиков и моддеров.",
-
-  // Update Available Dialog
-  "Dialog.UpdateAvailable.Caption": "Доступно обновление",
-  "Dialog.UpdateAvailable.Text": "Вы хотите обновиться с {0}-{1} до {2}-{3}?",
-
-  // Exception Dialog
-  "Dialog.ExceptionCatched.Caption": "Обнаружена ошибка",
-
-  // Plugins Not Available Dialog
-  "Dialog.PluginsNotAvailable.Caption": "Плагины недоступны",
-  "Dialog.PluginsNotAvailable.Text": "Не получилось загрузить следующие плагины:",
-
-  // Unsaved Changes Dialog
-  "Dialog.UnsavedChanges.Caption": "Несохранённые изменения",
-  "Dialog.UnsavedChanges.Text.Specific": "Были внесены изменения в {0} или в его подфайлы. Вы хотите сохранить данные изменения?",
-  "Dialog.UnsavedChanges.Text.Generic": "Были внесены изменения в один или несколько файлов. Вы хотите сохранить данные изменения?",
-
-  // Dependant Files Dialog
-  "Dialog.DependantFiles.Caption": "Зависимые файлы",
-  "Dialog.DependantFiles.Text": "Все файлы, открытые из этого файла и его подфайлов, будут закрыты. Продолжить?",
-
-  // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
-
-  // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
-
-  // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  // Help Menu
+  "Menu.Help.Plugins.Installed": "Установленные плагины",
+  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.About": "О Kuriimu2",
 
   // Status
   "Status.Plugin.Select.None": "Плагин не выбран.",
@@ -416,26 +282,165 @@
 
   // Dialogs
 
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Доступно обновление",
+  "Dialog.UpdateAvailable.Text": "Вы хотите обновиться с {0}-{1} до {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Обнаружена ошибка",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Плагины недоступны",
+  "Dialog.PluginsNotAvailable.Text": "Не получилось загрузить следующие плагины:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Несохранённые изменения",
+  "Dialog.UnsavedChanges.Text.Specific": "Были внесены изменения в {0} или в его подфайлы. Вы хотите сохранить данные изменения?",
+  "Dialog.UnsavedChanges.Text.Generic": "Были внесены изменения в один или несколько файлов. Вы хотите сохранить данные изменения?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Зависимые файлы",
+  "Dialog.DependantFiles.Text": "Все файлы, открытые из этого файла и его подфайлов, будут закрыты. Продолжить?",
+
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
+  // Remove Font Characters Dialog
+  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
+  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+
+  // Remap Font Characters Dialog
+  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
+  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
+  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "ОК",
 
-  // Choose Plugin Dialog
-  "Dialog.ChoosePlugin.Caption": "Выберите плагин",
+  // Ciphers Dialog
+  "Dialog.Tools.Ciphers.Caption": "Шифры",
+  "Dialog.Tools.Ciphers.Encrypt": "Зашифровать",
+  "Dialog.Tools.Ciphers.Decrypt": "Расшифровать",
+  "Dialog.Tools.Ciphers.Execute": "Исполнить",
+  "Dialog.Tools.Ciphers.Input.Folder": "Выберите папку",
+  "Dialog.Tools.Ciphers.Input.File": "Выберите файл",
+  "Dialog.Tools.Ciphers.Input.SubDirectories": "Подпапки",
+  "Dialog.Tools.Ciphers.Input.Parameters": "Параметры",
+  "Dialog.Tools.Ciphers.Log.Process": "Обработка файла {0}.",
+  "Dialog.Tools.Ciphers.Log.Error": "Ошибка при обработке файла {0}.",
+  "Dialog.Tools.Ciphers.Progress": "Процесс",
+  "Dialog.Tools.Ciphers.Cancel": "Отмена",
 
-  "Dialog.ChoosePlugin.Header.Generic": "Выберите плагин, чтобы открыть файл:",
-  "Dialog.ChoosePlugin.Header.Identification.None": "Не удалось автоматически определить плагин для этого файла.\nПожалуйста, выберите плагин вручную:",
-  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Данный файл поддерживается сразу несколькими плагинами. Пожалуйста, выберите один из них:",
-  "Dialog.ChoosePlugin.Header.Identification.Note": "По умолчанию отображаются только те плагины, которые не могут автоматически определить поддержку файла.",
+  // Compressions Dialog
+  "Dialog.Tools.Compressions.Caption": "Сжатия",
+  "Dialog.Tools.Compressions.Decompress": "Разжать",
+  "Dialog.Tools.Compressions.Compress": "Сжать",
+  "Dialog.Tools.Compressions.Execute": "Исполнить",
+  "Dialog.Tools.Compressions.Input.Folder": "Выберите папку",
+  "Dialog.Tools.Compressions.Input.File": "Выберите файл",
+  "Dialog.Tools.Compressions.Input.SubDirectories": "Подпапки",
+  "Dialog.Tools.Compressions.Log.Process": "Обработка файла {0}.",
+  "Dialog.Tools.Compressions.Log.Error": "Ошибка при обработке файла {0}.",
+  "Dialog.Tools.Compressions.Progress": "Процесс",
+  "Dialog.Tools.Compressions.Cancel": "Отмена",
 
-  "Dialog.ChoosePlugin.Plugins.Table.Name": "Название",
-  "Dialog.ChoosePlugin.Plugins.Table.Type": "Тип",
-  "Dialog.ChoosePlugin.Plugins.Table.Description": "Описание",
-  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
+  // Image Transcoder Dialog
+  "Dialog.Tools.ImageTranscoder.Caption": "Транскодер изображений",
+  "Dialog.Tools.ImageTranscoder.File": "Файл",
+  "Dialog.Tools.ImageTranscoder.File.Open": "Открыть",
+  "Dialog.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl + O",
+  "Dialog.Tools.ImageTranscoder.Encoding": "Кодировка",
+  "Dialog.Tools.ImageTranscoder.PaletteEncoding": "Кодировка палитры",
+  "Dialog.Tools.ImageTranscoder.Quantizer": "Квантизатор",
+  "Dialog.Tools.ImageTranscoder.ColorCache": "Кеш цвета",
+  "Dialog.Tools.ImageTranscoder.Ditherer": "Дизерер",
+  "Dialog.Tools.ImageTranscoder.NoDitherer": "Нет",
+  "Dialog.Tools.ImageTranscoder.ColorCount": "Счётчик цвета",
 
-  "Dialog.ChoosePlugin.Continue": "Продолжить",
-  "Dialog.ChoosePlugin.ViewRaw": "Просмотреть RAW-байты",
-  "Dialog.ChoosePlugin.Cancel": "Отмена",
-  "Dialog.ChoosePlugin.ShowAll": "Показать все плагины",
+  // Raw Image Viewer Dialog
+  "Dialog.Tools.RawImageViewer.Caption": "Просмотрщик RAW-изображений",
+  "Dialog.Tools.RawImageViewer.File": "Файл",
+  "Dialog.Tools.RawImageViewer.File.Open": "Открыть",
+  "Dialog.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl + O",
+  "Dialog.Tools.RawImageViewer.Placeholder": "Значение: 128, 0x80",
+  "Dialog.Tools.RawImageViewer.Width": "Ширина",
+  "Dialog.Tools.RawImageViewer.Height": "Высота",
+  "Dialog.Tools.RawImageViewer.Offset": "Сдвиг",
+  "Dialog.Tools.RawImageViewer.PaletteOffset": "Сдвиг палитры",
+  "Dialog.Tools.RawImageViewer.Encoding": "Кодировка",
+  "Dialog.Tools.RawImageViewer.PaletteEncoding": "Кодировка палитры",
+  "Dialog.Tools.RawImageViewer.EncodingComponentOrder": "Компоненты",
+  "Dialog.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Компоненты палитры",
+  "Dialog.Tools.RawImageViewer.Swizzle": "Свизлы",
+  "Dialog.Tools.RawImageViewer.NoSwizzle": "Нет",
+  "Dialog.Tools.RawImageViewer.CustomSwizzle": "Пользовательский",
+  "Dialog.Tools.RawImageViewer.RenderSwizzle": "Отрендерить свизл",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.AddControl": "Добавить: ЛКМ",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Удалить: ЛКМ",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Переместить: ЛКМ и перетащить",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Скопировать: Alt + C",
+
+  // Sequence Search Dialog
+  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Execute": "Исполнить",
+  "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Выберите папку",
+  "Dialog.Tools.TextSequenceSearcher.Input.File": "Выберите файл",
+  "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Подпапки",
+  "Dialog.Tools.TextSequenceSearcher.Progress": "Процесс",
+  "Dialog.Tools.TextSequenceSearcher.Cancel": "Отмена",
+  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Installed Plugins Dialog
+  "Dialog.Plugins.Installed.Caption": "Установленные плагины",
+  "Dialog.Plugins.Installed.Id": "ID",
+  "Dialog.Plugins.Installed.Name": "Название",
+  "Dialog.Plugins.Installed.Publisher": "Издатель",
+  "Dialog.Plugins.Installed.Developer": "Разработчик",
+  "Dialog.Plugins.Installed.Authors": "Авторы",
+  "Dialog.Plugins.Installed.Platforms": "Платформы",
+  "Dialog.Plugins.Installed.Type.Archive": "Архив",
+  "Dialog.Plugins.Installed.Type.Image": "Изображение",
+  "Dialog.Plugins.Installed.Type.Font": "Шрифт",
+  "Dialog.Plugins.Installed.Type.Text": "Текст",
+
+  // File Preferences Dialog
+  // "Dialog.Preferences.Caption": "File Preferences", // TODO
+  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Id": "ID",
+  "Dialog.Preferences.Name": "Название",
+  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+  "Dialog.Preferences.Type.Archive": "Архив",
+  "Dialog.Preferences.Type.Image": "Изображение",
+  "Dialog.Preferences.Type.Font": "Шрифт",
+  "Dialog.Preferences.Type.Text": "Текст",
+  // "Dialog.Preferences.Options": "Options", // TODO
+
+  // About Dialog
+  "Dialog.About.Caption": "О Kuriimu2",
+  "Dialog.About.Version": "Версия {0}",
+  "Dialog.About.Description": "Kuriimu2 — универсальный менеджер переводов игр и набор утилит для переводчиков и моддеров.",
+
+  // Manual Selection Plugin Dialog
+  "Dialog.Plugins.ManualSelection.Caption": "Выберите плагин",
+
+  "Dialog.Plugins.ManualSelection.Identification": "Выберите плагин, чтобы открыть файл:",
+  "Dialog.Plugins.ManualSelection.Identification.None": "Не удалось автоматически определить плагин для этого файла.\nПожалуйста, выберите плагин вручную:",
+  "Dialog.Plugins.ManualSelection.Identification.Multiple": "Данный файл поддерживается сразу несколькими плагинами. Пожалуйста, выберите один из них:",
+  "Dialog.Plugins.ManualSelection.Identification.Note": "По умолчанию отображаются только те плагины, которые не могут автоматически определить поддержку файла.",
+
+  "Dialog.Plugins.ManualSelection.Name": "Название",
+  "Dialog.Plugins.ManualSelection.Type": "Тип",
+  "Dialog.Plugins.ManualSelection.Description": "Описание",
+  "Dialog.Plugins.ManualSelection.Id": "ID",
+
+  "Dialog.Plugins.ManualSelection.Continue": "Продолжить",
+  "Dialog.Plugins.ManualSelection.ViewRaw": "Просмотреть RAW-байты",
+  "Dialog.Plugins.ManualSelection.Cancel": "Отмена",
+  "Dialog.Plugins.ManualSelection.ShowAll": "Показать все плагины",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Генерация шрифта",

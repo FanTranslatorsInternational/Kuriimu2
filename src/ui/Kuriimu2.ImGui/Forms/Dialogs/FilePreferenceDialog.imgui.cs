@@ -35,15 +35,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Size = Size.Parent,
                 Columns =
                 {
-                    new DataTableColumn<FilePreference>(value => value.FilePath, LocalizationResources.MenuPreferencesPath),
-                    new DataTableColumn<FilePreference>(value => $"{value.PluginId}", LocalizationResources.MenuPreferencesId){SortOrder = 1},
-                    new DataTableColumn<FilePreference>(value => $"{value.Name}", LocalizationResources.MenuPreferencesName),
-                    new DataTableColumn<FilePreference>(value => LocalizationResources.MenuPreferencesType(value.Type), LocalizationResources.MenuPreferencesTypeCaption){SortOrder = 0},
-                    new DataTableColumn<FilePreference>(value => string.Join(';', value.Options.Select(o => o)), LocalizationResources.MenuPreferencesOptions)
+                    new DataTableColumn<FilePreference>(value => value.FilePath, LocalizationResources.DialogPreferencesPath),
+                    new DataTableColumn<FilePreference>(value => $"{value.PluginId}", LocalizationResources.DialogPreferencesId){SortOrder = 1},
+                    new DataTableColumn<FilePreference>(value => $"{value.Name}", LocalizationResources.DialogPreferencesName),
+                    new DataTableColumn<FilePreference>(value => LocalizationResources.DialogPreferencesType(value.Type), LocalizationResources.DialogPreferencesTypeCaption){SortOrder = 0},
+                    new DataTableColumn<FilePreference>(value => string.Join(';', value.Options.Select(o => o)), LocalizationResources.DialogPreferencesOptions)
                 }
             };
 
-            Caption = LocalizationResources.MenuPreferencesTitle;
+            Caption = LocalizationResources.DialogPreferencesCaption;
 
             Content = _preferenceTable;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));

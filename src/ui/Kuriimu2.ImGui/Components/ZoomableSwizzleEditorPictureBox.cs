@@ -145,10 +145,10 @@ namespace Kuriimu2.ImGui.Components
 
         private void DrawControlLegend(Rectangle contentRect)
         {
-            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorAddControl);
-            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorRemoveControl);
-            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorMoveControl);
-            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 3), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.MenuToolsRawImageViewerSwizzleEditorCopyControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorAddControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorRemoveControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 2), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorMoveControl);
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight() * 3), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorCopyControl);
         }
 
         private void DrawPixelBorder(Rectangle contentRect, Vector2 pixelPos, Color color, float thickness)

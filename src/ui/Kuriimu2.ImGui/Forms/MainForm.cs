@@ -794,7 +794,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task ShowPluginsDialog()
         {
-            var pluginsDialog = new PluginsDialog(_pluginManager);
+            var pluginsDialog = new InstalledPluginsDialog(_pluginManager);
             await pluginsDialog.ShowAsync();
         }
 
@@ -989,7 +989,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task<IFilePlugin> ChoosePlugin(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
-            var pluginDialog = new ChoosePluginDialog(allFilePlugins, filteredFilePlugins, status);
+            var pluginDialog = new ManualPluginSelectionDialog(allFilePlugins, filteredFilePlugins, status);
             return await pluginDialog.ShowAsync() == DialogResult.Ok ? pluginDialog.SelectedPlugin : null;
         }
 

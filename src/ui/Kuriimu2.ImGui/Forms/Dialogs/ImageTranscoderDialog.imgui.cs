@@ -50,8 +50,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _openBtn = new MenuBarButton
             {
-                Text = LocalizationResources.MenuToolsImageTranscoderFileOpen,
-                KeyAction = new(ImGuiKey.ModCtrl,ImGuiKey.O, LocalizationResources.MenuToolsImageTranscoderFileOpenShortcut)
+                Text = LocalizationResources.DialogToolsImageTranscoderFileOpen,
+                KeyAction = new(ImGuiKey.ModCtrl,ImGuiKey.O, LocalizationResources.DialogToolsImageTranscoderFileOpenShortcut)
             };
 
             _exportBtn = new ImageButton(ImageResources.ImageExport)
@@ -100,12 +100,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     {
                         Cells =
                         {
-                            new Label(LocalizationResources.MenuToolsImageTranscoderEncoding),
-                            new Label(LocalizationResources.MenuToolsImageTranscoderPaletteEncoding),
-                            new Label(LocalizationResources.MenuToolsImageTranscoderQuantizer),
-                            new Label(LocalizationResources.MenuToolsImageTranscoderColorCache),
-                            new Label(LocalizationResources.MenuToolsImageTranscoderDitherer),
-                            new Label(LocalizationResources.MenuToolsImageTranscoderColorCount)
+                            new Label(LocalizationResources.DialogToolsImageTranscoderEncoding),
+                            new Label(LocalizationResources.DialogToolsImageTranscoderPaletteEncoding),
+                            new Label(LocalizationResources.DialogToolsImageTranscoderQuantizer),
+                            new Label(LocalizationResources.DialogToolsImageTranscoderColorCache),
+                            new Label(LocalizationResources.DialogToolsImageTranscoderDitherer),
+                            new Label(LocalizationResources.DialogToolsImageTranscoderColorCount)
                         }
                     },
                     new TableRow
@@ -139,7 +139,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Items =
                 {
-                    new MenuBarMenu(LocalizationResources.MenuToolsImageTranscoderFile)
+                    new MenuBarMenu(LocalizationResources.DialogToolsImageTranscoderFile)
                     {
                         Items =
                         {
@@ -156,7 +156,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             InitializeColorCaches();
             InitializeColorDitherers();
 
-            Caption = LocalizationResources.MenuToolsImageTranscoderCaption;
+            Caption = LocalizationResources.DialogToolsImageTranscoderCaption;
 
             MenuBar = mainMenu;
             Content = _mainLayout;
@@ -200,7 +200,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializeColorDitherers()
         {
-            _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>(null, LocalizationResources.MenuToolsImageTranscoderNoDitherer));
+            _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>(null, LocalizationResources.DialogToolsImageTranscoderNoDitherer));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer8Ditherer(size, count), "Bayer 8"));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer4Ditherer(size, count), "Bayer 4"));
             _ditherers.Items.Add(new DropDownItem<CreateColorDithererDelegate?>((size, count) => new Bayer2Ditherer(size, count), "Bayer 2"));

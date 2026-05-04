@@ -62,13 +62,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _openBtn = new MenuBarButton
             {
-                Text = LocalizationResources.MenuToolsRawImageViewerFileOpen,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.MenuToolsRawImageViewerFileOpenShortcut)
+                Text = LocalizationResources.DialogToolsRawImageViewerFileOpen,
+                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.DialogToolsRawImageViewerFileOpenShortcut)
             };
 
             _renderSwizzleBox = new CheckBox
             {
-                Text = LocalizationResources.MenuToolsRawImageViewerRenderSwizzle,
+                Text = LocalizationResources.DialogToolsRawImageViewerRenderSwizzle,
                 Checked = true
             };
             _exportBtn = new ImageButton(ImageResources.ImageExport)
@@ -89,17 +89,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ShowBorder = true
             };
 
-            _widthTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
-            _heightTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
-            _offsetTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
-            _paletteOffsetTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _widthTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsRawImageViewerPlaceholder };
+            _heightTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsRawImageViewerPlaceholder };
+            _offsetTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsRawImageViewerPlaceholder };
+            _paletteOffsetTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsRawImageViewerPlaceholder };
             _formats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
             _paletteFormats = new ComboBox<int> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
             _componentsTextBox = new TextBox();
             _paletteComponentsTextBox = new TextBox();
 
             _swizzles = new ComboBox<CreatePixelRemapperDelegate?> { Alignment = ComboBoxAlignment.Top, Width = SizeValue.Parent };
-            _swizzleTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsRawImageViewerPlaceholder };
+            _swizzleTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsRawImageViewerPlaceholder };
 
             #endregion
 
@@ -115,11 +115,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     {
                         Cells =
                         {
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerWidth)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerOffset)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncoding)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerEncodingComponentOrder)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerSwizzle))
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerWidth)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerOffset)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerEncoding)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerEncodingComponentOrder)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerSwizzle))
                         }
                     },
                     new TableRow
@@ -137,10 +137,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     {
                         Cells =
                         {
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerHeight)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteOffset)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteEncoding)),
-                            new TableCell(new Label(LocalizationResources.MenuToolsRawImageViewerPaletteEncodingComponentOrder))
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerHeight)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerPaletteOffset)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerPaletteEncoding)),
+                            new TableCell(new Label(LocalizationResources.DialogToolsRawImageViewerPaletteEncodingComponentOrder))
                         }
                     },
                     new TableRow
@@ -183,7 +183,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Items =
                 {
-                    new MenuBarMenu(LocalizationResources.MenuToolsRawImageViewerFile)
+                    new MenuBarMenu(LocalizationResources.DialogToolsRawImageViewerFile)
                     {
                         Items =
                         {
@@ -198,7 +198,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             InitializeFormats();
             InitializeSwizzles();
 
-            Caption = LocalizationResources.MenuToolsRawImageViewerCaption;
+            Caption = LocalizationResources.DialogToolsRawImageViewerCaption;
 
             MenuBar = mainMenu;
             Content = _mainLayout;
@@ -231,7 +231,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializeSwizzles()
         {
-            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.MenuToolsRawImageViewerNoSwizzle));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.DialogToolsRawImageViewerNoSwizzle));
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new BcSwizzle(context), "Bc"));
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new NitroSwizzle(context), "NDS"));
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new CtrSwizzle(context), "3DS"));
@@ -247,7 +247,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new Ps2Swizzle(context), "PS2"));
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(context => new VitaSwizzle(context), "Vita"));
 
-            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.MenuToolsRawImageViewerCustomSwizzle));
+            _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.DialogToolsRawImageViewerCustomSwizzle));
             _customSwizzleItem = _swizzles.Items[^1];
 
             _swizzles.SelectedItem = _swizzles.Items.FirstOrDefault()!;

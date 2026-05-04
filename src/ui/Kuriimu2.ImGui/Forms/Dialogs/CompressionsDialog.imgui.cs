@@ -37,26 +37,26 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Items =
                 {
-                    new RadioButtonItem(LocalizationResources.MenuToolsCompressionsCompress),
-                    new RadioButtonItem(LocalizationResources.MenuToolsCompressionsDecompress)
+                    new RadioButtonItem(LocalizationResources.DialogToolsCompressionsCompress),
+                    new RadioButtonItem(LocalizationResources.DialogToolsCompressionsDecompress)
                 }
             };
             _operations.SelectedItem = _operations.Items[0];
 
             _compressions = new ComboBox<ICompression> { Alignment = ComboBoxAlignment.Bottom, MaxShowItems = 10 };
             _inputTextBox = new TextBox { IsReadOnly = true };
-            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsInputFile };
-            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsInputFolder };
-            _subDirCheckBox = new CheckBox { Text = LocalizationResources.MenuToolsCompressionsInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsExecute, KeyAction = new(ImGuiKey.Enter) };
-            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCompressionsCancel, Enabled = false };
+            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsInputFile };
+            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsInputFolder };
+            _subDirCheckBox = new CheckBox { Text = LocalizationResources.DialogToolsCompressionsInputSubDirectories };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsExecute, KeyAction = new(ImGuiKey.Enter) };
+            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsCancel, Enabled = false };
             _logEditor = new TextEditor { IsReadOnly = true };
 
             _progress = new ProgressBar
             {
                 Size = new Size(SizeValue.Parent, 24),
                 ProgressColor = ColorResources.Progress,
-                Text = LocalizationResources.MenuToolsCompressionsProgress
+                Text = LocalizationResources.DialogToolsCompressionsProgress
             };
 
             #endregion
@@ -115,7 +115,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             #endregion
 
-            Caption = LocalizationResources.MenuToolsCompressionsCaption;
+            Caption = LocalizationResources.DialogToolsCompressionsCaption;
             Size = new Size(SizeValue.Relative(.5f), SizeValue.Relative(.6f));
 
             Content = _mainLayout;

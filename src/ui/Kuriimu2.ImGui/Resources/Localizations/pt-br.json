@@ -21,6 +21,8 @@
   "Application.Name": "Kuriimu2",
 
   // Menu
+
+  // Main Menu
   "Menu.File": "Arquivo",
   "Menu.Tools": "Ferramentas",
   "Menu.Settings": "Configurações",
@@ -53,149 +55,13 @@
   "Menu.Settings.IncludeDevBuilds": "Incluir versões de desenvolvedor",
   "Menu.Settings.ChangeLanguage": "Alterar idioma",
   "Menu.Settings.ChangeTheme": "Alterar tema",
-
-  // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Escuro",
   "Menu.Settings.ChangeTheme.Light": "Claro",
 
-  // Ciphers Menu
-  "Menu.Tools.Ciphers.Caption": "Cifras",
-  "Menu.Tools.Ciphers.Encrypt": "Criptografar",
-  "Menu.Tools.Ciphers.Decrypt": "Descriptografar",
-  "Menu.Tools.Ciphers.Execute": "Executar",
-  "Menu.Tools.Ciphers.Input.Folder": "Selecionar pasta",
-  "Menu.Tools.Ciphers.Input.File": "Selecionar arquivo",
-  "Menu.Tools.Ciphers.Input.SubDirectories": "Subdiretórios",
-  "Menu.Tools.Ciphers.Input.Parameters": "Parâmetros",
-  "Menu.Tools.Ciphers.Log.Process": "Processando arquivo {0}.",
-  "Menu.Tools.Ciphers.Log.Error": "Erro ao processar arquivo {0}.",
-  "Menu.Tools.Ciphers.Progress": "Processar",
-  "Menu.Tools.Ciphers.Cancel": "Cancelar",
-
-  // Compressions Menu
-  "Menu.Tools.Compressions.Caption": "Compressões",
-  "Menu.Tools.Compressions.Decompress": "Descomprimir",
-  "Menu.Tools.Compressions.Compress": "Comprimir",
-  "Menu.Tools.Compressions.Execute": "Executar",
-  "Menu.Tools.Compressions.Input.Folder": "Selecionar pasta",
-  "Menu.Tools.Compressions.Input.File": "Selecionar arquivo",
-  "Menu.Tools.Compressions.Input.SubDirectories": "Subdiretórios",
-  "Menu.Tools.Compressions.Log.Process": "Processando arquivo {0}.",
-  "Menu.Tools.Compressions.Log.Error": "Erro ao processar arquivo {0}.",
-  "Menu.Tools.Compressions.Progress": "Processar",
-  "Menu.Tools.Compressions.Cancel": "Cancelar",
-
-  // Image Transcoder
-  "Menu.Tools.ImageTranscoder.Caption": "Transcodificador de Imagens",
-  "Menu.Tools.ImageTranscoder.File": "Arquivo",
-  "Menu.Tools.ImageTranscoder.File.Open": "Abrir",
-  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.ImageTranscoder.Encoding": "Codificação",
-  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Codificação da paleta",
-  "Menu.Tools.ImageTranscoder.Quantizer": "Quantizador",
-  "Menu.Tools.ImageTranscoder.ColorCache": "Cache de cores",
-  "Menu.Tools.ImageTranscoder.Ditherer": "Dithering",
-  "Menu.Tools.ImageTranscoder.NoDitherer": "Nenhum",
-  "Menu.Tools.ImageTranscoder.ColorCount": "Quantidade de cores",
-
-  // Raw Image Viewer
-  "Menu.Tools.RawImageViewer.Caption": "Visualizador de Imagem Bruta",
-  "Menu.Tools.RawImageViewer.File": "Arquivo",
-  "Menu.Tools.RawImageViewer.File.Open": "Abrir",
-  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.RawImageViewer.Placeholder": "Valor: 128, 0x80",
-  "Menu.Tools.RawImageViewer.Width": "Largura",
-  "Menu.Tools.RawImageViewer.Height": "Altura",
-  "Menu.Tools.RawImageViewer.Offset": "Offset",
-  "Menu.Tools.RawImageViewer.PaletteOffset": "Offset da paleta",
-  "Menu.Tools.RawImageViewer.Encoding": "Codificação",
-  "Menu.Tools.RawImageViewer.PaletteEncoding": "Codificação da paleta",
-  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Componentes",
-  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Componentes da paleta",
-  "Menu.Tools.RawImageViewer.Swizzle": "Swizzles",
-  "Menu.Tools.RawImageViewer.NoSwizzle": "Nenhum",
-  "Menu.Tools.RawImageViewer.CustomSwizzle": "Personalizado",
-  "Menu.Tools.RawImageViewer.RenderSwizzle": "Renderizar Swizzle",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Adicionar: Botão esquerdo do mouse",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remover: Botão esquerdo do mouse",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Mover: Segurar botão esquerdo + arrastar",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copiar: Alt + C",
-
-  // Sequence Search Dialog
-  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
-  "Menu.Tools.TextSequenceSearcher.Execute": "Executar",
-  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Selecionar pasta",
-  "Menu.Tools.TextSequenceSearcher.Input.File": "Selecionar arquivo",
-  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdiretórios",
-  "Menu.Tools.TextSequenceSearcher.Progress": "Processar",
-  "Menu.Tools.TextSequenceSearcher.Cancel": "Cancelar",
-  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
-
-  // Plugins Dialog
-  "Menu.Plugins.Title": "Plugins instalados",
-  "Menu.Plugins.Id": "ID",
-  "Menu.Plugins.Name": "Nome",
-  "Menu.Plugins.Publisher": "Publicadora",
-  "Menu.Plugins.Developer": "Desenvolvedora",
-  "Menu.Plugins.Authors": "Autores",
-  "Menu.Plugins.Platforms": "Plataformas",
-  "Menu.Plugins.Type.Archive": "Contêiner de dados",
-  "Menu.Plugins.Type.Image": "Imagem",
-  "Menu.Plugins.Type.Font": "Fonte",
-  "Menu.Plugins.Type.Text": "Texto",
-
-  // File Preferences Dialog
-  // "Menu.Preferences.Title": "File Preferences", // TODO
-  // "Menu.Preferences.Path": "Path", // TODO
-  "Menu.Preferences.Id": "ID",
-  "Menu.Preferences.Name": "Nome",
-  // "Menu.Preferences.Type.Caption": "Type", // TODO
-  "Menu.Preferences.Type.Archive": "Contêiner de dados",
-  "Menu.Preferences.Type.Image": "Imagem",
-  "Menu.Preferences.Type.Font": "Fonte",
-  "Menu.Preferences.Type.Text": "Texto",
-  // "Menu.Preferences.Options": "Options", // TODO
-
-  // About Dialog
-  "Menu.About.Title": "Sobre o Kuriimu",
-  "Menu.About.Version": "Versão {0}",
-  "Menu.About.Description": "Kuriimu2 é um toolkit de gerenciamento de projetos de\ntradução destinado a autores de mods e traduções de fãs.",
-
-  // Update Available Dialog
-  "Dialog.UpdateAvailable.Caption": "Atualização disponível",
-  "Dialog.UpdateAvailable.Text": "Deseja atualizar de {0}-{1} para {2}-{3}?",
-
-  // Exception Dialog
-  "Dialog.ExceptionCatched.Caption": "Exceção encontrada",
-
-  // Plugins Not Available Dialog
-  "Dialog.PluginsNotAvailable.Caption": "Plugins não disponíveis",
-  "Dialog.PluginsNotAvailable.Text": "Os seguintes plugins não puderam ser carregados:",
-
-  // Unsaved Changes Dialog
-  "Dialog.UnsavedChanges.Caption": "Alterações não salvas",
-  "Dialog.UnsavedChanges.Text.Specific": "Foram feitas alterações em {0} ou em seus subarquivos abertos. Deseja salvar essas alterações?",
-  "Dialog.UnsavedChanges.Text.Generic": "Foram feitas alterações em um ou mais arquivos. Deseja salvar essas alterações?",
-
-  // Dependant Files Dialog
-  "Dialog.DependantFiles.Caption": "Arquivos dependentes",
-  "Dialog.DependantFiles.Text": "Todos os arquivos abertos a partir deste também serão fechados. Continuar?",
-
-  // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
-
-  // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
-
-  // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  // Help Menu
+  "Menu.Help.Plugins.Installed": "Plugins instalados",
+  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.About": "Sobre o Kuriimu",
 
   // Status
   "Status.Plugin.Select.None": "Nenhum plugin selecionado.",
@@ -416,26 +282,165 @@
 
   // Dialogs
 
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Atualização disponível",
+  "Dialog.UpdateAvailable.Text": "Deseja atualizar de {0}-{1} para {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Exceção encontrada",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Plugins não disponíveis",
+  "Dialog.PluginsNotAvailable.Text": "Os seguintes plugins não puderam ser carregados:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Alterações não salvas",
+  "Dialog.UnsavedChanges.Text.Specific": "Foram feitas alterações em {0} ou em seus subarquivos abertos. Deseja salvar essas alterações?",
+  "Dialog.UnsavedChanges.Text.Generic": "Foram feitas alterações em um ou mais arquivos. Deseja salvar essas alterações?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Arquivos dependentes",
+  "Dialog.DependantFiles.Text": "Todos os arquivos abertos a partir deste também serão fechados. Continuar?",
+
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
+  // Remove Font Characters Dialog
+  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
+  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+
+  // Remap Font Characters Dialog
+  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
+  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
+  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
-  // Choose Plugin Dialog
-  "Dialog.ChoosePlugin.Caption": "Escolher plugin",
+  // Ciphers Dialog
+  "Dialog.Tools.Ciphers.Caption": "Cifras",
+  "Dialog.Tools.Ciphers.Encrypt": "Criptografar",
+  "Dialog.Tools.Ciphers.Decrypt": "Descriptografar",
+  "Dialog.Tools.Ciphers.Execute": "Executar",
+  "Dialog.Tools.Ciphers.Input.Folder": "Selecionar pasta",
+  "Dialog.Tools.Ciphers.Input.File": "Selecionar arquivo",
+  "Dialog.Tools.Ciphers.Input.SubDirectories": "Subdiretórios",
+  "Dialog.Tools.Ciphers.Input.Parameters": "Parâmetros",
+  "Dialog.Tools.Ciphers.Log.Process": "Processando arquivo {0}.",
+  "Dialog.Tools.Ciphers.Log.Error": "Erro ao processar arquivo {0}.",
+  "Dialog.Tools.Ciphers.Progress": "Processar",
+  "Dialog.Tools.Ciphers.Cancel": "Cancelar",
 
-  "Dialog.ChoosePlugin.Header.Generic": "Escolha o plugin para abrir o arquivo:",
-  "Dialog.ChoosePlugin.Header.Identification.None": "Não foi possivel determinar automaticamente o plugin para abrir\no arquivo. Por favor, escolha manualmente:",
-  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Mais de um plugin pode identificar este arquivo. Por favor, escolha um:",
-  "Dialog.ChoosePlugin.Header.Identification.Note": "Por padrão, apenas plugins que não puderam determinar automaticamente se suportam o arquivo são mostrados.",
+  // Compressions Dialog
+  "Dialog.Tools.Compressions.Caption": "Compressões",
+  "Dialog.Tools.Compressions.Decompress": "Descomprimir",
+  "Dialog.Tools.Compressions.Compress": "Comprimir",
+  "Dialog.Tools.Compressions.Execute": "Executar",
+  "Dialog.Tools.Compressions.Input.Folder": "Selecionar pasta",
+  "Dialog.Tools.Compressions.Input.File": "Selecionar arquivo",
+  "Dialog.Tools.Compressions.Input.SubDirectories": "Subdiretórios",
+  "Dialog.Tools.Compressions.Log.Process": "Processando arquivo {0}.",
+  "Dialog.Tools.Compressions.Log.Error": "Erro ao processar arquivo {0}.",
+  "Dialog.Tools.Compressions.Progress": "Processar",
+  "Dialog.Tools.Compressions.Cancel": "Cancelar",
 
-  "Dialog.ChoosePlugin.Plugins.Table.Name": "Nome",
-  "Dialog.ChoosePlugin.Plugins.Table.Type": "Tipo",
-  "Dialog.ChoosePlugin.Plugins.Table.Description": "Descrição",
-  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
+  // Image Transcoder Dialog
+  "Dialog.Tools.ImageTranscoder.Caption": "Transcodificador de Imagens",
+  "Dialog.Tools.ImageTranscoder.File": "Arquivo",
+  "Dialog.Tools.ImageTranscoder.File.Open": "Abrir",
+  "Dialog.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.ImageTranscoder.Encoding": "Codificação",
+  "Dialog.Tools.ImageTranscoder.PaletteEncoding": "Codificação da paleta",
+  "Dialog.Tools.ImageTranscoder.Quantizer": "Quantizador",
+  "Dialog.Tools.ImageTranscoder.ColorCache": "Cache de cores",
+  "Dialog.Tools.ImageTranscoder.Ditherer": "Dithering",
+  "Dialog.Tools.ImageTranscoder.NoDitherer": "Nenhum",
+  "Dialog.Tools.ImageTranscoder.ColorCount": "Quantidade de cores",
 
-  "Dialog.ChoosePlugin.Continue": "Continuar",
-  "Dialog.ChoosePlugin.ViewRaw": "Visualizar bytes brutos",
-  "Dialog.ChoosePlugin.Cancel": "Cancelar",
-  "Dialog.ChoosePlugin.ShowAll": "Mostrar todos os plugins",
+  // Raw Image Viewer Dialog
+  "Dialog.Tools.RawImageViewer.Caption": "Visualizador de Imagem Bruta",
+  "Dialog.Tools.RawImageViewer.File": "Arquivo",
+  "Dialog.Tools.RawImageViewer.File.Open": "Abrir",
+  "Dialog.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.RawImageViewer.Placeholder": "Valor: 128, 0x80",
+  "Dialog.Tools.RawImageViewer.Width": "Largura",
+  "Dialog.Tools.RawImageViewer.Height": "Altura",
+  "Dialog.Tools.RawImageViewer.Offset": "Offset",
+  "Dialog.Tools.RawImageViewer.PaletteOffset": "Offset da paleta",
+  "Dialog.Tools.RawImageViewer.Encoding": "Codificação",
+  "Dialog.Tools.RawImageViewer.PaletteEncoding": "Codificação da paleta",
+  "Dialog.Tools.RawImageViewer.EncodingComponentOrder": "Componentes",
+  "Dialog.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Componentes da paleta",
+  "Dialog.Tools.RawImageViewer.Swizzle": "Swizzles",
+  "Dialog.Tools.RawImageViewer.NoSwizzle": "Nenhum",
+  "Dialog.Tools.RawImageViewer.CustomSwizzle": "Personalizado",
+  "Dialog.Tools.RawImageViewer.RenderSwizzle": "Renderizar Swizzle",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.AddControl": "Adicionar: Botão esquerdo do mouse",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remover: Botão esquerdo do mouse",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Mover: Segurar botão esquerdo + arrastar",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copiar: Alt + C",
+
+  // Sequence Search Dialog
+  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Execute": "Executar",
+  "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Selecionar pasta",
+  "Dialog.Tools.TextSequenceSearcher.Input.File": "Selecionar arquivo",
+  "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdiretórios",
+  "Dialog.Tools.TextSequenceSearcher.Progress": "Processar",
+  "Dialog.Tools.TextSequenceSearcher.Cancel": "Cancelar",
+  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Installed Plugins Dialog
+  "Dialog.Plugins.Installed.Caption": "Plugins instalados",
+  "Dialog.Plugins.Installed.Id": "ID",
+  "Dialog.Plugins.Installed.Name": "Nome",
+  "Dialog.Plugins.Installed.Publisher": "Publicadora",
+  "Dialog.Plugins.Installed.Developer": "Desenvolvedora",
+  "Dialog.Plugins.Installed.Authors": "Autores",
+  "Dialog.Plugins.Installed.Platforms": "Plataformas",
+  "Dialog.Plugins.Installed.Type.Archive": "Contêiner de dados",
+  "Dialog.Plugins.Installed.Type.Image": "Imagem",
+  "Dialog.Plugins.Installed.Type.Font": "Fonte",
+  "Dialog.Plugins.Installed.Type.Text": "Texto",
+
+  // File Preferences Dialog
+  // "Dialog.Preferences.Caption": "File Preferences", // TODO
+  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Id": "ID",
+  "Dialog.Preferences.Name": "Nome",
+  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+  "Dialog.Preferences.Type.Archive": "Contêiner de dados",
+  "Dialog.Preferences.Type.Image": "Imagem",
+  "Dialog.Preferences.Type.Font": "Fonte",
+  "Dialog.Preferences.Type.Text": "Texto",
+  // "Dialog.Preferences.Options": "Options", // TODO
+
+  // About Dialog
+  "Dialog.About.Caption": "Sobre o Kuriimu",
+  "Dialog.About.Version": "Versão {0}",
+  "Dialog.About.Description": "Kuriimu2 é um toolkit de gerenciamento de projetos de\ntradução destinado a autores de mods e traduções de fãs.",
+
+  // Manual Selection Plugin Dialog
+  "Dialog.Plugins.ManualSelection.Caption": "Escolher plugin",
+
+  "Dialog.Plugins.ManualSelection.Identification": "Escolha o plugin para abrir o arquivo:",
+  "Dialog.Plugins.ManualSelection.Identification.None": "Não foi possivel determinar automaticamente o plugin para abrir\no arquivo. Por favor, escolha manualmente:",
+  "Dialog.Plugins.ManualSelection.Identification.Multiple": "Mais de um plugin pode identificar este arquivo. Por favor, escolha um:",
+  "Dialog.Plugins.ManualSelection.Identification.Note": "Por padrão, apenas plugins que não puderam determinar automaticamente se suportam o arquivo são mostrados.",
+
+  "Dialog.Plugins.ManualSelection.Name": "Nome",
+  "Dialog.Plugins.ManualSelection.Type": "Tipo",
+  "Dialog.Plugins.ManualSelection.Description": "Descrição",
+  "Dialog.Plugins.ManualSelection.Id": "ID",
+
+  "Dialog.Plugins.ManualSelection.Continue": "Continuar",
+  "Dialog.Plugins.ManualSelection.ViewRaw": "Visualizar bytes brutos",
+  "Dialog.Plugins.ManualSelection.Cancel": "Cancelar",
+  "Dialog.Plugins.ManualSelection.ShowAll": "Mostrar todos os plugins",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Geração de Fonte",

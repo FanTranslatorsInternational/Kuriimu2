@@ -15,7 +15,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Rectangle = ImGui.Forms.Support.Rectangle;
 using Size = ImGui.Forms.Models.Size;

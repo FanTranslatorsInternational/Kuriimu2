@@ -46,26 +46,26 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Items =
                 {
-                    new RadioButtonItem(LocalizationResources.MenuToolsCiphersEncrypt),
-                    new RadioButtonItem(LocalizationResources.MenuToolsCiphersDecrypt)
+                    new RadioButtonItem(LocalizationResources.DialogToolsCiphersEncrypt),
+                    new RadioButtonItem(LocalizationResources.DialogToolsCiphersDecrypt)
                 }
             };
             _operations.SelectedItem = _operations.Items[0];
 
             _ciphers = new ComboBox<CipherData> { Alignment = ComboBoxAlignment.Bottom, MaxShowItems = 10 };
             _inputTextBox = new TextBox { IsReadOnly = true };
-            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersInputFile };
-            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersInputFolder };
-            _subDirCheckBox = new CheckBox { Text = LocalizationResources.MenuToolsCiphersInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersExecute, KeyAction = new(ImGuiKey.Enter) };
-            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsCiphersCancel, Enabled = false };
+            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersInputFile };
+            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersInputFolder };
+            _subDirCheckBox = new CheckBox { Text = LocalizationResources.DialogToolsCiphersInputSubDirectories };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersExecute, KeyAction = new(ImGuiKey.Enter) };
+            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersCancel, Enabled = false };
             _logEditor = new TextEditor { IsReadOnly = true };
 
             _progress = new ProgressBar
             {
                 Size = new Size(SizeValue.Parent, 24),
                 ProgressColor = ColorResources.Progress,
-                Text = LocalizationResources.MenuToolsCiphersProgress
+                Text = LocalizationResources.DialogToolsCiphersProgress
             };
 
             #endregion
@@ -84,7 +84,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 ItemSpacing = 4,
                 Items =
                 {
-                    new Label(LocalizationResources.MenuToolsCiphersInputParameters),
+                    new Label(LocalizationResources.DialogToolsCiphersInputParameters),
                     _parameterLayout
                 }
             };
@@ -142,7 +142,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             #endregion
 
-            Caption = LocalizationResources.MenuToolsCiphersCaption;
+            Caption = LocalizationResources.DialogToolsCiphersCaption;
             Size = new Size(SizeValue.Relative(.5f), SizeValue.Relative(.6f));
 
             Content = _mainLayout;

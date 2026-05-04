@@ -21,6 +21,8 @@
   "Application.Name": "Kuriimu2",
 
   // Menu
+
+  // Main Menu
   "Menu.File": "Tệp",
   "Menu.Tools": "Công Cụ",
   "Menu.Settings": "Cài Đặt",
@@ -53,149 +55,13 @@
   "Menu.Settings.IncludeDevBuilds": "Gồm Bản Nhà Phát Triển",
   "Menu.Settings.ChangeLanguage": "Đổi Ngôn Ngữ",
   "Menu.Settings.ChangeTheme": "Đổi Nền",
-
-  // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Tối",
   "Menu.Settings.ChangeTheme.Light": "Sáng",
 
-  // Ciphers Menu
-  "Menu.Tools.Ciphers.Caption": "Mật Mã",
-  "Menu.Tools.Ciphers.Encrypt": "Mã Hóa",
-  "Menu.Tools.Ciphers.Decrypt": "Giải Mã",
-  "Menu.Tools.Ciphers.Execute": "Thực Thi",
-  "Menu.Tools.Ciphers.Input.Folder": "Chọn thư mục",
-  "Menu.Tools.Ciphers.Input.File": "Chọn tệp",
-  "Menu.Tools.Ciphers.Input.SubDirectories": "Thư Mục Con",
-  "Menu.Tools.Ciphers.Input.Parameters": "Thông Số",
-  "Menu.Tools.Ciphers.Log.Process": "Tệp đang xử lý {0}.",
-  "Menu.Tools.Ciphers.Log.Error": "Lỗi khi xử lý tệp {0}.",
-  "Menu.Tools.Ciphers.Progress": "Xử Lý",
-  "Menu.Tools.Ciphers.Cancel": "Hủy",
-
-  // Compressions Menu
-  "Menu.Tools.Compressions.Caption": "Kiểu Nén",
-  "Menu.Tools.Compressions.Decompress": "Giải Nén",
-  "Menu.Tools.Compressions.Compress": "Nén",
-  "Menu.Tools.Compressions.Execute": "Thực Thi",
-  "Menu.Tools.Compressions.Input.Folder": "Chọn thư mục",
-  "Menu.Tools.Compressions.Input.File": "Chọn tệp",
-  "Menu.Tools.Compressions.Input.SubDirectories": "Thư Mục Con",
-  "Menu.Tools.Compressions.Log.Process": "Tệp đang xử lý {0}.",
-  "Menu.Tools.Compressions.Log.Error": "Lỗi khi xử lý tệp {0}.",
-  "Menu.Tools.Compressions.Progress": "Xử Lý",
-  "Menu.Tools.Compressions.Cancel": "Hủy",
-
-  // Image Transcoder
-  "Menu.Tools.ImageTranscoder.Caption": "Giải Mã Ảnh",
-  "Menu.Tools.ImageTranscoder.File": "Tệp",
-  "Menu.Tools.ImageTranscoder.File.Open": "Mở",
-  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.ImageTranscoder.Encoding": "Mã Hóa",
-  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Bảng Màu Mã Hóa",
-  "Menu.Tools.ImageTranscoder.Quantizer": "Lượng Tử Hóa",
-  "Menu.Tools.ImageTranscoder.ColorCache": "Bộ Đệm Màu",
-  "Menu.Tools.ImageTranscoder.Ditherer": "Trình Dither",
-  "Menu.Tools.ImageTranscoder.NoDitherer": "Trống",
-  "Menu.Tools.ImageTranscoder.ColorCount": "Số Lượng Màu",
-
-  // Raw Image Viewer
-  "Menu.Tools.RawImageViewer.Caption": "Trình Xem Ảnh Raw",
-  "Menu.Tools.RawImageViewer.File": "Tệp",
-  "Menu.Tools.RawImageViewer.File.Open": "Mở",
-  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.RawImageViewer.Placeholder": "Giá Trị: 128, 0x80",
-  "Menu.Tools.RawImageViewer.Width": "Chiều Rộng",
-  "Menu.Tools.RawImageViewer.Height": "Chiều Cao",
-  "Menu.Tools.RawImageViewer.Offset": "Offset",
-  "Menu.Tools.RawImageViewer.PaletteOffset": "Độ Lệch Màu",
-  "Menu.Tools.RawImageViewer.Encoding": "Mã Hóa",
-  "Menu.Tools.RawImageViewer.PaletteEncoding": "Bảng Màu Mã Hóa",
-  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Kênh Màu",
-  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Thành Phần Bảng Màu",
-  "Menu.Tools.RawImageViewer.Swizzle": "Swizzles",
-  "Menu.Tools.RawImageViewer.NoSwizzle": "Không",
-  "Menu.Tools.RawImageViewer.CustomSwizzle": "Tùy Chỉnh",
-  "Menu.Tools.RawImageViewer.RenderSwizzle": "Swizzle Kết Xuất",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Thêm: Nhấn Chuột Trái",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Xóa: Nhấn Chuột Trái",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Di Chuyển: Giữ Chuột Trái + Kéo",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Sao Chép: Alt + C",
-
-  // Sequence Search Dialog
-  // "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
-  "Menu.Tools.TextSequenceSearcher.Execute": "Thực Thi",
-  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Chọn thư mục",
-  "Menu.Tools.TextSequenceSearcher.Input.File": "Chọn tệp",
-  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Thư Mục Con",
-  "Menu.Tools.TextSequenceSearcher.Progress": "Xử Lý",
-  "Menu.Tools.TextSequenceSearcher.Cancel": "Hủy",
-  // "Menu.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
-
-  // Plugins Dialog
-  "Menu.Plugins.Title": "Plugin Đã Cài",
-  "Menu.Plugins.Id": "ID",
-  "Menu.Plugins.Name": "Tên",
-  "Menu.Plugins.Publisher": "Xuất Bản",
-  "Menu.Plugins.Developer": "Phát Triển",
-  "Menu.Plugins.Authors": "Tác Giả",
-  "Menu.Plugins.Platforms": "Hệ Máy",
-  "Menu.Plugins.Type.Archive": "Lưu Trữ",
-  "Menu.Plugins.Type.Image": "Ảnh",
-  "Menu.Plugins.Type.Font": "Font",
-  "Menu.Plugins.Type.Text": "Text",
-
-  // File Preferences Dialog
-  // "Menu.Preferences.Title": "File Preferences", // TODO
-  // "Menu.Preferences.Path": "Path", // TODO
-  "Menu.Preferences.Id": "ID",
-  "Menu.Preferences.Name": "Tên",
-  // "Menu.Preferences.Type.Caption": "Type", // TODO
-  "Menu.Preferences.Type.Archive": "Lưu Trữ",
-  "Menu.Preferences.Type.Image": "Ảnh",
-  "Menu.Preferences.Type.Font": "Font",
-  "Menu.Preferences.Type.Text": "Text",
-  // "Menu.Preferences.Options": "Options", // TODO
-
-  // About Dialog
-  "Menu.About.Title": "Thông Tin Kuriimu2",
-  "Menu.About.Version": "Phiên bản {0}",
-  "Menu.About.Description": "Kuriimu2 là một dự án quản lý dịch trò chơi đa năng\nvà bộ công cụ dành cho các fan thực hiện bản địa hóa\nvà các bản mod trò chơi.",
-
-  // Update Available Dialog
-  "Dialog.UpdateAvailable.Caption": "Đã có cập nhật",
-  "Dialog.UpdateAvailable.Text": "Bạn có muốn cập nhật từ phiên bản {0}-{1} lên phiên bản {2}-{3}?",
-
-  // Exception Dialog
-  "Dialog.ExceptionCatched.Caption": "Đã phát hiện ngoại lệ",
-
-  // Plugins Not Available Dialog
-  "Dialog.PluginsNotAvailable.Caption": "Plugin không có sẵn",
-  "Dialog.PluginsNotAvailable.Text": "Những plugin sau không thể tải:",
-
-  // Unsaved Changes Dialog
-  "Dialog.UnsavedChanges.Caption": "Những thay đổi chưa lưu",
-  "Dialog.UnsavedChanges.Text.Specific": "Đã có các thay đổi đã được thực hiện đối với tệp {0} hoặc các tệp con đang mở của nó. Bạn có muốn lưu những thay đổi đó không?",
-  "Dialog.UnsavedChanges.Text.Generic": "Đã có thay đổi trong một hoặc nhiều tệp. Bạn có muốn lưu những thay đổi đó không?",
-
-  // Dependant Files Dialog
-  "Dialog.DependantFiles.Caption": "Tệp Phụ Thuộc",
-  "Dialog.DependantFiles.Text": "Mọi tệp được mở từ tệp này và các tệp bên dưới cũng sẽ bị đóng. Tiếp tục",
-
-  // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
-
-  // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
-
-  // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  // Help Menu
+  "Menu.Help.Plugins.Installed": "Plugin Đã Cài",
+  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.About": "Thông Tin Kuriimu2",
 
   // Status
   "Status.Plugin.Select.None": "Không có plugin nào được chọn.",
@@ -416,26 +282,165 @@
 
   // Dialogs
 
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Đã có cập nhật",
+  "Dialog.UpdateAvailable.Text": "Bạn có muốn cập nhật từ phiên bản {0}-{1} lên phiên bản {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Đã phát hiện ngoại lệ",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Plugin không có sẵn",
+  "Dialog.PluginsNotAvailable.Text": "Những plugin sau không thể tải:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Những thay đổi chưa lưu",
+  "Dialog.UnsavedChanges.Text.Specific": "Đã có các thay đổi đã được thực hiện đối với tệp {0} hoặc các tệp con đang mở của nó. Bạn có muốn lưu những thay đổi đó không?",
+  "Dialog.UnsavedChanges.Text.Generic": "Đã có thay đổi trong một hoặc nhiều tệp. Bạn có muốn lưu những thay đổi đó không?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Tệp Phụ Thuộc",
+  "Dialog.DependantFiles.Text": "Mọi tệp được mở từ tệp này và các tệp bên dưới cũng sẽ bị đóng. Tiếp tục",
+
+  // Deprecated Info Dialog
+  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
+  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
+  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+
+  // Remove Font Characters Dialog
+  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
+  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+
+  // Remap Font Characters Dialog
+  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
+  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
+  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
-  // Choose Plugin Dialog
-  "Dialog.ChoosePlugin.Caption": "Chọn plugin",
+  // Ciphers Dialog
+  "Dialog.Tools.Ciphers.Caption": "Mật Mã",
+  "Dialog.Tools.Ciphers.Encrypt": "Mã Hóa",
+  "Dialog.Tools.Ciphers.Decrypt": "Giải Mã",
+  "Dialog.Tools.Ciphers.Execute": "Thực Thi",
+  "Dialog.Tools.Ciphers.Input.Folder": "Chọn thư mục",
+  "Dialog.Tools.Ciphers.Input.File": "Chọn tệp",
+  "Dialog.Tools.Ciphers.Input.SubDirectories": "Thư Mục Con",
+  "Dialog.Tools.Ciphers.Input.Parameters": "Thông Số",
+  "Dialog.Tools.Ciphers.Log.Process": "Tệp đang xử lý {0}.",
+  "Dialog.Tools.Ciphers.Log.Error": "Lỗi khi xử lý tệp {0}.",
+  "Dialog.Tools.Ciphers.Progress": "Xử Lý",
+  "Dialog.Tools.Ciphers.Cancel": "Hủy",
 
-  "Dialog.ChoosePlugin.Header.Generic": "Chọn plugin để mở tệp:",
-  "Dialog.ChoosePlugin.Header.Identification.None": "Không thể tự động xác định plugin để mở tệp này,\nvui lòng chọn thủ công.:",
-  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Có nhiều plugin có thể nhận diện tệp này. Vui lòng chọn một:",
-  "Dialog.ChoosePlugin.Header.Identification.Note": "Mặc định, chỉ các plugin không thể tự động xác định rằng chúng hỗ trợ tệp này mới được hiển thị.",
+  // Compressions Dialog
+  "Dialog.Tools.Compressions.Caption": "Kiểu Nén",
+  "Dialog.Tools.Compressions.Decompress": "Giải Nén",
+  "Dialog.Tools.Compressions.Compress": "Nén",
+  "Dialog.Tools.Compressions.Execute": "Thực Thi",
+  "Dialog.Tools.Compressions.Input.Folder": "Chọn thư mục",
+  "Dialog.Tools.Compressions.Input.File": "Chọn tệp",
+  "Dialog.Tools.Compressions.Input.SubDirectories": "Thư Mục Con",
+  "Dialog.Tools.Compressions.Log.Process": "Tệp đang xử lý {0}.",
+  "Dialog.Tools.Compressions.Log.Error": "Lỗi khi xử lý tệp {0}.",
+  "Dialog.Tools.Compressions.Progress": "Xử Lý",
+  "Dialog.Tools.Compressions.Cancel": "Hủy",
 
-  "Dialog.ChoosePlugin.Plugins.Table.Name": "Tên",
-  "Dialog.ChoosePlugin.Plugins.Table.Type": "Loại",
-  "Dialog.ChoosePlugin.Plugins.Table.Description": "Mô Tả",
-  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
+  // Image Transcoder Dialog
+  "Dialog.Tools.ImageTranscoder.Caption": "Giải Mã Ảnh",
+  "Dialog.Tools.ImageTranscoder.File": "Tệp",
+  "Dialog.Tools.ImageTranscoder.File.Open": "Mở",
+  "Dialog.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.ImageTranscoder.Encoding": "Mã Hóa",
+  "Dialog.Tools.ImageTranscoder.PaletteEncoding": "Bảng Màu Mã Hóa",
+  "Dialog.Tools.ImageTranscoder.Quantizer": "Lượng Tử Hóa",
+  "Dialog.Tools.ImageTranscoder.ColorCache": "Bộ Đệm Màu",
+  "Dialog.Tools.ImageTranscoder.Ditherer": "Trình Dither",
+  "Dialog.Tools.ImageTranscoder.NoDitherer": "Trống",
+  "Dialog.Tools.ImageTranscoder.ColorCount": "Số Lượng Màu",
 
-  "Dialog.ChoosePlugin.Continue": "Tiếp Tục",
-  "Dialog.ChoosePlugin.ViewRaw": "Xem raw bytes",
-  "Dialog.ChoosePlugin.Cancel": "Hủy",
-  "Dialog.ChoosePlugin.ShowAll": "Hiện toàn bộ plugin",
+  // Raw Image Viewer Dialog
+  "Dialog.Tools.RawImageViewer.Caption": "Trình Xem Ảnh Raw",
+  "Dialog.Tools.RawImageViewer.File": "Tệp",
+  "Dialog.Tools.RawImageViewer.File.Open": "Mở",
+  "Dialog.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.RawImageViewer.Placeholder": "Giá Trị: 128, 0x80",
+  "Dialog.Tools.RawImageViewer.Width": "Chiều Rộng",
+  "Dialog.Tools.RawImageViewer.Height": "Chiều Cao",
+  "Dialog.Tools.RawImageViewer.Offset": "Offset",
+  "Dialog.Tools.RawImageViewer.PaletteOffset": "Độ Lệch Màu",
+  "Dialog.Tools.RawImageViewer.Encoding": "Mã Hóa",
+  "Dialog.Tools.RawImageViewer.PaletteEncoding": "Bảng Màu Mã Hóa",
+  "Dialog.Tools.RawImageViewer.EncodingComponentOrder": "Kênh Màu",
+  "Dialog.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Thành Phần Bảng Màu",
+  "Dialog.Tools.RawImageViewer.Swizzle": "Swizzles",
+  "Dialog.Tools.RawImageViewer.NoSwizzle": "Không",
+  "Dialog.Tools.RawImageViewer.CustomSwizzle": "Tùy Chỉnh",
+  "Dialog.Tools.RawImageViewer.RenderSwizzle": "Swizzle Kết Xuất",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.AddControl": "Thêm: Nhấn Chuột Trái",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Xóa: Nhấn Chuột Trái",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Di Chuyển: Giữ Chuột Trái + Kéo",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Sao Chép: Alt + C",
+
+  // Sequence Search Dialog
+  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Execute": "Thực Thi",
+  "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Chọn thư mục",
+  "Dialog.Tools.TextSequenceSearcher.Input.File": "Chọn tệp",
+  "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Thư Mục Con",
+  "Dialog.Tools.TextSequenceSearcher.Progress": "Xử Lý",
+  "Dialog.Tools.TextSequenceSearcher.Cancel": "Hủy",
+  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
+  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Installed Plugins Dialog
+  "Dialog.Plugins.Installed.Caption": "Plugin Đã Cài",
+  "Dialog.Plugins.Installed.Id": "ID",
+  "Dialog.Plugins.Installed.Name": "Tên",
+  "Dialog.Plugins.Installed.Publisher": "Xuất Bản",
+  "Dialog.Plugins.Installed.Developer": "Phát Triển",
+  "Dialog.Plugins.Installed.Authors": "Tác Giả",
+  "Dialog.Plugins.Installed.Platforms": "Hệ Máy",
+  "Dialog.Plugins.Installed.Type.Archive": "Lưu Trữ",
+  "Dialog.Plugins.Installed.Type.Image": "Ảnh",
+  "Dialog.Plugins.Installed.Type.Font": "Font",
+  "Dialog.Plugins.Installed.Type.Text": "Text",
+
+  // File Preferences Dialog
+  // "Dialog.Preferences.Caption": "File Preferences", // TODO
+  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Id": "ID",
+  "Dialog.Preferences.Name": "Tên",
+  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+  "Dialog.Preferences.Type.Archive": "Lưu Trữ",
+  "Dialog.Preferences.Type.Image": "Ảnh",
+  "Dialog.Preferences.Type.Font": "Font",
+  "Dialog.Preferences.Type.Text": "Text",
+  // "Dialog.Preferences.Options": "Options", // TODO
+
+  // About Dialog
+  "Dialog.About.Caption": "Thông Tin Kuriimu2",
+  "Dialog.About.Version": "Phiên bản {0}",
+  "Dialog.About.Description": "Kuriimu2 là một dự án quản lý dịch trò chơi đa năng\nvà bộ công cụ dành cho các fan thực hiện bản địa hóa\nvà các bản mod trò chơi.",
+
+  // Manual Selection Plugin Dialog
+  "Dialog.Plugins.ManualSelection.Caption": "Chọn plugin",
+
+  "Dialog.Plugins.ManualSelection.Identification": "Chọn plugin để mở tệp:",
+  "Dialog.Plugins.ManualSelection.Identification.None": "Không thể tự động xác định plugin để mở tệp này,\nvui lòng chọn thủ công.:",
+  "Dialog.Plugins.ManualSelection.Identification.Multiple": "Có nhiều plugin có thể nhận diện tệp này. Vui lòng chọn một:",
+  "Dialog.Plugins.ManualSelection.Identification.Note": "Mặc định, chỉ các plugin không thể tự động xác định rằng chúng hỗ trợ tệp này mới được hiển thị.",
+
+  "Dialog.Plugins.ManualSelection.Name": "Tên",
+  "Dialog.Plugins.ManualSelection.Type": "Loại",
+  "Dialog.Plugins.ManualSelection.Description": "Mô Tả",
+  "Dialog.Plugins.ManualSelection.Id": "ID",
+
+  "Dialog.Plugins.ManualSelection.Continue": "Tiếp Tục",
+  "Dialog.Plugins.ManualSelection.ViewRaw": "Xem raw bytes",
+  "Dialog.Plugins.ManualSelection.Cancel": "Hủy",
+  "Dialog.Plugins.ManualSelection.ShowAll": "Hiện toàn bộ plugin",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Tạo Font",

@@ -11,9 +11,9 @@ using System.Linq;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class PluginsDialog : Modal
+    partial class InstalledPluginsDialog : Modal
     {
-        private void InitializeComponents(IPluginManager pluginManager)
+        private void InitializeComponent(IPluginManager pluginManager)
         {
             var typeList = new global::ImGui.Forms.Controls.Lists.List<Expander>
             {
@@ -28,19 +28,19 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                     Size = Size.WidthAlign,
                     Columns =
                     {
-                        new DataTableColumn<InstalledPlugin>(metadata => $"{metadata.PluginId}", LocalizationResources.MenuPluginsId),
-                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Name, LocalizationResources.MenuPluginsName){SortOrder = 2},
-                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Publisher ?? string.Empty, LocalizationResources.MenuPluginsPublisher){SortOrder = 0},
-                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Developer, LocalizationResources.MenuPluginsDeveloper){SortOrder = 1},
-                        new DataTableColumn<InstalledPlugin>(metadata => string.Join(',', metadata.Metadata.Author.Order()), LocalizationResources.MenuPluginsAuthors),
-                        new DataTableColumn<InstalledPlugin>(metadata => string.Join(',', metadata.Metadata.Platform.Order()), LocalizationResources.MenuPluginsPlatforms)
+                        new DataTableColumn<InstalledPlugin>(metadata => $"{metadata.PluginId}", LocalizationResources.DialogPluginsInstalledId),
+                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Name, LocalizationResources.DialogPluginsInstalledName){SortOrder = 2},
+                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Publisher ?? string.Empty, LocalizationResources.DialogPluginsInstalledPublisher){SortOrder = 0},
+                        new DataTableColumn<InstalledPlugin>(metadata => metadata.Metadata.Developer, LocalizationResources.DialogPluginsInstalledDeveloper){SortOrder = 1},
+                        new DataTableColumn<InstalledPlugin>(metadata => string.Join(',', metadata.Metadata.Author.Order()), LocalizationResources.DialogPluginsInstalledAuthors),
+                        new DataTableColumn<InstalledPlugin>(metadata => string.Join(',', metadata.Metadata.Platform.Order()), LocalizationResources.DialogPluginsInstalledPlatforms)
                     }
                 };
 
                 foreach (var plugin in typeGroup)
                     typePluginTable.Rows.Add(new DataTableRow<InstalledPlugin>(new InstalledPlugin(plugin.PluginId, plugin.Metadata)));
 
-                typeList.Items.Add(new Expander(typePluginTable, LocalizationResources.MenuPluginsType(typeGroup.Key))
+                typeList.Items.Add(new Expander(typePluginTable, LocalizationResources.DialogPluginsInstalledType(typeGroup.Key))
                 {
                     Size = Size.WidthAlign,
                     Expanded = true,
@@ -48,7 +48,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 });
             }
 
-            Caption = LocalizationResources.MenuPluginsTitle;
+            Caption = LocalizationResources.DialogPluginsInstalledCaption;
 
             Content = typeList;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));

@@ -13,14 +13,14 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class ChoosePluginDialog : Modal
+    partial class ManualPluginSelectionDialog : Modal
     {
         private readonly IList<IFilePlugin> _allPlugins;
         private readonly IList<IFilePlugin> _filteredPlugins;
 
         public IFilePlugin SelectedPlugin { get; private set; }
 
-        public ChoosePluginDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
+        public ManualPluginSelectionDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
             InitializeComponent();
 
@@ -30,18 +30,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             switch (status)
             {
                 case SelectionStatus.All:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderGeneric;
+                    _msgLabel.Text = LocalizationResources.DialogPluginsManualSelectionIdentification;
                     _showAllPlugins.Enabled = false;
                     _showAllPlugins.Checked = true;
                     break;
 
                 case SelectionStatus.MultipleMatches:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationMultiple;
+                    _msgLabel.Text = LocalizationResources.DialogPluginsManualSelectionIdentificationMultiple;
                     break;
 
                 case SelectionStatus.NonIdentifiable:
-                    _msgLabel.Text = LocalizationResources.DialogChoosePluginHeaderIdentificationNone;
-                    _showAllPlugins.Tooltip = LocalizationResources.DialogChoosePluginHeaderIdentificationNote;
+                    _msgLabel.Text = LocalizationResources.DialogPluginsManualSelectionIdentificationNone;
+                    _showAllPlugins.Tooltip = LocalizationResources.DialogPluginsManualSelectionIdentificationNote;
                     break;
             }
 
@@ -77,10 +77,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Columns =
                 {
-                    new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.DialogChoosePluginPluginsTableName),
-                    new DataTableColumn<ChoosePluginElement>(e => LocalizationResources.MenuPluginsType(e.Type), LocalizationResources.DialogChoosePluginPluginsTableType),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.DialogChoosePluginPluginsTableDescription),
-                    new DataTableColumn<ChoosePluginElement>(e => e.PluginId.ToString("N"), LocalizationResources.DialogChoosePluginPluginsTableId)
+                    new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.DialogPluginsManualSelectionName),
+                    new DataTableColumn<ChoosePluginElement>(e => LocalizationResources.DialogPluginsInstalledType(e.Type), LocalizationResources.DialogPluginsManualSelectionType),
+                    new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.DialogPluginsManualSelectionDescription),
+                    new DataTableColumn<ChoosePluginElement>(e => $"{e.PluginId}", LocalizationResources.DialogPluginsManualSelectionId)
                 },
                 Rows = plugins,
                 Size = Size.WidthAlign

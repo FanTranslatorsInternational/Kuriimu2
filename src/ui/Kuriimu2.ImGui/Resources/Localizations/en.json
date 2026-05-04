@@ -21,6 +21,8 @@
   "Application.Name": "Kuriimu2",
 
   // Menu
+
+  // Main Menu
   "Menu.File": "File",
   "Menu.Tools": "Tools",
   "Menu.Settings": "Settings",
@@ -53,149 +55,13 @@
   "Menu.Settings.IncludeDevBuilds": "Include Developer Builds",
   "Menu.Settings.ChangeLanguage": "Change Language",
   "Menu.Settings.ChangeTheme": "Change Theme",
-
-  // Theme Menu
   "Menu.Settings.ChangeTheme.Dark": "Dark",
   "Menu.Settings.ChangeTheme.Light": "Light",
 
-  // Ciphers Menu
-  "Menu.Tools.Ciphers.Caption": "Ciphers",
-  "Menu.Tools.Ciphers.Encrypt": "Encrypt",
-  "Menu.Tools.Ciphers.Decrypt": "Decrypt",
-  "Menu.Tools.Ciphers.Execute": "Execute",
-  "Menu.Tools.Ciphers.Input.Folder": "Select folder",
-  "Menu.Tools.Ciphers.Input.File": "Select file",
-  "Menu.Tools.Ciphers.Input.SubDirectories": "Subdirectories",
-  "Menu.Tools.Ciphers.Input.Parameters": "Parameters",
-  "Menu.Tools.Ciphers.Log.Process": "Process file {0}.",
-  "Menu.Tools.Ciphers.Log.Error": "Error processing file {0}.",
-  "Menu.Tools.Ciphers.Progress": "Process",
-  "Menu.Tools.Ciphers.Cancel": "Cancel",
-
-  // Compressions Menu
-  "Menu.Tools.Compressions.Caption": "Compressions",
-  "Menu.Tools.Compressions.Decompress": "Decompress",
-  "Menu.Tools.Compressions.Compress": "Compress",
-  "Menu.Tools.Compressions.Execute": "Execute",
-  "Menu.Tools.Compressions.Input.Folder": "Select folder",
-  "Menu.Tools.Compressions.Input.File": "Select file",
-  "Menu.Tools.Compressions.Input.SubDirectories": "Subdirectories",
-  "Menu.Tools.Compressions.Log.Process": "Process file {0}.",
-  "Menu.Tools.Compressions.Log.Error": "Error processing file {0}.",
-  "Menu.Tools.Compressions.Progress": "Process",
-  "Menu.Tools.Compressions.Cancel": "Cancel",
-
-  // Image Transcoder
-  "Menu.Tools.ImageTranscoder.Caption": "Image Transcoder",
-  "Menu.Tools.ImageTranscoder.File": "File",
-  "Menu.Tools.ImageTranscoder.File.Open": "Open",
-  "Menu.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.ImageTranscoder.Encoding": "Encoding",
-  "Menu.Tools.ImageTranscoder.PaletteEncoding": "Palette Encoding",
-  "Menu.Tools.ImageTranscoder.Quantizer": "Quantizer",
-  "Menu.Tools.ImageTranscoder.ColorCache": "Color Cache",
-  "Menu.Tools.ImageTranscoder.Ditherer": "Ditherer",
-  "Menu.Tools.ImageTranscoder.NoDitherer": "None",
-  "Menu.Tools.ImageTranscoder.ColorCount": "Color Count",
-
-  // Raw Image Viewer
-  "Menu.Tools.RawImageViewer.Caption": "Raw Image Viewer",
-  "Menu.Tools.RawImageViewer.File": "File",
-  "Menu.Tools.RawImageViewer.File.Open": "Open",
-  "Menu.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
-  "Menu.Tools.RawImageViewer.Placeholder": "Value: 128, 0x80",
-  "Menu.Tools.RawImageViewer.Width": "Width",
-  "Menu.Tools.RawImageViewer.Height": "Height",
-  "Menu.Tools.RawImageViewer.Offset": "Offset",
-  "Menu.Tools.RawImageViewer.PaletteOffset": "Palette Offset",
-  "Menu.Tools.RawImageViewer.Encoding": "Encoding",
-  "Menu.Tools.RawImageViewer.PaletteEncoding": "Palette Encoding",
-  "Menu.Tools.RawImageViewer.EncodingComponentOrder": "Components",
-  "Menu.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Palette Components",
-  "Menu.Tools.RawImageViewer.Swizzle": "Swizzles",
-  "Menu.Tools.RawImageViewer.NoSwizzle": "None",
-  "Menu.Tools.RawImageViewer.CustomSwizzle": "Custom",
-  "Menu.Tools.RawImageViewer.RenderSwizzle": "Render Swizzle",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.AddControl": "Add: Left Mouse Click",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Left Mouse Click",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Move: Left Mouse Hold + Drag",
-  "Menu.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copy: Alt + C",
-
-  // Sequence Search Dialog
-  "Menu.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher",
-  "Menu.Tools.TextSequenceSearcher.Execute": "Execute",
-  "Menu.Tools.TextSequenceSearcher.Input.Folder": "Select folder",
-  "Menu.Tools.TextSequenceSearcher.Input.File": "Select file",
-  "Menu.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdirectories",
-  "Menu.Tools.TextSequenceSearcher.Progress": "Process",
-  "Menu.Tools.TextSequenceSearcher.Cancel": "Cancel",
-  "Menu.Tools.TextSequenceSearcher.Path": "Path",
-  "Menu.Tools.TextSequenceSearcher.Offset": "Position",
-  "Menu.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...",
-
-  // Plugins Dialog
-  "Menu.Plugins.Title": "Installed Plugins",
-  "Menu.Plugins.Id": "ID",
-  "Menu.Plugins.Name": "Name",
-  "Menu.Plugins.Publisher": "Publisher",
-  "Menu.Plugins.Developer": "Developer",
-  "Menu.Plugins.Authors": "Authors",
-  "Menu.Plugins.Platforms": "Platforms",
-  "Menu.Plugins.Type.Archive": "Archive",
-  "Menu.Plugins.Type.Image": "Image",
-  "Menu.Plugins.Type.Font": "Font",
-  "Menu.Plugins.Type.Text": "Text",
-
-  // File Preferences Dialog
-  "Menu.Preferences.Title": "File Preferences",
-  "Menu.Preferences.Path": "Path",
-  "Menu.Preferences.Id": "ID",
-  "Menu.Preferences.Name": "Name",
-  "Menu.Preferences.Type.Caption": "Type",
-  "Menu.Preferences.Type.Archive": "Archive",
-  "Menu.Preferences.Type.Image": "Image",
-  "Menu.Preferences.Type.Font": "Font",
-  "Menu.Preferences.Type.Text": "Text",
-  "Menu.Preferences.Options": "Options",
-
-  // About Dialog
-  "Menu.About.Title": "About Kuriimu2",
-  "Menu.About.Version": "Version {0}",
-  "Menu.About.Description": "Kuriimu2 is a general purpose game translation project\nmanager and toolkit for authors of fan translations and\ngame mods.",
-
-  // Update Available Dialog
-  "Dialog.UpdateAvailable.Caption": "Update available",
-  "Dialog.UpdateAvailable.Text": "Do you want to update from {0}-{1} to {2}-{3}?",
-
-  // Exception Dialog
-  "Dialog.ExceptionCatched.Caption": "Exception catched",
-
-  // Plugins Not Available Dialog
-  "Dialog.PluginsNotAvailable.Caption": "Plugins not available",
-  "Dialog.PluginsNotAvailable.Text": "Following plugins could not be loaded:",
-
-  // Unsaved Changes Dialog
-  "Dialog.UnsavedChanges.Caption": "Unsaved changes",
-  "Dialog.UnsavedChanges.Text.Specific": "Changes were made to {0} or its opened sub files. Do you want to save those changes?",
-  "Dialog.UnsavedChanges.Text.Generic": "Changes were made to one or more files. Do you want to save those changes?",
-
-  // Dependant Files Dialog
-  "Dialog.DependantFiles.Caption": "Dependant files",
-  "Dialog.DependantFiles.Text": "Every file opened from this one and below will be closed too. Continue?",
-
-  // Deprecated Info Dialog
-  "Dialog.Deprecated.Caption": "Deprecated plugin",
-  "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.",
-  "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:",
-
-  // Remove Font Characters Dialog
-  "Dialog.Font.Remove.Caption": "Remove Characters",
-  "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?",
-
-  // Remap Font Characters Dialog
-  "Dialog.Font.Remapping.Caption": "Remap Characters",
-  "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:",
-  "Dialog.Font.Remapping.Remap": "Remap",
+  // Help Menu
+  "Menu.Help.Plugins.Installed": "Installed Plugins",
+  "Menu.Help.Preferences": "File Preferences",
+  "Menu.Help.About": "About Kuriimu2",
 
   // Status
   "Status.Plugin.Select.None": "No plugin selected.",
@@ -416,26 +282,165 @@
 
   // Dialogs
 
+  // Update Available Dialog
+  "Dialog.UpdateAvailable.Caption": "Update available",
+  "Dialog.UpdateAvailable.Text": "Do you want to update from {0}-{1} to {2}-{3}?",
+
+  // Exception Dialog
+  "Dialog.ExceptionCatched.Caption": "Exception catched",
+
+  // Plugins Not Available Dialog
+  "Dialog.PluginsNotAvailable.Caption": "Plugins not available",
+  "Dialog.PluginsNotAvailable.Text": "Following plugins could not be loaded:",
+
+  // Unsaved Changes Dialog
+  "Dialog.UnsavedChanges.Caption": "Unsaved changes",
+  "Dialog.UnsavedChanges.Text.Specific": "Changes were made to {0} or its opened sub files. Do you want to save those changes?",
+  "Dialog.UnsavedChanges.Text.Generic": "Changes were made to one or more files. Do you want to save those changes?",
+
+  // Dependant Files Dialog
+  "Dialog.DependantFiles.Caption": "Dependant files",
+  "Dialog.DependantFiles.Text": "Every file opened from this one and below will be closed too. Continue?",
+
+  // Deprecated Info Dialog
+  "Dialog.Deprecated.Caption": "Deprecated plugin",
+  "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.",
+  "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:",
+
+  // Remove Font Characters Dialog
+  "Dialog.Font.Remove.Caption": "Remove Characters",
+  "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?",
+
+  // Remap Font Characters Dialog
+  "Dialog.Font.Remapping.Caption": "Remap Characters",
+  "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:",
+  "Dialog.Font.Remapping.Remap": "Remap",
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
-  // Choose Plugin Dialog
-  "Dialog.ChoosePlugin.Caption": "Choose plugin",
+  // Ciphers Dialog
+  "Dialog.Tools.Ciphers.Caption": "Ciphers",
+  "Dialog.Tools.Ciphers.Encrypt": "Encrypt",
+  "Dialog.Tools.Ciphers.Decrypt": "Decrypt",
+  "Dialog.Tools.Ciphers.Execute": "Execute",
+  "Dialog.Tools.Ciphers.Input.Folder": "Select folder",
+  "Dialog.Tools.Ciphers.Input.File": "Select file",
+  "Dialog.Tools.Ciphers.Input.SubDirectories": "Subdirectories",
+  "Dialog.Tools.Ciphers.Input.Parameters": "Parameters",
+  "Dialog.Tools.Ciphers.Log.Process": "Process file {0}.",
+  "Dialog.Tools.Ciphers.Log.Error": "Error processing file {0}.",
+  "Dialog.Tools.Ciphers.Progress": "Process",
+  "Dialog.Tools.Ciphers.Cancel": "Cancel",
 
-  "Dialog.ChoosePlugin.Header.Generic": "Choose plugin to open the file with:",
-  "Dialog.ChoosePlugin.Header.Identification.None": "Could not automatically determine plugin for opening this file,\nplease choose manually:",
-  "Dialog.ChoosePlugin.Header.Identification.Multiple": "Multiple plugins can identify this file. Please choose one:",
-  "Dialog.ChoosePlugin.Header.Identification.Note": "By default only plugins that couldn't automatically determine if they support the file are shown.",
+  // Compressions Dialog
+  "Dialog.Tools.Compressions.Caption": "Compressions",
+  "Dialog.Tools.Compressions.Decompress": "Decompress",
+  "Dialog.Tools.Compressions.Compress": "Compress",
+  "Dialog.Tools.Compressions.Execute": "Execute",
+  "Dialog.Tools.Compressions.Input.Folder": "Select folder",
+  "Dialog.Tools.Compressions.Input.File": "Select file",
+  "Dialog.Tools.Compressions.Input.SubDirectories": "Subdirectories",
+  "Dialog.Tools.Compressions.Log.Process": "Process file {0}.",
+  "Dialog.Tools.Compressions.Log.Error": "Error processing file {0}.",
+  "Dialog.Tools.Compressions.Progress": "Process",
+  "Dialog.Tools.Compressions.Cancel": "Cancel",
 
-  "Dialog.ChoosePlugin.Plugins.Table.Name": "Name",
-  "Dialog.ChoosePlugin.Plugins.Table.Type": "Type",
-  "Dialog.ChoosePlugin.Plugins.Table.Description": "Description",
-  "Dialog.ChoosePlugin.Plugins.Table.Id": "ID",
+  // Image Transcoder Dialog
+  "Dialog.Tools.ImageTranscoder.Caption": "Image Transcoder",
+  "Dialog.Tools.ImageTranscoder.File": "File",
+  "Dialog.Tools.ImageTranscoder.File.Open": "Open",
+  "Dialog.Tools.ImageTranscoder.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.ImageTranscoder.Encoding": "Encoding",
+  "Dialog.Tools.ImageTranscoder.PaletteEncoding": "Palette Encoding",
+  "Dialog.Tools.ImageTranscoder.Quantizer": "Quantizer",
+  "Dialog.Tools.ImageTranscoder.ColorCache": "Color Cache",
+  "Dialog.Tools.ImageTranscoder.Ditherer": "Ditherer",
+  "Dialog.Tools.ImageTranscoder.NoDitherer": "None",
+  "Dialog.Tools.ImageTranscoder.ColorCount": "Color Count",
 
-  "Dialog.ChoosePlugin.Continue": "Continue",
-  "Dialog.ChoosePlugin.ViewRaw": "View raw bytes",
-  "Dialog.ChoosePlugin.Cancel": "Cancel",
-  "Dialog.ChoosePlugin.ShowAll": "Show all plugins",
+  // Raw Image Viewer Dialog
+  "Dialog.Tools.RawImageViewer.Caption": "Raw Image Viewer",
+  "Dialog.Tools.RawImageViewer.File": "File",
+  "Dialog.Tools.RawImageViewer.File.Open": "Open",
+  "Dialog.Tools.RawImageViewer.File.Open.Shortcut": "Ctrl+O",
+  "Dialog.Tools.RawImageViewer.Placeholder": "Value: 128, 0x80",
+  "Dialog.Tools.RawImageViewer.Width": "Width",
+  "Dialog.Tools.RawImageViewer.Height": "Height",
+  "Dialog.Tools.RawImageViewer.Offset": "Offset",
+  "Dialog.Tools.RawImageViewer.PaletteOffset": "Palette Offset",
+  "Dialog.Tools.RawImageViewer.Encoding": "Encoding",
+  "Dialog.Tools.RawImageViewer.PaletteEncoding": "Palette Encoding",
+  "Dialog.Tools.RawImageViewer.EncodingComponentOrder": "Components",
+  "Dialog.Tools.RawImageViewer.PaletteEncodingComponentOrder": "Palette Components",
+  "Dialog.Tools.RawImageViewer.Swizzle": "Swizzles",
+  "Dialog.Tools.RawImageViewer.NoSwizzle": "None",
+  "Dialog.Tools.RawImageViewer.CustomSwizzle": "Custom",
+  "Dialog.Tools.RawImageViewer.RenderSwizzle": "Render Swizzle",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.AddControl": "Add: Left Mouse Click",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.RemoveControl": "Remove: Left Mouse Click",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.MoveControl": "Move: Left Mouse Hold + Drag",
+  "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copy: Alt + C",
+
+  // Text Sequence Search Dialog
+  "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher",
+  "Dialog.Tools.TextSequenceSearcher.Execute": "Execute",
+  "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Select folder",
+  "Dialog.Tools.TextSequenceSearcher.Input.File": "Select file",
+  "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdirectories",
+  "Dialog.Tools.TextSequenceSearcher.Progress": "Process",
+  "Dialog.Tools.TextSequenceSearcher.Cancel": "Cancel",
+  "Dialog.Tools.TextSequenceSearcher.Path": "Path",
+  "Dialog.Tools.TextSequenceSearcher.Offset": "Position",
+  "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...",
+
+  // Installed Plugins Dialog
+  "Dialog.Plugins.Installed.Caption": "Installed Plugins",
+  "Dialog.Plugins.Installed.Id": "ID",
+  "Dialog.Plugins.Installed.Name": "Name",
+  "Dialog.Plugins.Installed.Publisher": "Publisher",
+  "Dialog.Plugins.Installed.Developer": "Developer",
+  "Dialog.Plugins.Installed.Authors": "Authors",
+  "Dialog.Plugins.Installed.Platforms": "Platforms",
+  "Dialog.Plugins.Installed.Type.Archive": "Archive",
+  "Dialog.Plugins.Installed.Type.Image": "Image",
+  "Dialog.Plugins.Installed.Type.Font": "Font",
+  "Dialog.Plugins.Installed.Type.Text": "Text",
+
+  // File Preferences Dialog
+  "Dialog.Preferences.Caption": "File Preferences",
+  "Dialog.Preferences.Path": "Path",
+  "Dialog.Preferences.Id": "ID",
+  "Dialog.Preferences.Name": "Name",
+  "Dialog.Preferences.Type.Caption": "Type",
+  "Dialog.Preferences.Type.Archive": "Archive",
+  "Dialog.Preferences.Type.Image": "Image",
+  "Dialog.Preferences.Type.Font": "Font",
+  "Dialog.Preferences.Type.Text": "Text",
+  "Dialog.Preferences.Options": "Options",
+
+  // About Dialog
+  "Dialog.About.Caption": "About Kuriimu2",
+  "Dialog.About.Version": "Version {0}",
+  "Dialog.About.Description": "Kuriimu2 is a general purpose game translation project\nmanager and toolkit for authors of fan translations and\ngame mods.",
+
+  // Manual Selection Plugin Dialog
+  "Dialog.Plugins.ManualSelection.Caption": "Choose plugin",
+
+  "Dialog.Plugins.ManualSelection.Identification": "Choose plugin to open the file with:",
+  "Dialog.Plugins.ManualSelection.Identification.None": "Could not automatically determine plugin for opening this file,\nplease choose manually:",
+  "Dialog.Plugins.ManualSelection.Identification.Multiple": "Multiple plugins can identify this file. Please choose one:",
+  "Dialog.Plugins.ManualSelection.Identification.Note": "By default only plugins that couldn't automatically determine if they support the file are shown.",
+
+  "Dialog.Plugins.ManualSelection.Name": "Name",
+  "Dialog.Plugins.ManualSelection.Type": "Type",
+  "Dialog.Plugins.ManualSelection.Description": "Description",
+  "Dialog.Plugins.ManualSelection.Id": "ID",
+
+  "Dialog.Plugins.ManualSelection.Continue": "Continue",
+  "Dialog.Plugins.ManualSelection.ViewRaw": "View raw bytes",
+  "Dialog.Plugins.ManualSelection.Cancel": "Cancel",
+  "Dialog.Plugins.ManualSelection.ShowAll": "Show all plugins",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Generate Font",

@@ -33,16 +33,16 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializeComponent()
         {
-            _searchTextBox = new TextBox { Placeholder = LocalizationResources.MenuToolsTextSequenceSearcherSearchPlaceholder };
+            _searchTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsTextSequenceSearcherSearchPlaceholder };
             _encodingBox = new ComboBox<Encoding> { Width = SizeValue.Parent };
 
             _inputTextBox = new TextBox { IsReadOnly = true };
-            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsTextSequenceSearcherInputFile };
-            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsTextSequenceSearcherInputFolder };
-            _subDirCheckBox = new CheckBox { Checked = SettingsResources.SequenceSearchSubDirectories, Text = LocalizationResources.MenuToolsTextSequenceSearcherInputSubDirectories };
+            _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherInputFile };
+            _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherInputFolder };
+            _subDirCheckBox = new CheckBox { Checked = SettingsResources.SequenceSearchSubDirectories, Text = LocalizationResources.DialogToolsTextSequenceSearcherInputSubDirectories };
 
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsTextSequenceSearcherExecute, KeyAction = new(ImGuiKey.Enter) };
-            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.MenuToolsTextSequenceSearcherCancel, Enabled = false };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherExecute, KeyAction = new(ImGuiKey.Enter) };
+            _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherCancel, Enabled = false };
 
             _resultTable = new DataTable<SequenceSearcherResult>
             {
@@ -52,8 +52,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 CanSelectMultiple = true,
                 Columns =
                 {
-                    new DataTableColumn<SequenceSearcherResult>(value => value.FilePath, LocalizationResources.MenuToolsTextSequenceSearcherPath),
-                    new DataTableColumn<SequenceSearcherResult>(value => $"{value.Offset}", LocalizationResources.MenuToolsTextSequenceSearcherOffset)
+                    new DataTableColumn<SequenceSearcherResult>(value => value.FilePath, LocalizationResources.DialogToolsTextSequenceSearcherPath),
+                    new DataTableColumn<SequenceSearcherResult>(value => $"{value.Offset}", LocalizationResources.DialogToolsTextSequenceSearcherOffset)
                 }
             };
 
@@ -61,7 +61,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             {
                 Size = new Size(SizeValue.Parent, 24),
                 ProgressColor = ColorResources.Progress,
-                Text = LocalizationResources.MenuToolsTextSequenceSearcherProgress
+                Text = LocalizationResources.DialogToolsTextSequenceSearcherProgress
             };
 
             _settingsLayout = new StackLayout
@@ -112,7 +112,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 }
             };
 
-            Caption = LocalizationResources.MenuToolsTextSequenceSearcherCaption;
+            Caption = LocalizationResources.DialogToolsTextSequenceSearcherCaption;
 
             Content = _mainLayout;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
