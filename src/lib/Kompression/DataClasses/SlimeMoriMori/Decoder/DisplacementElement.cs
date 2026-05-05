@@ -1,14 +1,8 @@
 ﻿namespace Kompression.DataClasses.SlimeMoriMori.Decoder
 {
-    internal class DisplacementElement
+    internal class DisplacementElement(int readBits, int displacementStart)
     {
-        public int ReadBits { get; }
-        public int DisplacementStart { get; }
-
-        public DisplacementElement(int readBits, int displacementStart)
-        {
-            ReadBits = readBits;
-            DisplacementStart = displacementStart;
-        }
+        public int ReadBits { get; } = readBits;
+        public int DisplacementStart { get; } = displacementStart;
     }
 }

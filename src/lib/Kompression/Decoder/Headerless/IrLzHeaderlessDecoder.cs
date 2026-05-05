@@ -34,7 +34,7 @@ namespace Kompression.Decoder.Headerless
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
@@ -44,9 +44,9 @@ namespace Kompression.Decoder.Headerless
             circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
-            // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
+            // A compressed block starts with 2 bytes; if there are < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
                 throw new StreamTooShortException();
 
@@ -67,7 +67,7 @@ namespace Kompression.Decoder.Headerless
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

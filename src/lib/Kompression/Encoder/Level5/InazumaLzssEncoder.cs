@@ -7,12 +7,7 @@ namespace Kompression.Encoder.Level5
 {
     public class InazumaLzssEncoder : ILempelZivEncoder
     {
-        private Lzss01HeaderlessEncoder _encoder;
-
-        public InazumaLzssEncoder()
-        {
-            _encoder = new Lzss01HeaderlessEncoder();
-        }
+        private readonly Lzss01HeaderlessEncoder _encoder = new();
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -25,7 +20,7 @@ namespace Kompression.Encoder.Level5
             _encoder.Encode(input, output, matches);
 
             output.Position = 0;
-            output.Write(new byte[] { 0x53, 0x53, 0x5A, 0x4C }, 0, 4);  // SSZL
+            output.Write("SSZL"u8.ToArray(), 0, 4);  // SSZL
 
             output.Position += 4;
             var compressedBuffer = new[]
@@ -47,10 +42,6 @@ namespace Kompression.Encoder.Level5
             output.Write(decompressedSizeBuffer, 0, 4);
 
             output.Position = output.Length;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

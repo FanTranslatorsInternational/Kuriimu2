@@ -2,37 +2,23 @@
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
-    class SlimePriceCalculator : ILempelZivPriceCalculator
+    internal class SlimePriceCalculator(int compressionMode, int huffmanMode) : ILempelZivPriceCalculator
     {
-        private readonly int _compressionMode;
-        private readonly int _huffmanMode;
-
-        public SlimePriceCalculator(int compressionMode, int huffmanMode)
-        {
-            _compressionMode = compressionMode;
-            _huffmanMode = huffmanMode;
-        }
-
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
             // 1 flag bit
             // n bit value (huffman approximation)
-            switch (_huffmanMode)
+            return huffmanMode switch
             {
-                case 1:
-                    return 4;
-
-                case 2:
-                    return 7;
-
-                default:
-                    return 9;
-            }
+                1 => 4,
+                2 => 7,
+                _ => 9
+            };
         }
 
         public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
-            switch (_compressionMode)
+            switch (compressionMode)
             {
                 case 1:
                     // 1 flag bit

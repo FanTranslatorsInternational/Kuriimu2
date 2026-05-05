@@ -8,19 +8,10 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
     /// <summary>
     /// Find sequences of the same value.
     /// </summary>
-    public class RleMatchFinder : ILempelZivMatchFinder
+    public class RleMatchFinder(LempelZivMatchFinderOptions options) : ILempelZivMatchFinder
     {
         /// <inheritdoc />
-        public LempelZivMatchFinderOptions Options { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="RleMatchFinder"/>.
-        /// </summary>
-        /// <param name="options">The options to search sequences with.</param>
-        public RleMatchFinder(LempelZivMatchFinderOptions options)
-        {
-            Options = options;
-        }
+        public LempelZivMatchFinderOptions Options { get; } = options;
 
         /// <inheritdoc />
         public void PreProcess(byte[] input)
@@ -57,10 +48,6 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
             }
 
             return new LempelZivAggregateMatch(0, cappedLength - cappedLength % (int)Options.UnitSize);
-        }
-        
-        public void Dispose()
-        {
         }
     }
 }

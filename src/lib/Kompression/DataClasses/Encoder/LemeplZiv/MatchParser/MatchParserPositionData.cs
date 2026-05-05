@@ -2,15 +2,15 @@
 
 namespace Kompression.DataClasses.Encoder.LemeplZiv.MatchParser
 {
-    internal class MatchParserPositionData
+    internal class MatchParserPositionData(int currentRunLength, bool isMatchRun, MatchParserPositionData? parent, int price)
     {
-        private int _runValue;
+        private int _runValue = isMatchRun ? -currentRunLength : currentRunLength;
 
-        public MatchParserPositionData? Parent { get; set; }
+        public MatchParserPositionData? Parent { get; set; } = parent;
 
         public LempelZivMatch? Match { get; set; }
 
-        public int Price { get; set; }
+        public int Price { get; set; } = price;
 
         public int CurrentRunLength
         {
@@ -28,16 +28,9 @@ namespace Kompression.DataClasses.Encoder.LemeplZiv.MatchParser
             }
         }
 
-        public MatchParserPositionData(int currentRunLength, bool isMatchRun)
+        public MatchParserPositionData(int currentRunLength, bool isMatchRun) :
+            this(currentRunLength, isMatchRun, null, 0)
         {
-            _runValue = isMatchRun ? -currentRunLength : currentRunLength;
-        }
-
-        public MatchParserPositionData(int currentRunLength, bool isMatchRun, MatchParserPositionData? parent, int price) :
-            this(currentRunLength, isMatchRun)
-        {
-            Parent = parent;
-            Price = price;
         }
     }
 }

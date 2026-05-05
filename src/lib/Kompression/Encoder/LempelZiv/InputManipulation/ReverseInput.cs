@@ -4,7 +4,7 @@ using Kompression.Contract.Encoder.LempelZiv.InputManipulation;
 
 namespace Kompression.Encoder.LempelZiv.InputManipulation
 {
-    class ReverseInput : IInputManipulation
+    internal class ReverseInput : IInputManipulation
     {
         private long _streamLength;
 

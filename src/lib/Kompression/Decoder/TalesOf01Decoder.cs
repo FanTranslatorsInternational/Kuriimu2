@@ -6,13 +6,6 @@ namespace Kompression.Decoder
 {
     public class TalesOf01Decoder : IDecoder
     {
-        private Lzss01HeaderlessDecoder _decoder;
-
-        public TalesOf01Decoder()
-        {
-            _decoder = new Lzss01HeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             if (input.ReadByte() != 0x01)
@@ -21,15 +14,15 @@ namespace Kompression.Decoder
             var buffer = new byte[8];
 
             _ = input.Read(buffer);
-            int compressedDataSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-            int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer[4..]);
+            _ = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+            int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(4));
 
-            _decoder.Decode(input, output, decompressedSize);
+            Lzss01HeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

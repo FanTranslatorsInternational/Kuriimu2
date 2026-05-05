@@ -6,13 +6,6 @@ namespace Kompression.Decoder.Level5
 {
     public class RleDecoder : IDecoder
     {
-        private readonly RleHeaderlessDecoder _decoder;
-
-        public RleDecoder()
-        {
-            _decoder = new RleHeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -24,12 +17,12 @@ namespace Kompression.Decoder.Level5
             int decompressedSize = buffer[0] >> 3 | buffer[1] << 5 |
                                    buffer[2] << 13 | buffer[3] << 21;
 
-            _decoder.Decode(input, output, decompressedSize);
+            RleHeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Kompression.Encoder.LempelZiv.PriceCalculators
 {
     public class LzssVlcPriceCalculator : ILempelZivPriceCalculator
     {
-        private readonly int[] _runLengthThresholds = { 0x10, 0x80, 0x4000, 0x200000, 0x10000000 };
+        private readonly int[] _runLengthThresholds = [0x10, 0x80, 0x4000, 0x200000, 0x10000000];
 
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {

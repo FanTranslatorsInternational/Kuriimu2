@@ -6,13 +6,13 @@ namespace Kompression.Encoder.Headerless
 {
     public class RleHeaderlessEncoder
     {
-        public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
+        public static void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new NintendoRlePriceCalculator())
                 .FindRunLength().WithinLimitations(3, 0x82);
         }
 
-        public void Encode(Stream input, Stream output, IEnumerable<LempelZivMatch> matches)
+        public static void Encode(Stream input, Stream output, IEnumerable<LempelZivMatch> matches)
         {
             var buffer = new byte[0x80];
             foreach (var match in matches)
@@ -36,7 +36,7 @@ namespace Kompression.Encoder.Headerless
             }
         }
 
-        private void HandleUncompressedData(Stream input, Stream output, byte[] buffer, int dataLength)
+        private static void HandleUncompressedData(Stream input, Stream output, byte[] buffer, int dataLength)
         {
             while (dataLength > 0)
             {
@@ -50,7 +50,7 @@ namespace Kompression.Encoder.Headerless
             }
         }
 
-        private void HandleCompressedBlock(Stream output, byte value, int repetition)
+        private static void HandleCompressedBlock(Stream output, byte value, int repetition)
         {
             while (repetition > 0)
             {

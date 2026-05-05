@@ -5,21 +5,21 @@ using Kompression.IO;
 
 namespace Kompression.Decoder
 {
-    class StingLzDecoder : IDecoder
+    internal class StingLzDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[12];
 
             // Read header information
-            _ = input.Read(buffer[..4]);
+            _ = input.Read(buffer.AsSpan(0, 4));
             if (buffer[0] is not 0x4C || buffer[1] is not 0x5A || buffer[2] is not 0x37 || buffer[3] is not 0x37) // LZ77
                 throw new InvalidCompressionException(nameof(StingLzDecoder));
 
             _ = input.Read(buffer);
             var decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-            var tokenCount = BinaryPrimitives.ReadInt32LittleEndian(buffer[4..]);
-            var dataOffset = BinaryPrimitives.ReadInt32LittleEndian(buffer[8..]);
+            var tokenCount = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(4));
+            var dataOffset = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(8));
 
             // Read compressed data
             var flagOffset = 0x10;
@@ -63,7 +63,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

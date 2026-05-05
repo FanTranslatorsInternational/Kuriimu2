@@ -7,12 +7,7 @@ namespace Kompression.Encoder.Nintendo
 {
     public class Lz10Encoder : ILempelZivEncoder
     {
-        private readonly Lz10HeaderlessEncoder _encoder;
-
-        public Lz10Encoder()
-        {
-            _encoder = new Lz10HeaderlessEncoder();
-        }
+        private readonly Lz10HeaderlessEncoder _encoder = new();
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -28,11 +23,6 @@ namespace Kompression.Encoder.Nintendo
             output.Write(compressionHeader, 0, 4);
 
             _encoder.Encode(input, output, matches);
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

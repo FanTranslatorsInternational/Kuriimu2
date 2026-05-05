@@ -11,8 +11,10 @@ namespace Kompression.Decoder
             lzma.Decompress(input, output);
         }
 
-        public void Dispose()
+        public void 
+            Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -4,14 +4,9 @@ using Kompression.InternalContract.SlimeMoriMori.ValueWriter;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueWriter
 {
-    class HuffmanWriter : IValueWriter
+    internal class HuffmanWriter(HuffmanTreeNode huffmanTree) : IValueWriter
     {
-        private IDictionary<int, string> _huffmanCodes;
-
-        public HuffmanWriter(HuffmanTreeNode huffmanTree)
-        {
-            _huffmanCodes = huffmanTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
-        }
+        private readonly Dictionary<int, string> _huffmanCodes = huffmanTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
         public void WriteValue(BinaryBitWriter bw, byte value)
         {

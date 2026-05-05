@@ -11,7 +11,7 @@ namespace Kompression.Decoder.Headerless
             Decode(input, output, -1);
         }
 
-        public void Decode(Stream input, Stream output, int decompressedSize)
+        public static void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000);
 
@@ -37,7 +37,7 @@ namespace Kompression.Decoder.Headerless
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
@@ -47,7 +47,7 @@ namespace Kompression.Decoder.Headerless
             circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
@@ -68,7 +68,7 @@ namespace Kompression.Decoder.Headerless
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private bool ShouldContinue(Stream input, Stream output, int decompressedSize)
+        private static bool ShouldContinue(Stream input, Stream output, int decompressedSize)
         {
             if (decompressedSize < 0)
                 return input.Position < input.Length;
@@ -78,7 +78,7 @@ namespace Kompression.Decoder.Headerless
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

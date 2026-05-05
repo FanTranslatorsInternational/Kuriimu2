@@ -1,5 +1,4 @@
-﻿using K4os.Compression.LZ4.Encoders;
-using Komponent.Contract.Enums;
+﻿using Komponent.Contract.Enums;
 using Kompression.Configuration;
 using Kompression.Contract.Configuration;
 using Kompression.Contract.Enums.Encoder.Huffman;

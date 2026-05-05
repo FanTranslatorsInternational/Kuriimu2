@@ -5,7 +5,7 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder.Headerless
 {
-    class ShadeLzHeaderlessEncoder : ILempelZivEncoder
+    internal class ShadeLzHeaderlessEncoder : ILempelZivEncoder
     {
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -28,7 +28,7 @@ namespace Kompression.Encoder.Headerless
                 WriteRawData(input, output, input.Length - input.Position);
         }
 
-        private void WriteRawData(Stream input, Stream output, long length)
+        private static void WriteRawData(Stream input, Stream output, long length)
         {
             while (length > 0)
             {
@@ -48,7 +48,7 @@ namespace Kompression.Encoder.Headerless
             }
         }
 
-        private void WriteMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
+        private static void WriteMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
         {
             var length = lempelZivMatch.Length - 4;
             if (lempelZivMatch.Displacement == 0)
@@ -87,10 +87,6 @@ namespace Kompression.Encoder.Headerless
             }
 
             input.Position += lempelZivMatch.Length;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

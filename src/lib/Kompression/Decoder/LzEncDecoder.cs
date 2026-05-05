@@ -36,7 +36,7 @@ namespace Kompression.Decoder
             MainLoop(input, output, circularBuffer);
         }
 
-        private void MainLoop(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void MainLoop(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             while (true)
             {
@@ -112,7 +112,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private void SubLoop(Stream input, Stream output, CircularBuffer circularBuffer, byte codeByte)
+        private static void SubLoop(Stream input, Stream output, CircularBuffer circularBuffer, byte codeByte)
         {
             while (true)
             {
@@ -130,7 +130,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private bool ReadSubLoopRawData(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static bool ReadSubLoopRawData(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // Raw Data read
             var codeByte = (byte)input.ReadByte();
@@ -148,7 +148,7 @@ namespace Kompression.Decoder
             return false;
         }
 
-        private bool ReadSubLoopMatch(Stream input, Stream output, CircularBuffer circularBuffer, out byte codeByte)
+        private static bool ReadSubLoopMatch(Stream input, Stream output, CircularBuffer circularBuffer, out byte codeByte)
         {
             // Read LZ match
             codeByte = (byte)input.ReadByte();
@@ -166,7 +166,7 @@ namespace Kompression.Decoder
             return false;
         }
 
-        private void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, int count)
+        private static void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, int count)
         {
             for (int i = 0; i < count; i++)
             {
@@ -177,7 +177,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private int ReadVariableLength(Stream input, int bitCount)
+        private static int ReadVariableLength(Stream input, int bitCount)
         {
             var length = 0;
             var flag = input.ReadByte();
@@ -192,7 +192,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -4,18 +4,11 @@ using Kompression.InternalContract.SlimeMoriMori.ValueWriter;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoder
 {
-    class SlimeMode2Encoder : SlimeEncoder
+    internal class SlimeMode2Encoder(IValueWriter valueWriter) : SlimeEncoder
     {
-        private IValueWriter _valueWriter;
-
-        public SlimeMode2Encoder(IValueWriter valueWriter)
-        {
-            _valueWriter = valueWriter;
-        }
-
         public override void Encode(Stream input, BinaryBitWriter bw, LempelZivMatch[] matches)
         {
-            CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 7);
+            CreateDisplacementTable([.. matches.Select(x => x.Displacement)], 7);
             WriteDisplacementTable(bw);
 
             foreach (var match in matches)
@@ -45,7 +38,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
                 bw.WriteBit(0);
 
                 for (var i = 0; i < rawLength; i++)
-                    _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+                    valueWriter.WriteValue(bw, (byte)input.ReadByte());
             }
             else
             {
@@ -53,7 +46,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
                 for (var i = 0; i < rawLength; i++)
                 {
                     bw.WriteBit(0);
-                    _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+                    valueWriter.WriteValue(bw, (byte)input.ReadByte());
                 }
             }
         }
@@ -67,24 +60,24 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
             if (lempelZivMatch.Length <= 18)
             {
                 bw.WriteBits(dispIndex, 3);
-                bw.WriteBits((int)lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits((int)lempelZivMatch.Length - 3, 4);
+                bw.WriteBits(lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
+                bw.WriteBits(lempelZivMatch.Length - 3, 4);
             }
             else
             {
                 bw.WriteBits(0x7, 3);
 
-                var vleBits = GetVleBitCount(((int)lempelZivMatch.Length - 3) >> 4);
-                WriteVleValue(bw, ((int)lempelZivMatch.Length - 3) >> 4, vleBits);
+                var vleBits = GetVleBitCount((lempelZivMatch.Length - 3) >> 4);
+                WriteVleValue(bw, (lempelZivMatch.Length - 3) >> 4, vleBits);
 
                 bw.WriteBit(1);
                 bw.WriteBits(dispIndex, 3);
-                bw.WriteBits((int)lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits(((int)lempelZivMatch.Length - 3) & 0xF, 4);
+                bw.WriteBits(lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
+                bw.WriteBits((lempelZivMatch.Length - 3) & 0xF, 4);
             }
         }
 
-        private int GetVleBitCount(int value)
+        private static int GetVleBitCount(int value)
         {
             if (value == 0)
                 return 4;
@@ -99,7 +92,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
             return vleBits;
         }
 
-        private void WriteVleValue(BinaryBitWriter bw, int value, int vleBits)
+        private static void WriteVleValue(BinaryBitWriter bw, int value, int vleBits)
         {
             var valueBits = vleBits / 4 * 3;
             while (valueBits > 0)

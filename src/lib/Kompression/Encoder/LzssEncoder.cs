@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using Komponent.IO;
+﻿using Komponent.IO;
 using Kompression.Contract.Configuration;
 using Kompression.Contract.DataClasses.Encoder.LempelZiv;
 using Kompression.Contract.Encoder;
@@ -9,12 +8,7 @@ namespace Kompression.Encoder
 {
     public class LzssEncoder : ILempelZivEncoder
     {
-        private Lz10HeaderlessEncoder _encoder;
-
-        public LzssEncoder()
-        {
-            _encoder = new Lz10HeaderlessEncoder();
-        }
+        private readonly Lz10HeaderlessEncoder _encoder = new();
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -30,7 +24,7 @@ namespace Kompression.Encoder
             using var bw = new BinaryWriterX(output, true);
 
             var outputPos = output.Position;
-            var buffer = new byte[] { 0x53, 0x53, 0x5A, 0x4C };
+            var buffer = "SSZL"u8.ToArray();
 
             output.Position = outputStartPos;
             bw.Write(buffer);
@@ -39,11 +33,6 @@ namespace Kompression.Encoder
             bw.Write((int)input.Length);
 
             output.Position = outputPos;
-        }
-
-        public void Dispose()
-        {
-            _encoder = null;
         }
     }
 }

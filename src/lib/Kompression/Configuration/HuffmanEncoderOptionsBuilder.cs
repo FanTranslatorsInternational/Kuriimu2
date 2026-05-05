@@ -3,15 +3,9 @@ using Kompression.DataClasses.Configuration;
 
 namespace Kompression.Configuration
 {
-    internal class HuffmanEncoderOptionsBuilder : IHuffmanEncoderOptionsBuilder
+    internal class HuffmanEncoderOptionsBuilder(HuffmanOptions options) : IHuffmanEncoderOptionsBuilder
     {
-        private readonly HuffmanOptions _options;
-        private readonly HuffmanEncoderOptions _encoderOptions;
-
-        public HuffmanEncoderOptionsBuilder(HuffmanOptions options)
-        {
-            _options = options;
-            _encoderOptions = new HuffmanEncoderOptions();
-        }
+        private readonly HuffmanOptions _options = options;
+        private readonly HuffmanEncoderOptions _encoderOptions = new();
     }
 }

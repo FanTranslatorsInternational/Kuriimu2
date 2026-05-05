@@ -2,13 +2,8 @@
 {
     internal class TreeNode
     {
-        public TreeNode[] Children { get; }
+        public TreeNode?[] Children { get; } = new TreeNode?[2];
         public int Value { get; set; } = -1;
         public bool IsLeaf => Value != -1;
-
-        public TreeNode()
-        {
-            Children = new TreeNode[2];
-        }
     }
 }

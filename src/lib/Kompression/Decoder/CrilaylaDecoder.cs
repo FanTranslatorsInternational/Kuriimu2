@@ -16,7 +16,7 @@ namespace Kompression.Decoder
             using var br = new BinaryReaderX(input, true);
 
             var header = ReadHeader(br);
-            if (header.magic != "CRILAYLA" || header.magic == "\0\0\0\0\0\0\0\0")
+            if (header.Magic != "CRILAYLA" || header.Magic == "\0\0\0\0\0\0\0\0")
                 throw new InvalidCompressionException("Crilayla");
 
             // Copy raw part
@@ -26,7 +26,7 @@ namespace Kompression.Decoder
             // Decompress
             var compStream = new SubStream(input, 0x10, input.Length - RawSize_ - 0x10);
             var reverseCompStream = new ReverseStream(compStream, compStream.Length);
-            var reverseOutputStream = new ReverseStream(output, header.decompSize + RawSize_);
+            var reverseOutputStream = new ReverseStream(output, header.DecompSize + RawSize_);
             var circularBuffer = new CircularBuffer(0x2002);
 
             using var reverseBr = new BinaryReaderX(reverseCompStream, ByteOrder.LittleEndian, BitOrder.MostSignificantBitFirst, 1);
@@ -50,7 +50,7 @@ namespace Kompression.Decoder
 
         }
 
-        private int ReadLength(BinaryReaderX br)
+        private static int ReadLength(BinaryReaderX br)
         {
             var length = br.ReadBits<int>(2);
             if (length != 3)
@@ -72,26 +72,26 @@ namespace Kompression.Decoder
             return length + more;
         }
 
-        public void Dispose()
-        {
-            // Nothing to dispose
-        }
-
-        private CrilaylaHeader ReadHeader(BinaryReaderX br)
+        private static CrilaylaHeader ReadHeader(BinaryReaderX br)
         {
             return new CrilaylaHeader
             {
-                magic = br.ReadString(8),
-                decompSize = br.ReadInt32(),
-                compSize = br.ReadInt32()
+                Magic = br.ReadString(8),
+                DecompSize = br.ReadInt32(),
+                CompSize = br.ReadInt32()
             };
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
         }
     }
 
-    struct CrilaylaHeader
+    internal struct CrilaylaHeader
     {
-        public string magic;
-        public int decompSize;
-        public int compSize;
+        public string Magic;
+        public int DecompSize;
+        public int CompSize;
     }
 }

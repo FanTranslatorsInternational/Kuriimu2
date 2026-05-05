@@ -6,24 +6,17 @@ using Kompression.IO;
 
 namespace Kompression.Decoder.Nintendo
 {
-    public class Yaz0Decoder : IDecoder
+    public class Yaz0Decoder(ByteOrder byteOrder) : IDecoder
     {
-        private readonly ByteOrder _byteOrder;
-
-        public Yaz0Decoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
 
             _ = input.Read(buffer);
             if (buffer[0] is not 0x59 || buffer[1] is not 0x61 || buffer[2] is not 0x7A || buffer[3] is not 0x30)
-                throw new InvalidCompressionException("Yaz0" + (_byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
+                throw new InvalidCompressionException("Yaz0" + (byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
 
-            using var br = new BinaryReaderX(input, true, _byteOrder);
+            using var br = new BinaryReaderX(input, true, byteOrder);
 
             int uncompressedLength = br.ReadInt32();
             input.Position += 0x8;
@@ -72,7 +65,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

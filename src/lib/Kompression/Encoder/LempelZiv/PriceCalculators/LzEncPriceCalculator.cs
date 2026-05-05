@@ -44,11 +44,10 @@ namespace Kompression.Encoder.LempelZiv.PriceCalculators
             return 24;
         }
 
-        private int CalculateVariableLength(int length, int bitCount)
+        private static int CalculateVariableLength(int length, int bitCount)
         {
             var bitValue = (1 << bitCount) - 1;
-            if (length <= bitValue)
-                throw new ArgumentOutOfRangeException(nameof(length));
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(length, bitValue);
 
             length -= bitValue;
             var fullBytes = length / 0xFF;

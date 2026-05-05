@@ -7,13 +7,6 @@ namespace Kompression.Decoder
 {
     public class LzssDecoder : IDecoder
     {
-        private readonly Lz10HeaderlessDecoder _decoder;
-
-        public LzssDecoder()
-        {
-            _decoder = new Lz10HeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -26,11 +19,12 @@ namespace Kompression.Decoder
             _ = input.Read(buffer);
             int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
 
-            _decoder.Decode(input, output, decompressedSize);
+            Lz10HeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

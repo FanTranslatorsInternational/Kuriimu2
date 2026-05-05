@@ -5,7 +5,7 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder
 {
-    class SosLz3Encoder : ILempelZivEncoder
+    internal class SosLz3Encoder : ILempelZivEncoder
     {
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {

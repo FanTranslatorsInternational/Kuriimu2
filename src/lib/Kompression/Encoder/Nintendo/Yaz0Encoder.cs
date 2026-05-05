@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Komponent.Contract.Enums;
+﻿using Komponent.Contract.Enums;
 using Komponent.IO;
 using Kompression.Contract.Configuration;
 using Kompression.Contract.DataClasses.Encoder.LempelZiv;
@@ -9,23 +8,16 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 namespace Kompression.Encoder.Nintendo
 {
     // TODO: Refactor block class
-    public class Yaz0Encoder : ILempelZivEncoder
+    public class Yaz0Encoder(ByteOrder byteOrder) : ILempelZivEncoder
     {
-        private readonly ByteOrder _byteOrder;
-
-        class Block
+        internal class Block
         {
-            public byte codeBlock;
-            public int codeBlockPosition = 8;
+            public byte CodeBlock;
+            public int CodeBlockPosition = 8;
 
             // each buffer can be at max 8 pairs of compressed matches; a compressed match can be at max 3 bytes
-            public byte[] buffer = new byte[8 * 3];
-            public int bufferLength;
-        }
-
-        public Yaz0Encoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
+            public readonly byte[] Buffer = new byte[8 * 3];
+            public int BufferLength;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -46,11 +38,11 @@ namespace Kompression.Encoder.Nintendo
                 // Write any data before the match, to the buffer
                 while (input.Position < match.Position)
                 {
-                    if (block.codeBlockPosition == 0)
+                    if (block.CodeBlockPosition == 0)
                         WriteAndResetBuffer(output, block);
 
-                    block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
-                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                    block.CodeBlock |= (byte)(1 << --block.CodeBlockPosition);
+                    block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
                 }
 
                 // Write match data to the buffer
@@ -61,14 +53,14 @@ namespace Kompression.Encoder.Nintendo
                     // Since minimum _length should be 3 for Yay0, we get a minimum matchLength of 1 in this case
                     firstByte |= (byte)(match.Length - 2 << 4);
 
-                if (block.codeBlockPosition == 0)
+                if (block.CodeBlockPosition == 0)
                     WriteAndResetBuffer(output, block);
 
-                block.codeBlockPosition--; // Since a match is flagged with a 0 bit, we don't need a bit shift and just decrease the position
-                block.buffer[block.bufferLength++] = firstByte;
-                block.buffer[block.bufferLength++] = secondByte;
+                block.CodeBlockPosition--; // Since a match is flagged with a 0 bit, we don't need a bit shift and just decrease the position
+                block.Buffer[block.BufferLength++] = firstByte;
+                block.Buffer[block.BufferLength++] = secondByte;
                 if (match.Length >= 0x12)
-                    block.buffer[block.bufferLength++] = (byte)(match.Length - 0x12);
+                    block.Buffer[block.BufferLength++] = (byte)(match.Length - 0x12);
 
                 input.Position += match.Length;
             }
@@ -76,11 +68,11 @@ namespace Kompression.Encoder.Nintendo
             // Write any data after last match, to the buffer
             while (input.Position < input.Length)
             {
-                if (block.codeBlockPosition == 0)
+                if (block.CodeBlockPosition == 0)
                     WriteAndResetBuffer(output, block);
 
-                block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
-                block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                block.CodeBlock |= (byte)(1 << --block.CodeBlockPosition);
+                block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
             }
 
             // Flush remaining buffer to stream
@@ -90,17 +82,17 @@ namespace Kompression.Encoder.Nintendo
             WriteHeaderData(input, output, originalOutputPosition);
         }
 
-        private void WriteAndResetBuffer(Stream output, Block block)
+        private static void WriteAndResetBuffer(Stream output, Block block)
         {
             // Write data to output
-            output.WriteByte(block.codeBlock);
-            output.Write(block.buffer, 0, block.bufferLength);
+            output.WriteByte(block.CodeBlock);
+            output.Write(block.Buffer, 0, block.BufferLength);
 
             // Reset codeBlock and buffer
-            block.codeBlock = 0;
-            block.codeBlockPosition = 8;
-            Array.Clear(block.buffer, 0, block.bufferLength);
-            block.bufferLength = 0;
+            block.CodeBlock = 0;
+            block.CodeBlockPosition = 8;
+            Array.Clear(block.Buffer, 0, block.BufferLength);
+            block.BufferLength = 0;
         }
 
         private void WriteHeaderData(Stream input, Stream output, long originalOutputPosition)
@@ -108,17 +100,13 @@ namespace Kompression.Encoder.Nintendo
             var outputEndPosition = output.Position;
 
             // Write header
-            using var bw = new BinaryWriterX(output, true, _byteOrder);
+            using var bw = new BinaryWriterX(output, true, byteOrder);
 
             output.Position = originalOutputPosition;
             bw.WriteString("Yaz0", writeNullTerminator: false);
             bw.Write((int)input.Length);
             bw.Write(0L);
             output.Position = outputEndPosition;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

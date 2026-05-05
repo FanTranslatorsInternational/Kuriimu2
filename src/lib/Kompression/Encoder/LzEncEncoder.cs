@@ -5,15 +5,14 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder
 {
-    // TODO: Refactor block class
     public class LzEncEncoder : ILempelZivEncoder
     {
-        class Block
+        internal class Block
         {
-            public bool initialRead = true;
-            public byte codeByte;
-            public long codeBytePosition;
-            public long matchEndPosition;
+            public bool InitialRead = true;
+            public byte CodeByte;
+            public long CodeBytePosition;
+            public long MatchEndPosition;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -31,8 +30,8 @@ namespace Kompression.Encoder
                 if (input.Position < match.Position)
                     WriteRawData(input, output, block, match.Position - input.Position);
 
-                if (block.initialRead)
-                    block.initialRead = false;
+                if (block.InitialRead)
+                    block.InitialRead = false;
 
                 WriteMatchData(input, output, block, match);
             }
@@ -46,9 +45,9 @@ namespace Kompression.Encoder
             output.WriteByte(0);
         }
 
-        private void WriteRawData(Stream input, Stream output, Block block, long length)
+        private static void WriteRawData(Stream input, Stream output, Block block, long length)
         {
-            if (block.initialRead)
+            if (block.InitialRead)
             {
                 // Apply special rules for first raw data read
                 if (length <= 0xee)
@@ -58,19 +57,19 @@ namespace Kompression.Encoder
                 else
                 {
                     output.WriteByte(0);
-                    Write(output, EncodeLength(length - 3, 4));
+                    output.Write(EncodeLength(length - 3, 4));
                 }
             }
             else
             {
                 if (length <= 3)
                 {
-                    block.codeByte |= (byte)length;
+                    block.CodeByte |= (byte)length;
 
-                    output.Position = block.codeBytePosition;
-                    output.WriteByte(block.codeByte);
+                    output.Position = block.CodeBytePosition;
+                    output.WriteByte(block.CodeByte);
 
-                    output.Position = block.matchEndPosition;
+                    output.Position = block.MatchEndPosition;
                 }
                 else
                 {
@@ -81,7 +80,7 @@ namespace Kompression.Encoder
                     else
                     {
                         output.WriteByte(0);
-                        Write(output, EncodeLength(length - 3, 4));
+                        output.Write(EncodeLength(length - 3, 4));
                     }
                 }
             }
@@ -90,7 +89,7 @@ namespace Kompression.Encoder
                 output.WriteByte((byte)input.ReadByte());
         }
 
-        private void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
+        private static void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
         {
             if (lempelZivMatch.Displacement <= 0x4000)
             {
@@ -102,17 +101,17 @@ namespace Kompression.Encoder
 
                 output.WriteByte(localCode);
                 if (length > 0x1F)
-                    Write(output, EncodeLength(length, 5));
+                    output.Write(EncodeLength(length, 5));
 
                 // Remember positions for later edit in raw data write
-                block.codeBytePosition = output.Position;
-                block.matchEndPosition = output.Position + 2;
+                block.CodeBytePosition = output.Position;
+                block.MatchEndPosition = output.Position + 2;
 
                 // Write encoded displacement
-                block.codeByte = (byte)(lempelZivMatch.Displacement - 1 << 2);
+                block.CodeByte = (byte)(lempelZivMatch.Displacement - 1 << 2);
                 var byte2 = (byte)(lempelZivMatch.Displacement - 1 >> 6);
 
-                output.WriteByte(block.codeByte);
+                output.WriteByte(block.CodeByte);
                 output.WriteByte(byte2);
             }
             else
@@ -127,51 +126,36 @@ namespace Kompression.Encoder
 
                 output.WriteByte(localCode);
                 if (length > 0x7)
-                    Write(output, EncodeLength(length, 3));
+                    output.Write(EncodeLength(length, 3));
 
                 // Remember positions for later edit in raw data write
-                block.codeBytePosition = output.Position;
-                block.matchEndPosition = output.Position + 2;
+                block.CodeBytePosition = output.Position;
+                block.MatchEndPosition = output.Position + 2;
 
                 // Write encoded displacement
-                block.codeByte = (byte)(lempelZivMatch.Displacement << 2);
+                block.CodeByte = (byte)(lempelZivMatch.Displacement << 2);
                 var byte2 = (byte)(lempelZivMatch.Displacement >> 6);
 
-                output.WriteByte(block.codeByte);
+                output.WriteByte(block.CodeByte);
                 output.WriteByte(byte2);
             }
 
             input.Position += lempelZivMatch.Length;
         }
 
-        private byte[] EncodeLength(long length, int bitCount)
+        private static byte[] EncodeLength(long length, int bitCount)
         {
             var bitValue = (1 << bitCount) - 1;
-            if (length <= bitValue)
-                throw new ArgumentOutOfRangeException(nameof(length));
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(length, bitValue);
 
             length -= bitValue;
             var fullBytes = length / 0xFF;
             var remainder = (byte)(length - fullBytes * 0xFF);
             var result = new byte[fullBytes + (remainder > 0 ? 1 : 0)];
 
-            // TODO: Use indexer syntax, when moved to net core-only
-            result[result.Length - 1] = remainder > 0 ? remainder : (byte)0xFF;
+            result[^1] = remainder > 0 ? remainder : (byte)0xFF;
 
             return result;
-        }
-
-        private void Write(Stream output, byte[] data)
-        {
-#if NET_CORE_31
-            output.Write(data);
-#else
-            output.Write(data, 0, data.Length);
-#endif
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

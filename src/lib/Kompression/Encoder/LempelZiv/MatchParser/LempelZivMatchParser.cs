@@ -6,16 +6,10 @@ using Kompression.Extensions;
 
 namespace Kompression.Encoder.LempelZiv.MatchParser
 {
-    public abstract class LempelZivMatchParser : ILempelZivMatchParser
+    public abstract class LempelZivMatchParser(LempelZivMatchParserOptions options) : ILempelZivMatchParser
     {
-        public LempelZivMatchParserOptions Options { get; }
+        public LempelZivMatchParserOptions Options { get; } = options;
 
-        public LempelZivMatchParser(LempelZivMatchParserOptions options)
-        {
-            Options = options;
-        }
-
-        // TODO: Maybe not rely on input position, and set position by manipulators
         public IEnumerable<LempelZivMatch> ParseMatches(Stream input)
         {
             Stream manipulatedStream = Options.InputManipulation.Manipulate(input);

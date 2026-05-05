@@ -11,11 +11,10 @@ using Kompression.Extensions;
 
 namespace Kompression.Encoder
 {
-    // TODO: Refactor block class
     public class TaikoLz81Encoder : ILempelZivHuffmanEncoder
     {
-        private static int[] _counters =
-        {
+        private static readonly int[] Counters =
+        [
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 0xa, 0xc, 0xe,
@@ -24,10 +23,10 @@ namespace Kompression.Encoder
             0x3a, 0x42, 0x52, 0x62,
             0x72, 0x82, 0xa2, 0xc2,
             0xe2, 0x102, 0, 0
-        };
+        ];
 
-        private static int[] _counterBitReads =
-        {
+        private static readonly int[] CounterBitReads =
+        [
             0, 0, 0, 0,
             0, 0, 0, 0,
             0, 1, 1, 1,
@@ -36,10 +35,10 @@ namespace Kompression.Encoder
             3, 4, 4, 4,
             4, 5, 5, 5,
             5, 0, 0, 0
-        };
+        ];
 
-        private static int[] _dispRanges =
-        {
+        private static readonly int[] DispRanges =
+        [
             1, 2, 3, 4,
             5, 7, 9, 0xd,
             0x11, 0x19, 0x21, 0x31,
@@ -48,10 +47,10 @@ namespace Kompression.Encoder
             0x401, 0x601, 0x801, 0xc01,
             0x1001, 0x1801, 0x2001, 0x3001,
             0x4001, 0x6001, 0, 0
-        };
+        ];
 
-        private static int[] _dispBitReads =
-        {
+        private static readonly int[] DispBitReads =
+        [
             0, 0, 0, 0,
             1, 1, 2, 2,
             3, 3, 4, 4,
@@ -60,15 +59,15 @@ namespace Kompression.Encoder
             9, 9, 0xa, 0xa,
             0xb, 0xb, 0xc, 0xc,
             0xd, 0xd, 0, 0
-        };
+        ];
 
-        class Block
+        internal class Block
         {
-            public byte[] countIndexes;
-            public byte[] dispIndexes;
-            public Dictionary<int, string> rawValueDictionary;
-            public Dictionary<int, string> countIndexDictionary;
-            public Dictionary<int, string> dispIndexDictionary;
+            public required byte[] CountIndexes;
+            public required byte[] DispIndexes;
+            public required Dictionary<int, string> RawValueDictionary;
+            public required Dictionary<int, string> CountIndexDictionary;
+            public required Dictionary<int, string> DispIndexDictionary;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions, IHuffmanEncoderOptionsBuilder huffmanOptions)
@@ -79,19 +78,27 @@ namespace Kompression.Encoder
 
         public void Encode(Stream input, Stream output, IEnumerable<LempelZivMatch> matches, IHuffmanTreeBuilder treeBuilder)
         {
-            var block = new Block();
-
             var matchArray = matches.ToArray();
+
             var rawValueTree = CreateRawValueTree(input, matchArray, treeBuilder);
-            block.rawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            ArgumentNullException.ThrowIfNull(rawValueTree);
 
-            block.countIndexes = GetCountIndexes(matchArray, input.Length);
-            var countIndexValueTree = CreateIndexValueTree(block, treeBuilder);
-            block.countIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            var countIndexes = GetCountIndexes(matchArray, input.Length);
+            var countIndexValueTree = CreateIndexValueTree(countIndexes, treeBuilder);
+            ArgumentNullException.ThrowIfNull(countIndexValueTree);
 
-            block.dispIndexes = GetDispIndexes(matchArray);
-            var dispIndexTree = CreateDisplacementIndexTree(block, treeBuilder);
-            block.dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            var dispIndexes = GetDispIndexes(matchArray);
+            var dispIndexTree = CreateDisplacementIndexTree(dispIndexes, treeBuilder);
+            ArgumentNullException.ThrowIfNull(dispIndexTree);
+
+            var block = new Block
+            {
+                CountIndexes = countIndexes,
+                DispIndexes = dispIndexes,
+                RawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2),
+                CountIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2),
+                DispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2)
+            };
 
             using var bw = new BinaryBitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
 
@@ -119,29 +126,29 @@ namespace Kompression.Encoder
                 CompressRawData(input, bw, block, (int)(input.Length - input.Position), ref countPosition);
 
             // Write final 0 index
-            foreach (var bit in block.countIndexDictionary[block.countIndexes.Last()])
+            foreach (var bit in block.CountIndexDictionary[block.CountIndexes.Last()])
                 bw.WriteBit(bit - '0');
         }
 
         #region Tree creation
 
-        private HuffmanTreeNode CreateRawValueTree(Stream input, LempelZivMatch[] matches, IHuffmanTreeBuilder treeBuilder)
+        private static HuffmanTreeNode? CreateRawValueTree(Stream input, LempelZivMatch[] matches, IHuffmanTreeBuilder treeBuilder)
         {
             var huffmanInput = RemoveMatchesFromInput(input.ToArray(), matches);
             return treeBuilder.Build(huffmanInput, 8, NibbleOrder.LowNibbleFirst);
         }
 
-        private HuffmanTreeNode CreateIndexValueTree(Block block, IHuffmanTreeBuilder treeBuilder)
+        private static HuffmanTreeNode? CreateIndexValueTree(byte[] countIndexes, IHuffmanTreeBuilder treeBuilder)
         {
-            return treeBuilder.Build(block.countIndexes, 8, NibbleOrder.LowNibbleFirst);
+            return treeBuilder.Build(countIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
-        private HuffmanTreeNode CreateDisplacementIndexTree(Block block, IHuffmanTreeBuilder treeBuilder)
+        private static HuffmanTreeNode? CreateDisplacementIndexTree(byte[] dispIndexes, IHuffmanTreeBuilder treeBuilder)
         {
-            return treeBuilder.Build(block.dispIndexes, 8, NibbleOrder.LowNibbleFirst);
+            return treeBuilder.Build(dispIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
-        private byte[] RemoveMatchesFromInput(byte[] input, LempelZivMatch[] matches)
+        private static byte[] RemoveMatchesFromInput(byte[] input, LempelZivMatch[] matches)
         {
             var huffmanInput = new byte[input.Length - matches.Sum(x => x.Length)];
 
@@ -166,7 +173,7 @@ namespace Kompression.Encoder
 
         #region Get indexes
 
-        private byte[] GetCountIndexes(LempelZivMatch[] matches, long inputLength)
+        private static byte[] GetCountIndexes(LempelZivMatch[] matches, long inputLength)
         {
             var result = new List<byte>();
 
@@ -201,24 +208,24 @@ namespace Kompression.Encoder
             }
 
             result.Add(0);
-            return result.ToArray();
+            return [.. result];
         }
 
-        private byte GetCountIndex(long length)
+        private static byte GetCountIndex(long length)
         {
-            if (length == _counters[0x1D])
+            if (length == Counters[0x1D])
                 return 0x1D;
 
             for (byte i = 0; i < 0x1D; i++)
             {
-                if (length >= _counters[i] && length < _counters[i + 1])
+                if (length >= Counters[i] && length < Counters[i + 1])
                     return i;
             }
 
             return 0xFF;
         }
 
-        private byte[] GetDispIndexes(LempelZivMatch[] matches)
+        private static byte[] GetDispIndexes(LempelZivMatch[] matches)
         {
             var result = new List<byte>();
 
@@ -227,17 +234,17 @@ namespace Kompression.Encoder
                 result.Add(GetDispIndex(match.Displacement));
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
-        private byte GetDispIndex(long displacement)
+        private static byte GetDispIndex(long displacement)
         {
-            if (displacement >= _dispRanges[0x1D])
+            if (displacement >= DispRanges[0x1D])
                 return 0x1D;
 
             for (byte i = 0; i < 0x1D; i++)
             {
-                if (displacement >= _dispRanges[i] && displacement < _dispRanges[i + 1])
+                if (displacement >= DispRanges[i] && displacement < DispRanges[i + 1])
                     return i;
             }
 
@@ -246,7 +253,7 @@ namespace Kompression.Encoder
 
         #endregion
 
-        private void WriteTreeNode(BinaryBitWriter bw, HuffmanTreeNode huffmanTreeNode, int bitCount)
+        private static void WriteTreeNode(BinaryBitWriter bw, HuffmanTreeNode huffmanTreeNode, int bitCount)
         {
             if (huffmanTreeNode.IsLeaf)
             {
@@ -256,11 +263,11 @@ namespace Kompression.Encoder
             }
 
             bw.WriteBit(1);
-            WriteTreeNode(bw, huffmanTreeNode.Children[0], bitCount);
-            WriteTreeNode(bw, huffmanTreeNode.Children[1], bitCount);
+            WriteTreeNode(bw, huffmanTreeNode.Children![0], bitCount);
+            WriteTreeNode(bw, huffmanTreeNode.Children![1], bitCount);
         }
 
-        private void CompressRawData(Stream input, BinaryBitWriter bw, Block block, int rawLength, ref int countPosition)
+        private static void CompressRawData(Stream input, BinaryBitWriter bw, Block block, int rawLength, ref int countPosition)
         {
             while (rawLength > 0)
             {
@@ -268,46 +275,42 @@ namespace Kompression.Encoder
                 rawLength -= cappedLength;
 
                 // Write the index to the counters table
-                var countIndex = block.countIndexes[countPosition++];
-                foreach (var bit in block.countIndexDictionary[countIndex])
+                var countIndex = block.CountIndexes[countPosition++];
+                foreach (var bit in block.CountIndexDictionary[countIndex])
                     bw.WriteBit(bit - '0');
 
                 // Write additional bits to reach intermediate lengths
-                if (_counterBitReads[countIndex - 0x20] > 0)
-                    bw.WriteBits(cappedLength - _counters[countIndex - 0x20], _counterBitReads[countIndex - 0x20]);
+                if (CounterBitReads[countIndex - 0x20] > 0)
+                    bw.WriteBits(cappedLength - Counters[countIndex - 0x20], CounterBitReads[countIndex - 0x20]);
 
                 // Write values
                 for (int i = 0; i < cappedLength; i++)
-                    foreach (var bit in block.rawValueDictionary[input.ReadByte()])
+                    foreach (var bit in block.RawValueDictionary[input.ReadByte()])
                         bw.WriteBit(bit - '0');
             }
         }
 
-        private void CompressMatchData(Stream input, BinaryBitWriter bw, Block block, LempelZivMatch lempelZivMatch, ref int countPosition, ref int displacementPosition)
+        private static void CompressMatchData(Stream input, BinaryBitWriter bw, Block block, LempelZivMatch lempelZivMatch, ref int countPosition, ref int displacementPosition)
         {
             // Write the index to the counters table
-            var countIndex = block.countIndexes[countPosition++];
-            foreach (var bit in block.countIndexDictionary[countIndex])
+            var countIndex = block.CountIndexes[countPosition++];
+            foreach (var bit in block.CountIndexDictionary[countIndex])
                 bw.WriteBit(bit - '0');
 
             // Write additional bits to reach intermediate lengths
-            if (_counterBitReads[countIndex] > 0)
-                bw.WriteBits(lempelZivMatch.Length - _counters[countIndex], _counterBitReads[countIndex]);
+            if (CounterBitReads[countIndex] > 0)
+                bw.WriteBits(lempelZivMatch.Length - Counters[countIndex], CounterBitReads[countIndex]);
 
             // Write the index to the displacement table
-            var displacementIndex = block.dispIndexes[displacementPosition++];
-            foreach (var bit in block.dispIndexDictionary[displacementIndex])
+            var displacementIndex = block.DispIndexes[displacementPosition++];
+            foreach (var bit in block.DispIndexDictionary[displacementIndex])
                 bw.WriteBit(bit - '0');
 
             // Write additional bits to reach intermediate displacements
-            if (_dispBitReads[displacementIndex] > 0)
-                bw.WriteBits(lempelZivMatch.Displacement - _dispRanges[displacementIndex], _dispBitReads[displacementIndex]);
+            if (DispBitReads[displacementIndex] > 0)
+                bw.WriteBits(lempelZivMatch.Displacement - DispRanges[displacementIndex], DispBitReads[displacementIndex]);
 
             input.Position += lempelZivMatch.Length;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

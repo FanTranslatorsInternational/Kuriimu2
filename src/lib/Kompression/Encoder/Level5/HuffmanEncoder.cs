@@ -6,17 +6,9 @@ using Kompression.Encoder.Headerless;
 
 namespace Kompression.Encoder.Level5
 {
-    public class HuffmanEncoder : IHuffmanEncoder
+    public class HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder) : IHuffmanEncoder
     {
-        private readonly int _bitDepth;
-
-        private readonly HuffmanHeaderlessEncoder _encoder;
-
-        public HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder)
-        {
-            _bitDepth = bitDepth;
-            _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
-        }
+        private readonly HuffmanHeaderlessEncoder _encoder = new(bitDepth, nibbleOrder);
 
         public void Configure(IHuffmanEncoderOptionsBuilder huffmanOptions)
         {
@@ -28,7 +20,7 @@ namespace Kompression.Encoder.Level5
             if (input.Length > 0x1FFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
 
-            var huffmanMode = _bitDepth == 4 ? 2 : 3;
+            var huffmanMode = bitDepth == 4 ? 2 : 3;
             var compressionHeader = new[] {
                 (byte)((byte)(input.Length << 3) | huffmanMode),
                 (byte)(input.Length >> 5),
@@ -37,11 +29,6 @@ namespace Kompression.Encoder.Level5
             output.Write(compressionHeader, 0, 4);
 
             _encoder.Encode(input, output, treeBuilder);
-        }
-
-        public void Dispose()
-        {
-            // nothing to dispose
         }
     }
 }

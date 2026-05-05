@@ -3,7 +3,7 @@ using Kompression.InternalContract.SlimeMoriMori.ValueReader;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueReader
 {
-    class DefaultValueReader : IValueReader
+    internal class DefaultValueReader : IValueReader
     {
         public void BuildTree(BinaryBitReader br)
         {
@@ -17,7 +17,7 @@ namespace Kompression.Specialized.SlimeMoriMori.ValueReader
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

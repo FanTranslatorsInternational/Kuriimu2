@@ -2,7 +2,7 @@
 
 namespace Kompression.Encoder.LempelZiv.PriceCalculators
 {
-    class PsLzPriceCalculator : ILempelZivPriceCalculator
+    internal class PsLzPriceCalculator : ILempelZivPriceCalculator
     {
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {

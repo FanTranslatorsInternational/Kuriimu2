@@ -1,11 +1,11 @@
 ﻿namespace Kompression.Encoder.LempelZiv.InputManipulation.Streams
 {
-    class PreBufferStream : Stream
+    internal class PreBufferStream : Stream
     {
         //private readonly int _preBufferSize;
         //private readonly byte _value;
-        private byte[] _data;
-        private Stream _baseStream;
+        private readonly byte[] _data;
+        private readonly Stream _baseStream;
 
         /// <inheritdoc cref="CanRead"/>
         public override bool CanRead => true;
@@ -106,7 +106,7 @@
 
                 var bkPos = _baseStream.Position;
                 _baseStream.Position = Position - _data.Length;
-                _baseStream.Read(buffer, offset, toRead);
+                _ = _baseStream.Read(buffer, offset, toRead);
                 _baseStream.Position = bkPos;
 
                 Position += toRead;
@@ -119,17 +119,6 @@
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
-        }
-
-        /// <inheritdoc cref="Dispose(bool)"/>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _baseStream = null;
-            }
-
-            base.Dispose(disposing);
         }
     }
 }

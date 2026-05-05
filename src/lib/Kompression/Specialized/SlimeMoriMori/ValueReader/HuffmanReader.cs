@@ -4,15 +4,9 @@ using Kompression.InternalContract.SlimeMoriMori.ValueReader;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueReader
 {
-    class HuffmanReader : IValueReader
+    internal class HuffmanReader(int bitDepth) : IValueReader
     {
-        private readonly int _bitDepth;
-        protected TreeNode Root { get; private set; }
-
-        public HuffmanReader(int bitDepth)
-        {
-            _bitDepth = bitDepth;
-        }
+        protected TreeNode? Root { get; private set; }
 
         public void BuildTree(BinaryBitReader br)
         {
@@ -31,29 +25,18 @@ namespace Kompression.Specialized.SlimeMoriMori.ValueReader
                 {
                     // Traverse tree to hit value node
                     var node = Root;
-                    //var tableIndex = 0;
+
                     for (var h = i; h > 0; h--)
                     {
-                        //var newTableIndex = ((treePath >> h) & 0x1) * 2 + tableIndex;
-                        //tableIndex = (short)(_table[newTableIndex] | (_table[newTableIndex + 1] << 8));
-
                         var childIndex = (treePath >> h) & 0x1;
-                        if (node.Children[childIndex] == null)
-                        {
-                            node.Children[childIndex] = new TreeNode();
-                            //tableIndex = tableIndex2 + 4;
+                        node!.Children[childIndex] ??= new TreeNode();
 
-                            //// Reference to another node
-                            //_table[newTableIndex] = (byte)tableIndex;
-                            //_table[newTableIndex + 1] = (byte)(tableIndex >> 8);
-                            //tableIndex2 = tableIndex;
-                        }
                         node = node.Children[childIndex];
                     }
 
                     // Set value in tree
-                    var value = br.ReadBits<int>(_bitDepth);
-                    node.Children[treePath & 0x1] = new TreeNode
+                    var value = br.ReadBits<int>(bitDepth);
+                    node!.Children[treePath & 0x1] = new TreeNode
                     {
                         Value = value
                     };
@@ -67,8 +50,12 @@ namespace Kompression.Specialized.SlimeMoriMori.ValueReader
 
         public byte ReadValue(BinaryBitReader br)
         {
+            if (Root == null)
+                throw new InvalidOperationException("Did not build tree.");
+
             var node = Root;
-            while (!node.IsLeaf)
+
+            while (!node!.IsLeaf)
                 node = node.Children[br.ReadBit()];
 
             return (byte)node.Value;

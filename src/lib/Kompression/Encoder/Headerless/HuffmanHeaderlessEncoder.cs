@@ -9,25 +9,15 @@ using Kompression.Extensions;
 
 namespace Kompression.Encoder.Headerless
 {
-    public class HuffmanHeaderlessEncoder : IHuffmanEncoder
+    public class HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder) : IHuffmanEncoder
     {
-        private readonly int _bitDepth;
-
-        private readonly NibbleOrder _nibbleOrder;
-
-        public HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder)
-        {
-            _bitDepth = bitDepth;
-            _nibbleOrder = nibbleOrder;
-        }
-
         public void Configure(IHuffmanEncoderOptionsBuilder huffmanOptions)
         {
         }
 
         public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
         {
-            var rootNode = treeBuilder.Build(input.ToArray(), _bitDepth, _nibbleOrder);
+            var rootNode = treeBuilder.Build(input.ToArray(), bitDepth, nibbleOrder);
             if (rootNode == null)
                 return;
 
@@ -43,7 +33,7 @@ namespace Kompression.Encoder.Headerless
             bw.Write((byte)labelList.Count);
 
             // Write Huffman tree
-            foreach (var node in labelList.Take(1).Concat(labelList.SelectMany(node => node.Children)))
+            foreach (var node in labelList.Take(1).Concat(labelList.SelectMany(node => node.Children ?? [])))
             {
                 if (node.Children != null)
                     node.Code |= node.Children.Select((child, i) => child.IsLeaf ? (byte)(0x80 >> i) : 0).Sum();
@@ -52,13 +42,13 @@ namespace Kompression.Encoder.Headerless
 
             // Write bits to stream
             using var bitWriter = new BinaryBitWriter(bw.BaseStream, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian);
-            switch (_bitDepth)
+            switch (bitDepth)
             {
                 case 4:
                     while (input.Position < input.Length)
                     {
                         var value = input.ReadByte();
-                        if (_nibbleOrder == NibbleOrder.LowNibbleFirst)
+                        if (nibbleOrder == NibbleOrder.LowNibbleFirst)
                         {
                             foreach (var bit in bitCodes[value % 16])
                                 bitWriter.WriteBit(bit - '0');
@@ -88,12 +78,12 @@ namespace Kompression.Encoder.Headerless
             bitWriter.Flush();
         }
 
-        private List<HuffmanTreeNode> LabelTreeNodes(HuffmanTreeNode rootNode)
+        private static List<HuffmanTreeNode> LabelTreeNodes(HuffmanTreeNode rootNode)
         {
             var labelList = new List<HuffmanTreeNode>();
             var frequencies = new List<HuffmanTreeNode> { rootNode };
 
-            while (frequencies.Any())
+            while (frequencies.Count > 0)
             {
                 // Assign a score to each frequency node in the root
                 var scores = frequencies.Select((freq, i) => new { Node = freq, Score = freq.Code - i });
@@ -108,6 +98,9 @@ namespace Kompression.Encoder.Headerless
                 labelList.Add(node);
 
                 // Loop through all children that aren't leaves
+                if (node.Children == null)
+                    continue;
+
                 foreach (var child in node.Children.Reverse().Where(child => !child.IsLeaf))
                 {
                     child.Code = labelList.Count;

@@ -6,7 +6,7 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 namespace Kompression.Encoder
 {
     /* Found in SMT Nocturne on the PS2 */
-    class PsLzEncoder : ILempelZivEncoder
+    internal class PsLzEncoder : ILempelZivEncoder
     {
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -35,7 +35,7 @@ namespace Kompression.Encoder
             output.WriteByte(0xFF);
         }
 
-        private void CompressRawData(Stream input, Stream output, int rawLength)
+        private static void CompressRawData(Stream input, Stream output, int rawLength)
         {
             while (rawLength > 0)
             {
@@ -52,14 +52,14 @@ namespace Kompression.Encoder
                 }
 
                 var buffer = new byte[lengthEncode];
-                input.Read(buffer, 0, lengthEncode);
+                _ = input.Read(buffer, 0, lengthEncode);
                 output.Write(buffer, 0, lengthEncode);
 
                 rawLength -= lengthEncode;
             }
         }
 
-        private void CompressMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
+        private static void CompressMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
         {
             var modeByte = (byte)0;
             if (lempelZivMatch.Length <= 0x1F)
@@ -115,15 +115,10 @@ namespace Kompression.Encoder
             input.Position += lempelZivMatch.Length;
         }
 
-        private void WriteInt16Le(int value, Stream output)
+        private static void WriteInt16Le(int value, Stream output)
         {
             output.WriteByte((byte)(value & 0xFF));
             output.WriteByte((byte)(value >> 8 & 0xFF));
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

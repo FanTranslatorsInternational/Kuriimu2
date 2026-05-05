@@ -16,7 +16,7 @@ namespace Kompression.Decoder
         {
             var buffer = new byte[12];
 
-            _ = input.Read(buffer[..3]);
+            _ = input.Read(buffer.AsSpan(0, 3));
             if (buffer[0] is not 0x45 || buffer[1] is not 0x43 || buffer[2] is not 0x44)
                 throw new InvalidCompressionException("LZ ECD");
 
@@ -29,8 +29,8 @@ namespace Kompression.Decoder
 
             _ = input.Read(buffer);
             int skipData = BinaryPrimitives.ReadInt32BigEndian(buffer);
-            int compressedLength = BinaryPrimitives.ReadInt32BigEndian(buffer[4..]);
-            int uncompressedLength = BinaryPrimitives.ReadInt32BigEndian(buffer[8..]);
+            _ = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(4));
+            int uncompressedLength = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(8));
 
             var circularBuffer = new CircularBuffer(0x400)
             {
@@ -82,7 +82,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -5,16 +5,11 @@ using Kompression.InternalContract.SlimeMoriMori.ValueReader;
 
 namespace Kompression.Specialized.SlimeMoriMori.Decoder
 {
-    abstract class SlimeDecoder : ISlimeDecoder
+    abstract class SlimeDecoder(IValueReader huffmanReader) : ISlimeDecoder
     {
-        private DisplacementElement[] _displacementTable;
+        private DisplacementElement[]? _displacementTable;
 
-        protected readonly IValueReader HuffmanReader;
-
-        protected SlimeDecoder(IValueReader huffmanReader)
-        {
-            HuffmanReader = huffmanReader;
-        }
+        protected readonly IValueReader HuffmanReader = huffmanReader;
 
         public abstract void Decode(Stream input, Stream output);
 
@@ -42,22 +37,20 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoder
 
         protected int GetDisplacement(BinaryBitReader br, int dispIndex)
         {
+            if (_displacementTable is null)
+                throw new InvalidOperationException("Did not set up displacement table correctly.");
+
             return br.ReadBits<int>(_displacementTable[dispIndex].ReadBits) +
                    _displacementTable[dispIndex].DisplacementStart;
         }
 
-        protected void ReadDisplacement(Stream output, int displacement, int matchLength, int bytesToRead)
+        protected static void ReadDisplacement(Stream output, int displacement, int matchLength, int bytesToRead)
         {
             for (var i = 0; i < matchLength; i++)
             {
                 var position = output.Position;
                 for (var j = 0; j < bytesToRead; j++)
                 {
-                    //if (position - displacement < 0)
-                    //    Debugger.Break();
-                    //if(position>=0x1ac)
-                    //    Debugger.Break();
-
                     output.Position = position - displacement;
                     var matchValue = (byte)output.ReadByte();
 

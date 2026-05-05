@@ -8,13 +8,6 @@ namespace Kompression.Decoder.Level5
     // First found in Inazuma Eleven 3: Ogre team as an ARCV compression
     public class InazumaLzssDecoder : IDecoder
     {
-        private Lzss01HeaderlessDecoder _decoder;
-
-        public InazumaLzssDecoder()
-        {
-            _decoder = new Lzss01HeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -28,11 +21,12 @@ namespace Kompression.Decoder.Level5
             _ = input.Read(buffer);
             int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
 
-            _decoder.Decode(input, output, decompressedSize);
+            Lzss01HeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

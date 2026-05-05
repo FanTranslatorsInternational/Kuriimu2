@@ -8,12 +8,7 @@ namespace Kompression.Encoder
 {
     public class IecpEncoder : ILempelZivEncoder
     {
-        private Lzss01HeaderlessEncoder _encoder;
-
-        public IecpEncoder()
-        {
-            _encoder = new Lzss01HeaderlessEncoder();
-        }
+        private readonly Lzss01HeaderlessEncoder _encoder = new();
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -29,22 +24,18 @@ namespace Kompression.Encoder
             WriteHeaderData(output, (int)input.Length);
         }
 
-        private void WriteHeaderData(Stream output, int decompressedLength)
+        private static void WriteHeaderData(Stream output, int decompressedLength)
         {
             var endPosition = output.Position;
             output.Position = 0;
 
-            var buffer = new byte[] { 0x49, 0x45, 0x43, 0x50 };
+            var buffer = "IECP"u8.ToArray();
             output.Write(buffer);
 
             BinaryPrimitives.WriteInt32LittleEndian(buffer, decompressedLength);
             output.Write(buffer);
 
             output.Position = endPosition;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

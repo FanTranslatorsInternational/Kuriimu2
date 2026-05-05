@@ -34,8 +34,7 @@ namespace Kompression
         /// <inheritdoc cref="Decompress"/>
         public void Decompress(Stream input, Stream output)
         {
-            if (_options.DecoderOptions.DecoderDelegate == null)
-                throw new ArgumentNullException(nameof(_options.DecoderOptions.DecoderDelegate));
+            ArgumentNullException.ThrowIfNull(_options.DecoderOptions.DecoderDelegate);
 
             IDecoder decoder = _options.DecoderOptions.DecoderDelegate();
             decoder.Decode(input, output);
@@ -80,8 +79,7 @@ namespace Kompression
 
         private void CompressHuffman(Stream input, Stream output, IHuffmanEncoder encoder)
         {
-            if (_options.Huffman.TreeBuilderDelegate == null)
-                throw new ArgumentNullException(nameof(_options.Huffman.TreeBuilderDelegate));
+            ArgumentNullException.ThrowIfNull(_options.Huffman.TreeBuilderDelegate);
 
             encoder.Configure(_huffmanBuilder);
 
@@ -92,8 +90,7 @@ namespace Kompression
 
         private void CompressLempelZivHuffman(Stream input, Stream output, ILempelZivHuffmanEncoder encoder)
         {
-            if (_options.Huffman.TreeBuilderDelegate == null)
-                throw new ArgumentNullException(nameof(_options.Huffman.TreeBuilderDelegate));
+            ArgumentNullException.ThrowIfNull(_options.Huffman.TreeBuilderDelegate);
 
             encoder.Configure(_lempelZivBuilder, _huffmanBuilder);
 
@@ -107,7 +104,7 @@ namespace Kompression
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

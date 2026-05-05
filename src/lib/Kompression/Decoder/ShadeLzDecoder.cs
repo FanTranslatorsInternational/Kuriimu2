@@ -7,30 +7,24 @@ namespace Kompression.Decoder
 {
     public class ShadeLzDecoder : IDecoder
     {
-        private readonly ShadeLzHeaderlessDecoder _decoder;
-
-        public ShadeLzDecoder()
-        {
-            _decoder = new ShadeLzHeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[8];
 
-            _ = input.Read(buffer[..4]);
+            _ = input.Read(buffer.AsSpan(0, 4));
             if (buffer[0] is not 0xFC || buffer[1] is not 0xAA || buffer[2] is not 0x55 || buffer[3] is not 0xA7)
                 throw new InvalidCompressionException("Spike Chunsoft");
 
             _ = input.Read(buffer);
             int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-            int compressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer[4..]);
+            _ = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(4));
 
-            _decoder.Decode(input, output, decompressedSize);
+            ShadeLzHeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

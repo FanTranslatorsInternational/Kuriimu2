@@ -4,22 +4,13 @@ using Kompression.Encoder.LempelZiv.InputManipulation.Streams;
 
 namespace Kompression.Encoder.LempelZiv.InputManipulation
 {
-    internal class PrependInputValue : IInputManipulation
+    internal class PrependInputValue(int preBufferSize, byte value) : IInputManipulation
     {
-        private readonly int _preBufferSize;
-        private readonly byte _value;
-
-        public PrependInputValue(int preBufferSize, byte value)
-        {
-            _preBufferSize = preBufferSize;
-            _value = value;
-        }
-
         public Stream Manipulate(Stream input)
         {
-            var newStream = new PreBufferStream(input, _preBufferSize, _value)
+            var newStream = new PreBufferStream(input, preBufferSize, value)
             {
-                Position = input.Position + _preBufferSize
+                Position = input.Position + preBufferSize
             };
 
             return newStream;

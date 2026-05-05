@@ -13,6 +13,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

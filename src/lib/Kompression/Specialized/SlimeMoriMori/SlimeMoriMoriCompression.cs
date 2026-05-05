@@ -39,7 +39,7 @@ namespace Kompression.Specialized.SlimeMoriMori
         private readonly int _obfuscationMode;
         private readonly bool _isCompressable;
 
-        public string[] Names => new[] { "Slime Mori Mori" };
+        public static string[] Names => ["Slime Mori Mori"];
 
         public SlimeMoriMoriCompression()
         {
@@ -99,6 +99,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             // Create huffman tree and value writer based on match filtered values
             var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
+            ArgumentNullException.ThrowIfNull(tree);
             var valueWriter = CreateValueWriter(_huffmanMode, tree);
 
             using var bw = new BinaryBitWriter(output, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian);
@@ -123,14 +124,14 @@ namespace Kompression.Specialized.SlimeMoriMori
             bw.Flush();
         }
 
-        private LempelZivMatch[] FindMatches(Stream input, int compressionMode, int huffmanMode)
+        private static LempelZivMatch[] FindMatches(Stream input, int compressionMode, int huffmanMode)
         {
             ILempelZivMatchFinder[] matchFinders;
             switch (compressionMode)
             {
                 case 1:
-                    matchFinders = new[]
-                    {
+                    matchFinders =
+                    [
                         new HistoryMatchFinder(new LempelZivMatchFinderOptions
                         {
                             Limitations = new LempelZivMatchLimitations
@@ -142,12 +143,12 @@ namespace Kompression.Specialized.SlimeMoriMori
                             },
                             UnitSize = UnitSize.Byte
                         })
-                    };
+                    ];
                     break;
 
                 case 2:
-                    matchFinders = new[]
-                    {
+                    matchFinders =
+                    [
                         new HistoryMatchFinder(new LempelZivMatchFinderOptions
                         {
                             Limitations = new LempelZivMatchLimitations
@@ -159,12 +160,12 @@ namespace Kompression.Specialized.SlimeMoriMori
                             },
                             UnitSize = UnitSize.Byte
                         })
-                    };
+                    ];
                     break;
 
                 case 3:
-                    matchFinders = new[]
-                    {
+                    matchFinders =
+                    [
                         new HistoryMatchFinder(new LempelZivMatchFinderOptions
                         {
                             Limitations = new LempelZivMatchLimitations
@@ -176,15 +177,15 @@ namespace Kompression.Specialized.SlimeMoriMori
                             },
                             UnitSize = UnitSize.Byte
                         })
-                    };
+                    ];
                     break;
 
                 case 4:
-                    return Array.Empty<LempelZivMatch>();
+                    return [];
 
                 case 5:
-                    matchFinders = new ILempelZivMatchFinder[]
-                    {
+                    matchFinders =
+                    [
                         new HistoryMatchFinder(new LempelZivMatchFinderOptions
                         {
                             Limitations = new LempelZivMatchLimitations
@@ -205,7 +206,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                             },
                             UnitSize = UnitSize.Byte
                         })
-                    };
+                    ];
                     break;
 
                 default:
@@ -222,10 +223,10 @@ namespace Kompression.Specialized.SlimeMoriMori
                 TaskCount = 8
             });
 
-            return parser.ParseMatches(input).ToArray();
+            return [.. parser.ParseMatches(input)];
         }
 
-        private void WriteHuffmanTree(BinaryBitWriter bw, HuffmanTreeNode rootNode, int huffmanMode)
+        private static void WriteHuffmanTree(BinaryBitWriter bw, HuffmanTreeNode rootNode, int huffmanMode)
         {
             int bitDepth;
             switch (huffmanMode)
@@ -241,20 +242,22 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             var depthList = rootNode.Children;
+            if (depthList == null)
+                return;
+
             for (var i = 0; i < 16; i++)
             {
                 var valuesWithBitCount = depthList.Count(x => x.IsLeaf);
                 bw.WriteByte(valuesWithBitCount);
 
                 foreach (var value in depthList.Where(x => x.IsLeaf).Select(x => x.Code))
-                {
                     bw.WriteBits(value, bitDepth);
-                }
-                depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToArray();
+
+                depthList = [.. depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children ?? [])];
             }
         }
 
-        private byte[] RemoveMatchesFromInput(byte[] input, LempelZivMatch[] matches)
+        private static byte[] RemoveMatchesFromInput(byte[] input, LempelZivMatch[] matches)
         {
             var huffmanInput = new byte[input.Length - matches.Sum(x => x.Length)];
 
@@ -277,63 +280,41 @@ namespace Kompression.Specialized.SlimeMoriMori
 
         #region Create methods
 
-        private IValueReader CreateValueReader(int huffmanMode)
+        private static IValueReader CreateValueReader(int huffmanMode)
         {
-            switch (huffmanMode)
+            return huffmanMode switch
             {
-                case 1:
-                    return new HuffmanReader(4);
-
-                case 2:
-                    return new HuffmanReader(8);
-
-                default:
-                    return new DefaultValueReader();
-            }
+                1 => new HuffmanReader(4),
+                2 => new HuffmanReader(8),
+                _ => new DefaultValueReader()
+            };
         }
 
-        private ISlimeDecoder CreateDecoder(int decompMode, IValueReader huffmanReader)
+        private static ISlimeDecoder CreateDecoder(int decompMode, IValueReader huffmanReader)
         {
-            switch (decompMode)
+            return decompMode switch
             {
-                case 1:
-                    return new SlimeMode1Decoder(huffmanReader);
-
-                case 2:
-                    return new SlimeMode2Decoder(huffmanReader);
-
-                case 3:
-                    return new SlimeMode3Decoder(huffmanReader);
-
-                case 4:
-                    return new SlimeMode4Decoder(huffmanReader);
-
-                default:
-                    return new SlimeMode5Decoder(huffmanReader);
-            }
+                1 => new SlimeMode1Decoder(huffmanReader),
+                2 => new SlimeMode2Decoder(huffmanReader),
+                3 => new SlimeMode3Decoder(huffmanReader),
+                4 => new SlimeMode4Decoder(huffmanReader),
+                _ => new SlimeMode5Decoder(huffmanReader)
+            };
         }
 
-        private ISlimeDeobfuscator CreateDeobfuscator(int deobfuscateMode)
+        private static ISlimeDeobfuscator? CreateDeobfuscator(int deobfuscateMode)
         {
-            switch (deobfuscateMode)
+            return deobfuscateMode switch
             {
-                case 1:
-                    return new SlimeMode1Deobfuscator();
-
-                case 2:
-                    return new SlimeMode2Deobfuscator();
-
-                case 3:
-                    return new SlimeMode3Deobfuscator();
-
-                case 4:
-                    return new SlimeMode4Deobfuscator();
-            }
-
-            return null;
+                1 => new SlimeMode1Deobfuscator(),
+                2 => new SlimeMode2Deobfuscator(),
+                3 => new SlimeMode3Deobfuscator(),
+                4 => new SlimeMode4Deobfuscator(),
+                _ => null
+            };
         }
 
-        private HuffmanTreeNode CreateHuffmanTree(byte[] input, int huffmanMode)
+        private static HuffmanTreeNode? CreateHuffmanTree(byte[] input, int huffmanMode)
         {
             switch (huffmanMode)
             {
@@ -354,79 +335,71 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private IValueWriter CreateValueWriter(int huffmanMode, HuffmanTreeNode rootNode)
+        private static IValueWriter CreateValueWriter(int huffmanMode, HuffmanTreeNode rootNode)
         {
-            switch (huffmanMode)
+            return huffmanMode switch
             {
-                case 1:
-                case 2:
-                    return new HuffmanWriter(rootNode);
-                default:
-                    return new DefaultValueWriter();
-            }
+                1 or 2 => new HuffmanWriter(rootNode),
+                _ => new DefaultValueWriter()
+            };
         }
 
-        private void SortHuffmanTree(HuffmanTreeNode rootNode)
+        private static void SortHuffmanTree(HuffmanTreeNode? rootNode)
         {
+            if (rootNode == null)
+                return;
+
             var treeDepth = rootNode.GetDepth();
 
-            IList<HuffmanTreeNode> previousDepthList = new List<HuffmanTreeNode> { rootNode };
-            IList<HuffmanTreeNode> depthList = rootNode.Children;
+            IList<HuffmanTreeNode> previousDepthList = [rootNode];
+            IList<HuffmanTreeNode>? depthList = rootNode.Children;
+            if (depthList == null)
+                return;
+
             for (int i = 0; i < treeDepth; i++)
             {
                 if (depthList.All(x => !x.IsLeaf))
                 {
                     previousDepthList = depthList;
-                    depthList = previousDepthList.SelectMany(x => x.Children).ToList();
+                    depthList = [.. previousDepthList.SelectMany(x => x.Children ?? [])];
                     continue;
                 }
 
                 var ordered = depthList.OrderBy(x => !x.IsLeaf).ToList();
                 for (var j = 0; j < ordered.Count; j++)
                 {
-                    previousDepthList[j / 2].Frequency -= previousDepthList[j / 2].Children[j % 2].Frequency;
-                    previousDepthList[j / 2].Children[j % 2] = ordered[j];
+                    previousDepthList[j / 2].Frequency -= previousDepthList[j / 2].Children![j % 2].Frequency;
+                    previousDepthList[j / 2].Children![j % 2] = ordered[j];
                     previousDepthList[j / 2].Frequency += ordered[j].Frequency;
                 }
 
-                previousDepthList = ordered.Where(x => !x.IsLeaf).ToList();
-                depthList = previousDepthList.SelectMany(x => x.Children).ToList();
+                previousDepthList = [.. ordered.Where(x => !x.IsLeaf)];
+                depthList = [.. previousDepthList.SelectMany(x => x.Children ?? [])];
             }
         }
 
-        private ISlimeEncoder CreateEncoder(int compressionMode, IValueWriter valueWriter)
+        private static ISlimeEncoder CreateEncoder(int compressionMode, IValueWriter valueWriter)
         {
-            // TODO: Implement all encoders
-            switch (compressionMode)
+            return compressionMode switch
             {
-                case 1:
-                    return new SlimeMode1Encoder(valueWriter);
-                case 2:
-                    return new SlimeMode2Encoder(valueWriter);
-                case 3:
-                    return new SlimeMode3Encoder(valueWriter);
-                case 4:
-                    return new SlimeMode4Encoder(valueWriter);
-                default:
-                    return new SlimeMode5Encoder(valueWriter);
-            }
+                1 => new SlimeMode1Encoder(valueWriter),
+                2 => new SlimeMode2Encoder(valueWriter),
+                3 => new SlimeMode3Encoder(valueWriter),
+                4 => new SlimeMode4Encoder(valueWriter),
+                _ => new SlimeMode5Encoder(valueWriter)
+            };
         }
 
-        private ISlimeObfuscator CreateObfuscator(int obfuscationMode)
+        private static ISlimeObfuscator? CreateObfuscator(int obfuscationMode)
         {
-            switch (obfuscationMode)
+            return obfuscationMode switch
             {
-                case 1:
-                    return new SlimeMode1Obfuscator();
-                case 2:
-                    return new SlimeMode2Obfuscator();
-                case 3:
-                    return new SlimeMode3Obfuscator();
-                case 4:
-                    return new SlimeMode4Obfuscator();
-            }
-
-            return null;
+                1 => new SlimeMode1Obfuscator(),
+                2 => new SlimeMode2Obfuscator(),
+                3 => new SlimeMode3Obfuscator(),
+                4 => new SlimeMode4Obfuscator(),
+                _ => null
+            };
         }
 
         #endregion
@@ -435,7 +408,7 @@ namespace Kompression.Specialized.SlimeMoriMori
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
 
         #endregion

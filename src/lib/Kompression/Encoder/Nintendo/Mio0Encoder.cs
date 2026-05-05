@@ -8,15 +8,8 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder.Nintendo
 {
-    public class Mio0Encoder : ILempelZivEncoder
+    public class Mio0Encoder(ByteOrder byteOrder) : ILempelZivEncoder
     {
-        private readonly ByteOrder _byteOrder;
-
-        public Mio0Encoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
-        }
-
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new Mio0PriceCalculator())
@@ -70,7 +63,7 @@ namespace Kompression.Encoder.Nintendo
             var compressedTableOffsetInt = (int)(0x10 + (bitLayoutStream.Length + 3 & ~3));
 
             // Write header
-            using var bw = new BinaryWriterX(output, true, _byteOrder);
+            using var bw = new BinaryWriterX(output, true, byteOrder);
 
             bw.WriteString("MIO0", writeNullTerminator: false);
             bw.Write((int)input.Length);
@@ -87,11 +80,6 @@ namespace Kompression.Encoder.Nintendo
 
             uncompressedTableStream.Position = 0;
             uncompressedTableStream.CopyTo(output);
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

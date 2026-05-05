@@ -2,7 +2,7 @@
 
 namespace Kompression.Specialized.SlimeMoriMori.Obfuscator
 {
-    class SlimeMode3Obfuscator : ISlimeObfuscator
+    internal class SlimeMode3Obfuscator : ISlimeObfuscator
     {
         public void Obfuscate(byte[] input)
         {

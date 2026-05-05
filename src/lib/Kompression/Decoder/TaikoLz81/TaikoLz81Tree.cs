@@ -5,7 +5,7 @@ namespace Kompression.Decoder.TaikoLz81
 {
     internal class TaikoLz81Tree
     {
-        private TaikoLz81Node _root;
+        private TaikoLz81Node? _root;
 
         public void Build(BinaryBitReader br, int valueBitCount)
         {
@@ -16,13 +16,16 @@ namespace Kompression.Decoder.TaikoLz81
 
         public int ReadValue(BinaryBitReader br)
         {
+            if (_root == null)
+                throw new InvalidOperationException("Tree has to be built first.");
+
             TaikoLz81Node node = _root;
             while (!node.IsLeaf)
                 node = node.Children[br.ReadBit()];
             return node.Value;
         }
 
-        private void ReadNode(BinaryBitReader br, TaikoLz81Node node, int valueBitCount)
+        private static void ReadNode(BinaryBitReader br, TaikoLz81Node node, int valueBitCount)
         {
             var flag = br.ReadBit();
             if (flag != 0)

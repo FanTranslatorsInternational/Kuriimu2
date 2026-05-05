@@ -5,20 +5,13 @@ using Kompression.InternalContract.SlimeMoriMori.ValueWriter;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoder
 {
-    class SlimeMode4Encoder : ISlimeEncoder
+    internal class SlimeMode4Encoder(IValueWriter valueWriter) : ISlimeEncoder
     {
-        private IValueWriter _valueWriter;
-
-        public SlimeMode4Encoder(IValueWriter valueWriter)
-        {
-            _valueWriter = valueWriter;
-        }
-
         public void Encode(Stream input, BinaryBitWriter bw, LempelZivMatch[] matches)
         {
             while (input.Position < input.Length)
             {
-                _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+                valueWriter.WriteValue(bw, (byte)input.ReadByte());
             }
         }
     }

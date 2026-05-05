@@ -7,15 +7,8 @@ using Kompression.IO;
 
 namespace Kompression.Decoder.Nintendo
 {
-    public class Yay0Decoder : IDecoder
+    public class Yay0Decoder(ByteOrder byteOrder) : IDecoder
     {
-        private readonly ByteOrder _byteOrder;
-
-        public Yay0Decoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
-        }
-
         public void Decode(Stream input, Stream output)
         {
             long inputStartPosition = input.Position;
@@ -24,9 +17,9 @@ namespace Kompression.Decoder.Nintendo
 
             _ = input.Read(buffer);
             if (buffer[0] is not 0x59 || buffer[1] is not 0x61 || buffer[2] is not 0x79 || buffer[3] is not 0x30)
-                throw new InvalidCompressionException("Yay0" + (_byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
+                throw new InvalidCompressionException("Yay0" + (byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
 
-            using var br = new BinaryReaderX(input, true, _byteOrder);
+            using var br = new BinaryReaderX(input, true, byteOrder);
             
             int uncompressedLength = br.ReadInt32();
             int compressedTableOffset = br.ReadInt32();
@@ -76,7 +69,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -4,18 +4,11 @@ using Kompression.InternalContract.SlimeMoriMori.ValueWriter;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoder
 {
-    class SlimeMode1Encoder : SlimeEncoder
+    internal class SlimeMode1Encoder(IValueWriter valueWriter) : SlimeEncoder
     {
-        private IValueWriter _valueWriter;
-
-        public SlimeMode1Encoder(IValueWriter valueWriter)
-        {
-            _valueWriter = valueWriter;
-        }
-
         public override void Encode(Stream input, BinaryBitWriter bw, LempelZivMatch[] matches)
         {
-            CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 4);
+            CreateDisplacementTable([.. matches.Select(x => x.Displacement)], 4);
             WriteDisplacementTable(bw);
 
             foreach (var match in matches)
@@ -37,7 +30,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
             for (var i = 0; i < rawLength; i++)
             {
                 bw.WriteBit(0);
-                _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+                valueWriter.WriteValue(bw, (byte)input.ReadByte());
             }
         }
 

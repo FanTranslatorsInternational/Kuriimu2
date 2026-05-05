@@ -6,13 +6,6 @@ namespace Kompression.Decoder.Level5
 {
     public class Lz10Decoder : IDecoder
     {
-        private readonly Lz10HeaderlessDecoder _decoder;
-
-        public Lz10Decoder()
-        {
-            _decoder = new Lz10HeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -24,11 +17,12 @@ namespace Kompression.Decoder.Level5
             int decompressedSize = buffer[0] >> 3 | buffer[1] << 5 |
                                    buffer[2] << 13 | buffer[3] << 21;
 
-            _decoder.Decode(input, output, decompressedSize);
+            Lz10HeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

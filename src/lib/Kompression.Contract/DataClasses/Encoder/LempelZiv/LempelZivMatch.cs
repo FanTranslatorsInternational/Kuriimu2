@@ -3,35 +3,22 @@
     /// <summary>
     /// The pattern match containing all its information.
     /// </summary>
-    public class LempelZivMatch
+    public class LempelZivMatch(int position, int displacement, int length)
     {
         /// <summary>
         /// The position at which the match was found.
         /// </summary>
-        public int Position { get; private set; }
+        public int Position { get; private set; } = position;
 
         /// <summary>
         /// Gets the length the pattern match has.
         /// </summary>
-        public int Length { get; }
+        public int Length { get; } = length;
 
         /// <summary>
         /// Gets the displacement from the position at which the match begins.
         /// </summary>
-        public int Displacement { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="LempelZivMatch"/>.
-        /// </summary>
-        /// <param name="position">The position at which the match was found.</param>
-        /// <param name="displacement">The length the pattern match has.</param>
-        /// <param name="length">The displacement from the position at which the match begins.</param>
-        public LempelZivMatch(int position, int displacement, int length)
-        {
-            Position = position;
-            Displacement = displacement;
-            Length = length;
-        }
+        public int Displacement { get; } = displacement;
 
         /// <summary>
         /// Resets the position to a bew value.

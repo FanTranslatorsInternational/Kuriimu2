@@ -6,17 +6,16 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder
 {
-    // TODO: Refactor block class
     public class TalesOf03Encoder : ILempelZivEncoder
     {
         private const int WindowBufferLength_ = 0x1000;
         private const int PreBufferSize_ = 0xFEF;
 
-        class Block
+        internal class Block
         {
-            public byte[] buffer = new byte[1 + 8 * 3];
-            public int bufferLength = 1;
-            public int flagCount;
+            public readonly byte[] Buffer = new byte[1 + 8 * 3];
+            public int BufferLength = 1;
+            public int FlagCount;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -44,27 +43,27 @@ namespace Kompression.Encoder
             if (input.Position < input.Length)
                 WriteRawData(input, output, block, input.Length - input.Position);
 
-            if (block.flagCount > 0)
+            if (block.FlagCount > 0)
                 WriteAndResetBuffer(output, block);
 
             WriteHeaderData(output, (int)input.Length);
         }
 
-        private void WriteRawData(Stream input, Stream output, Block block, long rawLength)
+        private static void WriteRawData(Stream input, Stream output, Block block, long rawLength)
         {
             for (var i = 0; i < rawLength; i++)
             {
-                if (block.flagCount == 8)
+                if (block.FlagCount == 8)
                     WriteAndResetBuffer(output, block);
 
-                block.buffer[0] |= (byte)(1 << block.flagCount++);
-                block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                block.Buffer[0] |= (byte)(1 << block.FlagCount++);
+                block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
             }
         }
 
-        private void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
+        private static void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
         {
-            if (block.flagCount == 8)
+            if (block.FlagCount == 8)
                 WriteAndResetBuffer(output, block);
 
             if (lempelZivMatch.Displacement == 0)
@@ -75,9 +74,9 @@ namespace Kompression.Encoder
                     var byte2 = (byte)0x0F;
                     var byte1 = (byte)(lempelZivMatch.Length - 0x13);
 
-                    block.buffer[block.bufferLength++] = byte1;
-                    block.buffer[block.bufferLength++] = byte2;
-                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                    block.Buffer[block.BufferLength++] = byte1;
+                    block.Buffer[block.BufferLength++] = byte2;
+                    block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
                     input.Position += lempelZivMatch.Length - 1;
                 }
                 else
@@ -86,8 +85,8 @@ namespace Kompression.Encoder
                     byte2 |= 0xF;
                     var byte1 = (byte)input.ReadByte();
 
-                    block.buffer[block.bufferLength++] = byte1;
-                    block.buffer[block.bufferLength++] = byte2;
+                    block.Buffer[block.BufferLength++] = byte1;
+                    block.Buffer[block.BufferLength++] = byte2;
                     input.Position += lempelZivMatch.Length - 1;
                 }
             }
@@ -100,15 +99,15 @@ namespace Kompression.Encoder
                 var byte2 = (byte)(lempelZivMatch.Length - 3 & 0xF);
                 byte2 |= (byte)(bufferPosition >> 4 & 0xF0);
 
-                block.buffer[block.bufferLength++] = byte1;
-                block.buffer[block.bufferLength++] = byte2;
+                block.Buffer[block.BufferLength++] = byte1;
+                block.Buffer[block.BufferLength++] = byte2;
                 input.Position += lempelZivMatch.Length;
             }
 
-            block.flagCount++;
+            block.FlagCount++;
         }
 
-        private void WriteHeaderData(Stream output, int decompressedLength)
+        private static void WriteHeaderData(Stream output, int decompressedLength)
         {
             var endPosition = output.Position;
             output.Position = 0;
@@ -122,17 +121,13 @@ namespace Kompression.Encoder
             output.Position = endPosition;
         }
 
-        private void WriteAndResetBuffer(Stream output, Block block)
+        private static void WriteAndResetBuffer(Stream output, Block block)
         {
-            output.Write(block.buffer, 0, block.bufferLength);
+            output.Write(block.Buffer, 0, block.BufferLength);
 
-            Array.Clear(block.buffer, 0, block.bufferLength);
-            block.bufferLength = 1;
-            block.flagCount = 0;
-        }
-
-        public void Dispose()
-        {
+            Array.Clear(block.Buffer, 0, block.BufferLength);
+            block.BufferLength = 1;
+            block.FlagCount = 0;
         }
     }
 }

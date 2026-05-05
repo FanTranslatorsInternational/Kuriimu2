@@ -15,14 +15,12 @@ namespace Kompression.Decoder.Nintendo
 
             int decompressedSize = buffer[1] | buffer[2] << 8 | buffer[3] << 16;
 
-            var lz40Decoder = new Lz40Decoder();
-            lz40Decoder.ReadCompressedData(input, output, decompressedSize);
-            lz40Decoder.Dispose();
+            Lz40Decoder.ReadCompressedData(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

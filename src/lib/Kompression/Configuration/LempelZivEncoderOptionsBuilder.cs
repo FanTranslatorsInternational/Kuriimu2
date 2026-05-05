@@ -1,7 +1,6 @@
 ﻿using Kompression.Contract.Configuration;
 using Kompression.Contract.DataClasses.Encoder.LempelZiv.MatchFinder;
 using Kompression.Contract.DataClasses.Encoder.LempelZiv.MatchParser;
-using Kompression.Contract.Encoder.LempelZiv.InputManipulation;
 using Kompression.Contract.Encoder.LempelZiv.MatchFinder;
 using Kompression.Contract.Encoder.LempelZiv.MatchParser;
 using Kompression.Contract.Encoder.LempelZiv.PriceCalculator;
@@ -12,16 +11,10 @@ using Kompression.Encoder.LempelZiv.MatchFinder;
 
 namespace Kompression.Configuration
 {
-    internal class LempelZivEncoderOptionsBuilder : ILempelZivEncoderAdditionalOptionsBuilder, ILempelZivEncoderLimitationsOptionsBuilder
+    internal class LempelZivEncoderOptionsBuilder(LempelZivOptions lempelZivOptions) : ILempelZivEncoderAdditionalOptionsBuilder,
+        ILempelZivEncoderLimitationsOptionsBuilder
     {
-        private readonly LempelZivOptions _options;
-        private readonly LempelZivEncoderOptions _encoderOptions;
-
-        public LempelZivEncoderOptionsBuilder(LempelZivOptions options)
-        {
-            _options = options;
-            _encoderOptions = new LempelZivEncoderOptions();
-        }
+        private readonly LempelZivEncoderOptions _encoderOptions = new();
 
         public ILempelZivEncoderLimitationsOptionsBuilder FindWith(CreateMatchFinderDelegate finderDelegate)
         {
@@ -141,15 +134,14 @@ namespace Kompression.Configuration
                 MatchFinders = CreateMatchFinders(),
                 InputManipulation = CreateInputManipulator(),
                 UnitSize = _encoderOptions.UnitSize,
-                TaskCount = _options.TaskCount
+                TaskCount = lempelZivOptions.TaskCount
             };
-            return _options.CreateMatchParserDelegate(parserOptions);
+            return lempelZivOptions.CreateMatchParserDelegate(parserOptions);
         }
 
         private ILempelZivPriceCalculator CreatePriceCalculator()
         {
-            if (_encoderOptions.CalculatePriceDelegate == null)
-                throw new ArgumentNullException(nameof(_encoderOptions.CalculatePriceDelegate));
+            ArgumentNullException.ThrowIfNull(_encoderOptions.CalculatePriceDelegate);
 
             return _encoderOptions.CalculatePriceDelegate();
         }
@@ -175,7 +167,7 @@ namespace Kompression.Configuration
             return matchFinders;
         }
 
-        private IInputManipulator CreateInputManipulator()
+        private InputManipulator CreateInputManipulator()
         {
             var options = new LempelZivInputAdjustmentOptions();
 

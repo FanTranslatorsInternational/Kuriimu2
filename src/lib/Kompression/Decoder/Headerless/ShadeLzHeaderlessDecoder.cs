@@ -85,7 +85,7 @@ namespace Kompression.Decoder.Headerless
             }
         }
 
-        public void Decode(Stream input, Stream output, int decompressedSize)
+        public static void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1FFF);
 
@@ -117,7 +117,7 @@ namespace Kompression.Decoder.Headerless
             }
         }
 
-        private int ReadMatchStart(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
+        private static int ReadMatchStart(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 4, Max length: 7
             // Min disp: 0, Max disp: 0x1FFF
@@ -131,7 +131,7 @@ namespace Kompression.Decoder.Headerless
             return displacement;
         }
 
-        private void ReadMatchContinue(Stream output, CircularBuffer circularBuffer, byte flag, int previousDisplacement)
+        private static void ReadMatchContinue(Stream output, CircularBuffer circularBuffer, byte flag, int previousDisplacement)
         {
             // Min length: 0, Max length: 0x1F
 
@@ -140,7 +140,7 @@ namespace Kompression.Decoder.Headerless
             circularBuffer.Copy(output, previousDisplacement, length);
         }
 
-        private void ReadRle(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
+        private static void ReadRle(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 4, Max length: 0x1003
 
@@ -159,7 +159,7 @@ namespace Kompression.Decoder.Headerless
             }
         }
 
-        private void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
+        private static void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 0, Max length: 0x1FFF
 
@@ -180,6 +180,7 @@ namespace Kompression.Decoder.Headerless
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

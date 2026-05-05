@@ -4,12 +4,8 @@ using Kompression.InternalContract.SlimeMoriMori.ValueReader;
 
 namespace Kompression.Specialized.SlimeMoriMori.Decoder
 {
-    class SlimeMode3Decoder : SlimeDecoder
+    internal class SlimeMode3Decoder(IValueReader huffmanReader) : SlimeDecoder(huffmanReader)
     {
-        public SlimeMode3Decoder(IValueReader huffmanReader) : base(huffmanReader)
-        {
-        }
-
         public override void Decode(Stream input, Stream output)
         {
             using var br = new BinaryBitReader(input, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian);

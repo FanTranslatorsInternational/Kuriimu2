@@ -21,10 +21,10 @@ namespace Kompression.Encoder.Nintendo
             var compressionHeader = new byte[] { 0x40, (byte)(input.Length & 0xFF), (byte)(input.Length >> 8 & 0xFF), (byte)(input.Length >> 16 & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            WriteCompressedData(input, output, matches.ToArray());
+            WriteCompressedData(input, output, [.. matches]);
         }
 
-        internal void WriteCompressedData(Stream input, Stream output, LempelZivMatch[] matches)
+        internal static void WriteCompressedData(Stream input, Stream output, LempelZivMatch[] matches)
         {
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];
@@ -55,7 +55,7 @@ namespace Kompression.Encoder.Nintendo
             WriteBlockBuffer(output, blockBuffer, blockBufferLength);
         }
 
-        private int WriteCompressedBlockToBuffer(LempelZivMatch lzLempelZivMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
+        private static int WriteCompressedBlockToBuffer(LempelZivMatch lzLempelZivMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
         {
             // mark the next block as compressed
             blockBuffer[0] |= (byte)(1 << 7 - bufferedBlocks);
@@ -89,15 +89,10 @@ namespace Kompression.Encoder.Nintendo
             return blockBufferLength;
         }
 
-        private void WriteBlockBuffer(Stream output, byte[] blockBuffer, int blockBufferLength)
+        private static void WriteBlockBuffer(Stream output, byte[] blockBuffer, int blockBufferLength)
         {
             output.Write(blockBuffer, 0, blockBufferLength);
             Array.Clear(blockBuffer, 0, blockBufferLength);
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

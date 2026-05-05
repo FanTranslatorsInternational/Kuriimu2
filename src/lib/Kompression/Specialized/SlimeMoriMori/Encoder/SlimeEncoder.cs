@@ -7,7 +7,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
 {
     abstract class SlimeEncoder : ISlimeEncoder
     {
-        private DisplacementElement[] _displacementTable;
+        private DisplacementElement[]? _displacementTable;
 
         public abstract void Encode(Stream input, BinaryBitWriter bw, LempelZivMatch[] matches);
 
@@ -18,7 +18,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
         /// <param name="entryCount">The number of entries in the final table.</param>
         protected void CreateDisplacementTable(int[] displacements, int entryCount)
         {
-            var distribution = CalculateDisplacementCoverage(displacements.Select(x => (double)x).ToArray(), entryCount);
+            var distribution = CalculateDisplacementCoverage([.. displacements.Select(x => (double)x)], entryCount);
             _displacementTable = new DisplacementElement[entryCount];
 
             var displacementStart = 1;
@@ -42,7 +42,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
         /// <param name="displacements">The list of displacements.</param>
         /// <param name="rangeCount">The percentile ranges.</param>
         /// <returns>The max value of each coverage percentile.</returns>
-        private double[] CalculateDisplacementCoverage(double[] displacements, int rangeCount)
+        private static double[] CalculateDisplacementCoverage(double[] displacements, int rangeCount)
         {
             var percentiles = new double[rangeCount];
             var range = 1d / rangeCount;
@@ -65,18 +65,18 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
         /// <param name="excelPercentile"></param>
         /// <returns></returns>
         /// <remarks>https://stackoverflow.com/questions/8137391/percentile-calculation</remarks>
-        private double CalculatePercentile(double[] sequence, double excelPercentile)
+        private static double CalculatePercentile(double[] sequence, double excelPercentile)
         {
             Array.Sort(sequence);
-            int N = sequence.Length;
-            double n = (N - 1) * excelPercentile + 1;
+            int length = sequence.Length;
+            double n = (length - 1) * excelPercentile + 1;
 
             // Another method: double n = (N + 1) * excelPercentile;
-            if (n == 1d)
+            if (Math.Abs(n - 1d) < double.Epsilon)
                 return sequence[0];
 
-            if (n == N)
-                return sequence[N - 1];
+            if (Math.Abs(n - length) < double.Epsilon)
+                return sequence[length - 1];
 
             int k = (int)n;
             double d = n - k;
@@ -94,6 +94,9 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
 
         protected int GetDisplacementIndex(long displacement)
         {
+            if (_displacementTable == null)
+                throw new InvalidOperationException("Displacement table has to be initialized.");
+
             var index = 0;
             for (var i = 1; i < _displacementTable.Length; i++)
                 if (displacement >= _displacementTable[i].DisplacementStart)
@@ -106,7 +109,9 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
 
         protected DisplacementElement GetDisplacementEntry(int dispIndex)
         {
-            return _displacementTable[dispIndex];
+            return _displacementTable == null
+                ? throw new InvalidOperationException("Displacement table has to be initialized.")
+                : _displacementTable[dispIndex];
         }
     }
 }

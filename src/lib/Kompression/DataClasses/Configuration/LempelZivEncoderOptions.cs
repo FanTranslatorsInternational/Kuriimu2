@@ -6,8 +6,8 @@ namespace Kompression.DataClasses.Configuration
 {
     internal class LempelZivEncoderOptions
     {
-        public IList<CreateMatchFinderDelegate> MatchFinderDelegates { get; } = new List<CreateMatchFinderDelegate>();
-        public IList<LempelZivMatchLimitations> MatchLimitations { get; } = new List<LempelZivMatchLimitations>();
+        public IList<CreateMatchFinderDelegate> MatchFinderDelegates { get; } = [];
+        public IList<LempelZivMatchLimitations> MatchLimitations { get; } = [];
         public CreatePriceCalculatorDelegate? CalculatePriceDelegate { get; set; }
         public AdjustInputDelegate? AdjustInputDelegate { get; set; }
         public int SkipUnits { get; set; }

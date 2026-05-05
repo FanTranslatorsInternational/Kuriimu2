@@ -16,8 +16,8 @@ namespace Kompression.Decoder
             var buffer = new byte[8];
 
             _ = input.Read(buffer);
-            int compressedDataSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-            int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer[4..]);
+            _ = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+            int decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(4));
 
             var circularBuffer = new CircularBuffer(0x1000)
             {
@@ -90,7 +90,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

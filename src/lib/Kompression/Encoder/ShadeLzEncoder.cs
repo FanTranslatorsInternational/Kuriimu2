@@ -8,12 +8,7 @@ namespace Kompression.Encoder
 {
     public class ShadeLzEncoder : ILempelZivEncoder
     {
-        private readonly ShadeLzHeaderlessEncoder _encoder;
-
-        public ShadeLzEncoder()
-        {
-            _encoder = new ShadeLzHeaderlessEncoder();
-        }
+        private readonly ShadeLzHeaderlessEncoder _encoder = new();
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
@@ -28,7 +23,7 @@ namespace Kompression.Encoder
             WriteHeaderData(output, input.Length);
         }
 
-        private void WriteHeaderData(Stream output, long uncompressedLength)
+        private static void WriteHeaderData(Stream output, long uncompressedLength)
         {
             var bkPos = output.Position;
             output.Position = 0;
@@ -41,10 +36,6 @@ namespace Kompression.Encoder
             bw.Write((int)output.Length);
 
             output.Position = bkPos;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

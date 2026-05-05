@@ -23,10 +23,10 @@ namespace Kompression.Encoder
             output.Write(unk1, 0, unk1.Length);
             output.Write(unk2, 0, unk2.Length);
 
-            WriteCompressedData(input, output, matches.ToArray());
+            WriteCompressedData(input, output, [.. matches]);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, LempelZivMatch[] matches)
+        private static void WriteCompressedData(Stream input, Stream output, LempelZivMatch[] matches)
         {
             var matchIndex = 0;
             while (input.Position < input.Length)
@@ -43,7 +43,7 @@ namespace Kompression.Encoder
 
                 // Write literals
                 var literals = new byte[rawSize];
-                input.Read(literals, 0, literals.Length);
+                _ = input.Read(literals, 0, literals.Length);
                 output.Write(literals, 0, literals.Length);
 
                 // Write matches
@@ -61,7 +61,7 @@ namespace Kompression.Encoder
 
         #region Helper
 
-        private int GetContinuousMatches(LempelZivMatch[] matches, int startIndex)
+        private static int GetContinuousMatches(LempelZivMatch[] matches, int startIndex)
         {
             var compressedBlocks = 0;
             var matchPosition = matches[startIndex].Position;
@@ -75,30 +75,28 @@ namespace Kompression.Encoder
             return compressedBlocks;
         }
 
-        byte[] MakeLiteralCopies(int literal, int copies)
+        private static byte[] MakeLiteralCopies(int literal, int copies)
         {
             int litNibble = 0, copNibble = 0;
-            byte[] litExtra = new byte[0], copExtra = new byte[0];
+            byte[] litExtra = [], copExtra = [];
 
-            if (literal > 0 && literal < 16) litNibble = literal;
+            if (literal is > 0 and < 16) litNibble = literal;
             else litExtra = CreateVlc(literal);
 
-            if (copies > 0 && copies < 16) copNibble = copies;
+            if (copies is > 0 and < 16) copNibble = copies;
             else copExtra = CreateVlc(copies);
 
-            //if (copies == 0) copExtra = CreateVlc(copies); // special case where last byte is literal
-
-            return new[] { (byte)(litNibble | copNibble << 4) }.Concat(litExtra).Concat(copExtra).ToArray();
+            return [.. new[] { (byte)(litNibble | copNibble << 4) }.Concat(litExtra).Concat(copExtra)];
         }
 
-        byte[] MakeLengthOffset(int length, int offset)
+        private static byte[] MakeLengthOffset(int length, int offset)
         {
             (length, offset) = (length - 1, offset - 1);
 
-            int lenNibble = 0, offNibble = 0;
-            byte[] lenExtra = new byte[0], offExtra = new byte[0];
+            int lenNibble = 0, offNibble;
+            byte[] lenExtra = [], offExtra = [];
 
-            if (length > 0 && length < 16) lenNibble = length;
+            if (length is > 0 and < 16) lenNibble = length;
             else lenExtra = CreateVlc(length);
 
             if (offset < 8) offNibble = offset << 1 | 1;
@@ -112,13 +110,13 @@ namespace Kompression.Encoder
                 var low = offset & (1 << bitsToShift) - 1;
 
                 offNibble = high << 1;
-                offExtra = CreateVlc(low | 127 << bitsToShift).Skip(1).ToArray();
+                offExtra = [.. CreateVlc(low | 127 << bitsToShift).Skip(1)];
             }
 
-            return new[] { (byte)(offNibble | lenNibble << 4) }.Concat(offExtra).Concat(lenExtra).ToArray();
+            return [.. new[] { (byte)(offNibble | lenNibble << 4) }.Concat(offExtra).Concat(lenExtra)];
         }
 
-        byte[] CreateVlc(int n)
+        private static byte[] CreateVlc(int n)
         {
             var tmp = new Stack<byte>();
             tmp.Push((byte)(n << 1 | 1));
@@ -128,7 +126,8 @@ namespace Kompression.Encoder
                 tmp.Push((byte)(n << 1));
                 n >>= 7;
             }
-            return tmp.ToArray();
+
+            return [.. tmp];
         }
 
         private static int GetBitCount(long value)
@@ -141,10 +140,5 @@ namespace Kompression.Encoder
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            // nothing to dispose
-        }
     }
 }

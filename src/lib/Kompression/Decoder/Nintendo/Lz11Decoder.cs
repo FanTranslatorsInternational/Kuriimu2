@@ -18,7 +18,7 @@ namespace Kompression.Decoder.Nintendo
 
             ReadCompressedData(input, output, decompressedSize);
         }
-        private void ReadCompressedData(Stream input, Stream output, int decompressedSize)
+        private static void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000);
 
@@ -44,7 +44,7 @@ namespace Kompression.Decoder.Nintendo
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
@@ -54,7 +54,7 @@ namespace Kompression.Decoder.Nintendo
             circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
@@ -80,7 +80,7 @@ namespace Kompression.Decoder.Nintendo
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private (int length, int displacement) HandleZeroCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
+        private static (int length, int displacement) HandleZeroCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
         {
             if (input.Length - input.Position < 1)
                 throw new StreamTooShortException();
@@ -95,7 +95,7 @@ namespace Kompression.Decoder.Nintendo
             return (length, displacement);
         }
 
-        private (int length, int displacement) HandleOneCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
+        private static (int length, int displacement) HandleOneCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
         {
             if (input.Length - input.Position < 2)
                 throw new StreamTooShortException();
@@ -111,7 +111,7 @@ namespace Kompression.Decoder.Nintendo
             return (length, displacement);
         }
 
-        private (int length, int displacement) HandleRemainingCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
+        private static (int length, int displacement) HandleRemainingCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
         {
             var length = (byte1 >> 4) + 1;  // max 0xF + 1 = 0x10
             var displacement = ((byte1 & 0xF) << 8 | byte2) + 1;   // max 0xFFF + 1 = 0x1000
@@ -124,6 +124,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

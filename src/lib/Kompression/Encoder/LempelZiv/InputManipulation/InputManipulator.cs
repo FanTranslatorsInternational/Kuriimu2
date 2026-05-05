@@ -4,18 +4,11 @@ using Kompression.DataClasses.Configuration;
 
 namespace Kompression.Encoder.LempelZiv.InputManipulation
 {
-    internal class InputManipulator : IInputManipulator
+    internal class InputManipulator(LempelZivInputAdjustmentOptions options) : IInputManipulator
     {
-        private readonly LempelZivInputAdjustmentOptions _options;
-
-        public InputManipulator(LempelZivInputAdjustmentOptions options)
-        {
-            _options = options;
-        }
-
         public Stream Manipulate(Stream input)
         {
-            foreach (IInputManipulation manipulation in _options.InputManipulations)
+            foreach (IInputManipulation manipulation in options.InputManipulations)
                 input = manipulation.Manipulate(input);
 
             return input;
@@ -23,7 +16,7 @@ namespace Kompression.Encoder.LempelZiv.InputManipulation
 
         public void AdjustMatch(LempelZivMatch match)
         {
-            foreach (IInputManipulation manipulation in _options.InputManipulations.Reverse())
+            foreach (IInputManipulation manipulation in options.InputManipulations.Reverse())
                 manipulation.AdjustMatch(match);
         }
     }

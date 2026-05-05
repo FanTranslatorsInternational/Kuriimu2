@@ -6,7 +6,7 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder.Headerless
 {
-    class Lz4HeaderlessEncoder : ILempelZivEncoder
+    internal class Lz4HeaderlessEncoder : ILempelZivEncoder
     {
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {

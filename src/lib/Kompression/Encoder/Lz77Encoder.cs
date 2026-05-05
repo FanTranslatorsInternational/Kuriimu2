@@ -7,7 +7,6 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder
 {
-    // TODO: Test this compression thoroughly
     public class Lz77Encoder : ILempelZivEncoder
     {
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -22,7 +21,7 @@ namespace Kompression.Encoder
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, IEnumerable<LempelZivMatch> matches)
+        private static void WriteCompressedData(Stream input, Stream output, IEnumerable<LempelZivMatch> matches)
         {
             using var bw = new BinaryBitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.BigEndian);
 
@@ -47,11 +46,6 @@ namespace Kompression.Encoder
                 bw.WriteBit(0);
                 bw.WriteByte((byte)input.ReadByte());
             }
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

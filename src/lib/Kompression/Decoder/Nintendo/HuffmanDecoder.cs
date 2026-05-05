@@ -5,26 +5,17 @@ using Kompression.Exceptions;
 
 namespace Kompression.Decoder.Nintendo
 {
-    public class HuffmanDecoder : IDecoder
+    public class HuffmanDecoder(int bitDepth, NibbleOrder nibbleOrder) : IDecoder
     {
-        private readonly int _bitDepth;
-
-        private readonly HuffmanHeaderlessDecoder _decoder;
-
-        public HuffmanDecoder(int bitDepth, NibbleOrder nibbleOrder)
-        {
-            _bitDepth = bitDepth;
-
-            _decoder = new HuffmanHeaderlessDecoder(bitDepth, nibbleOrder);
-        }
+        private readonly HuffmanHeaderlessDecoder _decoder = new(bitDepth, nibbleOrder);
 
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
 
             _ = input.Read(buffer);
-            if (buffer[0] != 0x20 + _bitDepth)
-                throw new InvalidCompressionException($"Nintendo Huffman{_bitDepth}");
+            if (buffer[0] != 0x20 + bitDepth)
+                throw new InvalidCompressionException($"Nintendo Huffman{bitDepth}");
 
             int decompressedLength = buffer[1] | buffer[2] << 8 | buffer[3] << 16;
 
@@ -33,7 +24,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
-            // nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -4,7 +4,7 @@ using Kompression.IO;
 
 namespace Kompression.Decoder.Headerless
 {
-    class Lz4HeaderlessDecoder : IDecoder
+    internal class Lz4HeaderlessDecoder : IDecoder
     {
         private readonly byte[] _buffer = new byte[4];
 
@@ -62,7 +62,7 @@ namespace Kompression.Decoder.Headerless
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
 
         private int ReadBlockSizes(Stream input, out int decompBlockSize)
@@ -79,7 +79,7 @@ namespace Kompression.Decoder.Headerless
             return compSize;
         }
 
-        private bool IsLastBlock(int decompSize)
+        private static bool IsLastBlock(int decompSize)
         {
             return decompSize < 0;
         }

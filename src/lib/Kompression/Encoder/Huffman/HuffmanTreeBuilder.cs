@@ -12,7 +12,7 @@ namespace Kompression.Encoder.Huffman
         public HuffmanTreeNode? Build(byte[] input, int bitDepth, NibbleOrder nibbleOrder)
         {
             // Get value frequencies of input
-            IList<HuffmanTreeNode> frequencies = GetFrequencies(input, bitDepth, nibbleOrder).ToList();
+            List<HuffmanTreeNode> frequencies = [.. GetFrequencies(input, bitDepth, nibbleOrder)];
 
             // Add a stub entry in the special case that there's only one item;
             // We want at least 2 elements in the tree to encode
@@ -31,7 +31,7 @@ namespace Kompression.Encoder.Huffman
             return rootNode;
         }
 
-        private IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, NibbleOrder? byteOrder)
+        private static IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, NibbleOrder? byteOrder)
         {
             if (bitDepth != 4 && bitDepth != 8)
                 throw new ArgumentOutOfRangeException(nameof(bitDepth));
@@ -53,7 +53,7 @@ namespace Kompression.Encoder.Huffman
             });
         }
 
-        private HuffmanTreeNode? CreateAndSortTree(IList<HuffmanTreeNode> frequencies)
+        private static HuffmanTreeNode? CreateAndSortTree(List<HuffmanTreeNode> frequencies)
         {
             if (frequencies.Count <= 0)
                 return null;
@@ -62,17 +62,17 @@ namespace Kompression.Encoder.Huffman
             while (frequencies.Count > 1)
             {
                 // Order frequencies ascending
-                frequencies = frequencies.OrderBy(n => n.Frequency).ToList();
+                frequencies = [.. frequencies.OrderBy(n => n.Frequency)];
 
                 // Create new tree node with the 2 elements of least frequency
                 var leastFrequencyNode = new HuffmanTreeNode
                 {
                     Frequency = frequencies[0].Frequency + frequencies[1].Frequency,
-                    Children = frequencies.Take(2).ToArray()
+                    Children = [.. frequencies.Take(2)]
                 };
 
                 // Remove those least frequency elements and append new tree node to frequencies
-                frequencies = frequencies.Skip(2).Concat(new[] { leastFrequencyNode }).ToList();
+                frequencies = [.. frequencies.Skip(2).Concat([leastFrequencyNode])];
 
                 // This ultimately results in a tree like structure where the most frequent elements are closer to the root;
                 // while less frequent elements are farther from it

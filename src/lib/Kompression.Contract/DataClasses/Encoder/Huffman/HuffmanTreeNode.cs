@@ -39,7 +39,7 @@
         public int GetDepth() => GetDepth(0);
 
         private IEnumerable<(int, string)> GetHuffCodes(string seed) =>
-            Children?.SelectMany((child, i) => child.GetHuffCodes(seed + i)) ?? new[] { (Code, seed) };
+            Children?.SelectMany((child, i) => child.GetHuffCodes(seed + i)) ?? [(Code, seed)];
 
         private int GetDepth(int seed)
         {

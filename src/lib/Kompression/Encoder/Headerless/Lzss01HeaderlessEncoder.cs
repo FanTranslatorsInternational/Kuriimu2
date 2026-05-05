@@ -5,17 +5,16 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder.Headerless
 {
-    // TODO: Refactor block class
     public class Lzss01HeaderlessEncoder : ILempelZivEncoder
     {
         private const int WindowBufferLength_ = 0x1000;
         private const int PreBufferSize_ = 0xFEE;
 
-        class Block
+        internal class Block
         {
-            public byte[] buffer = new byte[1 + 8 * 2];
-            public int bufferLength = 1;
-            public int flagCount;
+            public readonly byte[] Buffer = new byte[1 + 8 * 2];
+            public int BufferLength = 1;
+            public int FlagCount;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -43,21 +42,21 @@ namespace Kompression.Encoder.Headerless
             WriteAndResetBuffer(output, block);
         }
 
-        private void WriteRawData(Stream input, Stream output, Block block, long rawLength)
+        private static void WriteRawData(Stream input, Stream output, Block block, long rawLength)
         {
             for (var i = 0; i < rawLength; i++)
             {
-                if (block.flagCount == 8)
+                if (block.FlagCount == 8)
                     WriteAndResetBuffer(output, block);
 
-                block.buffer[0] |= (byte)(1 << block.flagCount++);
-                block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                block.Buffer[0] |= (byte)(1 << block.FlagCount++);
+                block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
             }
         }
 
-        private void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
+        private static void WriteMatchData(Stream input, Stream output, Block block, LempelZivMatch lempelZivMatch)
         {
-            if (block.flagCount == 8)
+            if (block.FlagCount == 8)
                 WriteAndResetBuffer(output, block);
 
             var bufferPosition = (PreBufferSize_ + lempelZivMatch.Position - lempelZivMatch.Displacement) % WindowBufferLength_;
@@ -66,23 +65,19 @@ namespace Kompression.Encoder.Headerless
             byte2 |= (byte)(bufferPosition >> 4 & 0xF0);
             var byte1 = (byte)bufferPosition;
 
-            block.flagCount++;
-            block.buffer[block.bufferLength++] = byte1;
-            block.buffer[block.bufferLength++] = byte2;
+            block.FlagCount++;
+            block.Buffer[block.BufferLength++] = byte1;
+            block.Buffer[block.BufferLength++] = byte2;
             input.Position += lempelZivMatch.Length;
         }
 
-        private void WriteAndResetBuffer(Stream output, Block block)
+        private static void WriteAndResetBuffer(Stream output, Block block)
         {
-            output.Write(block.buffer, 0, block.bufferLength);
+            output.Write(block.Buffer, 0, block.BufferLength);
 
-            Array.Clear(block.buffer, 0, block.bufferLength);
-            block.bufferLength = 1;
-            block.flagCount = 0;
-        }
-
-        public void Dispose()
-        {
+            Array.Clear(block.Buffer, 0, block.BufferLength);
+            block.BufferLength = 1;
+            block.FlagCount = 0;
         }
     }
 }

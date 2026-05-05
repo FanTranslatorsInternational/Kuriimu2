@@ -6,16 +6,16 @@
 
         public int MaxLength => _matches.Last().length;
 
-        public bool HasMatches => _matches.Any();
+        public bool HasMatches => _matches.Length > 0;
 
         public LempelZivAggregateMatch(IList<(int displacement, int length)> matches)
         {
-            _matches = matches.Select(x => (x.displacement, x.length)).ToArray();
+            _matches = [.. matches.Select(x => (x.displacement, x.length))];
         }
 
         public LempelZivAggregateMatch(int displacement, int length)
         {
-            _matches = new[] { (displacement, length) };
+            _matches = [(displacement, length)];
         }
 
         public int GetDisplacement(int length)

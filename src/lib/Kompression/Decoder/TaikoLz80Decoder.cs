@@ -34,7 +34,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private bool ReadUncompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
+        private static bool ReadUncompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             var length = code & 0x3F;
             if (code == 0)
@@ -70,7 +70,7 @@ namespace Kompression.Decoder
             return false;
         }
 
-        private void ReadOneCompressedData(Stream output, CircularBuffer circularBuffer, int code)
+        private static void ReadOneCompressedData(Stream output, CircularBuffer circularBuffer, int code)
         {
             // 8 bits
             // 11 11 1111
@@ -81,7 +81,7 @@ namespace Kompression.Decoder
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private void ReadTwoCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
+        private static void ReadTwoCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             // 16 bits
             // 11 1111 1111111111
@@ -94,7 +94,7 @@ namespace Kompression.Decoder
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private void ReadThreeCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
+        private static void ReadThreeCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             // 24 bits
             // 11 1111111 111111111111111
@@ -110,6 +110,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

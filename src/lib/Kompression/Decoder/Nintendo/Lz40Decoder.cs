@@ -19,7 +19,7 @@ namespace Kompression.Decoder.Nintendo
             ReadCompressedData(input, output, decompressedSize);
         }
 
-        internal void ReadCompressedData(Stream input, Stream output, int decompressedSize)
+        internal static void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0xFFF);
 
@@ -45,7 +45,7 @@ namespace Kompression.Decoder.Nintendo
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
@@ -55,7 +55,7 @@ namespace Kompression.Decoder.Nintendo
             circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
@@ -85,7 +85,7 @@ namespace Kompression.Decoder.Nintendo
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private int HandleZeroCompressedBlock(Stream input)
+        private static int HandleZeroCompressedBlock(Stream input)
         {
             if (input.Length - input.Position < 1)
                 throw new StreamTooShortException();
@@ -96,7 +96,7 @@ namespace Kompression.Decoder.Nintendo
             return length;
         }
 
-        private int HandleOneCompressedBlock(Stream input)
+        private static int HandleOneCompressedBlock(Stream input)
         {
             if (input.Length - input.Position < 2)
                 throw new StreamTooShortException();
@@ -110,6 +110,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

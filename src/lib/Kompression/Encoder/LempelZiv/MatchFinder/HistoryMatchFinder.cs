@@ -8,21 +8,12 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
     /// <summary>
     /// Find pattern matches via a history of found values.
     /// </summary>
-    public class HistoryMatchFinder : ILempelZivMatchFinder
+    public class HistoryMatchFinder(LempelZivMatchFinderOptions options) : ILempelZivMatchFinder
     {
         private HistoryMatchState? _state;
 
         /// <inheritdoc />
-        public LempelZivMatchFinderOptions Options { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="HistoryMatchFinder"/>
-        /// </summary>
-        /// <param name="options">The options to search sequences with.</param>
-        public HistoryMatchFinder(LempelZivMatchFinderOptions options)
-        {
-            Options = options;
-        }
+        public LempelZivMatchFinderOptions Options { get; } = options;
 
         /// <inheritdoc />
         public void PreProcess(byte[] input)

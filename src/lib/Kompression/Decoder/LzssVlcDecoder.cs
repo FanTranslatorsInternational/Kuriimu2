@@ -46,7 +46,7 @@ namespace Kompression.Decoder
             return result;
         }
 
-        private void CopyBytes(Stream output, int from, int to, int length)
+        private static void CopyBytes(Stream output, int from, int to, int length)
         {
             for (int i = from, j = to; i < from + length; i++, j++)
             {
@@ -59,7 +59,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

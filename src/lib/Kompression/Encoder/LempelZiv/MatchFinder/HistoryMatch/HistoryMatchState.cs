@@ -27,36 +27,21 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder.HistoryMatch
             _options = options;
 
             // Determine unit size dependant delegates
-            switch (options.UnitSize)
+            _calculateMatchSize = options.UnitSize switch
             {
-                case UnitSize.Byte:
-                    _calculateMatchSize = CalculateMatchSizeByte;
-                    break;
-
-                case UnitSize.Short:
-                    _calculateMatchSize = CalculateMatchSizeShort;
-                    break;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported unit size {options.UnitSize}.");
-            }
+                UnitSize.Byte => CalculateMatchSizeByte,
+                UnitSize.Short => CalculateMatchSizeShort,
+                _ => throw new InvalidOperationException($"Unsupported unit size {options.UnitSize}.")
+            };
 
             // Determine value reading delegate, based on given limitations
             _valueLength = Math.Min(3, options.Limitations.MinLength) / (int)options.UnitSize * (int)options.UnitSize;
-            switch (_valueLength)
+            _readValue = _valueLength switch
             {
-                case 3:
-                    _readValue = ReadValue3;
-                    break;
-
-                case 2:
-                    _readValue = ReadValue2;
-                    break;
-
-                default:
-                    _readValue = ReadValue1;
-                    break;
-            }
+                3 => ReadValue3,
+                2 => ReadValue2,
+                _ => ReadValue1
+            };
 
             // Prepare chained list of offsets per value
             _offsetTable = PrepareOffsetTable(input);
@@ -120,8 +105,8 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder.HistoryMatch
 
         private int[] PrepareOffsetTable(byte[] input)
         {
-            int[] offsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
-            int[] valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength)).ToArray();
+            int[] offsetTable = [.. Enumerable.Repeat(-1, input.Length)];
+            int[] valueTable = [.. Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength))];
 
             for (var i = 0; i <= input.Length - _valueLength; i += (int)_options.UnitSize)
             {
@@ -199,6 +184,7 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder.HistoryMatch
         /// <inheritdoc />
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

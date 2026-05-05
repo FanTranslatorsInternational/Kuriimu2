@@ -4,6 +4,6 @@ namespace Kompression.DataClasses.Configuration
 {
     internal class LempelZivInputAdjustmentOptions
     {
-        public IList<IInputManipulation> InputManipulations { get; } = new List<IInputManipulation>();
+        public IList<IInputManipulation> InputManipulations { get; } = [];
     }
 }

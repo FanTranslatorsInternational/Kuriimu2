@@ -5,7 +5,7 @@
     /// </summary>
     public class CircularBuffer : IDisposable
     {
-        private byte[] _buffer;
+        private readonly byte[] _buffer;
 
         /// <summary>
         /// Gets the length of the buffer.
@@ -18,7 +18,7 @@
         public int Position { get; set; }
 
         /// <summary>
-        /// Gets the position in the buffer.
+        /// Gets the position into the buffer.
         /// </summary>
         public int RelativePosition => Position % Length;
 
@@ -28,8 +28,7 @@
         /// <param name="bufferSize">The size of the buffer.</param>
         public CircularBuffer(int bufferSize)
         {
-            if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(bufferSize, 0);
 
             _buffer = new byte[bufferSize];
         }
@@ -88,7 +87,7 @@
         public void Dispose()
         {
             Array.Clear(_buffer, 0, _buffer.Length);
-            _buffer = null;
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>

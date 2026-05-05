@@ -14,6 +14,7 @@ namespace Kompression.Encoder
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -94,7 +94,7 @@ namespace Kompression.Encoder
             WriteHeader(output, (int)input.Length, tokenCount, tokenBufferOffset);
         }
 
-        private void WriteHeader(Stream output, int decompressedSize, int tokenCount, int dataOffset)
+        private static void WriteHeader(Stream output, int decompressedSize, int tokenCount, int dataOffset)
         {
             output.Position = 0;
             var buffer = new byte[4];
@@ -112,7 +112,7 @@ namespace Kompression.Encoder
             output.Write(buffer);
         }
 
-        private int CalculateTokenCount(long decompressedSize, IList<LempelZivMatch> matches)
+        private static int CalculateTokenCount(long decompressedSize, IList<LempelZivMatch> matches)
         {
             var tokenCount = 0;
             var position = 0;

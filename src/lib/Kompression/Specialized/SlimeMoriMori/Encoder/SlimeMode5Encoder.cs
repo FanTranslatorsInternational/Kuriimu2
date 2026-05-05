@@ -4,18 +4,11 @@ using Kompression.InternalContract.SlimeMoriMori.ValueWriter;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoder
 {
-    class SlimeMode5Encoder : SlimeEncoder
+    internal class SlimeMode5Encoder(IValueWriter valueWriter) : SlimeEncoder
     {
-        private IValueWriter _valueWriter;
-
-        public SlimeMode5Encoder(IValueWriter valueWriter)
-        {
-            _valueWriter = valueWriter;
-        }
-
         public override void Encode(Stream input, BinaryBitWriter bw, LempelZivMatch[] matches)
         {
-            CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 2);
+            CreateDisplacementTable([.. matches.Select(x => x.Displacement)], 2);
             WriteDisplacementTable(bw);
 
             foreach (var match in matches)
@@ -41,7 +34,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
                 bw.WriteBits((int)partLength - 1, 6);
 
                 for (var j = 0; j < partLength; j++)
-                    _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+                    valueWriter.WriteValue(bw, (byte)input.ReadByte());
             }
         }
 
@@ -53,7 +46,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
                 bw.WriteBits(3, 2);
                 // Subtract 2 from length; 1 due to decoding specification and
                 // another one since the match starts at displacement 0 instead of 1 as per decoder specification
-                bw.WriteBits((int)lempelZivMatch.Length - 2, 6);
+                bw.WriteBits(lempelZivMatch.Length - 2, 6);
                 bw.WriteByte(input.ReadByte());
 
                 // Go back 1, to not throw off the match jumping
@@ -66,8 +59,8 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoder
                 var entry = GetDisplacementEntry(dispIndex);
 
                 bw.WriteBits(dispIndex, 2);
-                bw.WriteBits((int)lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits((int)lempelZivMatch.Length - 3, 6);
+                bw.WriteBits(lempelZivMatch.Displacement - entry.DisplacementStart, entry.ReadBits);
+                bw.WriteBits(lempelZivMatch.Length - 3, 6);
             }
         }
     }

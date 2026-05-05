@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Kompression.Exceptions
+﻿namespace Kompression.Exceptions
 {
     /// <summary>
     /// Exception for displacements that go beyond the existing window buffer.
@@ -48,16 +46,6 @@ namespace Kompression.Exceptions
         /// <param name="inner">The inner exception thrown.</param>
         public DisplacementException(string message, Exception inner) : base(message, inner)
         {
-        }
-
-        /// <inheritdoc />
-        protected DisplacementException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-            info.AddValue(nameof(Displacement), Displacement);
-            info.AddValue(nameof(WrittenBytes), WrittenBytes);
-            info.AddValue(nameof(CurrentPosition), CurrentPosition);
         }
     }
 }

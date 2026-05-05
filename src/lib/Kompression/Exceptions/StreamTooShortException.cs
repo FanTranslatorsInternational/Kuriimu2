@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Kompression.Exceptions
+﻿namespace Kompression.Exceptions
 {
     /// <summary>
     /// Exception for streams that are too short to be decompressed correctly.
@@ -29,13 +27,6 @@ namespace Kompression.Exceptions
         /// <param name="message">A message describing details about the short stream.</param>
         /// <param name="inner">The inner exception thrown.</param>
         public StreamTooShortException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-        /// <inheritdoc />
-        protected StreamTooShortException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
         {
         }
     }

@@ -11,7 +11,7 @@ namespace Kompression.Decoder
         {
             var buffer = new byte[4];
 
-            _ = input.Read(buffer[..2]);
+            _ = input.Read(buffer.AsSpan(0,2));
             if (buffer[0] is not 0x4c || buffer[1] is not 0x65)
                 throw new InvalidCompressionException("Lze");
 
@@ -22,7 +22,7 @@ namespace Kompression.Decoder
             ReadCompressedData(input, output, circularBuffer, decompressedSize);
         }
 
-        private void ReadCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int decompressedSize)
+        private static void ReadCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int decompressedSize)
         {
             int flags = 0, readFlags = 3;
             while (output.Length < decompressedSize)
@@ -57,7 +57,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private void HandleZeroCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleZeroCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var byte1 = input.ReadByte();
             var byte2 = input.ReadByte();
@@ -68,7 +68,7 @@ namespace Kompression.Decoder
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private void HandleOneCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleOneCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var byte1 = input.ReadByte();
 
@@ -78,7 +78,7 @@ namespace Kompression.Decoder
             circularBuffer.Copy(output, displacement, length);
         }
 
-        private void HandleCopyBlock(Stream input, Stream output, CircularBuffer circularBuffer, int toCopy)
+        private static void HandleCopyBlock(Stream input, Stream output, CircularBuffer circularBuffer, int toCopy)
         {
             for (var i = 0; i < toCopy; i++)
             {
@@ -91,7 +91,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Kompression.Decoder.Headerless
     {
         private const int PreBufferSize_ = 0xFEE;
 
-        public void Decode(Stream input, Stream output, int decompressedSize)
+        public static void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000)
             {

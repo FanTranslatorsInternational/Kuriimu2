@@ -5,19 +5,10 @@ using Kompression.Contract.Enums.Encoder.LempelZiv;
 
 namespace Kompression.Encoder.LempelZiv.MatchFinder
 {
-    class StaticValueRleMatchFinder : ILempelZivMatchFinder
+    internal class StaticValueRleMatchFinder(int value, LempelZivMatchFinderOptions options) : ILempelZivMatchFinder
     {
-        private readonly int _value;
-
         /// <inheritdoc />
-        public LempelZivMatchFinderOptions Options { get; }
-
-        public StaticValueRleMatchFinder(int value, LempelZivMatchFinderOptions options)
-        {
-            _value = value;
-
-            Options = options;
-        }
+        public LempelZivMatchFinderOptions Options { get; } = options;
 
         public void PreProcess(byte[] input)
         {
@@ -37,7 +28,7 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
                 switch (Options.UnitSize)
                 {
                     case UnitSize.Byte:
-                        if (input[position + repetitions] != _value)
+                        if (input[position + repetitions] != value)
                         {
                             if (repetitions > 0 && repetitions >= Options.Limitations.MinLength)
                                 return new LempelZivAggregateMatch(0, repetitions);
@@ -52,10 +43,6 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
             }
 
             return new LempelZivAggregateMatch(0, cappedLength - cappedLength % (int)Options.UnitSize);
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

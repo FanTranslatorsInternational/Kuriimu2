@@ -4,26 +4,19 @@ using Kompression.Contract.Encoder.LempelZiv.InputManipulation;
 
 namespace Kompression.Encoder.LempelZiv.InputManipulation
 {
-    class SkipInput : IInputManipulation
+    internal class SkipInput(int skip) : IInputManipulation
     {
-        private readonly int _skip;
-
-        public SkipInput(int skip)
-        {
-            _skip = skip;
-        }
-
         public Stream Manipulate(Stream input)
         {
-            return new SubStream(input, _skip, input.Length - _skip)
+            return new SubStream(input, skip, input.Length - skip)
             {
-                Position = Math.Max(0, input.Position - _skip)
+                Position = Math.Max(0, input.Position - skip)
             };
         }
 
         public void AdjustMatch(LempelZivMatch lempelZivMatch)
         {
-            lempelZivMatch.SetPosition(lempelZivMatch.Position + _skip);
+            lempelZivMatch.SetPosition(lempelZivMatch.Position + skip);
         }
     }
 }

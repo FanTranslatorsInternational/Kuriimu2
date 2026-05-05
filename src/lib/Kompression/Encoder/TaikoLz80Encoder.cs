@@ -34,7 +34,7 @@ namespace Kompression.Encoder
             output.Write(new byte[3], 0, 3);
         }
 
-        private void CompressRawData(Stream input, Stream output, int rawLength)
+        private static void CompressRawData(Stream input, Stream output, int rawLength)
         {
             while (rawLength > 0)
             {
@@ -75,7 +75,7 @@ namespace Kompression.Encoder
             }
         }
 
-        private void CompressMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
+        private static void CompressMatchData(Stream input, Stream output, LempelZivMatch lempelZivMatch)
         {
             int code;
 
@@ -114,11 +114,6 @@ namespace Kompression.Encoder
             output.WriteByte((byte)(lempelZivMatch.Displacement - 1));
 
             input.Position += lempelZivMatch.Length;
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

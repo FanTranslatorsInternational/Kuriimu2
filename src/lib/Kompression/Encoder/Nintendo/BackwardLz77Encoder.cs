@@ -7,25 +7,17 @@ using Kompression.Encoder.LempelZiv.PriceCalculators;
 
 namespace Kompression.Encoder.Nintendo
 {
-    // TODO: Refactor block class
-    public class BackwardLz77Encoder : ILempelZivEncoder
+    public class BackwardLz77Encoder(ByteOrder byteOrder) : ILempelZivEncoder
     {
-        class Block
+        internal class Block
         {
-            public byte codeBlock;
-            public int codeBlockPosition = 8;
+            public byte CodeBlock;
+            public int CodeBlockPosition = 8;
 
             // We write all data backwards into the buffer; starting from last element down to first
             // We have 8 blocks; A block can be at max 2 bytes, defining a match
-            public byte[] buffer = new byte[8 * 2];
-            public int bufferLength;
-        }
-
-        private readonly ByteOrder _byteOrder;
-
-        public BackwardLz77Encoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
+            public readonly byte[] Buffer = new byte[8 * 2];
+            public int BufferLength;
         }
 
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
@@ -57,18 +49,18 @@ namespace Kompression.Encoder.Nintendo
             // Write uncompressed start
             var origSafeBuffer = new byte[origSafe];
             input.Position = 0;
-            input.Read(origSafeBuffer);
+            _ = input.Read(origSafeBuffer);
             output.Write(origSafeBuffer);
 
             // Write compressed buffer
-            output.Write(compressedBuffer[compressSafe..(compressSafe + newCompressedSize)]);
+            output.Write(compressedBuffer.AsSpan(compressSafe, newCompressedSize));
 
             // Write footer
             var bufferTopAndBottomInt = top | bottom << 24;
             var originalBottomInt = (int)input.Length - compressedLength;
 
-            using var bw = new BinaryWriterX(output, true, _byteOrder);
-            
+            using var bw = new BinaryWriterX(output, true, byteOrder);
+
             for (var i = 0; i < compFooterOffset - padOffset; i++)
                 output.WriteByte(0xFF);
 
@@ -76,7 +68,7 @@ namespace Kompression.Encoder.Nintendo
             bw.Write(originalBottomInt);
         }
 
-        private int CalculateCompressedLength(long uncompressedLength, LempelZivMatch[] matches)
+        private static int CalculateCompressedLength(long uncompressedLength, LempelZivMatch[] matches)
         {
             var result = 0;
 
@@ -98,7 +90,7 @@ namespace Kompression.Encoder.Nintendo
             return result / 8 + (result % 8 > 0 ? 1 : 0) + (int)lastMatchPosition;
         }
 
-        private byte[] Compress(Stream input, IList<LempelZivMatch> matches, int compressedLength)
+        private static byte[] Compress(Stream input, IList<LempelZivMatch> matches, int compressedLength)
         {
             var buffer = new byte[compressedLength];
             var bufferPosition = compressedLength;
@@ -110,24 +102,24 @@ namespace Kompression.Encoder.Nintendo
                 while (inputPosition > match.Position)
                 {
                     // Write literals
-                    if (block.codeBlockPosition == 0)
+                    if (block.CodeBlockPosition == 0)
                         bufferPosition -= WriteAndResetBuffer(buffer, bufferPosition, block);
 
-                    block.codeBlockPosition--;
+                    block.CodeBlockPosition--;
                     input.Position = --inputPosition;
-                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
+                    block.Buffer[block.BufferLength++] = (byte)input.ReadByte();
                 }
 
                 // Write match
                 var byte1 = (byte)(match.Length - 3) << 4 | (byte)(match.Displacement - 3 >> 8);
                 var byte2 = match.Displacement - 3;
 
-                if (block.codeBlockPosition == 0)
+                if (block.CodeBlockPosition == 0)
                     bufferPosition -= WriteAndResetBuffer(buffer, bufferPosition, block);
 
-                block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
-                block.buffer[block.bufferLength++] = (byte)byte1;
-                block.buffer[block.bufferLength++] = (byte)byte2;
+                block.CodeBlock |= (byte)(1 << --block.CodeBlockPosition);
+                block.Buffer[block.BufferLength++] = (byte)byte1;
+                block.Buffer[block.BufferLength++] = (byte)byte2;
 
                 inputPosition -= match.Length;
             }
@@ -145,7 +137,7 @@ namespace Kompression.Encoder.Nintendo
             return buffer;
         }
 
-        private int CalculateSafeCompressedSize(byte[] compressedBuffer, int decompressedSize, out int origSafe)
+        private static int CalculateSafeCompressedSize(byte[] compressedBuffer, int decompressedSize, out int origSafe)
         {
             origSafe = 0;
             var compressSafe = 0;
@@ -191,27 +183,22 @@ namespace Kompression.Encoder.Nintendo
             return compressSafe;
         }
 
-        private int WriteAndResetBuffer(byte[] buffer, int bufferPosition, Block block)
+        private static int WriteAndResetBuffer(byte[] buffer, int bufferPosition, Block block)
         {
-            var blockLength = block.bufferLength + 1;
+            var blockLength = block.BufferLength + 1;
 
             // Write data to output
-            buffer[--bufferPosition] = block.codeBlock;
-            for (var i = 0; i < block.bufferLength; i++)
-                buffer[--bufferPosition] = block.buffer[i];
+            buffer[--bufferPosition] = block.CodeBlock;
+            for (var i = 0; i < block.BufferLength; i++)
+                buffer[--bufferPosition] = block.Buffer[i];
 
             // Reset codeBlock and buffer
-            block.codeBlock = 0;
-            block.codeBlockPosition = 8;
-            Array.Clear(block.buffer, 0, block.bufferLength);
-            block.bufferLength = 0;
+            block.CodeBlock = 0;
+            block.CodeBlockPosition = 8;
+            Array.Clear(block.Buffer, 0, block.BufferLength);
+            block.BufferLength = 0;
 
             return blockLength;
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

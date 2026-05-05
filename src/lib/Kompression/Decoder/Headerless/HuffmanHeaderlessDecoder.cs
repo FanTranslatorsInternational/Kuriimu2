@@ -3,20 +3,11 @@ using Kompression.Contract.Enums.Encoder.Huffman;
 
 namespace Kompression.Decoder.Headerless
 {
-    public class HuffmanHeaderlessDecoder
+    public class HuffmanHeaderlessDecoder(int bitDepth, NibbleOrder nibbleOrder)
     {
-        private readonly int _bitDepth;
-        private readonly NibbleOrder _nibbleOrder;
-
-        public HuffmanHeaderlessDecoder(int bitDepth, NibbleOrder nibbleOrder)
-        {
-            _bitDepth = bitDepth;
-            _nibbleOrder = nibbleOrder;
-        }
-
         public void Decode(Stream input, Stream output, int decompressedSize)
         {
-            var result = new byte[decompressedSize * 8 / _bitDepth];
+            var result = new byte[decompressedSize * 8 / bitDepth];
 
             using (var br = new BinaryReader(input, Encoding.ASCII, true))
             {
@@ -43,13 +34,15 @@ namespace Kompression.Decoder.Headerless
                 }
             }
 
-            if (_bitDepth == 8)
+            if (bitDepth == 8)
+            {
                 output.Write(result, 0, result.Length);
+            }
             else
             {
-                var combinedData = _nibbleOrder == NibbleOrder.LowNibbleFirst ?
-                    Enumerable.Range(0, decompressedSize).Select(j => (byte)(result[2 * j] | result[2 * j + 1] << 4)).ToArray() :
-                    Enumerable.Range(0, decompressedSize).Select(j => (byte)(result[2 * j] << 4 | result[2 * j + 1])).ToArray();
+                byte[] combinedData = nibbleOrder == NibbleOrder.LowNibbleFirst ?
+                    [.. Enumerable.Range(0, decompressedSize).Select(j => (byte)(result[2 * j] | result[2 * j + 1] << 4))] :
+                    [.. Enumerable.Range(0, decompressedSize).Select(j => (byte)(result[2 * j] << 4 | result[2 * j + 1]))];
 
                 output.Write(combinedData, 0, combinedData.Length);
             }

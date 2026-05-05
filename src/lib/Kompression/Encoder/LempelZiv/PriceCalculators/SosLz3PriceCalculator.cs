@@ -2,7 +2,7 @@
 
 namespace Kompression.Encoder.LempelZiv.PriceCalculators
 {
-    class SosLz3PriceCalculator : ILempelZivPriceCalculator
+    internal class SosLz3PriceCalculator : ILempelZivPriceCalculator
     {
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
@@ -14,7 +14,7 @@ namespace Kompression.Encoder.LempelZiv.PriceCalculators
             return 16 + CalculateVlc(length);
         }
 
-        private int CalculateVlc(int value)
+        private static int CalculateVlc(int value)
         {
             if (value < 15)
                 return 4;

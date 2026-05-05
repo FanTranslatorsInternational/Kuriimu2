@@ -7,16 +7,9 @@ namespace Kompression.Encoder.Level5
 {
     public class RleEncoder : ILempelZivEncoder
     {
-        private readonly RleHeaderlessEncoder _encoder;
-
-        public RleEncoder()
-        {
-            _encoder = new RleHeaderlessEncoder();
-        }
-
         public void Configure(ILempelZivEncoderOptionsBuilder matchOptions)
         {
-            _encoder.Configure(matchOptions);
+            RleHeaderlessEncoder.Configure(matchOptions);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<LempelZivMatch> matches)
@@ -31,11 +24,7 @@ namespace Kompression.Encoder.Level5
                 (byte)(input.Length >> 21) };
             output.Write(compressionHeader, 0, 4);
 
-            _encoder.Encode(input, output, matches);
-        }
-
-        public void Dispose()
-        {
+            RleHeaderlessEncoder.Encode(input, output, matches);
         }
     }
 }

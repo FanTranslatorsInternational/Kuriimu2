@@ -4,7 +4,7 @@ using Kompression.IO;
 namespace Kompression.Decoder
 {
     /* Found in SMT Nocturne on the PS2 */
-    class PsLzDecoder : IDecoder
+    internal class PsLzDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {
@@ -23,7 +23,7 @@ namespace Kompression.Decoder
                 {
                     // Raw bytes
                     case 0:
-                        input.Read(buffer, 0, length);
+                        _ = input.Read(buffer, 0, length);
 
                         output.Write(buffer, 0, length);
                         circularBuffer.Write(buffer, 0, length);
@@ -76,13 +76,14 @@ namespace Kompression.Decoder
             }
         }
 
-        private int ReadInt16Le(Stream input)
+        private static int ReadInt16Le(Stream input)
         {
             return input.ReadByte() | input.ReadByte() << 8;
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

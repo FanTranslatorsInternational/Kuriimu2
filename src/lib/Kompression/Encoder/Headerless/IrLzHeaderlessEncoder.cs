@@ -46,7 +46,7 @@ namespace Kompression.Encoder.Headerless
             WriteBlockBuffer(output, blockBuffer, blockBufferLength);
         }
 
-        private int WriteCompressedBlockToBuffer(LempelZivMatch lzLempelZivMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
+        private static int WriteCompressedBlockToBuffer(LempelZivMatch lzLempelZivMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
         {
             blockBuffer[0] |= (byte)(1 << bufferedBlocks);
 
@@ -57,14 +57,10 @@ namespace Kompression.Encoder.Headerless
             return blockBufferLength;
         }
 
-        private void WriteBlockBuffer(Stream output, byte[] blockBuffer, int blockBufferLength)
+        private static void WriteBlockBuffer(Stream output, byte[] blockBuffer, int blockBufferLength)
         {
             output.Write(blockBuffer, 0, blockBufferLength);
             Array.Clear(blockBuffer, 0, blockBufferLength);
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

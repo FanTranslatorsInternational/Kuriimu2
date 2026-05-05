@@ -105,7 +105,7 @@ namespace Kompression.Encoder.LempelZiv.MatchParser
             }
         }
 
-        private IList<IList<LempelZivAggregateMatch?>> GetAllMatches(byte[] input, int startPosition)
+        private IList<LempelZivAggregateMatch?>[] GetAllMatches(byte[] input, int startPosition)
         {
             var result = new IList<LempelZivAggregateMatch?>[Options.MatchFinders.Length];
 
@@ -123,7 +123,7 @@ namespace Kompression.Encoder.LempelZiv.MatchParser
             return result;
         }
 
-        private bool IsFirstLiteralRun(int dataPosition, int unitSize, MatchParserPositionData[] history)
+        private static bool IsFirstLiteralRun(int dataPosition, int unitSize, MatchParserPositionData[] history)
         {
             while (dataPosition >= 0)
             {

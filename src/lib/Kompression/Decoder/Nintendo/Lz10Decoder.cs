@@ -6,13 +6,6 @@ namespace Kompression.Decoder.Nintendo
 {
     public class Lz10Decoder : IDecoder
     {
-        private readonly Lz10HeaderlessDecoder _decoder;
-
-        public Lz10Decoder()
-        {
-            _decoder = new Lz10HeaderlessDecoder();
-        }
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -23,11 +16,12 @@ namespace Kompression.Decoder.Nintendo
 
             int decompressedSize = buffer[1] | buffer[2] << 8 | buffer[3] << 16;
 
-            _decoder.Decode(input, output, decompressedSize);
+            Lz10HeaderlessDecoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

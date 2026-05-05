@@ -21,7 +21,7 @@ namespace Kompression.Decoder
             }
         }
 
-        private void HandleUncompressedBlock(BinaryBitReader br, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(BinaryBitReader br, Stream output, CircularBuffer circularBuffer)
         {
             var nextByte = (byte)br.ReadByte();
 
@@ -29,7 +29,7 @@ namespace Kompression.Decoder
             circularBuffer.WriteByte(nextByte);
         }
 
-        private void HandleCompressedBlock(BinaryBitReader br, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(BinaryBitReader br, Stream output, CircularBuffer circularBuffer)
         {
             var displacement = br.ReadByte();
             var length = br.ReadByte();
@@ -50,7 +50,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

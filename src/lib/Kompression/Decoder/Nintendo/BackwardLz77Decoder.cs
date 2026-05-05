@@ -6,20 +6,13 @@ using Kompression.IO;
 
 namespace Kompression.Decoder.Nintendo
 {
-    public class BackwardLz77Decoder : IDecoder
+    public class BackwardLz77Decoder(ByteOrder byteOrder) : IDecoder
     {
-        private readonly ByteOrder _byteOrder;
-
-        public BackwardLz77Decoder(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
-        }
-
         public void Decode(Stream input, Stream output)
         {
             input.Position = input.Length - 8;
 
-            using var br = new BinaryReaderX(input, true, _byteOrder);
+            using var br = new BinaryReaderX(input, true, byteOrder);
 
             int bufferTopAndBottom = br.ReadInt32();
             int decompressedOffset = br.ReadInt32();
@@ -34,7 +27,7 @@ namespace Kompression.Decoder.Nintendo
             ReadCompressedData(inputReverseStream, outputReverseStream, endPosition);
         }
 
-        private void ReadCompressedData(Stream input, Stream output, long endPosition)
+        private static void ReadCompressedData(Stream input, Stream output, long endPosition)
         {
             var circularBuffer = new CircularBuffer(0x1002);
 
@@ -59,7 +52,7 @@ namespace Kompression.Decoder.Nintendo
                 output.WriteByte((byte)input.ReadByte());
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
 
@@ -67,7 +60,7 @@ namespace Kompression.Decoder.Nintendo
             circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
+        private static void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var byte1 = input.ReadByte();
             var byte2 = input.ReadByte();
@@ -80,7 +73,7 @@ namespace Kompression.Decoder.Nintendo
 
         public void Dispose()
         {
-            // Nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }

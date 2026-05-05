@@ -2,7 +2,7 @@
 
 namespace Kompression.Specialized.SlimeMoriMori.Deobfuscator
 {
-    class SlimeMode4Deobfuscator:ISlimeDeobfuscator
+    internal class SlimeMode4Deobfuscator:ISlimeDeobfuscator
     {
         public void Deobfuscate(Stream input)
         {

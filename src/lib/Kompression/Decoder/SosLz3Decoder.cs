@@ -4,7 +4,7 @@ using Kompression.IO;
 
 namespace Kompression.Decoder
 {
-    class SosLz3Decoder : IDecoder
+    internal class SosLz3Decoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {
@@ -18,7 +18,7 @@ namespace Kompression.Decoder
             Decode(input, output, decompSize);
         }
 
-        private void Decode(Stream input, Stream output, int decompSize)
+        private static void Decode(Stream input, Stream output, int decompSize)
         {
             var buffer = new CircularBuffer(0xFFFF);
 
@@ -54,7 +54,7 @@ namespace Kompression.Decoder
             }
         }
 
-        void ReadVar(Stream fs, ref int start)
+        private static void ReadVar(Stream fs, ref int start)
         {
             int value;
             do
@@ -66,6 +66,7 @@ namespace Kompression.Decoder
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
     }
 }

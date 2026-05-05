@@ -75,7 +75,7 @@ namespace Kompression.Encoder
             outputBw.Write((int)(output.Length - 0x10 - SkipSize_));
         }
 
-        private long CalculateCompressedLength(long inputLength, LempelZivMatch[] matches)
+        private static long CalculateCompressedLength(long inputLength, LempelZivMatch[] matches)
         {
             var result = 0;
 
@@ -106,7 +106,7 @@ namespace Kompression.Encoder
             return result / 8 + (result % 8 > 0 ? 1 : 0);
         }
 
-        private void WriteLength(BinaryWriterX bw, int matchLength)
+        private static void WriteLength(BinaryWriterX bw, int matchLength)
         {
             matchLength -= 3;
 
@@ -139,11 +139,6 @@ namespace Kompression.Encoder
                 if (matchLength == 0 && toWrite == 255)
                     bw.WriteBits(0, 8);
             } while (matchLength > 0);
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

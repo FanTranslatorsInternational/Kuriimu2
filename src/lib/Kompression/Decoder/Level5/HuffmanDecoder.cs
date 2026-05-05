@@ -5,17 +5,9 @@ using Kompression.Exceptions;
 
 namespace Kompression.Decoder.Level5
 {
-    public class HuffmanDecoder : IDecoder
+    public class HuffmanDecoder(int bitDepth, NibbleOrder nibbleOrder) : IDecoder
     {
-        private readonly int _bitDepth;
-        private readonly HuffmanHeaderlessDecoder _decoder;
-
-        public HuffmanDecoder(int bitDepth, NibbleOrder nibbleOrder)
-        {
-            _bitDepth = bitDepth;
-
-            _decoder = new HuffmanHeaderlessDecoder(bitDepth, nibbleOrder);
-        }
+        private readonly HuffmanHeaderlessDecoder _decoder = new(bitDepth, nibbleOrder);
 
         public void Decode(Stream input, Stream output)
         {
@@ -23,9 +15,9 @@ namespace Kompression.Decoder.Level5
 
             _ = input.Read(buffer);
 
-            int huffmanMode = _bitDepth == 4 ? 2 : 3;
+            int huffmanMode = bitDepth == 4 ? 2 : 3;
             if ((buffer[0] & 0x7) != huffmanMode)
-                throw new InvalidCompressionException($"Level5 Huffman{_bitDepth}");
+                throw new InvalidCompressionException($"Level5 Huffman{bitDepth}");
 
             int decompressedSize = buffer[0] >> 3 | buffer[1] << 5 |
                                    buffer[2] << 13 | buffer[3] << 21;
@@ -35,7 +27,7 @@ namespace Kompression.Decoder.Level5
 
         public void Dispose()
         {
-            // nothing to dispose
+            GC.SuppressFinalize(this);
         }
     }
 }
