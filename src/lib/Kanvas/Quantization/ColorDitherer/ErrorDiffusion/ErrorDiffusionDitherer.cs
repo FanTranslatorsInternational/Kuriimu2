@@ -9,34 +9,34 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
     public abstract class ErrorDiffusionDitherer : IColorDitherer
     {
-        private Size _imageSize;
+        private readonly Size _imageSize;
         private readonly int _taskCount;
-        private IColorCache _colorCache;
+        private readonly float[,] _errorFactorMatrix;
 
-        private float[,] _errorFactorMatrix;
+        private IColorCache? _colorCache;
 
         protected abstract byte[,] Matrix { get; }
         protected abstract int MatrixSideWidth { get; }
         protected abstract int MatrixSideHeight { get; }
         protected abstract int ErrorLimit { get; }
 
-        public ErrorDiffusionDitherer(Size imageSize, int taskCount)
+        protected ErrorDiffusionDitherer(Size imageSize, int taskCount)
         {
             _imageSize = imageSize;
             _taskCount = taskCount;
 
-            PrepareErrorFactorMatrix();
+            PrepareErrorFactorMatrix(out _errorFactorMatrix);
         }
 
-        private void PrepareErrorFactorMatrix()
+        private void PrepareErrorFactorMatrix(out float[,] errorFactorMatrix)
         {
             var matrixWidth = Matrix.GetLength(1);
             var matrixHeight = Matrix.GetLength(0);
 
-            _errorFactorMatrix = new float[matrixHeight, matrixWidth];
+            errorFactorMatrix = new float[matrixHeight, matrixWidth];
             for (var i = 0; i < matrixHeight; i++)
                 for (var j = 0; j < matrixWidth; j++)
-                    _errorFactorMatrix[i, j] = Matrix[i, j] / (float)ErrorLimit;
+                    errorFactorMatrix[i, j] = Matrix[i, j] / (float)ErrorLimit;
         }
 
         public IEnumerable<int> Process(IEnumerable<Rgba32> colors, IColorCache colorCache)
@@ -57,11 +57,11 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
         {
             var startIndex = 0;
 
-            ErrorDiffusionLineTask parent = null;
+            ErrorDiffusionLineTask? parent = null;
             foreach (var colorLine in colors.Chunk(_imageSize.Width))
             {
                 var colorLineList = colorLine.ToList();
-                var errorElements = colorLineList.Select((c, index) =>
+                var errorElements = colorLineList.Select((_, index) =>
                      new ErrorDiffusionElement(colorLineList, index, errors, indices));
 
                 var delayedTask = new ErrorDiffusionLineTask(
@@ -84,13 +84,13 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 
             // Add Error component Values to source color
             var errorDiffusedColor = new Rgba32(
-                (byte)Clamp(sourceColor.R + error.RedError, 0, 255),
-                (byte)Clamp(sourceColor.G + error.GreenError, 0, 255),
-                (byte)Clamp(sourceColor.B + error.BlueError, 0, 255),
+                (byte)Math.Clamp(sourceColor.R + error.RedError, 0, 255),
+                (byte)Math.Clamp(sourceColor.G + error.GreenError, 0, 255),
+                (byte)Math.Clamp(sourceColor.B + error.BlueError, 0, 255),
 				sourceColor.A);
 
             // Quantize Error diffused source color
-            element.Indices[index] = _colorCache.GetPaletteIndex(errorDiffusedColor);
+            element.Indices[index] = _colorCache!.GetPaletteIndex(errorDiffusedColor);
 
             // Retrieve new quantized color for this point
             var targetColor = _colorCache.Palette[element.Indices[index]];
@@ -133,16 +133,6 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 
                 element.Errors.Remove(index);
             }
-        }
-
-        // TODO: Remove when targeting only netcoreapp31
-        private static int Clamp(int value, int min, int max)
-        {
-#if NET_CORE_31
-            return Math.Clamp(value, min, max);
-#else
-            return Math.Max(min, Math.Min(value, max));
-#endif
         }
     }
 }

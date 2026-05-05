@@ -4,31 +4,25 @@ using Kanvas.DataClasses.Configuration;
 
 namespace Kanvas.Configuration
 {
-    internal class EncodingConfigurationBuilder : IEncodingConfigurationBuilder
+    internal class EncodingConfigurationBuilder(
+        IIndexedImageConfigurationBuilder parent,
+        EncodingConfigurationOptions options)
+        : IEncodingConfigurationBuilder
     {
-        private readonly IIndexedImageConfigurationBuilder _parent;
-        private readonly EncodingConfigurationOptions _options;
-
-        public EncodingConfigurationBuilder(IIndexedImageConfigurationBuilder parent, EncodingConfigurationOptions options)
-        {
-            _parent = parent;
-            _options = options;
-        }
-
         public IImageConfigurationBuilder With(IColorEncoding encoding)
         {
-            _options.ColorEncoding = encoding;
-            _options.IndexEncoding = null;
+            options.ColorEncoding = encoding;
+            options.IndexEncoding = null;
 
-            return _parent;
+            return parent;
         }
 
         public IIndexedImageConfigurationBuilder With(IIndexEncoding encoding)
         {
-            _options.IndexEncoding = encoding;
-            _options.ColorEncoding = null;
+            options.IndexEncoding = encoding;
+            options.ColorEncoding = null;
 
-            return _parent;
+            return parent;
         }
     }
 }

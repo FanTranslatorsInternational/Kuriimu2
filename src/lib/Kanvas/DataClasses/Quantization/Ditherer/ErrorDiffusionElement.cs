@@ -2,24 +2,16 @@
 
 namespace Kanvas.DataClasses.Quantization.Ditherer
 {
-    class ErrorDiffusionElement
+    internal class ErrorDiffusionElement(
+        IList<Rgba32> colors,
+        int colorIndex,
+        IDictionary<int, ColorComponentError> errors,
+        IList<int> indices)
     {
-        private readonly IList<Rgba32> _colors;
-        private readonly int _colorIndex;
+        public Rgba32 Color => colors[colorIndex];
 
-        public Rgba32 Color => _colors[_colorIndex];
+        public IDictionary<int, ColorComponentError> Errors { get; } = errors;
 
-        public IDictionary<int, ColorComponentError> Errors { get; }
-
-        public IList<int> Indices { get; }
-
-        public ErrorDiffusionElement(IList<Rgba32> colors, int colorIndex, IDictionary<int, ColorComponentError> errors, IList<int> indices)
-        {
-            _colors = colors;
-            _colorIndex = colorIndex;
-
-            Errors = errors;
-            Indices = indices;
-        }
+        public IList<int> Indices { get; } = indices;
     }
 }

@@ -4,7 +4,6 @@ using SixLabors.ImageSharp;
 
 namespace Kanvas.Swizzle
 {
-    // TODO: To remove with encoding swizzle pretension
     /// <summary>
     /// The swizzle used for 4x4 block compressions.
     /// </summary>

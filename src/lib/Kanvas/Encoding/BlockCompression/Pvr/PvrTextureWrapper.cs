@@ -6,12 +6,12 @@ namespace Kanvas.Encoding.BlockCompression.Pvr
 {
     class PvrTextureWrapper
     {
-        public const ulong RGBA8888 = 0x0808080861626772ul;
+        public const ulong Rgba8888 = 0x0808080861626772ul;
 
-        public static PVRTexture? CreateTexture(byte[] tex, PVRTexLibPixelFormat format, Size size)
+        public static PVRTexture CreateTexture(byte[] tex, PVRTexLibPixelFormat format, Size size)
             => CreateTexture(tex, (ulong)format, size);
 
-        public static unsafe PVRTexture? CreateTexture(byte[] tex, ulong format, Size size)
+        public static unsafe PVRTexture CreateTexture(byte[] tex, ulong format, Size size)
         {
             GCHandle dataPtr = GCHandle.Alloc(tex, GCHandleType.Pinned);
 

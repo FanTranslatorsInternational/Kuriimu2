@@ -1,41 +1,34 @@
 ﻿using Kanvas.Contract.Configuration;
-using System;
 
 namespace Kanvas.Configuration
 {
-    internal class SizePaddingDimensionConfigurationBuilder : ISizePaddingDimensionConfigurationBuilder
+    internal class SizePaddingDimensionConfigurationBuilder(
+        ISizePaddingConfigurationBuilder parent,
+        Action<CreatePaddedSizeDimensionDelegate> dimensionSetDelegate)
+        : ISizePaddingDimensionConfigurationBuilder
     {
-        private readonly ISizePaddingConfigurationBuilder _parent;
-        private readonly Action<CreatePaddedSizeDimensionDelegate> _setDelegate;
-
-        public SizePaddingDimensionConfigurationBuilder(ISizePaddingConfigurationBuilder parent, Action<CreatePaddedSizeDimensionDelegate> dimensionSetDelegate)
-        {
-            _parent = parent;
-            _setDelegate = dimensionSetDelegate;
-        }
-
         public ISizePaddingConfigurationBuilder To(int dimension)
         {
-            _setDelegate.Invoke(_ => dimension);
-            return _parent;
+            dimensionSetDelegate.Invoke(_ => dimension);
+            return parent;
         }
 
         public ISizePaddingConfigurationBuilder To(CreatePaddedSizeDimensionDelegate dimensionDelegateDelegate)
         {
-            _setDelegate.Invoke(dimensionDelegateDelegate);
-            return _parent;
+            dimensionSetDelegate.Invoke(dimensionDelegateDelegate);
+            return parent;
         }
 
         public ISizePaddingConfigurationBuilder ToPowerOfTwo(int steps = 1)
         {
-            _setDelegate.Invoke(value => SizePadding.PowerOfTwo(value, steps));
-            return _parent;
+            dimensionSetDelegate.Invoke(value => SizePadding.PowerOfTwo(value, steps));
+            return parent;
         }
 
         public ISizePaddingConfigurationBuilder ToMultiple(int multiple)
         {
-            _setDelegate.Invoke(value => SizePadding.Multiple(value, multiple));
-            return _parent;
+            dimensionSetDelegate.Invoke(value => SizePadding.Multiple(value, multiple));
+            return parent;
         }
     }
 }

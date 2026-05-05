@@ -11,7 +11,6 @@ namespace Kanvas.Swizzle
     {
         private const int RegularMaxSize_ = 128;
 
-        // TODO: Coords for block based encodings are prepended by the preparation method
         private static readonly Dictionary<int, (int, int)[]> CoordsBlock = new()
         {
             [4] = [(1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (0, 4), (8, 0), (16, 0), (0, 8), (0, 32), (32, 32), (64, 0), (0, 16)],
@@ -54,7 +53,7 @@ namespace Kanvas.Swizzle
                 for (var i = 4; i < Math.Min(context.Size.Height, RegularMaxSize_); i *= 2)
                     bitFieldExtension.Add((0, i));
 
-                _swizzle = new MasterSwizzle(context.Size.Width, new Point(0, 0), bitField.Concat(bitFieldExtension).ToArray());
+                _swizzle = new MasterSwizzle(context.Size.Width, new Point(0, 0), [.. bitField.Concat(bitFieldExtension)]);
             }
             else
             {

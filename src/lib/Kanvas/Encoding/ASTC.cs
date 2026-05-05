@@ -6,43 +6,29 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding
 {
-    public class Astc : IColorEncoding
+    public class Astc(AstcFormat format) : IColorEncoding
     {
-        private readonly AstcFormat _format;
-
         /// <inheritdoc cref="BitDepth"/>
-        public int BitDepth { get; }
+        public int BitDepth { get; } = -1;
 
         /// <inheritdoc cref="BitsPerValue"/>
-        public int BitsPerValue { get; }
+        public int BitsPerValue { get; } = 128;
 
         /// <inheritdoc cref="ColorsPerValue"/>
-        public int ColorsPerValue { get; }
+        public int ColorsPerValue { get; } = format.ToString()[5..].Split('x').Aggregate(1, (a, b) => a * int.Parse(b));
 
         /// <inheritdoc cref="FormatName"/>
-        public string FormatName { get; }
-
-        public Astc(AstcFormat format)
-        {
-            _format = format;
-
-            BitDepth = -1;
-            BitsPerValue = 128;
-            ColorsPerValue = format.ToString()[5..].Split('x').Aggregate(1, (a, b) => a * int.Parse(b));
-
-            FormatName = format.ToString().Replace("_", " ");
-        }
+        public string FormatName { get; } = format.ToString().Replace("_", " ");
 
         /// <inheritdoc cref="Load"/>
         public IEnumerable<Rgba32> Load(byte[] tex, EncodingOptions options)
         {
             // Initialize PVR Texture
-            PVRTexture? texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)_format, options.Size);
-            if (texture is null)
-                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
+            PVRTexture texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)format, options.Size)
+                                 ?? throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to RGBA8888
-            bool successful = texture.Transcode(PvrTextureWrapper.RGBA8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
+            bool successful = texture.Transcode(PvrTextureWrapper.Rgba8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
             if (!successful)
                 throw new InvalidOperationException("Transcoding with PVRTexLib was not successful.");
 
@@ -67,12 +53,11 @@ namespace Kanvas.Encoding
             }
 
             // Initialize PVR Texture
-            PVRTexture? texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.RGBA8888, options.Size);
-            if (texture is null)
-                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
+            PVRTexture texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.Rgba8888, options.Size)
+                                 ?? throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to PVRTC
-            texture.Transcode((ulong)_format, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
+            texture.Transcode((ulong)format, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
 
             return PvrTextureWrapper.GetData(texture);
         }

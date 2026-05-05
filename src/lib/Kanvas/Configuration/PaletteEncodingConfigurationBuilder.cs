@@ -4,21 +4,15 @@ using Kanvas.DataClasses.Configuration;
 
 namespace Kanvas.Configuration
 {
-    internal class PaletteEncodingConfigurationBuilder : IPaletteEncodingConfigurationBuilder
+    internal class PaletteEncodingConfigurationBuilder(
+        IIndexedImageConfigurationBuilder parent,
+        EncodingConfigurationOptions options)
+        : IPaletteEncodingConfigurationBuilder
     {
-        private readonly IIndexedImageConfigurationBuilder _parent;
-        private readonly EncodingConfigurationOptions _options;
-
-        public PaletteEncodingConfigurationBuilder(IIndexedImageConfigurationBuilder parent, EncodingConfigurationOptions options)
-        {
-            _parent = parent;
-            _options = options;
-        }
-
         public IIndexedImageConfigurationBuilder With(IColorEncoding encoding)
         {
-            _options.PaletteEncoding = encoding;
-            return _parent;
+            options.PaletteEncoding = encoding;
+            return parent;
         }
     }
 }

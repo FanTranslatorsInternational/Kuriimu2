@@ -1,8 +1,8 @@
 ﻿namespace Kanvas.Quantization.ColorQuantizer.Wu
 {
-    static class WuCommon
+    internal static class WuCommon
     {
-        public static int GetIndex(int r, int g, int b, int a, int redIndexCount, int greenIndexCount, int blueIndexCount, int alphaIndexCount)
+        public static int GetIndex(int r, int g, int b, int a, int greenIndexCount, int blueIndexCount, int alphaIndexCount)
         {
             return ((r * greenIndexCount + g) * blueIndexCount + b) * alphaIndexCount + a;
         }

@@ -6,10 +6,8 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding.Base
 {
-    public abstract class BlockCompressionEncoding<TBlock> : IColorEncoding
+    public abstract class BlockCompressionEncoding<TBlock>(ByteOrder byteOrder) : IColorEncoding
     {
-        private readonly ByteOrder _byteOrder;
-
         /// <inheritdoc cref="BitDepth"/>
         public abstract int BitDepth { get; }
 
@@ -21,11 +19,6 @@ namespace Kanvas.Encoding.Base
 
         /// <inheritdoc cref="FormatName"/>
         public abstract string FormatName { get; }
-
-        protected BlockCompressionEncoding(ByteOrder byteOrder)
-        {
-            _byteOrder = byteOrder;
-        }
 
         /// <inheritdoc cref="Load"/>
         public IEnumerable<Rgba32> Load(byte[] input, EncodingOptions loadContext)
@@ -43,7 +36,7 @@ namespace Kanvas.Encoding.Base
             IEnumerable<TBlock> blocks = colors.Chunk(ColorsPerValue)
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(saveContext.TaskCount)
-                .Select(c => EncodeBlock(c.ToArray()));
+                .Select(c => EncodeBlock([.. c]));
 
             return WriteBlocks(blocks);
         }
@@ -58,7 +51,7 @@ namespace Kanvas.Encoding.Base
 
         private IEnumerable<TBlock> ReadBlocks(byte[] input)
         {
-            var reader = new BinaryReaderX(new MemoryStream(input), _byteOrder);
+            var reader = new BinaryReaderX(new MemoryStream(input), byteOrder);
 
             while (reader.BaseStream.Position < reader.BaseStream.Length)
                 yield return ReadBlock(reader);
@@ -67,7 +60,7 @@ namespace Kanvas.Encoding.Base
         private byte[] WriteBlocks(IEnumerable<TBlock> blocks)
         {
             var ms = new MemoryStream();
-            using var bw = new BinaryWriterX(ms, _byteOrder);
+            using var bw = new BinaryWriterX(ms, byteOrder);
 
             foreach (TBlock block in blocks)
                 WriteBlock(bw, block);

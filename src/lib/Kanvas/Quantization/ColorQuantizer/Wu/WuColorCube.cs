@@ -1,6 +1,6 @@
 ﻿namespace Kanvas.Quantization.ColorQuantizer.Wu
 {
-    class WuColorCube
+    internal class WuColorCube
     {
         public IReadOnlyList<WuColorBox> Boxes { get; }
 

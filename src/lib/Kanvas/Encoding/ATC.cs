@@ -77,38 +77,31 @@ namespace Kanvas.Encoding
             return buffer;
         }
 
-        private bool HasSecondBlock(AtcFormat format)
+        private static bool HasSecondBlock(AtcFormat format)
         {
             return format == AtcFormat.Atc_Explicit ||
                    format == AtcFormat.Atc_Interpolated;
         }
 
-        private BcDecoder GetDecoder()
+        private static BcDecoder GetDecoder()
         {
             return new BcDecoder();
         }
 
-        private BcEncoder GetEncoder(CompressionFormat compressionFormat)
+        private static BcEncoder GetEncoder(CompressionFormat compressionFormat)
         {
             return new BcEncoder(compressionFormat);
         }
 
         private CompressionFormat GetCompressionFormat()
         {
-            switch (_format)
+            return _format switch
             {
-                case AtcFormat.Atc:
-                    return CompressionFormat.Atc;
-
-                case AtcFormat.Atc_Explicit:
-                    return CompressionFormat.AtcExplicitAlpha;
-
-                case AtcFormat.Atc_Interpolated:
-                    return CompressionFormat.AtcInterpolatedAlpha;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported AtcFormat {_format}.");
-            }
+                AtcFormat.Atc => CompressionFormat.Atc,
+                AtcFormat.Atc_Explicit => CompressionFormat.AtcExplicitAlpha,
+                AtcFormat.Atc_Interpolated => CompressionFormat.AtcInterpolatedAlpha,
+                _ => throw new InvalidOperationException($"Unsupported AtcFormat {_format}.")
+            };
         }
     }
 

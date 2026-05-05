@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding.PlatformSpecific.Wii
 {
-    class Rgba8 : IColorEncoding
+    internal class Rgba8 : IColorEncoding
     {
         public int BitDepth => 32;
         public ColorChannelBitDepths ColorChannelBitDepths => new(8, 8, 8, 8);

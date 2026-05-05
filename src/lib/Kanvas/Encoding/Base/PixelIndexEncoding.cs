@@ -13,14 +13,14 @@ namespace Kanvas.Encoding.Base
         private readonly ByteOrder _byteOrder;
         private readonly BitOrder _bitOrder;
 
-        private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
-        private Action<BinaryWriterX, long> _writeValueDelegate;
+        private readonly Func<BinaryReaderX, IList<long>> _readValuesDelegate;
+        private readonly Action<BinaryWriterX, long> _writeValueDelegate;
 
         /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
 
         /// <inheritdoc cref="BitsPerValue"/>
-        public int BitsPerValue { get; private set; }
+        public int BitsPerValue { get; }
 
         /// <inheritdoc cref="ColorsPerValue"/>
         public int ColorsPerValue { get; }
@@ -38,9 +38,10 @@ namespace Kanvas.Encoding.Base
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
+            BitsPerValue = BitDepth;
             ColorsPerValue = 1;
 
-            SetValueDelegates(BitDepth);
+            GetValueDelegates(BitDepth, out _readValuesDelegate, out _writeValueDelegate);
         }
 
         /// <inheritdoc cref="Load"/>
@@ -76,47 +77,49 @@ namespace Kanvas.Encoding.Base
                     yield return value;
         }
 
-        private void SetValueDelegates(int bitDepth)
+        private static void GetValueDelegates(int bitDepth, out Func<BinaryReaderX, IList<long>> readDelegate, out Action<BinaryWriterX, long> writeDelegate)
         {
-            IList<long> ReadBitValues(BinaryReaderX br, int bitLength)
-            {
-                var valueCount = (br.BlockSize * 8 + (bitLength - 1)) / bitLength;
-                var result = new long[valueCount];
-
-                for (var i = 0; i < valueCount; i++)
-                    result[i] = br.ReadBits<long>(bitLength);
-
-                return result;
-            }
-
-            BitsPerValue = bitDepth;
             switch (bitDepth)
             {
                 case 1:
-                    _readValuesDelegate = br => ReadBitValues(br, bitDepth);
-                    _writeValueDelegate = (bw, value) => bw.WriteBits(value, 1);
+                    readDelegate = br => ReadBitValues(br, bitDepth);
+                    writeDelegate = (bw, value) => bw.WriteBits(value, 1);
                     break;
 
                 case 2:
-                    _readValuesDelegate = br => ReadBitValues(br, bitDepth);
-                    _writeValueDelegate = (bw, value) => bw.WriteBits(value, 2);
+                    readDelegate = br => ReadBitValues(br, bitDepth);
+                    writeDelegate = (bw, value) => bw.WriteBits(value, 2);
                     break;
 
                 case 4:
-                    _readValuesDelegate = br => ReadBitValues(br, bitDepth);
-                    _writeValueDelegate = (bw, value) => bw.WriteBits(value, 4);
+                    readDelegate = br => ReadBitValues(br, bitDepth);
+                    writeDelegate = (bw, value) => bw.WriteBits(value, 4);
                     break;
 
                 case 8:
-                    _readValuesDelegate = br => new long[] { br.ReadByte() };
-                    _writeValueDelegate = (bw, value) => bw.Write((byte)value);
+                    readDelegate = br => [br.ReadByte()];
+                    writeDelegate = (bw, value) => bw.Write((byte)value);
                     break;
 
                 case 16:
-                    _readValuesDelegate = br => new long[] { br.ReadUInt16() };
-                    _writeValueDelegate = (bw, value) => bw.Write((ushort)value);
+                    readDelegate = br => [br.ReadUInt16()];
+                    writeDelegate = (bw, value) => bw.Write((ushort)value);
                     break;
+
+                default:
+                    throw new InvalidOperationException($"BitDepth {bitDepth} not supported.");
             }
+        }
+
+        private static long[] ReadBitValues(BinaryReaderX br, int bitLength)
+        {
+            var valueCount = (br.BlockSize * 8 + (bitLength - 1)) / bitLength;
+            var result = new long[valueCount];
+
+            for (var i = 0; i < valueCount; i++)
+                result[i] = br.ReadBits<long>(bitLength);
+
+            return result;
         }
     }
 }

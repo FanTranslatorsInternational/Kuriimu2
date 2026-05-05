@@ -30,11 +30,11 @@ namespace Kanvas.Swizzle
             {
                 case 8:
                     var seq = new List<(int, int)> { (4, 2), (8, 0), (1, 0), (2, 0), (4, 0) };
-                    for (var i = 16; i < Width; i *= 2) 
+                    for (var i = 16; i < Width; i *= 2)
                         seq.Add((i, 0));
                     seq.AddRange([(0, 1), (4, 4)]);
 
-                    _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, seq.ToArray());
+                    _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, [.. seq]);
                     break;
 
                 default:

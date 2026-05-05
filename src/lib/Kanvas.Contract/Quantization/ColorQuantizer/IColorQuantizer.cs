@@ -58,8 +58,8 @@ namespace Kanvas.Contract.Quantization.ColorQuantizer
             if (orderPaletteDelegate is null || palette.Count <= fixedColorCount)
                 return palette;
 
-            List<Rgba32> fixedPalette = palette.Take(fixedColorCount).ToList();
-            Rgba32[] dynamicPalette = palette.Skip(fixedColorCount).ToArray();
+            List<Rgba32> fixedPalette = [.. palette.Take(fixedColorCount)];
+            Rgba32[] dynamicPalette = [.. palette.Skip(fixedColorCount)];
 
             fixedPalette.AddRange(orderPaletteDelegate(dynamicPalette));
             return fixedPalette;

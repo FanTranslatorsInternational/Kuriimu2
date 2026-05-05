@@ -19,15 +19,15 @@ namespace Kanvas.Encoding
         public override int BitDepth { get; }
 
         /// <inheritdoc cref="BitsPerValue"/>
-        public override int BitsPerValue { get; protected set; }
+        public sealed override int BitsPerValue { get; protected set; }
 
         /// <inheritdoc cref="ColorsPerValue"/>
         public override int ColorsPerValue => 16;
 
         /// <inheritdoc cref="FormatName"/>
-        public override string FormatName { get; }
+        public sealed override string FormatName { get; }
 
-        public Etc1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) : 
+        public Etc1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) :
             base(byteOrder)
         {
             _useAlpha = useAlpha;
@@ -51,8 +51,8 @@ namespace Kanvas.Encoding
                 Alpha = alpha,
                 Block = new Block
                 {
-                    LSB = (ushort)(colors & 0xFFFF),
-                    MSB = (ushort)((colors >> 16) & 0xFFFF),
+                    Lsb = (ushort)(colors & 0xFFFF),
+                    Msb = (ushort)((colors >> 16) & 0xFFFF),
                     Flags = (byte)((colors >> 32) & 0xFF),
                     B = (byte)((colors >> 40) & 0xFF),
                     G = (byte)((colors >> 48) & 0xFF),
@@ -69,7 +69,7 @@ namespace Kanvas.Encoding
 
         protected override IList<Rgba32> DecodeBlock(Etc1PixelData block)
         {
-            return _transcoder.DecodeBlocks(block).ToArray();
+            return [.. _transcoder.DecodeBlocks(block)];
         }
 
         protected override Etc1PixelData EncodeBlock(IList<Rgba32> colors)

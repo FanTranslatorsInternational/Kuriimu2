@@ -3,30 +3,19 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.DataClasses.Quantization.Quantizer.DistinctSelection
 {
-    class DistinctColorInfo
+    internal class DistinctColorInfo(Rgba32 color)
     {
         private const int Factor = 5000000;
 
-        public int Count { get; private set; }
+        public int Count { get; private set; } = 1;
 
-        public uint Color { get; }
+        public uint Color { get; } = color.PackedValue;
 
-        public int Hue { get; }
+        public int Hue { get; } = Convert.ToInt32(color.GetHue() * Factor);
 
-        public int Saturation { get; }
+        public int Saturation { get; } = Convert.ToInt32(color.GetSaturation() * Factor);
 
-        public int Brightness { get; }
-
-        public DistinctColorInfo(Rgba32 color)
-        {
-            Color = color.PackedValue;
-
-            Hue = Convert.ToInt32(color.GetHue() * Factor);
-            Saturation = Convert.ToInt32(color.GetSaturation() * Factor);
-            Brightness = Convert.ToInt32(color.GetBrightness()* Factor);
-
-            Count = 1;
-        }
+        public int Brightness { get; } = Convert.ToInt32(color.GetBrightness()* Factor);
 
         public DistinctColorInfo IncreaseCount()
         {

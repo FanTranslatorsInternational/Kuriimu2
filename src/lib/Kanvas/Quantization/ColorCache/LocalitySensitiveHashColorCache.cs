@@ -11,8 +11,6 @@ namespace Kanvas.Quantization.ColorCache
         private const long MaximalDistance = 4096;
         private const float NormalizedDistanceRgb = 1.0f / 196608.0f; // 256*256*3 (RGB) = 196608 / 768.0f
         private const float NormalizedDistanceRgba = 1.0f / 262144.0f; // 256*256*4 (Rgba) = 262144 / 1024.0f
-        private const float NormalizedDistanceHsl = 1.0f / 260672.0f; // 360*360 (H) + 256*256*2 (SL) = 260672 / 872.0f
-        private const float NormalizedDistanceLab = 1.0f / 507.0f; // 13*13*3 = 507 / 300.0f
 
         private readonly ColorModel _colorModel;
 
@@ -20,7 +18,7 @@ namespace Kanvas.Quantization.ColorCache
         private long _bucketSize;
         private long _minBucketIndex;
         private long _maxBucketIndex;
-        private LshBucketInfo[] _buckets;
+        private LshBucketInfo?[] _buckets;
 
         /// <summary>
         /// Gets or sets the quality.
@@ -37,17 +35,24 @@ namespace Kanvas.Quantization.ColorCache
                 _minBucketIndex = _quality;
                 _maxBucketIndex = 0;
 
-                _buckets = new LshBucketInfo[_quality];
+                _buckets = new LshBucketInfo?[_quality];
             }
         }
 
         public LocalitySensitiveHashColorCache(IList<Rgba32> palette, ColorModel colorModel) :
             base(palette)
         {
-            Quality = DefaultQuality;
             _colorModel = colorModel;
 
-            CreateBuckets(palette);
+            _quality = DefaultQuality;
+
+            _bucketSize = MaximalDistance / _quality;
+            _minBucketIndex = _quality;
+            _maxBucketIndex = 0;
+
+            _buckets = new LshBucketInfo?[_quality];
+
+            CreateBuckets();
         }
 
         /// <inheritdoc />
@@ -64,13 +69,9 @@ namespace Kanvas.Quantization.ColorCache
             return bucket.Colors.ElementAt(bucketIndex).Key;
         }
 
-        private void CreateBuckets(IList<Rgba32> palette)
+        private void CreateBuckets()
         {
-            _buckets = new LshBucketInfo[_quality];
-
             var paletteIndex = 0;
-            _minBucketIndex = _quality;
-            _maxBucketIndex = 0;
 
             foreach (var color in Palette)
             {
@@ -115,7 +116,7 @@ namespace Kanvas.Quantization.ColorCache
                 bucketIndex = bottomFound ? bottomBucketIndex : topBucketIndex;
             }
 
-            return _buckets[bucketIndex];
+            return _buckets[bucketIndex]!;
         }
 
 
@@ -132,14 +133,12 @@ namespace Kanvas.Quantization.ColorCache
 
         private float GetNormalizedDistance()
         {
-            switch (_colorModel)
+            return _colorModel switch
             {
-                case ColorModel.Rgb: return NormalizedDistanceRgb;
-                case ColorModel.Rgba: return NormalizedDistanceRgba;
-                //case ColorModel.HSL: return NormalizedDistanceHsl;
-                //case ColorModel.Lab: return NormalizedDistanceLab;
-                default: return 0;
-            }
+                ColorModel.Rgb => NormalizedDistanceRgb,
+                ColorModel.Rgba => NormalizedDistanceRgba,
+                _ => 0
+            };
         }
     }
 }

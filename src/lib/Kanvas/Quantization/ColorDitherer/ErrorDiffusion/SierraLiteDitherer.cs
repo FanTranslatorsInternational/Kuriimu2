@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
-    public class SierraLiteDitherer : ErrorDiffusionDitherer
+    public class SierraLiteDitherer(Size imageSize, int taskCount) : ErrorDiffusionDitherer(imageSize, taskCount)
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -14,10 +14,5 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
         protected override int MatrixSideWidth => 1;
         protected override int MatrixSideHeight => 1;
         protected override int ErrorLimit => 4;
-
-        public SierraLiteDitherer(Size imageSize, int taskCount) :
-            base(imageSize, taskCount)
-        {
-        }
     }
 }

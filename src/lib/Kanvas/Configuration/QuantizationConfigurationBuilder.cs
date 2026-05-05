@@ -3,80 +3,74 @@ using Kanvas.DataClasses.Configuration;
 
 namespace Kanvas.Configuration
 {
-    internal class QuantizationConfigurationBuilder : IQuantizationConfigurationBuilder
+    internal class QuantizationConfigurationBuilder(QuantizationConfigurationOptions options)
+        : IQuantizationConfigurationBuilder
     {
-        private readonly QuantizationConfigurationOptions _options;
-
-        public QuantizationConfigurationBuilder(QuantizationConfigurationOptions options)
-        {
-            _options = options;
-        }
-
         public IQuantizationConfigurationBuilder WithDegreeOfParallelism(int taskCount)
         {
-            _options.TaskCount = taskCount;
+            options.TaskCount = taskCount;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithColorCount(int colorCount)
         {
-            _options.ColorCount = colorCount;
+            options.ColorCount = colorCount;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithColorCache(CreateColorCacheDelegate cacheDelegate)
         {
-            _options.ColorCacheDelegate = cacheDelegate;
+            options.ColorCacheDelegate = cacheDelegate;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithPalette(CreatePaletteDelegate paletteDelegate)
         {
-            _options.PaletteDelegate = paletteDelegate;
-            _options.InitialPaletteDelegate = null;
+            options.PaletteDelegate = paletteDelegate;
+            options.InitialPaletteDelegate = null;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithInitialPalette(CreateInitialPaletteDelegate initialPaletteDelegate)
         {
-            _options.PaletteDelegate = null;
-            _options.InitialPaletteDelegate = initialPaletteDelegate;
+            options.PaletteDelegate = null;
+            options.InitialPaletteDelegate = initialPaletteDelegate;
             return this;
         }
 
         public IQuantizationConfigurationBuilder OrderPalette(OrderPaletteDelegate orderPaletteDelegate)
         {
-            _options.OrderPaletteDelegate = orderPaletteDelegate;
+            options.OrderPaletteDelegate = orderPaletteDelegate;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithColorQuantizer(CreateColorQuantizerDelegate quantizerDelegate)
         {
-            _options.ColorQuantizerDelegate = quantizerDelegate;
+            options.ColorQuantizerDelegate = quantizerDelegate;
             return this;
         }
 
         public IQuantizationConfigurationBuilder WithColorDitherer(CreateColorDithererDelegate dithererDelegate)
         {
-            _options.ColorDithererDelegate = dithererDelegate;
+            options.ColorDithererDelegate = dithererDelegate;
             return this;
         }
 
         public IQuantizationConfigurationBuilder Clone()
         {
-            var options = new QuantizationConfigurationOptions
+            var options1 = new QuantizationConfigurationOptions
             {
-                TaskCount = _options.TaskCount,
-                ColorCount = _options.ColorCount,
-                ColorChannelBitDepths = _options.ColorChannelBitDepths,
-                PaletteDelegate = _options.PaletteDelegate,
-                InitialPaletteDelegate = _options.InitialPaletteDelegate,
-                ColorCacheDelegate = _options.ColorCacheDelegate,
-                ColorDithererDelegate = _options.ColorDithererDelegate,
-                ColorQuantizerDelegate = _options.ColorQuantizerDelegate
+                TaskCount = options.TaskCount,
+                ColorCount = options.ColorCount,
+                ColorChannelBitDepths = options.ColorChannelBitDepths,
+                PaletteDelegate = options.PaletteDelegate,
+                InitialPaletteDelegate = options.InitialPaletteDelegate,
+                ColorCacheDelegate = options.ColorCacheDelegate,
+                ColorDithererDelegate = options.ColorDithererDelegate,
+                ColorQuantizerDelegate = options.ColorQuantizerDelegate
             };
 
-            return new QuantizationConfigurationBuilder(options);
+            return new QuantizationConfigurationBuilder(options1);
         }
     }
 }

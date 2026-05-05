@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.2.1" />
-    <PackageReference Include="Komponent" Version="2.1.8" />
+    <PackageReference Include="Komponent" Version="2.1.9" />
     <PackageReference Include="PVRTexLib.NET" Version="1.0.3" />
   </ItemGroup>
 

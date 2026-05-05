@@ -8,15 +8,9 @@ namespace Kanvas.Quantization.ColorCache
     /// <summary>
     /// The <see cref="IColorCache"/> to search colors with euclidean distance.
     /// </summary>
-    public class EuclideanDistanceColorCache : ColorCache
+    public class EuclideanDistanceColorCache(IList<Rgba32> palette) : ColorCache(palette)
     {
-        private readonly ConcurrentDictionary<Rgba32, int> _cache;
-
-        public EuclideanDistanceColorCache(IList<Rgba32> palette) :
-            base(palette)
-        {
-            _cache = new ConcurrentDictionary<Rgba32, int>();
-        }
+        private readonly ConcurrentDictionary<Rgba32, int> _cache = new();
 
         /// <inheritdoc />
         public override int GetPaletteIndex(Rgba32 color)

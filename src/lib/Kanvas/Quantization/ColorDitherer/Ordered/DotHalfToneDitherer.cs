@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorDitherer.Ordered
 {
-    public class DotHalfToneDitherer : OrderedDitherer
+    public class DotHalfToneDitherer(Size imageSize, int taskCount) : OrderedDitherer(imageSize, taskCount)
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -15,10 +15,5 @@ namespace Kanvas.Quantization.ColorDitherer.Ordered
             { 50, 62, 64, 56, 14,  4,  6, 20 },
             { 38, 52, 54, 40, 28, 16, 18, 30 }
         };
-
-        public DotHalfToneDitherer(Size imageSize, int taskCount) :
-            base(imageSize, taskCount)
-        {
-        }
     }
 }

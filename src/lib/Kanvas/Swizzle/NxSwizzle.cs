@@ -1,6 +1,5 @@
 ﻿using Kanvas.Contract;
 using Kanvas.Contract.DataClasses;
-using Kanvas.Contract.Encoding;
 using Kanvas.Encoding;
 using SixLabors.ImageSharp;
 
@@ -101,7 +100,7 @@ namespace Kanvas.Swizzle
                 }
             }
 
-            _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, baseBitField.Concat(bitFieldExtension).ToArray());
+            _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, [.. baseBitField.Concat(bitFieldExtension)]);
 
             (Width, Height) = PadSize(context, _swizzle);
         }
@@ -112,7 +111,7 @@ namespace Kanvas.Swizzle
         /// <inheritdoc />
         public Point Get(int pointCount) => _swizzle.Get(pointCount);
 
-        private (int, int) PadSize(SwizzleOptions options, MasterSwizzle swizzle)
+        private static (int, int) PadSize(SwizzleOptions options, MasterSwizzle swizzle)
         {
             var width = SizePadding.Multiple(options.Size.Width, swizzle.MacroTileWidth);
             var height = SizePadding.Multiple(options.Size.Height, swizzle.MacroTileHeight);
@@ -123,10 +122,10 @@ namespace Kanvas.Swizzle
 
             // Pad for ASTC
             var restWidth = width % astcBlock.Item1;
-            width = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
+            width += restWidth != 0 ? astcBlock.Item1 - restWidth : 0;
 
             var restHeight = height % astcBlock.Item2;
-            height = height + (restHeight != 0 ? astcBlock.Item2 - restHeight : 0);
+            height += restHeight != 0 ? astcBlock.Item2 - restHeight : 0;
 
             return (width, height);
 

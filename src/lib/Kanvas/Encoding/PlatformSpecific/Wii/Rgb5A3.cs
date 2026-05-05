@@ -7,23 +7,16 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding.PlatformSpecific.Wii
 {
-    public class Rgb5A3 : IColorEncoding
+    public class Rgb5A3(ByteOrder byteOrder = ByteOrder.BigEndian) : IColorEncoding
     {
-        private readonly ByteOrder _byteOrder;
-
-        private readonly RgbaPixelDescriptor _desc1 = new RgbaPixelDescriptor("ARGB", 4, 4, 4, 3);
-        private readonly RgbaPixelDescriptor _desc2 = new RgbaPixelDescriptor("RGB", 5, 5, 5, 0);
+        private readonly RgbaPixelDescriptor _desc1 = new("ARGB", 4, 4, 4, 3);
+        private readonly RgbaPixelDescriptor _desc2 = new("RGB", 5, 5, 5, 0);
 
         public int BitDepth => 16;
         public ColorChannelBitDepths ColorChannelBitDepths => new(5, 5, 5, 3);
         public int BitsPerValue => 16;
         public int ColorsPerValue => 1;
         public string FormatName => "RGB5A3_Wii";
-
-        public Rgb5A3(ByteOrder byteOrder = ByteOrder.BigEndian)
-        {
-            _byteOrder = byteOrder;
-        }
 
         public IEnumerable<Rgba32> Load(byte[] input, EncodingOptions options)
         {
@@ -55,14 +48,14 @@ namespace Kanvas.Encoding.PlatformSpecific.Wii
 
         private long ReadValue(byte[] input, int offset)
         {
-            return _byteOrder == ByteOrder.BigEndian ?
+            return byteOrder == ByteOrder.BigEndian ?
                 BinaryPrimitives.ReadUInt16BigEndian(input.AsSpan(offset, 2)) :
                 BinaryPrimitives.ReadUInt16LittleEndian(input.AsSpan(offset, 2));
         }
 
         private void WriteValue(byte[] input, int offset, ushort value)
         {
-            if (_byteOrder == ByteOrder.BigEndian)
+            if (byteOrder == ByteOrder.BigEndian)
                 BinaryPrimitives.WriteUInt16BigEndian(input.AsSpan(offset, 2), value);
             else
                 BinaryPrimitives.WriteUInt16LittleEndian(input.AsSpan(offset, 2), value);

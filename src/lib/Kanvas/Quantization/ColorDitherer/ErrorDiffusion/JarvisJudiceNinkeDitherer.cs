@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
-    public class JarvisJudiceNinkeDitherer : ErrorDiffusionDitherer
+    public class JarvisJudiceNinkeDitherer(Size imageSize, int taskCount) : ErrorDiffusionDitherer(imageSize, taskCount)
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -16,10 +16,5 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
         protected override int MatrixSideWidth => 2;
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 48;
-
-        public JarvisJudiceNinkeDitherer(Size imageSize, int taskCount) :
-            base(imageSize, taskCount)
-        {
-        }
     }
 }

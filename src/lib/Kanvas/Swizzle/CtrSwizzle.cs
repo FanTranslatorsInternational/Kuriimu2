@@ -43,23 +43,13 @@ namespace Kanvas.Swizzle
         {
             var newPoint = _swizzle.Get(pointCount);
 
-            switch (_transform)
+            return _transform switch
             {
-                // Transpose
-                case CtrTransformation.Transpose:
-                    return new Point(newPoint.Y, newPoint.X);
-
-                // Rotate90
-                case CtrTransformation.Rotate90:
-                    return new Point(newPoint.Y, Height - 1 - newPoint.X);
-
-                // YFlip
-                case CtrTransformation.YFlip:
-                    return new Point(newPoint.X, Height - 1 - newPoint.Y);
-
-                default:
-                    return newPoint;
-            }
+                CtrTransformation.Transpose => new Point(newPoint.Y, newPoint.X),
+                CtrTransformation.Rotate90 => new Point(newPoint.Y, Height - 1 - newPoint.X),
+                CtrTransformation.YFlip => new Point(newPoint.X, Height - 1 - newPoint.Y),
+                _ => newPoint
+            };
         }
     }
 }

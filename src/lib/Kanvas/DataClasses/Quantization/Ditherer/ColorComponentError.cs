@@ -1,16 +1,9 @@
 ﻿namespace Kanvas.DataClasses.Quantization.Ditherer
 {
-    class ColorComponentError
+    internal class ColorComponentError
     {
-        public int RedError { get; set; }
-        public int GreenError { get; set; }
-        public int BlueError { get; set; }
-
-        public ColorComponentError()
-        {
-            RedError = 0;
-            GreenError = 0;
-            BlueError = 0;
-        }
+        public int RedError { get; set; } = 0;
+        public int GreenError { get; set; } = 0;
+        public int BlueError { get; set; } = 0;
     }
 }

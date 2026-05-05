@@ -4,19 +4,18 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
     class ErrorDiffusionLineTask
     {
-        private readonly ErrorDiffusionLineTask _parentTask;
+        private readonly ErrorDiffusionLineTask? _parentTask;
+        private readonly IEnumerable<ErrorDiffusionElement> _elements;
 
         private readonly int _start;
         private readonly int _length;
         private readonly int _threshold;
 
-        private IEnumerable<ErrorDiffusionElement> _elements;
-
         public int ProcessedElements { get; private set; }
 
         public bool IsFinished { get; private set; }
 
-        public ErrorDiffusionLineTask(IEnumerable<ErrorDiffusionElement> input, int start, int length, int threshold, ErrorDiffusionLineTask parentTask)
+        public ErrorDiffusionLineTask(IEnumerable<ErrorDiffusionElement> input, int start, int length, int threshold, ErrorDiffusionLineTask? parentTask)
         {
             if (length < threshold)
                 throw new InvalidOperationException("Line length can't be smaller than the start threshold.");

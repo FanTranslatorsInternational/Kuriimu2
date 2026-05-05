@@ -5,33 +5,19 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization.ColorCache
 {
-    class WuColorCache : IColorCache
+    internal class WuColorCache(ColorChannelBitDepths bitDepths) : IColorCache
     {
-        private readonly int _indexRedBits;
-        private readonly int _indexGreenBits;
-        private readonly int _indexBlueBits;
-        private readonly int _indexAlphaBits;
-        private readonly int _indexRedCount;
-        private readonly int _indexGreenCount;
-        private readonly int _indexBlueCount;
-        private readonly int _indexAlphaCount;
+        private readonly int _indexRedBits = bitDepths.Red;
+        private readonly int _indexGreenBits = bitDepths.Green;
+        private readonly int _indexBlueBits = bitDepths.Blue;
+        private readonly int _indexAlphaBits = bitDepths.Alpha;
+        private readonly int _indexGreenCount = (1 << bitDepths.Green) + 1;
+        private readonly int _indexBlueCount = (1 << bitDepths.Blue) + 1;
+        private readonly int _indexAlphaCount = (1 << bitDepths.Alpha) + 1;
 
-        internal byte[] Tag { get; set; }
+        internal byte[] Tag { get; set; } = [];
 
-        public IList<Rgba32> Palette { get; private set; }
-
-        public WuColorCache(ColorChannelBitDepths bitDepths)
-        {
-            _indexRedBits = bitDepths.Red;
-            _indexGreenBits = bitDepths.Green;
-            _indexBlueBits = bitDepths.Blue;
-            _indexAlphaBits = bitDepths.Alpha;
-
-            _indexRedCount = (1 << bitDepths.Red) + 1;
-            _indexGreenCount = (1 << bitDepths.Green) + 1;
-            _indexBlueCount = (1 << bitDepths.Blue) + 1;
-            _indexAlphaCount = (1 << bitDepths.Alpha) + 1;
-        }
+        public IList<Rgba32> Palette { get; private set; } = [];
 
         public int GetPaletteIndex(Rgba32 color)
         {
@@ -40,7 +26,7 @@ namespace Kanvas.Quantization.ColorCache
             int g = color.G >> (8 - _indexGreenBits);
             int b = color.B >> (8 - _indexBlueBits);
 
-            int index = WuCommon.GetIndex(r + 1, g + 1, b + 1, a + 1, _indexRedCount, _indexGreenCount, _indexBlueCount, _indexAlphaCount);
+            int index = WuCommon.GetIndex(r + 1, g + 1, b + 1, a + 1, _indexGreenCount, _indexBlueCount, _indexAlphaCount);
 
             return Tag[index];
         }

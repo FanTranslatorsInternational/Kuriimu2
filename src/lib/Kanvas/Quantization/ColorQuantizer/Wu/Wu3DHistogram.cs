@@ -3,7 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization.ColorQuantizer.Wu
 {
-    class Wu3DHistogram
+    internal class Wu3DHistogram
     {
         public int IndexRedBits { get; }
         public int IndexGreenBits { get; }
@@ -17,32 +17,32 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
         /// <summary>
         /// Moment of <c>P(c)</c>.
         /// </summary>
-        public long[] Vwt { get; private set; }
+        public long[] Vwt { get; }
 
         /// <summary>
         /// Moment of <c>r*P(c)</c>.
         /// </summary>
-        public long[] Vmr { get; private set; }
+        public long[] Vmr { get; }
 
         /// <summary>
         /// Moment of <c>g*P(c)</c>.
         /// </summary>
-        public long[] Vmg { get; private set; }
+        public long[] Vmg { get; }
 
         /// <summary>
         /// Moment of <c>b*P(c)</c>.
         /// </summary>
-        public long[] Vmb { get; private set; }
+        public long[] Vmb { get; }
 
         /// <summary>
         /// Moment of <c>a*P(c)</c>.
         /// </summary>
-        public long[] Vma { get; private set; }
+        public long[] Vma { get; }
 
         /// <summary>
         /// Moment of <c>c^2*P(c)</c>.
         /// </summary>
-        public double[] M2 { get; private set; }
+        public double[] M2 { get; }
 
         /// <summary>
         /// Creates a 3-dimensional color histogram.
@@ -58,6 +58,15 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             IndexGreenCount = (1 << bitDepths.Green) + 1;
             IndexBlueCount = (1 << bitDepths.Blue) + 1;
             IndexAlphaCount = (1 << bitDepths.Alpha) + 1;
+
+            var tableLength = IndexRedCount * IndexGreenCount * IndexBlueCount * IndexAlphaCount;
+
+            Vwt = new long[tableLength];
+            Vmr = new long[tableLength];
+            Vmg = new long[tableLength];
+            Vmb = new long[tableLength];
+            Vma = new long[tableLength];
+            M2 = new double[tableLength];
         }
 
         public void Create(IList<Rgba32> colors)
@@ -67,21 +76,21 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
         public void Create(IList<Rgba32> colors, IList<Rgba32>? biasPalette)
         {
-            InitializeTables(IndexRedCount * IndexGreenCount * IndexBlueCount * IndexAlphaCount);
+            ClearTables();
 
             FillTables(colors, biasPalette);
 
             CalculateMoments();
         }
 
-        private void InitializeTables(int tableLength)
+        private void ClearTables()
         {
-            Vwt = new long[tableLength];
-            Vmr = new long[tableLength];
-            Vmg = new long[tableLength];
-            Vmb = new long[tableLength];
-            Vma = new long[tableLength];
-            M2 = new double[tableLength];
+            Array.Clear(Vwt);
+            Array.Clear(Vmr);
+            Array.Clear(Vmg);
+            Array.Clear(Vmb);
+            Array.Clear(Vma);
+            Array.Clear(M2);
         }
 
         private void FillTables(IList<Rgba32> colors, IList<Rgba32>? biasPalette)
@@ -107,7 +116,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
         private void AddWeightedSample(int inr, int ing, int inb, int ina, int r, int g, int b, int a, int weight)
         {
-            int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
+            int ind = WuCommon.GetIndex(inr + 1, ing + 1, inb + 1, ina + 1, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
             Vwt[ind] += weight;
             Vmr[ind] += weight * r;
@@ -115,13 +124,6 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
             Vmb[ind] += weight * b;
             Vma[ind] += weight * a;
             M2[ind] += weight * (r * r + g * g + b * b + a * a); // Euclidean distance as moment
-        }
-
-        private static int GetBinCenterValue(int index, int bits)
-        {
-            int bucketSize = 1 << (8 - bits);
-            int value = index * bucketSize + (bucketSize >> 1);
-            return Math.Clamp(value, 0, 255);
         }
 
         private void CalculateMoments()
@@ -169,7 +171,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
 
                         for (int a = 1; a < IndexAlphaCount; a++)
                         {
-                            int ind1 = WuCommon.GetIndex(r, g, b, a, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
+                            int ind1 = WuCommon.GetIndex(r, g, b, a, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
                             line += Vwt[ind1];
                             lineR += Vmr[ind1];
@@ -194,7 +196,7 @@ namespace Kanvas.Quantization.ColorQuantizer.Wu
                             volumeA[inv] += areaA[a];
                             volume2[inv] += area2[a];
 
-                            int ind2 = ind1 - WuCommon.GetIndex(1, 0, 0, 0, IndexRedCount, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
+                            int ind2 = ind1 - WuCommon.GetIndex(1, 0, 0, 0, IndexGreenCount, IndexBlueCount, IndexAlphaCount);
 
                             Vwt[ind1] = Vwt[ind2] + volume[inv];
                             Vmr[ind1] = Vmr[ind2] + volumeR[inv];

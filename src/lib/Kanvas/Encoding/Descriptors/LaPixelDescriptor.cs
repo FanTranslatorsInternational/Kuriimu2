@@ -7,16 +7,26 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Encoding.Descriptors
 {
-    public class LaPixelDescriptor : IPixelDescriptor
+    public partial class LaPixelDescriptor : IPixelDescriptor
     {
-        private int[] _indexTable;
-        private int[] _componentIndexTable;
-        private int[] _depthTable;
-        private int[] _shiftTable;
-        private int[] _maskTable;
+        [GeneratedRegex("^[lax]{1,2}$", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+        private static partial Regex ComponentOrderRegex();
 
-        private Func<int, int>[] _readBitDepthDelegates;
-        private Func<int, int>[] _writeBitDepthDelegates;
+        // Index lookup table holds the indices to the depth Values in order of reading
+        private readonly int[] _indexTable = new int[3];
+        // Depth index table holds index into depth table in order LAX
+        private readonly int[] _componentIndexTable = new int[3];
+        // Depth lookup table holds depth of components in order of reading
+        private readonly int[] _depthTable = new int[3];
+        // Shift lookup table holds the shift Values for each depth in order of reading
+        private readonly int[] _shiftTable = new int[3];
+        // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
+        private readonly int[] _maskTable = new int[3];
+
+        // Delegates to convert from one bit depth to another
+        // Based on input and output bit depth, certain conditions can optimize the process
+        private readonly Func<int, int>[] _readBitDepthDelegates = new Func<int, int>[3];
+        private readonly Func<int, int>[] _writeBitDepthDelegates = new Func<int, int>[3];
 
         public LaPixelDescriptor(string componentOrder, int l, int a)
         {
@@ -90,19 +100,19 @@ namespace Kanvas.Encoding.Descriptors
             return result;
         }
 
-        private void AssertValidOrder(string componentOrder)
+        private static void AssertValidOrder(string componentOrder)
         {
             if (componentOrder.Length is < 1 or > 2)
                 throw new ArgumentOutOfRangeException(nameof(componentOrder));
 
-            if (!Regex.IsMatch(componentOrder, "^[lax]{1,2}$"))
+            if (!ComponentOrderRegex().IsMatch(componentOrder))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
                 throw new InvalidOperationException($"'{componentOrder}' contains duplicated characters.");
         }
 
-        private void AssertBitDepth(int bitDepth)
+        private static void AssertBitDepth(int bitDepth)
         {
             if (bitDepth is < 1 or > 32)
                 throw new ArgumentOutOfRangeException(nameof(bitDepth));
@@ -110,57 +120,6 @@ namespace Kanvas.Encoding.Descriptors
 
         private void SetupLookupTables(string componentOrder, int l, int a)
         {
-            void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue)
-            {
-                _indexTable[tableIndex] = colorBufferIndex;
-                _depthTable[tableIndex] = depth;
-                _componentIndexTable[colorBufferIndex] = tableIndex;
-                _shiftTable[tableIndex] = shiftValue;
-                _maskTable[tableIndex] = (1 << depth) - 1;
-
-
-                if (depth <= 8)
-                {
-                    if (depth == 0)
-                    {
-                        _readBitDepthDelegates[tableIndex] = value => 0;
-                        _writeBitDepthDelegates[tableIndex] = value => 0;
-                    }
-                    else
-                    {
-                        _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
-                        _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
-                    }
-                }
-                else
-                {
-                    _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
-                    _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
-                }
-
-                shiftValue += depth;
-            }
-
-            // Index lookup table holds the indices to the depth Values in order of reading
-            _indexTable = new int[3];
-
-            // Depth lookup table holds depth of components in order of reading
-            _depthTable = new int[3];
-
-            // Depth index table holds index into depth table in order LAX
-            _componentIndexTable = new int[3];
-
-            // Shift lookup table holds the shift Values for each depth in order of reading
-            _shiftTable = new int[3];
-
-            // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
-            _maskTable = new int[3];
-
-            // Delegates to convert from one bit depth to another
-            // Based on input and output bit depth, certain conditions can optimize the process
-            _readBitDepthDelegates = new Func<int, int>[3];
-            _writeBitDepthDelegates = new Func<int, int>[3];
-
             var shift = 0;
             var length = componentOrder.Length;
             bool lSet = false, aSet = false, xSet = false;
@@ -197,17 +156,47 @@ namespace Kanvas.Encoding.Descriptors
             if (!xSet) SetTableValues(length, 2, 0, ref shift);
         }
 
-        private int ReadComponent(long value, int shift, int mask)
+        private void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue)
+        {
+            _indexTable[tableIndex] = colorBufferIndex;
+            _depthTable[tableIndex] = depth;
+            _componentIndexTable[colorBufferIndex] = tableIndex;
+            _shiftTable[tableIndex] = shiftValue;
+            _maskTable[tableIndex] = (1 << depth) - 1;
+
+            if (depth <= 8)
+            {
+                if (depth == 0)
+                {
+                    _readBitDepthDelegates[tableIndex] = _ => 0;
+                    _writeBitDepthDelegates[tableIndex] = _ => 0;
+                }
+                else
+                {
+                    _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
+                    _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
+                }
+            }
+            else
+            {
+                _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
+                _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
+            }
+
+            shiftValue += depth;
+        }
+
+        private static int ReadComponent(long value, int shift, int mask)
         {
             return (int)((value >> shift) & mask);
         }
 
-        private void WriteComponent(int value, int shift, int mask, ref long result)
+        private static void WriteComponent(int value, int shift, int mask, ref long result)
         {
             result |= (long)(value & mask) << shift;
         }
 
-        private int GetBitDepthOfMissingComponent(string componentOrder, int l, int a)
+        private static int GetBitDepthOfMissingComponent(string componentOrder, int l, int a)
         {
             bool lSet = false, aSet = false;
             foreach (var component in componentOrder)

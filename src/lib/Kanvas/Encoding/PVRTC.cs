@@ -42,12 +42,11 @@ namespace Kanvas.Encoding
         public IEnumerable<Rgba32> Load(byte[] tex, EncodingOptions options)
         {
             // Initialize PVR Texture
-            PVRTexture? texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)_format, options.Size);
-            if (texture is null)
-                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
+            PVRTexture texture = PvrTextureWrapper.CreateTexture(tex, (PVRTexLibPixelFormat)_format, options.Size)
+                                 ?? throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to RGBA8888
-            bool successful = texture.Transcode(PvrTextureWrapper.RGBA8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
+            bool successful = texture.Transcode(PvrTextureWrapper.Rgba8888, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);
             if (!successful)
                 throw new InvalidOperationException("Transcoding with PVRTexLib was not successful.");
 
@@ -91,9 +90,8 @@ namespace Kanvas.Encoding
             }
 
             // Initialize PVR Texture
-            PVRTexture? texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.RGBA8888, options.Size);
-            if (texture is null)
-                throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
+            PVRTexture texture = PvrTextureWrapper.CreateTexture(colorData, PvrTextureWrapper.Rgba8888, options.Size)
+                                 ?? throw new InvalidOperationException("Creating texture with PVRTexLib was not successful.");
 
             // Transcode texture to PVRTC
             texture.Transcode((ulong)_format, PVRTexLibVariableType.UnsignedByteNorm, PVRTexLibColourSpace.Linear, PVRTexLibCompressorQuality.PVRTCHigh);

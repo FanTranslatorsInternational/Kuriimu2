@@ -164,16 +164,15 @@ namespace Kanvas
 
             foreach (Rgba32 color in colors)
             {
-                var colorValue = color;
-                if (foundColors.ContainsKey(colorValue))
+                if (foundColors.TryGetValue(color, out int foundColor))
                 {
-                    yield return foundColors[colorValue];
+                    yield return foundColor;
                     continue;
                 }
 
                 for (var i = 0; i < palette.Count; i++)
                 {
-                    if (palette[i] == colorValue)
+                    if (palette[i] == color)
                     {
                         foundColors[palette[i]] = i;
                         yield return i;
@@ -212,44 +211,27 @@ namespace Kanvas
 
         private static Point GetMinPoint(int widthDiff, int heightDiff, ImageAnchor anchor)
         {
-            switch (anchor)
+            return anchor switch
             {
-                case ImageAnchor.TopLeft:
-                    return Point.Empty;
-
-                case ImageAnchor.TopRight:
-                    return new Point(widthDiff, 0);
-
-                case ImageAnchor.BottomLeft:
-                    return new Point(0, heightDiff);
-
-                case ImageAnchor.BottomRight:
-                    return new Point(widthDiff, heightDiff);
-
-                default:
-                    throw new InvalidOperationException($"Unknown image anchor {anchor}.");
-            }
+                ImageAnchor.TopLeft => Point.Empty,
+                ImageAnchor.TopRight => new Point(widthDiff, 0),
+                ImageAnchor.BottomLeft => new Point(0, heightDiff),
+                ImageAnchor.BottomRight => new Point(widthDiff, heightDiff),
+                _ => throw new InvalidOperationException($"Unknown image anchor {anchor}.")
+            };
         }
 
         private static Point GetMaxPoint(Size imageSize, int widthDiff, int heightDiff, ImageAnchor anchor)
         {
-            switch (anchor)
+            return anchor switch
             {
-                case ImageAnchor.TopLeft:
-                    return new Point(imageSize.Width - 1, imageSize.Height - 1);
-
-                case ImageAnchor.TopRight:
-                    return new Point(imageSize.Width + widthDiff - 1, imageSize.Height - 1);
-
-                case ImageAnchor.BottomLeft:
-                    return new Point(imageSize.Width - 1, imageSize.Height + heightDiff - 1);
-
-                case ImageAnchor.BottomRight:
-                    return new Point(imageSize.Width + widthDiff - 1, imageSize.Height + heightDiff - 1);
-
-                default:
-                    throw new InvalidOperationException($"Unknown image anchor {anchor}.");
-            }
+                ImageAnchor.TopLeft => new Point(imageSize.Width - 1, imageSize.Height - 1),
+                ImageAnchor.TopRight => new Point(imageSize.Width + widthDiff - 1, imageSize.Height - 1),
+                ImageAnchor.BottomLeft => new Point(imageSize.Width - 1, imageSize.Height + heightDiff - 1),
+                ImageAnchor.BottomRight => new Point(imageSize.Width + widthDiff - 1,
+                    imageSize.Height + heightDiff - 1),
+                _ => throw new InvalidOperationException($"Unknown image anchor {anchor}.")
+            };
         }
     }
 }

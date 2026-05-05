@@ -7,11 +7,8 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace Kanvas.Quantization.ColorQuantizer
 {
     /// <inheritdoc cref="IColorQuantizer"/>
-    public class DistinctSelectionColorQuantizer : IColorQuantizer
+    public class DistinctSelectionColorQuantizer(int colorCount, int taskCount) : IColorQuantizer
     {
-        private readonly int _colorCount;
-        private readonly int _taskCount;
-
         /// <inheritdoc />
         public bool IsColorCacheFixed => false;
 
@@ -21,12 +18,6 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// <inheritdoc />
         public bool SupportsAlpha => false;
 
-        public DistinctSelectionColorQuantizer(int colorCount, int taskCount)
-        {
-            _colorCount = colorCount;
-            _taskCount = taskCount;
-        }
-
         /// <inheritdoc />
         public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors)
         {
@@ -35,14 +26,14 @@ namespace Kanvas.Quantization.ColorQuantizer
 
         public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
         {
-            var fixedPalette = NormalizeInitialPalette(initialPalette, _colorCount);
+            var fixedPalette = NormalizeInitialPalette(initialPalette, colorCount);
 
-            int remainingColorCount = _colorCount - fixedPalette.Count;
+            int remainingColorCount = colorCount - fixedPalette.Count;
             if (remainingColorCount <= 0)
                 return fixedPalette;
 
             // Step 1: Filter out distinct colors
-            var distinctColors = FillDistinctColors(colors.ToArray(), fixedPalette);
+            var distinctColors = FillDistinctColors([.. colors], fixedPalette);
 
             // Step 2: Filter colors by hue, saturation and brightness
             // Step 2.1: If color count not reached, take top(n) colors
@@ -60,19 +51,19 @@ namespace Kanvas.Quantization.ColorQuantizer
             throw new NotSupportedException();
         }
 
-        private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Rgba32> colors, IList<Rgba32> initialPalette)
+        private ConcurrentDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Rgba32> colors, IList<Rgba32> initialPalette)
         {
             var distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
             var initialColorSet = new HashSet<uint>(initialPalette.Select(c => c.PackedValue));
 
             colors.AsParallel()
-                .WithDegreeOfParallelism(_taskCount)
+                .WithDegreeOfParallelism(taskCount)
                 .ForAll(c => AddOrUpdateDistinctColors(distinctColors, c, initialColorSet));
 
             return distinctColors;
         }
 
-        private void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Rgba32 color, HashSet<uint> initialPaletteSet)
+        private static void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Rgba32 color, HashSet<uint> initialPaletteSet)
         {
             if (initialPaletteSet.Contains(color.PackedValue))
                 return;
@@ -82,21 +73,18 @@ namespace Kanvas.Quantization.ColorQuantizer
                 (_, info) => info.IncreaseCount());
         }
 
-        private List<Rgba32> FilterColorInfos(IDictionary<uint, DistinctColorInfo> distinctColors, int colorCount)
+        private static List<Rgba32> FilterColorInfos(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, int maxColorCount)
         {
             var colorInfoList = distinctColors.Values.ToList();
             var foundColorCount = colorInfoList.Count;
-            var maxColorCount = colorCount;
 
             if (foundColorCount < maxColorCount)
-                return colorInfoList.Select(info => new Rgba32(info.Color)).ToList();
+                return [.. colorInfoList.Select(info => new Rgba32(info.Color))];
 
             var random = new DistinctSelection.FastRandom(13);
-            colorInfoList = colorInfoList.
-                OrderBy(info => random.Next(foundColorCount)).
-                ToList();
+            colorInfoList = [.. colorInfoList.OrderBy(_ => random.Next(foundColorCount))];
 
-            var background = colorInfoList.MaxBy(info => info.Count);
+            var background = colorInfoList.MaxBy(info => info.Count)!;
             colorInfoList.Remove(background);
             maxColorCount--;
 
@@ -118,7 +106,7 @@ namespace Kanvas.Quantization.ColorQuantizer
             if (listColorCount > 0)
             {
                 int allowedTake = Math.Min(maxColorCount, listColorCount);
-                colorInfoList = colorInfoList.Take(allowedTake).ToList();
+                colorInfoList = [.. colorInfoList.Take(allowedTake)];
             }
 
             var palette = new List<Rgba32>
@@ -135,25 +123,21 @@ namespace Kanvas.Quantization.ColorQuantizer
             if (maxColorCount <= 0 || initialPalette.Count <= 0)
                 return [];
 
-            return initialPalette
-                .DistinctBy(color => color.PackedValue)
-                .Take(maxColorCount)
-                .ToList();
+            return [.. initialPalette.DistinctBy(color => color.PackedValue).Take(maxColorCount)];
         }
 
-        private static bool ProcessList(int colorCount, List<DistinctColorInfo> list, ICollection<IEqualityComparer<DistinctColorInfo>> comparers, out List<DistinctColorInfo> outputList)
+        private static bool ProcessList(int colorCount, List<DistinctColorInfo> list, List<IEqualityComparer<DistinctColorInfo>> comparers, out List<DistinctColorInfo> outputList)
         {
-            IEqualityComparer<DistinctColorInfo> bestComparer = null;
-            Int32 maximalCount = 0;
+            IEqualityComparer<DistinctColorInfo>? bestComparer = null;
+
+            var maximalCount = 0;
             outputList = list;
 
             foreach (IEqualityComparer<DistinctColorInfo> comparer in comparers)
             {
-                List<DistinctColorInfo> filteredList = list.
-                    Distinct(comparer).
-                    ToList();
+                List<DistinctColorInfo> filteredList = [.. list.Distinct(comparer)];
 
-                Int32 filteredListCount = filteredList.Count;
+                int filteredListCount = filteredList.Count;
 
                 if (filteredListCount > colorCount && filteredListCount > maximalCount)
                 {
@@ -165,7 +149,9 @@ namespace Kanvas.Quantization.ColorQuantizer
                 }
             }
 
-            comparers.Remove(bestComparer);
+            if (bestComparer != null)
+                comparers.Remove(bestComparer);
+
             return comparers.Count > 0 && maximalCount > colorCount;
         }
 
@@ -176,12 +162,12 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// </summary>
         private class ColorHueComparer : IEqualityComparer<DistinctColorInfo>
         {
-            public Boolean Equals(DistinctColorInfo x, DistinctColorInfo y)
+            public bool Equals(DistinctColorInfo? x, DistinctColorInfo? y)
             {
-                return x.Hue == y.Hue;
+                return x?.Hue == y?.Hue;
             }
 
-            public Int32 GetHashCode(DistinctColorInfo colorInfo)
+            public int GetHashCode(DistinctColorInfo colorInfo)
             {
                 return colorInfo.Hue.GetHashCode();
             }
@@ -192,12 +178,12 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// </summary>
         private class ColorSaturationComparer : IEqualityComparer<DistinctColorInfo>
         {
-            public Boolean Equals(DistinctColorInfo x, DistinctColorInfo y)
+            public bool Equals(DistinctColorInfo? x, DistinctColorInfo? y)
             {
-                return x.Saturation == y.Saturation;
+                return x?.Saturation == y?.Saturation;
             }
 
-            public Int32 GetHashCode(DistinctColorInfo colorInfo)
+            public int GetHashCode(DistinctColorInfo colorInfo)
             {
                 return colorInfo.Saturation.GetHashCode();
             }
@@ -208,12 +194,12 @@ namespace Kanvas.Quantization.ColorQuantizer
         /// </summary>
         private class ColorBrightnessComparer : IEqualityComparer<DistinctColorInfo>
         {
-            public Boolean Equals(DistinctColorInfo x, DistinctColorInfo y)
+            public bool Equals(DistinctColorInfo? x, DistinctColorInfo? y)
             {
-                return x.Brightness == y.Brightness;
+                return x?.Brightness == y?.Brightness;
             }
 
-            public Int32 GetHashCode(DistinctColorInfo colorInfo)
+            public int GetHashCode(DistinctColorInfo colorInfo)
             {
                 return colorInfo.Brightness.GetHashCode();
             }

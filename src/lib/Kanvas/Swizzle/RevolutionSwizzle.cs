@@ -9,7 +9,7 @@ namespace Kanvas.Swizzle
     /// </summary>
     public class RevolutionSwizzle : IImageSwizzle
     {
-        private readonly IDictionary<int, (int, int)[]> _bitFields = new Dictionary<int, (int, int)[]>
+        private readonly Dictionary<int, (int, int)[]> _bitFields = new()
         {
             [04] = [(1, 0), (2, 0), (4, 0), (0, 1), (0, 2), (0, 4)],
             [08] = [(1, 0), (2, 0), (4, 0), (0, 1), (0, 2)],

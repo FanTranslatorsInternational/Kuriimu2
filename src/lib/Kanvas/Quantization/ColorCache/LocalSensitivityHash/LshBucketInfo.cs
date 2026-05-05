@@ -2,17 +2,9 @@
 
 namespace Kanvas.Quantization.ColorCache.LocalSensitivityHash
 {
-    class LshBucketInfo
+    internal class LshBucketInfo
     {
-        public SortedDictionary<int, Rgba32> Colors;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LshBucketInfo"/> class.
-        /// </summary>
-        public LshBucketInfo()
-        {
-            Colors = new SortedDictionary<int, Rgba32>();
-        }
+        public SortedDictionary<int, Rgba32> Colors = [];
 
         /// <summary>
         /// Adds the color to the bucket information.

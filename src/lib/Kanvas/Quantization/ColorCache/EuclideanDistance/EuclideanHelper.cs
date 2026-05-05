@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorCache.EuclideanDistance
 {
-    class EuclideanHelper
+    internal class EuclideanHelper
     {
         public static int GetSmallestEuclideanDistanceIndex(IList<Rgba32> palette, Rgba32 sourceColor)
         {

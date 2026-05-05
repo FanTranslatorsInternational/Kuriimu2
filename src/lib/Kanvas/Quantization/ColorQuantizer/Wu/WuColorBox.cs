@@ -3,10 +3,8 @@
     /// <summary>
     /// A box color 
     /// </summary>
-    class WuColorBox
+    internal class WuColorBox(Wu3DHistogram histogram)
     {
-        private readonly Wu3DHistogram _histogram;
-
         /// <summary>
         /// Gets or sets the min red value, exclusive.
         /// </summary>
@@ -52,140 +50,85 @@
         /// </summary>
         public int Volume { get; set; }
 
-        public WuColorBox(Wu3DHistogram histogram)
-        {
-            _histogram = histogram;
-        }
-
         private int GetIndex(int r, int g, int b, int a)
         {
-            return WuCommon.GetIndex(r, g, b, a, _histogram.IndexRedCount, _histogram.IndexGreenCount, _histogram.IndexBlueCount, _histogram.IndexAlphaCount);
+            return WuCommon.GetIndex(r, g, b, a, histogram.IndexGreenCount, histogram.IndexBlueCount, histogram.IndexAlphaCount);
         }
 
         private long Bottom(int direction, long[] moment)
         {
-            switch (direction)
+            return direction switch
             {
                 // Red
-                case 3:
-                    return -moment[GetIndex(R0, G1, B1, A1)]
-                        + moment[GetIndex(R0, G1, B1, A0)]
-                        + moment[GetIndex(R0, G1, B0, A1)]
-                        - moment[GetIndex(R0, G1, B0, A0)]
-                        + moment[GetIndex(R0, G0, B1, A1)]
-                        - moment[GetIndex(R0, G0, B1, A0)]
-                        - moment[GetIndex(R0, G0, B0, A1)]
-                        + moment[GetIndex(R0, G0, B0, A0)];
-
+                3 => -moment[GetIndex(R0, G1, B1, A1)] + moment[GetIndex(R0, G1, B1, A0)] +
+                    moment[GetIndex(R0, G1, B0, A1)] - moment[GetIndex(R0, G1, B0, A0)] +
+                    moment[GetIndex(R0, G0, B1, A1)] - moment[GetIndex(R0, G0, B1, A0)] -
+                    moment[GetIndex(R0, G0, B0, A1)] + moment[GetIndex(R0, G0, B0, A0)],
                 // Green
-                case 2:
-                    return -moment[GetIndex(R1, G0, B1, A1)]
-                        + moment[GetIndex(R1, G0, B1, A0)]
-                        + moment[GetIndex(R1, G0, B0, A1)]
-                        - moment[GetIndex(R1, G0, B0, A0)]
-                        + moment[GetIndex(R0, G0, B1, A1)]
-                        - moment[GetIndex(R0, G0, B1, A0)]
-                        - moment[GetIndex(R0, G0, B0, A1)]
-                        + moment[GetIndex(R0, G0, B0, A0)];
-
+                2 => -moment[GetIndex(R1, G0, B1, A1)] + moment[GetIndex(R1, G0, B1, A0)] +
+                    moment[GetIndex(R1, G0, B0, A1)] - moment[GetIndex(R1, G0, B0, A0)] +
+                    moment[GetIndex(R0, G0, B1, A1)] - moment[GetIndex(R0, G0, B1, A0)] -
+                    moment[GetIndex(R0, G0, B0, A1)] + moment[GetIndex(R0, G0, B0, A0)],
                 // Blue
-                case 1:
-                    return -moment[GetIndex(R1, G1, B0, A1)]
-                        + moment[GetIndex(R1, G1, B0, A0)]
-                        + moment[GetIndex(R1, G0, B0, A1)]
-                        - moment[GetIndex(R1, G0, B0, A0)]
-                        + moment[GetIndex(R0, G1, B0, A1)]
-                        - moment[GetIndex(R0, G1, B0, A0)]
-                        - moment[GetIndex(R0, G0, B0, A1)]
-                        + moment[GetIndex(R0, G0, B0, A0)];
-
+                1 => -moment[GetIndex(R1, G1, B0, A1)] + moment[GetIndex(R1, G1, B0, A0)] +
+                    moment[GetIndex(R1, G0, B0, A1)] - moment[GetIndex(R1, G0, B0, A0)] +
+                    moment[GetIndex(R0, G1, B0, A1)] - moment[GetIndex(R0, G1, B0, A0)] -
+                    moment[GetIndex(R0, G0, B0, A1)] + moment[GetIndex(R0, G0, B0, A0)],
                 // Alpha
-                case 0:
-                    return -moment[GetIndex(R1, G1, B1, A0)]
-                        + moment[GetIndex(R1, G1, B0, A0)]
-                        + moment[GetIndex(R1, G0, B1, A0)]
-                        - moment[GetIndex(R1, G0, B0, A0)]
-                        + moment[GetIndex(R0, G1, B1, A0)]
-                        - moment[GetIndex(R0, G1, B0, A0)]
-                        - moment[GetIndex(R0, G0, B1, A0)]
-                        + moment[GetIndex(R0, G0, B0, A0)];
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(direction));
-            }
+                0 => -moment[GetIndex(R1, G1, B1, A0)] + moment[GetIndex(R1, G1, B0, A0)] +
+                    moment[GetIndex(R1, G0, B1, A0)] - moment[GetIndex(R1, G0, B0, A0)] +
+                    moment[GetIndex(R0, G1, B1, A0)] - moment[GetIndex(R0, G1, B0, A0)] -
+                    moment[GetIndex(R0, G0, B1, A0)] + moment[GetIndex(R0, G0, B0, A0)],
+                _ => throw new ArgumentOutOfRangeException(nameof(direction))
+            };
         }
 
         private long Top(int direction, int position, long[] moment)
         {
-            switch (direction)
+            return direction switch
             {
                 // Red
-                case 3:
-                    return moment[GetIndex(position, G1, B1, A1)]
-                        - moment[GetIndex(position, G1, B1, A0)]
-                        - moment[GetIndex(position, G1, B0, A1)]
-                        + moment[GetIndex(position, G1, B0, A0)]
-                        - moment[GetIndex(position, G0, B1, A1)]
-                        + moment[GetIndex(position, G0, B1, A0)]
-                        + moment[GetIndex(position, G0, B0, A1)]
-                        - moment[GetIndex(position, G0, B0, A0)];
-
+                3 => moment[GetIndex(position, G1, B1, A1)] - moment[GetIndex(position, G1, B1, A0)] -
+                    moment[GetIndex(position, G1, B0, A1)] + moment[GetIndex(position, G1, B0, A0)] -
+                    moment[GetIndex(position, G0, B1, A1)] + moment[GetIndex(position, G0, B1, A0)] +
+                    moment[GetIndex(position, G0, B0, A1)] - moment[GetIndex(position, G0, B0, A0)],
                 // Green
-                case 2:
-                    return moment[GetIndex(R1, position, B1, A1)]
-                        - moment[GetIndex(R1, position, B1, A0)]
-                        - moment[GetIndex(R1, position, B0, A1)]
-                        + moment[GetIndex(R1, position, B0, A0)]
-                        - moment[GetIndex(R0, position, B1, A1)]
-                        + moment[GetIndex(R0, position, B1, A0)]
-                        + moment[GetIndex(R0, position, B0, A1)]
-                        - moment[GetIndex(R0, position, B0, A0)];
-
+                2 => moment[GetIndex(R1, position, B1, A1)] - moment[GetIndex(R1, position, B1, A0)] -
+                    moment[GetIndex(R1, position, B0, A1)] + moment[GetIndex(R1, position, B0, A0)] -
+                    moment[GetIndex(R0, position, B1, A1)] + moment[GetIndex(R0, position, B1, A0)] +
+                    moment[GetIndex(R0, position, B0, A1)] - moment[GetIndex(R0, position, B0, A0)],
                 // Blue
-                case 1:
-                    return moment[GetIndex(R1, G1, position, A1)]
-                        - moment[GetIndex(R1, G1, position, A0)]
-                        - moment[GetIndex(R1, G0, position, A1)]
-                        + moment[GetIndex(R1, G0, position, A0)]
-                        - moment[GetIndex(R0, G1, position, A1)]
-                        + moment[GetIndex(R0, G1, position, A0)]
-                        + moment[GetIndex(R0, G0, position, A1)]
-                        - moment[GetIndex(R0, G0, position, A0)];
-
+                1 => moment[GetIndex(R1, G1, position, A1)] - moment[GetIndex(R1, G1, position, A0)] -
+                    moment[GetIndex(R1, G0, position, A1)] + moment[GetIndex(R1, G0, position, A0)] -
+                    moment[GetIndex(R0, G1, position, A1)] + moment[GetIndex(R0, G1, position, A0)] +
+                    moment[GetIndex(R0, G0, position, A1)] - moment[GetIndex(R0, G0, position, A0)],
                 // Alpha
-                case 0:
-                    return moment[GetIndex(R1, G1, B1, position)]
-                        - moment[GetIndex(R1, G1, B0, position)]
-                        - moment[GetIndex(R1, G0, B1, position)]
-                        + moment[GetIndex(R1, G0, B0, position)]
-                        - moment[GetIndex(R0, G1, B1, position)]
-                        + moment[GetIndex(R0, G1, B0, position)]
-                        + moment[GetIndex(R0, G0, B1, position)]
-                        - moment[GetIndex(R0, G0, B0, position)];
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(direction));
-            }
+                0 => moment[GetIndex(R1, G1, B1, position)] - moment[GetIndex(R1, G1, B0, position)] -
+                    moment[GetIndex(R1, G0, B1, position)] + moment[GetIndex(R1, G0, B0, position)] -
+                    moment[GetIndex(R0, G1, B1, position)] + moment[GetIndex(R0, G1, B0, position)] +
+                    moment[GetIndex(R0, G0, B1, position)] - moment[GetIndex(R0, G0, B0, position)],
+                _ => throw new ArgumentOutOfRangeException(nameof(direction))
+            };
         }
 
         public double Maximize(int direction, int first, int last, out int cut, double wholeR, double wholeG, double wholeB, double wholeA, double wholeW)
         {
-            long baseR = Bottom(direction, _histogram.Vmr);
-            long baseG = Bottom(direction, _histogram.Vmg);
-            long baseB = Bottom(direction, _histogram.Vmb);
-            long baseA = Bottom(direction, _histogram.Vma);
-            long baseW = Bottom(direction, _histogram.Vwt);
+            long baseR = Bottom(direction, histogram.Vmr);
+            long baseG = Bottom(direction, histogram.Vmg);
+            long baseB = Bottom(direction, histogram.Vmb);
+            long baseA = Bottom(direction, histogram.Vma);
+            long baseW = Bottom(direction, histogram.Vwt);
 
             double max = 0.0;
             cut = -1;
 
             for (int i = first; i < last; i++)
             {
-                double halfR = baseR + Top(direction, i, _histogram.Vmr);
-                double halfG = baseG + Top(direction, i, _histogram.Vmg);
-                double halfB = baseB + Top(direction, i, _histogram.Vmb);
-                double halfA = baseA + Top(direction, i, _histogram.Vma);
-                double halfW = baseW + Top(direction, i, _histogram.Vwt);
+                double halfR = baseR + Top(direction, i, histogram.Vmr);
+                double halfG = baseG + Top(direction, i, histogram.Vmg);
+                double halfB = baseB + Top(direction, i, histogram.Vmb);
+                double halfA = baseA + Top(direction, i, histogram.Vma);
+                double halfW = baseW + Top(direction, i, histogram.Vwt);
 
                 if (halfW == 0)
                 {
@@ -219,27 +162,15 @@
 
         public double GetPartialVolume(int direction)
         {
-            long[] moment;
-            switch (direction)
+            long[] moment = direction switch
             {
-                case 1:
-                    moment = _histogram.Vmr;
-                    break;
-                case 2:
-                    moment = _histogram.Vmg;
-                    break;
-                case 3:
-                    moment = _histogram.Vmb;
-                    break;
-                case 4:
-                    moment = _histogram.Vma;
-                    break;
-                case 5:
-                    moment = _histogram.Vwt;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(direction));
-            }
+                1 => histogram.Vmr,
+                2 => histogram.Vmg,
+                3 => histogram.Vmb,
+                4 => histogram.Vma,
+                5 => histogram.Vwt,
+                _ => throw new ArgumentOutOfRangeException(nameof(direction))
+            };
 
             return moment[GetIndex(R1, G1, B1, A1)]
                    - moment[GetIndex(R1, G1, B1, A0)]
@@ -267,22 +198,22 @@
             double da = GetPartialVolume(4);
 
             double xx =
-                _histogram.M2[GetIndex(R1, G1, B1, A1)]
-                - _histogram.M2[GetIndex(R1, G1, B1, A0)]
-                - _histogram.M2[GetIndex(R1, G1, B0, A1)]
-                + _histogram.M2[GetIndex(R1, G1, B0, A0)]
-                - _histogram.M2[GetIndex(R1, G0, B1, A1)]
-                + _histogram.M2[GetIndex(R1, G0, B1, A0)]
-                + _histogram.M2[GetIndex(R1, G0, B0, A1)]
-                - _histogram.M2[GetIndex(R1, G0, B0, A0)]
-                - _histogram.M2[GetIndex(R0, G1, B1, A1)]
-                + _histogram.M2[GetIndex(R0, G1, B1, A0)]
-                + _histogram.M2[GetIndex(R0, G1, B0, A1)]
-                - _histogram.M2[GetIndex(R0, G1, B0, A0)]
-                + _histogram.M2[GetIndex(R0, G0, B1, A1)]
-                - _histogram.M2[GetIndex(R0, G0, B1, A0)]
-                - _histogram.M2[GetIndex(R0, G0, B0, A1)]
-                + _histogram.M2[GetIndex(R0, G0, B0, A0)];
+                histogram.M2[GetIndex(R1, G1, B1, A1)]
+                - histogram.M2[GetIndex(R1, G1, B1, A0)]
+                - histogram.M2[GetIndex(R1, G1, B0, A1)]
+                + histogram.M2[GetIndex(R1, G1, B0, A0)]
+                - histogram.M2[GetIndex(R1, G0, B1, A1)]
+                + histogram.M2[GetIndex(R1, G0, B1, A0)]
+                + histogram.M2[GetIndex(R1, G0, B0, A1)]
+                - histogram.M2[GetIndex(R1, G0, B0, A0)]
+                - histogram.M2[GetIndex(R0, G1, B1, A1)]
+                + histogram.M2[GetIndex(R0, G1, B1, A0)]
+                + histogram.M2[GetIndex(R0, G1, B0, A1)]
+                - histogram.M2[GetIndex(R0, G1, B0, A0)]
+                + histogram.M2[GetIndex(R0, G0, B1, A1)]
+                - histogram.M2[GetIndex(R0, G0, B1, A0)]
+                - histogram.M2[GetIndex(R0, G0, B0, A1)]
+                + histogram.M2[GetIndex(R0, G0, B0, A0)];
 
             return xx - (dr * dr + dg * dg + db * db + da * da) / GetPartialVolume(5);
         }

@@ -8,15 +8,8 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kanvas.Quantization
 {
-    class Quantizer : IQuantizer
+    internal class Quantizer(QuantizationConfigurationOptions options) : IQuantizer
     {
-        private readonly QuantizationConfigurationOptions _options;
-
-        public Quantizer(QuantizationConfigurationOptions options)
-        {
-            _options = options;
-        }
-
         public Image<Rgba32> ProcessImage(Image<Rgba32> image)
         {
             var (indices, palette) = Process(image.ToColors(), image.Size);
@@ -26,10 +19,10 @@ namespace Kanvas.Quantization
 
         public (IEnumerable<int>, IList<Rgba32>) Process(IEnumerable<Rgba32> colors, Size imageSize)
         {
-            Rgba32[] colorList = colors.ToArray();
+            Rgba32[] colorList = [.. colors];
 
             IColorCache colorCache = GetColorCache(colorList);
-            IColorDitherer? colorDitherer = _options.ColorDithererDelegate?.Invoke(imageSize, _options.TaskCount);
+            IColorDitherer? colorDitherer = options.ColorDithererDelegate?.Invoke(imageSize, options.TaskCount);
 
             IEnumerable<int> indices = colorDitherer == null ?
                 colorList.ToIndices(colorCache) :
@@ -42,20 +35,20 @@ namespace Kanvas.Quantization
         {
             IList<Rgba32> palette;
 
-            if (_options.PaletteDelegate != null)
+            if (options.PaletteDelegate != null)
             {
                 // Retrieve and return the preset palette
-                palette = _options.PaletteDelegate();
-                return _options.ColorCacheDelegate(palette);
+                palette = options.PaletteDelegate();
+                return options.ColorCacheDelegate(palette);
             }
 
-            IColorQuantizer quantizer = _options.ColorQuantizerDelegate(_options.ColorCount, _options.TaskCount, _options.ColorChannelBitDepths);
+            IColorQuantizer quantizer = options.ColorQuantizerDelegate(options.ColorCount, options.TaskCount, options.ColorChannelBitDepths);
 
             var fixedColorCount = 0;
-            if (_options.InitialPaletteDelegate != null)
+            if (options.InitialPaletteDelegate != null)
             {
                 // Create a new palette through quantization, primed by an initial set of colors
-                IList<Rgba32> initialPalette = _options.InitialPaletteDelegate();
+                IList<Rgba32> initialPalette = options.InitialPaletteDelegate();
                 palette = quantizer.CreatePalette(colors, initialPalette);
 
                 fixedColorCount = initialPalette.Count;
@@ -67,12 +60,12 @@ namespace Kanvas.Quantization
             }
 
             // Order palette colors
-            palette = quantizer.ReorderPalette(palette, _options.OrderPaletteDelegate, fixedColorCount);
+            palette = quantizer.ReorderPalette(palette, options.OrderPaletteDelegate, fixedColorCount);
 
             // Get color cache based on palette
             return quantizer.IsColorCacheFixed ?
                 quantizer.GetFixedColorCache(palette) :
-                _options.ColorCacheDelegate(palette);
+                options.ColorCacheDelegate(palette);
         }
     }
 }

@@ -7,8 +7,8 @@ namespace Kanvas.Configuration
     internal class SizePaddingConfigurationBuilder : ISizePaddingConfigurationBuilder
     {
         private readonly IImageConfigurationBuilder _parent;
-        private readonly ISizePaddingDimensionConfigurationBuilder _widthBuilder;
-        private readonly ISizePaddingDimensionConfigurationBuilder _heightBuilder;
+        private readonly SizePaddingDimensionConfigurationBuilder _widthBuilder;
+        private readonly SizePaddingDimensionConfigurationBuilder _heightBuilder;
 
         public ISizePaddingDimensionConfigurationBuilder Width => _widthBuilder;
         public ISizePaddingDimensionConfigurationBuilder Height => _heightBuilder;

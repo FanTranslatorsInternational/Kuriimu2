@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
 {
-    public class ShiauFan2Ditherer : ErrorDiffusionDitherer
+    public class ShiauFan2Ditherer(Size imageSize, int taskCount) : ErrorDiffusionDitherer(imageSize, taskCount)
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -14,10 +14,5 @@ namespace Kanvas.Quantization.ColorDitherer.ErrorDiffusion
         protected override int MatrixSideWidth => 3;
         protected override int MatrixSideHeight => 1;
         protected override int ErrorLimit => 16;
-
-        public ShiauFan2Ditherer(Size imageSize, int taskCount) :
-            base(imageSize, taskCount)
-        {
-        }
     }
 }

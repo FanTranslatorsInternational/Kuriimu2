@@ -81,9 +81,9 @@ namespace Kanvas.Encoding.Base
             if (bitDepth is 1 or 2 or 4)
             {
                 if (bitOrder == BitOrder.MostSignificantBitFirst)
-                    return (input, length) => ReadBitsMSB(input, length, bitDepth);
+                    return (input, length) => ReadBitsMsb(input, length, bitDepth);
 
-                return (input, length) => ReadBitsLSB(input, length, bitDepth);
+                return (input, length) => ReadBitsLsb(input, length, bitDepth);
             }
 
             if (bitDepth < 8)
@@ -99,31 +99,31 @@ namespace Kanvas.Encoding.Base
 
                 case 2:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return ReadBitDepth16LE;
+                        return ReadBitDepth16Le;
 
-                    return ReadBitDepth16BE;
+                    return ReadBitDepth16Be;
 
                 case 3:
                     return ReadBitDepth24;
 
                 case 4:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return ReadBitDepth32LE;
+                        return ReadBitDepth32Le;
 
-                    return ReadBitDepth32BE;
+                    return ReadBitDepth32Be;
             }
 
             return null;
         }
 
-        private Action<IEnumerable<long>, byte[]>? GetWriteDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
+        private static Action<IEnumerable<long>, byte[]>? GetWriteDelegate(int bitDepth, ByteOrder byteOrder, BitOrder bitOrder)
         {
             if (bitDepth is 1 or 2 or 4)
             {
                 if (bitOrder == BitOrder.MostSignificantBitFirst)
-                    return (values, input) => WriteBitsMSB(values, input, bitDepth);
+                    return (values, input) => WriteBitsMsb(values, input, bitDepth);
 
-                return (values, input) => WriteBitsLSB(values, input, bitDepth);
+                return (values, input) => WriteBitsLsb(values, input, bitDepth);
             }
 
             if (bitDepth < 8)
@@ -137,18 +137,18 @@ namespace Kanvas.Encoding.Base
 
                 case 2:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return WriteBitDepth16LE;
+                        return WriteBitDepth16Le;
 
-                    return WriteBitDepth16BE;
+                    return WriteBitDepth16Be;
 
                 case 3:
                     return WriteBitDepth24;
 
                 case 4:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return WriteBitDepth32LE;
+                        return WriteBitDepth32Le;
 
-                    return WriteBitDepth32BE;
+                    return WriteBitDepth32Be;
             }
 
             return null;
@@ -158,7 +158,7 @@ namespace Kanvas.Encoding.Base
 
         #region Read delegates
 
-        private IEnumerable<long> ReadBitsMSB(byte[] input, int length, int bitDepth)
+        private static IEnumerable<long> ReadBitsMsb(byte[] input, int length, int bitDepth)
         {
             int valueCount = 8 / bitDepth;
             int mask = (1 << bitDepth) - 1;
@@ -169,7 +169,8 @@ namespace Kanvas.Encoding.Base
                     yield return (input[i] >> (bitDepth * j)) & mask;
             }
         }
-        private IEnumerable<long> ReadBitsLSB(byte[] input, int length, int bitDepth)
+
+        private static IEnumerable<long> ReadBitsLsb(byte[] input, int length, int bitDepth)
         {
             int valueCount = 8 / bitDepth;
             int mask = (1 << bitDepth) - 1;
@@ -181,35 +182,37 @@ namespace Kanvas.Encoding.Base
             }
         }
 
-        private IEnumerable<long> ReadBitDepth8(byte[] input, int length)
+        private static IEnumerable<long> ReadBitDepth8(byte[] input, int length)
         {
             for (var i = 0; i < length; i++)
                 yield return input[i];
         }
 
-        private IEnumerable<long> ReadBitDepth16LE(byte[] input, int length)
+        private static IEnumerable<long> ReadBitDepth16Le(byte[] input, int length)
         {
             for (var i = 0; i < length; i += 2)
                 yield return BinaryPrimitives.ReadUInt16LittleEndian(input.AsSpan(i, 2));
         }
-        private IEnumerable<long> ReadBitDepth16BE(byte[] input, int length)
+
+        private static IEnumerable<long> ReadBitDepth16Be(byte[] input, int length)
         {
             for (var i = 0; i < length; i += 2)
                 yield return BinaryPrimitives.ReadUInt16BigEndian(input.AsSpan(i, 2));
         }
 
-        private IEnumerable<long> ReadBitDepth24(byte[] input, int length)
+        private static IEnumerable<long> ReadBitDepth24(byte[] input, int length)
         {
             for (var i = 0; i < length; i += 3)
                 yield return (input[i] << 16) | (input[i + 1] << 8) | input[i + 2];
         }
 
-        private IEnumerable<long> ReadBitDepth32LE(byte[] input, int length)
+        private static IEnumerable<long> ReadBitDepth32Le(byte[] input, int length)
         {
             for (var i = 0; i < length; i += 4)
                 yield return BinaryPrimitives.ReadUInt32LittleEndian(input.AsSpan(i, 4));
         }
-        private IEnumerable<long> ReadBitDepth32BE(byte[] input, int length)
+
+        private static IEnumerable<long> ReadBitDepth32Be(byte[] input, int length)
         {
             for (var i = 0; i < length; i += 4)
                 yield return BinaryPrimitives.ReadUInt32BigEndian(input.AsSpan(i, 4));
@@ -219,7 +222,7 @@ namespace Kanvas.Encoding.Base
 
         #region Write delegates
 
-        private void WriteBitsMSB(IEnumerable<long> values, byte[] input, int bitDepth)
+        private static void WriteBitsMsb(IEnumerable<long> values, byte[] input, int bitDepth)
         {
             var index = 0;
             var shift = 7;
@@ -236,7 +239,8 @@ namespace Kanvas.Encoding.Base
                 shift = 7;
             }
         }
-        private void WriteBitsLSB(IEnumerable<long> values, byte[] input, int bitDepth)
+
+        private static void WriteBitsLsb(IEnumerable<long> values, byte[] input, int bitDepth)
         {
             var index = 0;
             var shift = 0;
@@ -254,14 +258,14 @@ namespace Kanvas.Encoding.Base
             }
         }
 
-        private void WriteBitDepth8(IEnumerable<long> values, byte[] input)
+        private static void WriteBitDepth8(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length))
                 input[index++] = (byte)value;
         }
 
-        private void WriteBitDepth16LE(IEnumerable<long> values, byte[] input)
+        private static void WriteBitDepth16Le(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length / 2))
@@ -270,7 +274,8 @@ namespace Kanvas.Encoding.Base
                 index += 2;
             }
         }
-        private void WriteBitDepth16BE(IEnumerable<long> values, byte[] input)
+
+        private static void WriteBitDepth16Be(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length / 2))
@@ -280,7 +285,7 @@ namespace Kanvas.Encoding.Base
             }
         }
 
-        private void WriteBitDepth24(IEnumerable<long> values, byte[] input)
+        private static void WriteBitDepth24(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length / 3))
@@ -291,7 +296,7 @@ namespace Kanvas.Encoding.Base
             }
         }
 
-        private void WriteBitDepth32LE(IEnumerable<long> values, byte[] input)
+        private static void WriteBitDepth32Le(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length / 4))
@@ -300,7 +305,8 @@ namespace Kanvas.Encoding.Base
                 index += 4;
             }
         }
-        private void WriteBitDepth32BE(IEnumerable<long> values, byte[] input)
+
+        private static void WriteBitDepth32Be(IEnumerable<long> values, byte[] input)
         {
             var index = 0;
             foreach (var value in values.Take(input.Length / 4))

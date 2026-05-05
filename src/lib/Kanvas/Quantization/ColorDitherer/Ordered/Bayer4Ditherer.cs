@@ -2,7 +2,7 @@
 
 namespace Kanvas.Quantization.ColorDitherer.Ordered
 {
-    public class Bayer4Ditherer : OrderedDitherer
+    public class Bayer4Ditherer(Size imageSize, int taskCount) : OrderedDitherer(imageSize, taskCount)
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -11,10 +11,5 @@ namespace Kanvas.Quantization.ColorDitherer.Ordered
             {4, 12, 2, 10},
             {16, 8, 14, 6}
         };
-
-        public Bayer4Ditherer(Size imageSize, int taskCount) :
-            base(imageSize, taskCount)
-        {
-        }
     }
 }

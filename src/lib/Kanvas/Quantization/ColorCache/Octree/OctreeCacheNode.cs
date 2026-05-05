@@ -2,21 +2,12 @@
 
 namespace Kanvas.Quantization.ColorCache.Octree
 {
-    class OctreeCacheNode
+    internal class OctreeCacheNode
     {
-        private static readonly byte[] Mask = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+        private static readonly byte[] Mask = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
 
-        private readonly OctreeCacheNode[] nodes;
-        private readonly Dictionary<int, Rgba32> entries;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OctreeCacheNode"/> class.
-        /// </summary>
-        public OctreeCacheNode()
-        {
-            nodes = new OctreeCacheNode[8];
-            entries = new Dictionary<int, Rgba32>();
-        }
+        private readonly OctreeCacheNode?[] _nodes = new OctreeCacheNode[8];
+        private readonly Dictionary<int, Rgba32> _entries = [];
 
         /// <summary>
         /// Adds the color.
@@ -27,7 +18,7 @@ namespace Kanvas.Quantization.ColorCache.Octree
         public void AddColor(Rgba32 color, int paletteIndex, int level)
         {
             // if this node is a leaf, then increase a color amount, and pixel presence
-            entries.Add(paletteIndex, color);
+            _entries.Add(paletteIndex, color);
 
             if (level < 8) // otherwise goes one level deeper
             {
@@ -35,13 +26,10 @@ namespace Kanvas.Quantization.ColorCache.Octree
                 int index = GetColorIndexAtLevel(color, level);
 
                 // if that branch doesn't exist, grows it
-                if (nodes[index] == null)
-                {
-                    nodes[index] = new OctreeCacheNode();
-                }
+                _nodes[index] ??= new OctreeCacheNode();
 
                 // adds a color to that branch
-                nodes[index].AddColor(color, paletteIndex, level + 1);
+                _nodes[index]!.AddColor(color, paletteIndex, level + 1);
             }
         }
 
@@ -50,15 +38,15 @@ namespace Kanvas.Quantization.ColorCache.Octree
         /// </summary>
         public Dictionary<int, Rgba32> GetPaletteIndex(Rgba32 color, int level)
         {
-            Dictionary<int, Rgba32> result = entries;
+            Dictionary<int, Rgba32> result = _entries;
 
             if (level < 8)
             {
                 int index = GetColorIndexAtLevel(color, level);
 
-                if (nodes[index] != null)
+                if (_nodes[index] != null)
                 {
-                    result = nodes[index].GetPaletteIndex(color, level + 1);
+                    result = _nodes[index]!.GetPaletteIndex(color, level + 1);
                 }
             }
 

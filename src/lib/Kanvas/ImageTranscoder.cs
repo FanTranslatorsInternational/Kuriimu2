@@ -14,15 +14,8 @@ namespace Kanvas
     /// <summary>
     /// The class to implement transcoding actions on data and images.
     /// </summary>
-    class ImageTranscoder : IImageTranscoder
+    internal class ImageTranscoder(ImageTranscoderOptions options) : IImageTranscoder
     {
-        private readonly ImageTranscoderOptions _options;
-
-        public ImageTranscoder(ImageTranscoderOptions options)
-        {
-            _options = options;
-        }
-
         #region Decode methods
 
         public Image<Rgba32> Decode(byte[] data, Size imageSize)
@@ -37,9 +30,8 @@ namespace Kanvas
 
         private Image<Rgba32> DecodeColor(byte[] data, Size imageSize)
         {
-            IColorEncoding? colorEncoding = _options.EncodingOptions.ColorEncoding;
-            if (colorEncoding == null)
-                throw new ArgumentNullException(nameof(colorEncoding));
+            IColorEncoding? colorEncoding = options.EncodingOptions.ColorEncoding;
+            ArgumentNullException.ThrowIfNull(colorEncoding);
 
             // Prepare information and instances
             Size paddedSize = GetPaddedSize(imageSize);
@@ -55,15 +47,15 @@ namespace Kanvas
             if (data.Length < expectedDataLength)
                 throw new InvalidOperationException($"Given data is too short (Given: {data.Length} Bytes, Expected: {expectedDataLength} Bytes).");
 
-            var options = new EncodingOptions
+            var options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = finalSize
             };
-            IEnumerable<Rgba32> colors = colorEncoding.Load(data, options);
+            IEnumerable<Rgba32> colors = colorEncoding.Load(data, options1);
 
             // Apply color shader
-            CreateColorShaderDelegate? shaderDelegate = _options.ColorShaderOptions.ColorShaderDelegate;
+            CreateColorShaderDelegate? shaderDelegate = options.ColorShaderOptions.ColorShaderDelegate;
             if (shaderDelegate != null)
             {
                 IColorShader shader = shaderDelegate();
@@ -71,18 +63,16 @@ namespace Kanvas
             }
 
             // Create image with unpadded dimensions
-            return colors.ToImage(imageSize, paddedSize, swizzle, _options.ImageOptions.Anchor);
+            return colors.ToImage(imageSize, paddedSize, swizzle, options.ImageOptions.Anchor);
         }
 
         private Image<Rgba32> DecodeIndex(byte[] data, byte[] paletteData, Size imageSize)
         {
-            IIndexEncoding? indexEncoding = _options.EncodingOptions.IndexEncoding;
-            IColorEncoding? paletteEncoding = _options.EncodingOptions.PaletteEncoding;
+            IIndexEncoding? indexEncoding = options.EncodingOptions.IndexEncoding;
+            IColorEncoding? paletteEncoding = options.EncodingOptions.PaletteEncoding;
 
-            if (indexEncoding == null)
-                throw new ArgumentNullException(nameof(indexEncoding));
-            if (paletteEncoding == null)
-                throw new ArgumentNullException(nameof(paletteEncoding));
+            ArgumentNullException.ThrowIfNull(indexEncoding);
+            ArgumentNullException.ThrowIfNull(paletteEncoding);
 
             // Prepare information and instances
             Size paddedSize = GetPaddedSize(imageSize);
@@ -92,32 +82,32 @@ namespace Kanvas
             // Load palette
             int paletteColorCount = paletteData.Length * 8 / paletteEncoding.BitsPerValue * paletteEncoding.ColorsPerValue;
 
-            var options = new EncodingOptions
+            var options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = new Size(1, paletteColorCount)
             };
-            IEnumerable<Rgba32> paletteEnumeration = paletteEncoding.Load(paletteData, options);
+            IEnumerable<Rgba32> paletteEnumeration = paletteEncoding.Load(paletteData, options1);
 
             // Apply color shader on palette
-            CreateColorShaderDelegate? shaderDelegate = _options.ColorShaderOptions.ColorShaderDelegate;
+            CreateColorShaderDelegate? shaderDelegate = options.ColorShaderOptions.ColorShaderDelegate;
             if (shaderDelegate != null)
             {
                 IColorShader shader = shaderDelegate();
                 paletteEnumeration = paletteEnumeration.Select(shader.Read);
             }
 
-            Rgba32[] palette = paletteEnumeration.ToArray();
+            Rgba32[] palette = [.. paletteEnumeration];
 
             // Load indices
-            options = new EncodingOptions
+            options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = finalSize
             };
-            IEnumerable<Rgba32> colors = indexEncoding.Load(data, palette, options);
+            IEnumerable<Rgba32> colors = indexEncoding.Load(data, palette, options1);
 
-            return colors.ToImage(imageSize, paddedSize, swizzle, _options.ImageOptions.Anchor);
+            return colors.ToImage(imageSize, paddedSize, swizzle, options.ImageOptions.Anchor);
         }
 
         #endregion
@@ -126,7 +116,7 @@ namespace Kanvas
 
         public (byte[] imageData, byte[]? paletteData) Encode(Image<Rgba32> image)
         {
-            if (_options.EncodingOptions is { IndexEncoding: not null, PaletteEncoding: not null })
+            if (options.EncodingOptions is { IndexEncoding: not null, PaletteEncoding: not null })
                 return EncodeIndex(image);
 
             return (EncodeColor(image), null);
@@ -134,9 +124,8 @@ namespace Kanvas
 
         private byte[] EncodeColor(Image<Rgba32> image)
         {
-            IColorEncoding? colorEncoding = _options.EncodingOptions.ColorEncoding;
-            if (colorEncoding == null)
-                throw new ArgumentNullException(nameof(colorEncoding));
+            IColorEncoding? colorEncoding = options.EncodingOptions.ColorEncoding;
+            ArgumentNullException.ThrowIfNull(colorEncoding);
 
             // Prepare information and instances
             Size paddedSize = GetPaddedSize(image.Size);
@@ -144,15 +133,15 @@ namespace Kanvas
             Size finalSize = GetFinalSize(paddedSize, swizzle);
 
             IEnumerable<Rgba32> colors;
-            if (_options.QuantizationOptions != null)
+            if (options.QuantizationOptions != null)
             {
-                if (_options.QuantizationOptions.ColorCount < 0)
-                    _options.QuantizationOptions.ColorCount = 256;
+                if (options.QuantizationOptions.ColorCount < 0)
+                    options.QuantizationOptions.ColorCount = 256;
 
-                _options.QuantizationOptions.ColorChannelBitDepths = GetPaletteQuantizationBitDepths();
+                options.QuantizationOptions.ColorChannelBitDepths = GetPaletteQuantizationBitDepths();
 
                 // If we have quantization enabled
-                IQuantizer quantizer = new Quantizer(_options.QuantizationOptions);
+                IQuantizer quantizer = new Quantizer(options.QuantizationOptions);
 
                 // HINT: Color shader is applied by QuantizeImage
                 (IEnumerable<int> indices, IList<Rgba32> palette) = QuantizeImage(image, finalSize, quantizer, swizzle);
@@ -163,10 +152,10 @@ namespace Kanvas
             else
             {
                 // Decompose image to colors
-                colors = image.ToColors(paddedSize, swizzle, _options.ImageOptions.Anchor);
+                colors = image.ToColors(paddedSize, swizzle, options.ImageOptions.Anchor);
 
                 // Apply color shader
-                CreateColorShaderDelegate? shaderDelegate = _options.ColorShaderOptions.ColorShaderDelegate;
+                CreateColorShaderDelegate? shaderDelegate = options.ColorShaderOptions.ColorShaderDelegate;
                 if (shaderDelegate != null)
                 {
                     IColorShader shader = shaderDelegate();
@@ -175,34 +164,31 @@ namespace Kanvas
             }
 
             // Save color data
-            var options = new EncodingOptions
+            var options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = finalSize
             };
-            return colorEncoding.Save(colors, options);
+            return colorEncoding.Save(colors, options1);
         }
 
         private (byte[], byte[]) EncodeIndex(Image<Rgba32> image)
         {
-            IIndexEncoding? indexEncoding = _options.EncodingOptions.IndexEncoding;
-            IColorEncoding? paletteEncoding = _options.EncodingOptions.PaletteEncoding;
-            QuantizationConfigurationOptions? quantizationOptions = _options.QuantizationOptions;
+            IIndexEncoding? indexEncoding = options.EncodingOptions.IndexEncoding;
+            IColorEncoding? paletteEncoding = options.EncodingOptions.PaletteEncoding;
+            QuantizationConfigurationOptions? quantizationOptions = options.QuantizationOptions;
 
-            if (indexEncoding == null)
-                throw new ArgumentNullException(nameof(indexEncoding));
-            if (paletteEncoding == null)
-                throw new ArgumentNullException(nameof(paletteEncoding));
-            if (quantizationOptions == null)
-                throw new ArgumentNullException(nameof(quantizationOptions));
+            ArgumentNullException.ThrowIfNull(indexEncoding);
+            ArgumentNullException.ThrowIfNull(paletteEncoding);
+            ArgumentNullException.ThrowIfNull(quantizationOptions);
 
             // Prepare information and instances
             Size paddedSize = GetPaddedSize(image.Size);
             IImageSwizzle? swizzle = GetPixelRemapper(indexEncoding, paddedSize);
             Size finalSize = GetFinalSize(paddedSize, swizzle);
 
-            quantizationOptions.ColorCount = quantizationOptions.ColorCount < 0 
-                ? indexEncoding.MaxColors 
+            quantizationOptions.ColorCount = quantizationOptions.ColorCount < 0
+                ? indexEncoding.MaxColors
                 : Math.Min(quantizationOptions.ColorCount, indexEncoding.MaxColors);
             quantizationOptions.ColorChannelBitDepths = GetPaletteQuantizationBitDepths();
 
@@ -212,20 +198,20 @@ namespace Kanvas
             // Save palette colors
             // This step can be skipped if no palette encoding is given.
             //   That saves time in the scenario when the palette is not needed or already exists as encoded data from somewhere else.
-            var options = new EncodingOptions
+            var options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = new Size(1, palette.Count)
             };
-            byte[] paletteData = paletteEncoding.Save(palette, options);
+            byte[] paletteData = paletteEncoding.Save(palette, options1);
 
             // Save image indexes
-            options = new EncodingOptions
+            options1 = new EncodingOptions
             {
-                TaskCount = _options.ImageOptions.TaskCount,
+                TaskCount = options.ImageOptions.TaskCount,
                 Size = finalSize
             };
-            byte[] indexData = indexEncoding.Save(indices, palette, options);
+            byte[] indexData = indexEncoding.Save(indices, palette, options1);
 
             return (indexData, paletteData);
         }
@@ -242,52 +228,52 @@ namespace Kanvas
             (IEnumerable<int> indices, IList<Rgba32> palette) = quantizer.Process(colors, finalSize);
 
             // Apply color shader
-            CreateColorShaderDelegate? shaderDelegate = _options.ColorShaderOptions.ColorShaderDelegate;
+            CreateColorShaderDelegate? shaderDelegate = options.ColorShaderOptions.ColorShaderDelegate;
             if (shaderDelegate != null)
             {
                 IColorShader shader = shaderDelegate();
-                palette = palette.Select(shader.Write).ToArray();
+                palette = [.. palette.Select(shader.Write)];
             }
 
             // Delegate indices to correct positions
-            IEnumerable<int> swizzledIndices = SwizzleIndices(indices.ToArray(), finalSize, swizzle);
+            IEnumerable<int> swizzledIndices = SwizzleIndices([.. indices], finalSize, swizzle);
 
             return (swizzledIndices, palette);
         }
 
-        private IEnumerable<int> SwizzleIndices(IList<int> indices, Size imageSize, IImageSwizzle? swizzle)
+        private static IEnumerable<int> SwizzleIndices(IList<int> indices, Size imageSize, IImageSwizzle? swizzle)
         {
             return Composition.GetPointSequence(imageSize, swizzle)
                 .Select(point => indices[GetIndex(point, imageSize)]);
         }
 
-        private int GetIndex(Point point, Size imageSize)
+        private static int GetIndex(Point point, Size imageSize)
         {
             return point.Y * imageSize.Width + point.X;
         }
 
         private Size GetPaddedSize(Size imageSize)
         {
-            int width = _options.SizePaddingOptions.WidthDelegate?.Invoke(imageSize.Width) ?? imageSize.Width;
-            int height = _options.SizePaddingOptions.HeightDelegate?.Invoke(imageSize.Height) ?? imageSize.Height;
+            int width = options.SizePaddingOptions.WidthDelegate?.Invoke(imageSize.Width) ?? imageSize.Width;
+            int height = options.SizePaddingOptions.HeightDelegate?.Invoke(imageSize.Height) ?? imageSize.Height;
 
             return new Size(width, height);
         }
 
         private IImageSwizzle? GetPixelRemapper(IEncodingInfo encodingInfo, Size paddedSize)
         {
-            if (_options.PixelRemappingOptions.PixelRemappingDelegate == null)
+            if (options.PixelRemappingOptions.PixelRemappingDelegate == null)
                 return null;
 
-            var options = new SwizzleOptions
+            var options1 = new SwizzleOptions
             {
                 EncodingInfo = encodingInfo,
                 Size = paddedSize
             };
-            return _options.PixelRemappingOptions.PixelRemappingDelegate(options);
+            return options.PixelRemappingOptions.PixelRemappingDelegate(options1);
         }
 
-        private Size GetFinalSize(Size paddedSize, IImageSwizzle? swizzle)
+        private static Size GetFinalSize(Size paddedSize, IImageSwizzle? swizzle)
         {
             // Swizzle dimensions are based on padded size already
             // Swizzle has higher priority since it might pad the padded size further, due to its macro blocks
@@ -300,7 +286,7 @@ namespace Kanvas
 
         private ColorChannelBitDepths GetPaletteQuantizationBitDepths()
         {
-            IColorEncoding? paletteEncoding = _options.EncodingOptions.PaletteEncoding;
+            IColorEncoding? paletteEncoding = options.EncodingOptions.PaletteEncoding;
             return paletteEncoding?.ColorChannelBitDepths ?? ColorChannelBitDepths.Unknown;
         }
     }

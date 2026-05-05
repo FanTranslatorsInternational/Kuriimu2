@@ -86,14 +86,9 @@ namespace Kanvas.Encoding
             return buffer;
         }
 
-        private bool HasSecondBlock(BcFormat format)
+        private static bool HasSecondBlock(BcFormat format)
         {
-            return format == BcFormat.Bc2 ||
-                   format == BcFormat.Bc3 ||
-                   format == BcFormat.Bc5 ||
-                   format == BcFormat.Bc6H ||
-                   format == BcFormat.Bc7 ||
-                   format == BcFormat.Ati2AL;
+            return format is BcFormat.Bc2 or BcFormat.Bc3 or BcFormat.Bc5 or BcFormat.Bc6H or BcFormat.Bc7 or BcFormat.Ati2AL;
         }
 
         private BcDecoder GetDecoder()
@@ -144,35 +139,17 @@ namespace Kanvas.Encoding
 
         private CompressionFormat GetCompressionFormat()
         {
-            switch (_format)
+            return _format switch
             {
-                case BcFormat.Bc1:
-                    return CompressionFormat.Bc1;
-
-                case BcFormat.Bc2:
-                    return CompressionFormat.Bc2;
-
-                case BcFormat.Bc3:
-                    return CompressionFormat.Bc3;
-
-                case BcFormat.Bc4:
-                case BcFormat.Ati1A:
-                case BcFormat.Ati1L:
-                    return CompressionFormat.Bc4;
-
-                case BcFormat.Bc5:
-                case BcFormat.Ati2AL:
-                    return CompressionFormat.Bc5;
-
-                case BcFormat.Bc6H:
-                    return CompressionFormat.Bc6U;
-
-                case BcFormat.Bc7:
-                    return CompressionFormat.Bc7;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported BcFormat {_format}.");
-            }
+                BcFormat.Bc1 => CompressionFormat.Bc1,
+                BcFormat.Bc2 => CompressionFormat.Bc2,
+                BcFormat.Bc3 => CompressionFormat.Bc3,
+                BcFormat.Bc4 or BcFormat.Ati1A or BcFormat.Ati1L => CompressionFormat.Bc4,
+                BcFormat.Bc5 or BcFormat.Ati2AL => CompressionFormat.Bc5,
+                BcFormat.Bc6H => CompressionFormat.Bc6U,
+                BcFormat.Bc7 => CompressionFormat.Bc7,
+                _ => throw new InvalidOperationException($"Unsupported BcFormat {_format}.")
+            };
         }
     }
 
@@ -201,11 +178,11 @@ namespace Kanvas.Encoding
 
         // DXT definitions
         Dxt1 = Bc1,
-        Dxt3,
-        Dxt5,
+        Dxt3 = Bc2,
+        Dxt5 = Bc3,
 
         // ATI definitions
         Ati1 = Bc4,
-        Ati2
+        Ati2 = Bc5
     }
 }
