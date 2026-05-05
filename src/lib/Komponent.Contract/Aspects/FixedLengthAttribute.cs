@@ -3,14 +3,9 @@
 namespace Komponent.Contract.Aspects
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class FixedLengthAttribute : Attribute
+    public class FixedLengthAttribute(int length) : Attribute
     {
-        public int Length { get; }
+        public int Length { get; } = length;
         public StringEncoding StringEncoding { get; set; } = StringEncoding.Ascii;
-
-        public FixedLengthAttribute(int length)
-        {
-            Length = length;
-        }
     }
 }

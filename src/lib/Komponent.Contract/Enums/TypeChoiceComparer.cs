@@ -5,7 +5,7 @@
         Equal,
         Smaller,
         Greater,
-        GEqual,
-        SEqual
+        GreaterEqual,
+        SmallerEqual
     }
 }

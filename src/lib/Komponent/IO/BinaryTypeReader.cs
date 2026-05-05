@@ -92,31 +92,28 @@ namespace Komponent.IO
 
         private static object ReadTypePrimitive(BinaryReaderX reader, Type readType)
         {
-            switch (Type.GetTypeCode(readType))
+            return Type.GetTypeCode(readType) switch
             {
-                case TypeCode.Boolean: return reader.ReadBoolean();
-                case TypeCode.Byte: return reader.ReadByte();
-                case TypeCode.SByte: return reader.ReadSByte();
-                case TypeCode.Int16: return reader.ReadInt16();
-                case TypeCode.UInt16: return reader.ReadUInt16();
-                case TypeCode.Char: return reader.ReadChar();
-                case TypeCode.Int32: return reader.ReadInt32();
-                case TypeCode.UInt32: return reader.ReadUInt32();
-                case TypeCode.Int64: return reader.ReadInt64();
-                case TypeCode.UInt64: return reader.ReadUInt64();
-                case TypeCode.Single: return reader.ReadSingle();
-                case TypeCode.Double: return reader.ReadDouble();
-                default: throw new NotSupportedException($"Unsupported primitive {readType}.");
-            }
+                TypeCode.Boolean => reader.ReadBoolean(),
+                TypeCode.Byte => reader.ReadByte(),
+                TypeCode.SByte => reader.ReadSByte(),
+                TypeCode.Int16 => reader.ReadInt16(),
+                TypeCode.UInt16 => reader.ReadUInt16(),
+                TypeCode.Char => reader.ReadChar(),
+                TypeCode.Int32 => reader.ReadInt32(),
+                TypeCode.UInt32 => reader.ReadUInt32(),
+                TypeCode.Int64 => reader.ReadInt64(),
+                TypeCode.UInt64 => reader.ReadUInt64(),
+                TypeCode.Single => reader.ReadSingle(),
+                TypeCode.Double => reader.ReadDouble(),
+                _ => throw new NotSupportedException($"Unsupported primitive {readType}.")
+            };
         }
 
-        private static object ReadTypeString(BinaryReaderX reader, LengthInfo? lengthInfo)
+        private static string ReadTypeString(BinaryReaderX reader, LengthInfo? lengthInfo)
         {
             // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
-            if (lengthInfo == null)
-                return reader.ReadString();
-
-            return reader.ReadString(lengthInfo.Length, lengthInfo.Encoding);
+            return lengthInfo == null ? reader.ReadString() : reader.ReadString(lengthInfo.Length, lengthInfo.Encoding);
         }
 
         private static object ReadList(BinaryReaderX reader, Type type, LengthInfo lengthInfo, ValueStorage storage, string? listFieldName)
@@ -161,7 +158,7 @@ namespace Komponent.IO
             object item = Activator.CreateInstance(type)!;
             
             var fields = type.GetFields().OrderBy(fi => fi.MetadataToken);
-            foreach (FieldInfo? field in fields)
+            foreach (FieldInfo field in fields)
             {
                 // If field condition is false, read no value and leave field to default
                 ConditionInfo? condition = MemberInfoProvider.GetConditionInfo(field);
@@ -217,12 +214,12 @@ namespace Komponent.IO
                             return typeChoice.InjectionType;
                         break;
 
-                    case TypeChoiceComparer.GEqual:
+                    case TypeChoiceComparer.GreaterEqual:
                         if (Convert.ToUInt64(value) >= Convert.ToUInt64(typeChoice.Value))
                             return typeChoice.InjectionType;
                         break;
 
-                    case TypeChoiceComparer.SEqual:
+                    case TypeChoiceComparer.SmallerEqual:
                         if (Convert.ToUInt64(value) <= Convert.ToUInt64(typeChoice.Value))
                             return typeChoice.InjectionType;
                         break;
@@ -242,26 +239,15 @@ namespace Komponent.IO
                 return true;
 
             object? value = storage.Get(condition.FieldName);
-            switch (condition.Comparer)
+            return condition.Comparer switch
             {
-                case ConditionComparer.Equal:
-                    return Convert.ToUInt64(value) == condition.Value;
-
-                case ConditionComparer.Greater:
-                    return Convert.ToUInt64(value) > condition.Value;
-
-                case ConditionComparer.Smaller:
-                    return Convert.ToUInt64(value) < condition.Value;
-
-                case ConditionComparer.GEqual:
-                    return Convert.ToUInt64(value) >= condition.Value;
-
-                case ConditionComparer.SEqual:
-                    return Convert.ToUInt64(value) <= condition.Value;
-
-                default:
-                    throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.");
-            }
+                ConditionComparer.Equal => Convert.ToUInt64(value) == condition.Value,
+                ConditionComparer.Greater => Convert.ToUInt64(value) > condition.Value,
+                ConditionComparer.Smaller => Convert.ToUInt64(value) < condition.Value,
+                ConditionComparer.GreaterEqual => Convert.ToUInt64(value) >= condition.Value,
+                ConditionComparer.SmallerEqual => Convert.ToUInt64(value) <= condition.Value,
+                _ => throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.")
+            };
         }
 
         private static bool IsList(Type type)

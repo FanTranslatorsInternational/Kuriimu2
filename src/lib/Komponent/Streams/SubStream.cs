@@ -23,10 +23,9 @@ namespace Komponent.Streams
                 throw new ArgumentException(nameof(CanRead));
             if (!baseStream.CanSeek)
                 throw new ArgumentException(nameof(CanSeek));
-            if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            if (offset + length > baseStream.Length)
-                throw new ArgumentOutOfRangeException(nameof(length));
+
+            ArgumentOutOfRangeException.ThrowIfNegative(offset);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(offset + length, baseStream.Length, nameof(length));
 
             // Assign private members
             _baseStream = baseStream;
@@ -67,8 +66,10 @@ namespace Komponent.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (!CanWrite) throw new NotSupportedException("Write is not supported.");
-            if (Position >= _length) throw new ArgumentOutOfRangeException(nameof(Position), "Stream has fixed length and Position was out of range.");
+            if (!CanWrite)
+                throw new NotSupportedException("Write is not supported.");
+
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(Position, _length);
 
             // Cap data to write at length, instead of throwing an exception for too much data
             count = (int)Math.Min(_length - Position, count);

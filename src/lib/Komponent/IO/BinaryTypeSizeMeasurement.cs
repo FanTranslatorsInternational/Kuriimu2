@@ -45,27 +45,27 @@ namespace Komponent.IO
             throw new UnsupportedTypeException(type);
         }
 
-        private int MeasurePrimitive(Type type)
+        private static int MeasurePrimitive(Type type)
         {
-            switch (Type.GetTypeCode(type))
+            return Type.GetTypeCode(type) switch
             {
-                case TypeCode.Boolean: return 1;
-                case TypeCode.Byte: return 1;
-                case TypeCode.SByte: return 1;
-                case TypeCode.Int16: return 2;
-                case TypeCode.UInt16: return 2;
-                case TypeCode.Char: return 2;
-                case TypeCode.Int32: return 4;
-                case TypeCode.UInt32: return 4;
-                case TypeCode.Int64: return 8;
-                case TypeCode.UInt64: return 8;
-                case TypeCode.Single: return 4;
-                case TypeCode.Double: return 8;
-                default: throw new NotSupportedException($"Unsupported primitive type {type.Name}.");
-            }
+                TypeCode.Boolean => 1,
+                TypeCode.Byte => 1,
+                TypeCode.SByte => 1,
+                TypeCode.Int16 => 2,
+                TypeCode.UInt16 => 2,
+                TypeCode.Char => 2,
+                TypeCode.Int32 => 4,
+                TypeCode.UInt32 => 4,
+                TypeCode.Int64 => 8,
+                TypeCode.UInt64 => 8,
+                TypeCode.Single => 4,
+                TypeCode.Double => 8,
+                _ => throw new NotSupportedException($"Unsupported primitive type {type.Name}.")
+            };
         }
 
-        private int MeasureString(MemberInfo? field, LengthInfoSource? source)
+        private static int MeasureString(MemberInfo? field, LengthInfoSource? source)
         {
             if (source == LengthInfoSource.Variable)
                 throw new InvalidOperationException("Variable size attributes are not supported for static measurement.");
@@ -100,12 +100,12 @@ namespace Komponent.IO
             return totalLength;
         }
 
-        private bool IsList(Type type)
+        private static bool IsList(Type type)
         {
             return type.IsAssignableTo(typeof(IList));
         }
 
-        private bool IsStruct(Type type)
+        private static bool IsStruct(Type type)
         {
             return type is { IsValueType: true, IsEnum: false };
         }

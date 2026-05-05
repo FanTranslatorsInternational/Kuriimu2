@@ -345,16 +345,16 @@ namespace Komponent.IO
             {
                 case ByteOrder.LittleEndian:
                     BinaryPrimitives.WriteInt32LittleEndian(buffer, bits[0]);
-                    BinaryPrimitives.WriteInt32LittleEndian(buffer[4..], bits[1]);
-                    BinaryPrimitives.WriteInt32LittleEndian(buffer[8..], bits[2]);
-                    BinaryPrimitives.WriteInt32LittleEndian(buffer[12..], bits[3]);
+                    BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(4), bits[1]);
+                    BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(8), bits[2]);
+                    BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(12), bits[3]);
                     break;
 
                 case ByteOrder.BigEndian:
                     BinaryPrimitives.WriteInt32BigEndian(buffer, bits[3]);
-                    BinaryPrimitives.WriteInt32BigEndian(buffer[4..], bits[2]);
-                    BinaryPrimitives.WriteInt32BigEndian(buffer[8..], bits[1]);
-                    BinaryPrimitives.WriteInt32BigEndian(buffer[12..], bits[0]);
+                    BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(4), bits[2]);
+                    BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(8), bits[1]);
+                    BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(12), bits[0]);
                     break;
 
                 default:
@@ -419,19 +419,12 @@ namespace Komponent.IO
 
         public void WriteBit(long value)
         {
-            switch (BitOrder)
+            _buffer |= BitOrder switch
             {
-                case BitOrder.LeastSignificantBitFirst:
-                    _buffer |= (value & 1L) << _bitPosition++;
-                    break;
-
-                case BitOrder.MostSignificantBitFirst:
-                    _buffer |= (value & 1L) << (BlockSize * 8 - _bitPosition++ - 1);
-                    break;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported bit order {BitOrder}.");
-            }
+                BitOrder.LeastSignificantBitFirst => (value & 1L) << _bitPosition++,
+                BitOrder.MostSignificantBitFirst => (value & 1L) << (BlockSize * 8 - _bitPosition++ - 1),
+                _ => throw new InvalidOperationException($"Unsupported bit order {BitOrder}.")
+            };
 
             if (_bitPosition >= BlockSize * 8)
                 Flush();
@@ -439,19 +432,12 @@ namespace Komponent.IO
 
         private void WriteBit(long value, bool writeBuffer)
         {
-            switch (BitOrder)
+            _buffer |= BitOrder switch
             {
-                case BitOrder.LeastSignificantBitFirst:
-                    _buffer |= (value & 1L) << _bitPosition++;
-                    break;
-
-                case BitOrder.MostSignificantBitFirst:
-                    _buffer |= (value & 1L) << (BlockSize * 8 - _bitPosition++ - 1);
-                    break;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported bit order {BitOrder}.");
-            }
+                BitOrder.LeastSignificantBitFirst => (value & 1L) << _bitPosition++,
+                BitOrder.MostSignificantBitFirst => (value & 1L) << (BlockSize * 8 - _bitPosition++ - 1),
+                _ => throw new InvalidOperationException($"Unsupported bit order {BitOrder}.")
+            };
 
             if (writeBuffer)
                 Flush();

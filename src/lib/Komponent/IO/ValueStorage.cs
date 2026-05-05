@@ -31,7 +31,7 @@
             _values[GetValueName(fieldName)] = value;
         }
 
-        public ValueStorage CreateScope(string fieldName)
+        public ValueStorage CreateScope(string? fieldName)
         {
             return new ValueStorage(_values, GetValueName(fieldName));
         }
@@ -52,13 +52,13 @@
             }
 
             // Remove optional starting dot, which would reference current scope
-            if (fieldName.StartsWith("."))
+            if (fieldName.StartsWith('.'))
                 fieldName = fieldName[1..];
 
             // Otherwise resolve back references
             var validParts = new List<string>();
 
-            string[] nestedNameParts = string.IsNullOrEmpty(_scope) ? Array.Empty<string>() : _scope.Split('.');
+            string[] nestedNameParts = string.IsNullOrEmpty(_scope) ? [] : _scope.Split('.');
             foreach (string part in nestedNameParts.Concat(fieldName.Split('.')))
             {
                 if (string.IsNullOrEmpty(part))

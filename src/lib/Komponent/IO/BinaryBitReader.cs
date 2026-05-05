@@ -7,11 +7,11 @@ namespace Komponent.IO
     /// </summary>
     public class BinaryBitReader : IDisposable
     {
-        private Stream _baseStream;
-        private BitOrder _bitOrder;
-
+        private readonly Stream _baseStream;
         private readonly ByteOrder _byteOrder;
         private readonly int _blockSize;
+
+        private BitOrder _bitOrder;
 
         private long _buffer;
         private byte _bufferBitPosition;
@@ -49,7 +49,7 @@ namespace Komponent.IO
         /// <param name="byteOrder">The order in which to read the bytes for the buffer.</param>
         public BinaryBitReader(Stream baseStream, BitOrder bitOrder, int blockSize, ByteOrder byteOrder)
         {
-            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+            _baseStream = baseStream;
             _bitOrder = bitOrder;
             _blockSize = blockSize;
             _byteOrder = byteOrder;
@@ -114,11 +114,11 @@ namespace Komponent.IO
                 if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 {
                     result <<= 1;
-                    result |= (byte)ReadBit();
+                    result |= (uint)ReadBit();
                 }
                 else
                 {
-                    result |= (long)(ReadBit() << i);
+                    result |= (long)ReadBit() << i;
                 }
             }
 
@@ -198,7 +198,7 @@ namespace Komponent.IO
                 if (_byteOrder == ByteOrder.BigEndian)
                     _buffer = (_buffer << 8) | (byte)_baseStream.ReadByte();
                 else
-                    _buffer = _buffer | (long)((byte)_baseStream.ReadByte() << (i * 8));
+                    _buffer |= (long)_baseStream.ReadByte() << (i * 8);
 
             if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 _buffer = ReverseBits(_buffer, _blockSize * 8);
@@ -226,21 +226,11 @@ namespace Komponent.IO
             return result;
         }
 
-        #region Dispose
-
         public void Dispose()
         {
-            Dispose(true);
-        }
+            GC.SuppressFinalize(this);
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _baseStream = null;
-            }
+            _baseStream.Dispose();
         }
-
-        #endregion
     }
 }

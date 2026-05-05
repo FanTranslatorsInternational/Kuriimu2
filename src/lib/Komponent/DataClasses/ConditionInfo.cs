@@ -2,17 +2,10 @@
 
 namespace Komponent.DataClasses
 {
-    public class ConditionInfo
+    public class ConditionInfo(string fieldName, ConditionComparer comp, ulong value)
     {
-        public string FieldName { get; }
-        public ConditionComparer Comparer { get; }
-        public ulong Value { get; }
-
-        public ConditionInfo(string fieldName, ConditionComparer comp, ulong value)
-        {
-            FieldName = fieldName;
-            Comparer = comp;
-            Value = value;
-        }
+        public string FieldName { get; } = fieldName;
+        public ConditionComparer Comparer { get; } = comp;
+        public ulong Value { get; } = value;
     }
 }

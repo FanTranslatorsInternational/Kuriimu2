@@ -17,6 +17,7 @@ namespace Komponent.IO
         }
 
         public static void WriteMany<T>(IEnumerable<T> list, BinaryWriterX writer)
+            where T : notnull
         {
             foreach (T element in list)
                 Write(element, writer);
@@ -126,7 +127,7 @@ namespace Komponent.IO
             writer.BlockSize = bitField?.BlockSize ?? writer.BlockSize;
 
             var fields = writeType.GetFields().OrderBy(fi => fi.MetadataToken);
-            foreach (FieldInfo? field in fields)
+            foreach (FieldInfo field in fields)
             {
                 // If field condition is false, write no value and ignore field
                 ConditionInfo? condition = MemberInfoProvider.GetConditionInfo(field);
@@ -134,6 +135,9 @@ namespace Komponent.IO
                     continue;
 
                 object? fieldValue = field.GetValue(writeValue);
+                if (fieldValue is null)
+                    continue;
+
                 storage.Set(field.Name, fieldValue);
 
                 int? bitLength = MemberInfoProvider.GetBitLength(field);
@@ -157,26 +161,15 @@ namespace Komponent.IO
                 return true;
 
             object? value = storage.Get(condition.FieldName);
-            switch (condition.Comparer)
+            return condition.Comparer switch
             {
-                case ConditionComparer.Equal:
-                    return Convert.ToUInt64(value) == condition.Value;
-
-                case ConditionComparer.Greater:
-                    return Convert.ToUInt64(value) > condition.Value;
-
-                case ConditionComparer.Smaller:
-                    return Convert.ToUInt64(value) < condition.Value;
-
-                case ConditionComparer.GEqual:
-                    return Convert.ToUInt64(value) >= condition.Value;
-
-                case ConditionComparer.SEqual:
-                    return Convert.ToUInt64(value) <= condition.Value;
-
-                default:
-                    throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.");
-            }
+                ConditionComparer.Equal => Convert.ToUInt64(value) == condition.Value,
+                ConditionComparer.Greater => Convert.ToUInt64(value) > condition.Value,
+                ConditionComparer.Smaller => Convert.ToUInt64(value) < condition.Value,
+                ConditionComparer.GreaterEqual => Convert.ToUInt64(value) >= condition.Value,
+                ConditionComparer.SmallerEqual => Convert.ToUInt64(value) <= condition.Value,
+                _ => throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.")
+            };
         }
 
         private static byte[] ClampBuffer(byte[] input, int length)

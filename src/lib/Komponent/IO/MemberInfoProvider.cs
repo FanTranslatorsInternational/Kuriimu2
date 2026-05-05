@@ -8,19 +8,19 @@ namespace Komponent.IO
 {
     internal class MemberInfoProvider
     {
-        private readonly Dictionary<(Type, string), Func<ValueStorage, int>> _calculateMethodCache = new();
+        private readonly Dictionary<(Type, string), Func<ValueStorage, int>> _calculateMethodCache = [];
 
-        public MemberInfoProvider()
+        static MemberInfoProvider()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public ByteOrder GetByteOrder(MemberInfo? member, ByteOrder defaultByteOrder)
+        public static ByteOrder GetByteOrder(MemberInfo? member, ByteOrder defaultByteOrder)
         {
             return member?.GetCustomAttribute<EndiannessAttribute>()?.ByteOrder ?? defaultByteOrder;
         }
 
-        public IList<TypeChoice> GetTypeChoices(MemberInfo? member)
+        public static IList<TypeChoice> GetTypeChoices(MemberInfo? member)
         {
             if (member == null)
                 return Array.Empty<TypeChoice>();
@@ -32,7 +32,7 @@ namespace Komponent.IO
             return typeChoices;
         }
 
-        public LengthInfoSource? GetLengthInfoSource(MemberInfo? member)
+        public static LengthInfoSource? GetLengthInfoSource(MemberInfo? member)
         {
             var fixedLengthAttribute = member?.GetCustomAttribute<FixedLengthAttribute>();
             var variableLengthAttribute = member?.GetCustomAttribute<VariableLengthAttribute>();
@@ -88,7 +88,7 @@ namespace Komponent.IO
             return new LengthInfo(length, encoding);
         }
 
-        public BitFieldInfo? GetBitFieldInfo(MemberInfo? member)
+        public static BitFieldInfo? GetBitFieldInfo(MemberInfo? member)
         {
             var bitFieldInfoAttribute = member?.GetCustomAttribute<BitFieldInfoAttribute>();
             if (bitFieldInfoAttribute == null)
@@ -101,19 +101,19 @@ namespace Komponent.IO
             };
         }
 
-        public int? GetBitLength(MemberInfo? member)
+        public static int? GetBitLength(MemberInfo? member)
         {
             return member?.GetCustomAttribute<BitFieldAttribute>()?.BitLength;
         }
 
-        public int? GetAlignment(MemberInfo? member)
+        public static int? GetAlignment(MemberInfo? member)
         {
             return member?.GetCustomAttribute<AlignmentAttribute>()?.Alignment;
         }
 
-        public ConditionInfo? GetConditionInfo(MemberInfo? member)
+        public static ConditionInfo? GetConditionInfo(MemberInfo member)
         {
-            var conditionAttribute = member?.GetCustomAttribute<ConditionAttribute>();
+            var conditionAttribute = member.GetCustomAttribute<ConditionAttribute>();
             if (conditionAttribute == null)
                 return null;
 
@@ -121,25 +121,18 @@ namespace Komponent.IO
                 conditionAttribute.Value);
         }
 
-        private Encoding GetEncoding(StringEncoding encoding)
+        private static Encoding GetEncoding(StringEncoding encoding)
         {
-            switch (encoding)
+            return encoding switch
             {
-                case StringEncoding.Ascii:
-                    return Encoding.ASCII;
-                case StringEncoding.Utf8:
-                    return Encoding.UTF8;
-                case StringEncoding.Utf16:
-                    return Encoding.Unicode;
-                case StringEncoding.Unicode:
-                    return Encoding.Unicode;
-                case StringEncoding.Utf32:
-                    return Encoding.UTF32;
-                case StringEncoding.Sjis:
-                    return Encoding.GetEncoding("Shift-JIS");
-                default:
-                    throw new InvalidOperationException($"Unknown string encoding {encoding}.");
-            }
+                StringEncoding.Ascii => Encoding.ASCII,
+                StringEncoding.Utf8 => Encoding.UTF8,
+                StringEncoding.Utf16 => Encoding.Unicode,
+                StringEncoding.Unicode => Encoding.Unicode,
+                StringEncoding.Utf32 => Encoding.UTF32,
+                StringEncoding.Sjis => Encoding.GetEncoding("Shift-JIS"),
+                _ => throw new InvalidOperationException($"Unknown string encoding {encoding}.")
+            };
         }
 
         private Func<ValueStorage, int> ResolveCalculateLengthAttributeMethod(CalculateLengthAttribute attribute)
@@ -151,9 +144,8 @@ namespace Komponent.IO
             if (!attribute.CalculationType.IsClass)
                 throw new InvalidOperationException("Type needs to be a class.");
 
-            MethodInfo? method = attribute.CalculationType.GetMethod(attribute.CalculationMethodName);
-            if (method == null)
-                throw new InvalidOperationException($"Class does not contain a method '{attribute.CalculationMethodName}'.");
+            MethodInfo method = attribute.CalculationType.GetMethod(attribute.CalculationMethodName) 
+                                ?? throw new InvalidOperationException($"Class does not contain a method '{attribute.CalculationMethodName}'.");
 
             ParameterInfo[] methodParameters = method.GetParameters();
             if (method.ReturnType != typeof(int) ||
@@ -164,7 +156,7 @@ namespace Komponent.IO
             if (attribute.CalculationType is { IsAbstract: true, IsSealed: true })
             {
                 // If class is static
-                return _calculateMethodCache[cacheKey] = storage => (int)method.Invoke(null, new object[] { storage })!;
+                return _calculateMethodCache[cacheKey] = storage => (int)method.Invoke(null, [storage])!;
             }
 
             // If class has to be instantiated
@@ -172,7 +164,7 @@ namespace Komponent.IO
                 throw new InvalidOperationException("Class needs to have an empty constructor.");
 
             object? classInstance = Activator.CreateInstance(attribute.CalculationType);
-            return _calculateMethodCache[cacheKey] = storage => (int)method.Invoke(classInstance, new object[] { storage })!;
+            return _calculateMethodCache[cacheKey] = storage => (int)method.Invoke(classInstance, [storage])!;
         }
     }
 }

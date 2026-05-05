@@ -3,10 +3,8 @@
     /// <summary>
     /// Reverses the data in a stream.
     /// </summary>
-    public class ReverseStream : Stream
+    public class ReverseStream(Stream baseStream, long length) : Stream
     {
-        private Stream? _baseStream;
-
         /// <inheritdoc cref="CanRead"/>
         public override bool CanRead => true;
 
@@ -20,27 +18,10 @@
         public override long Position { get; set; }
 
         /// <inheritdoc cref="Length"/>
-        public override long Length { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="ReverseStream"/>.
-        /// </summary>
-        /// <param name="baseStream">The stream to reverse.</param>
-        /// <param name="length">The length of the reversed stream.</param>
-        public ReverseStream(Stream baseStream, long length)
-        {
-            _baseStream = baseStream;
-            Length = length;
-        }
+        public override long Length { get; } = length;
 
         /// <inheritdoc cref="Flush"/>
-        public override void Flush()
-        {
-            if (_baseStream == null)
-                throw new ObjectDisposedException(nameof(ReverseStream));
-
-            _baseStream.Flush();
-        }
+        public override void Flush() => baseStream.Flush();
 
         /// <inheritdoc cref="SetLength"/>
         public override void SetLength(long value) => throw new NotSupportedException();
@@ -48,18 +29,15 @@
         /// <inheritdoc cref="Read"/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_baseStream == null)
-                throw new ObjectDisposedException(nameof(ReverseStream));
-
             if (Position < 0)
                 throw new EndOfStreamException();
 
             var toRead = (int)Math.Min(count, Length - Position);
 
-            long bkPos = _baseStream.Position;
-            _baseStream.Position = Length - Position - toRead;
-            _ = _baseStream.Read(buffer, offset, toRead);
-            _baseStream.Position = bkPos;
+            long bkPos = baseStream.Position;
+            baseStream.Position = Length - Position - toRead;
+            _ = baseStream.Read(buffer, offset, toRead);
+            baseStream.Position = bkPos;
 
             Array.Reverse(buffer, offset, toRead);
 
@@ -70,9 +48,6 @@
         /// <inheritdoc cref="Write"/>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (_baseStream == null)
-                throw new ObjectDisposedException(nameof(ReverseStream));
-
             if (Position < 0)
                 throw new EndOfStreamException();
 
@@ -82,10 +57,10 @@
             Array.Copy(buffer, offset, reverseBuffer, 0, toRead);
             Array.Reverse(reverseBuffer);
 
-            var bkPos = _baseStream.Position;
-            _baseStream.Position = Length - Position - toRead;
-            _baseStream.Write(reverseBuffer, 0, toRead);
-            _baseStream.Position = bkPos;
+            var bkPos = baseStream.Position;
+            baseStream.Position = Length - Position - toRead;
+            baseStream.Write(reverseBuffer, 0, toRead);
+            baseStream.Position = bkPos;
 
             Position += toRead;
         }
@@ -109,14 +84,6 @@
             }
 
             return Position;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                _baseStream = null;
-
-            base.Dispose(disposing);
         }
     }
 }

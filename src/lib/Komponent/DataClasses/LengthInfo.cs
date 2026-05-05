@@ -2,15 +2,9 @@
 
 namespace Komponent.DataClasses
 {
-    public class LengthInfo
+    public class LengthInfo(int length, Encoding encoding)
     {
-        public int Length { get; }
-        public Encoding Encoding { get; }
-
-        public LengthInfo(int length, Encoding encoding)
-        {
-            Length = length;
-            Encoding = encoding;
-        }
+        public int Length { get; } = length;
+        public Encoding Encoding { get; } = encoding;
     }
 }

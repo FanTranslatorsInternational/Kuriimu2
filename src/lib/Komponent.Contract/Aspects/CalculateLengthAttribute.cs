@@ -3,17 +3,10 @@
 namespace Komponent.Contract.Aspects
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class CalculateLengthAttribute : Attribute
+    public class CalculateLengthAttribute(Type calculationType, string calculationMethod) : Attribute
     {
-        public Type CalculationType { get; }
-        public string CalculationMethodName { get; }
-
+        public Type CalculationType { get; } = calculationType;
+        public string CalculationMethodName { get; } = calculationMethod;
         public StringEncoding StringEncoding { get; set; } = StringEncoding.Ascii;
-
-        public CalculateLengthAttribute(Type calculationType, string calculationMethod)
-        {
-            CalculationType = calculationType;
-            CalculationMethodName = calculationMethod;
-        }
     }
 }

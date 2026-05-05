@@ -2,8 +2,12 @@
 <package >
   <metadata>
     <id>Komponent</id>
-    <version>2.1.8</version>
+    <version>2.1.9</version>
     <description>A library containing all common tools like generic binary reading and writing.</description>
+
+    <dependencies>
+      <group targetFramework="net8.0" />
+    </dependencies>
 
     <authors>onepiecefreak;IcySon55</authors>
     <owners>onepiecefreak;IcySon55</owners>
@@ -16,7 +20,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-3.0-only</license>
   </metadata>
-
+  
   <files>
     <file src="bin\Debug\net8.0\*.dll" target="lib\net8.0\"/>
     <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>

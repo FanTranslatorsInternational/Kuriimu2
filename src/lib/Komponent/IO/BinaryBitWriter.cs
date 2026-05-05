@@ -5,41 +5,20 @@ namespace Komponent.IO
     /// <summary>
     /// Writing an arbitrary amount of bits to a given data source.
     /// </summary>
-    public class BinaryBitWriter : IDisposable
+    public class BinaryBitWriter(Stream baseStream, BitOrder bitOrder, int blockSize, ByteOrder byteOrder) : IDisposable
     {
-        private Stream _baseStream;
-
-        private readonly ByteOrder _byteOrder;
-        private readonly BitOrder _bitOrder;
-        private readonly int _blockSize;
-
         private long _buffer;
         private byte _bufferBitPosition;
 
         /// <summary>
         /// Gets the current bit position.
         /// </summary>
-        public long Position => _baseStream.Position * 8 + _bufferBitPosition;
+        public long Position => baseStream.Position * 8 + _bufferBitPosition;
 
         /// <summary>
         /// Gets the bit length.
         /// </summary>
-        public long Length => _baseStream.Length * 8 + _bufferBitPosition;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="BinaryBitWriter"/>.
-        /// </summary>
-        /// <param name="baseStream">The base data source to write to.</param>
-        /// <param name="bitOrder">The order in which to write the bits.</param>
-        /// <param name="blockSize">The size of the bit buffer in bytes.</param>
-        /// <param name="byteOrder">The order in which to write the bytes for the buffer.</param>
-        public BinaryBitWriter(Stream baseStream, BitOrder bitOrder, int blockSize, ByteOrder byteOrder)
-        {
-            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
-            _bitOrder = bitOrder;
-            _blockSize = blockSize;
-            _byteOrder = byteOrder;
-        }
+        public long Length => baseStream.Length * 8 + _bufferBitPosition;
 
         /// <summary>
         /// Writes 8 bits to the data source.
@@ -86,7 +65,7 @@ namespace Komponent.IO
 
             for (var i = 0; i < count; i++)
             {
-                if (_bitOrder == BitOrder.MostSignificantBitFirst)
+                if (bitOrder == BitOrder.MostSignificantBitFirst)
                 {
                     WriteBit(value >> (count - 1 - i));
                 }
@@ -102,10 +81,10 @@ namespace Komponent.IO
         /// </summary>
         public void WriteBit(int value)
         {
-            if (_bufferBitPosition >= _blockSize * 8)
+            if (_bufferBitPosition >= blockSize * 8)
                 WriteBuffer();
 
-            _buffer |= (long)((value & 0x1) << _bufferBitPosition++);
+            _buffer |= ((long)value & 0x1) << _bufferBitPosition++;
         }
 
         /// <summary>
@@ -122,14 +101,14 @@ namespace Komponent.IO
         /// </summary>
         private void WriteBuffer()
         {
-            if (_bitOrder == BitOrder.MostSignificantBitFirst)
-                _buffer = ReverseBits(_buffer, _blockSize * 8);
+            if (bitOrder == BitOrder.MostSignificantBitFirst)
+                _buffer = ReverseBits(_buffer, blockSize * 8);
 
-            for (var i = 0; i < _blockSize; i++)
-                if (_byteOrder == ByteOrder.BigEndian)
-                    _baseStream.WriteByte((byte)(_buffer >> ((_blockSize - 1 - i) * 8)));
+            for (var i = 0; i < blockSize; i++)
+                if (byteOrder == ByteOrder.BigEndian)
+                    baseStream.WriteByte((byte)(_buffer >> ((blockSize - 1 - i) * 8)));
                 else
-                    _baseStream.WriteByte((byte)(_buffer >> (i * 8)));
+                    baseStream.WriteByte((byte)(_buffer >> (i * 8)));
 
             ResetBuffer();
         }
@@ -167,16 +146,15 @@ namespace Komponent.IO
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
+
             Dispose(true);
         }
 
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 Flush();
-                _baseStream = null;
-            }
         }
 
         #endregion

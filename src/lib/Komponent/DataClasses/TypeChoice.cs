@@ -2,19 +2,11 @@
 
 namespace Komponent.DataClasses
 {
-    public class TypeChoice
+    public class TypeChoice(string fieldName, TypeChoiceComparer comp, ulong value, Type injectionType)
     {
-        public string FieldName { get; }
-        public TypeChoiceComparer Comparer { get; }
-        public ulong Value { get; }
-        public Type InjectionType { get; }
-
-        public TypeChoice(string fieldName, TypeChoiceComparer comp, ulong value, Type injectionType)
-        {
-            FieldName = fieldName;
-            Comparer = comp;
-            Value = value;
-            InjectionType = injectionType;
-        }
+        public string FieldName { get; } = fieldName;
+        public TypeChoiceComparer Comparer { get; } = comp;
+        public ulong Value { get; } = value;
+        public Type InjectionType { get; } = injectionType;
     }
 }

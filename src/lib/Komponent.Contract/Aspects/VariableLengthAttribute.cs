@@ -3,15 +3,10 @@
 namespace Komponent.Contract.Aspects
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class VariableLengthAttribute : Attribute
+    public class VariableLengthAttribute(string fieldName) : Attribute
     {
-        public string FieldName { get; }
+        public string FieldName { get; } = fieldName;
         public StringEncoding StringEncoding { get; set; } = StringEncoding.Ascii;
         public int Offset { get; set; }
-
-        public VariableLengthAttribute(string fieldName)
-        {
-            FieldName = fieldName;
-        }
     }
 }

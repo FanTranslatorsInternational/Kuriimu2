@@ -161,17 +161,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(2);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadInt16LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadInt16BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadInt16LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadInt16BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override Half ReadHalf()
@@ -186,17 +181,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(4);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadInt32LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadInt32BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadInt32LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadInt32BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override long ReadInt64()
@@ -204,17 +194,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(8);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadInt64LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadInt64BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadInt64LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadInt64BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override ushort ReadUInt16()
@@ -222,17 +207,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(2);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadUInt16LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadUInt16BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadUInt16LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadUInt16BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override uint ReadUInt32()
@@ -240,17 +220,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(4);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadUInt32BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadUInt32LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadUInt32BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override ulong ReadUInt64()
@@ -258,17 +233,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(8);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadUInt64BigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadUInt64LittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadUInt64BigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override float ReadSingle()
@@ -276,17 +246,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(4);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadSingleLittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadSingleBigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadSingleLittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadSingleBigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override double ReadDouble()
@@ -294,17 +259,12 @@ namespace Komponent.IO
             Reset();
 
             byte[] buffer = ReadBytes(8);
-            switch (ByteOrder)
+            return ByteOrder switch
             {
-                case ByteOrder.LittleEndian:
-                    return BinaryPrimitives.ReadDoubleLittleEndian(buffer);
-
-                case ByteOrder.BigEndian:
-                    return BinaryPrimitives.ReadDoubleBigEndian(buffer);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
-            }
+                ByteOrder.LittleEndian => BinaryPrimitives.ReadDoubleLittleEndian(buffer),
+                ByteOrder.BigEndian => BinaryPrimitives.ReadDoubleBigEndian(buffer),
+                _ => throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.")
+            };
         }
 
         public override decimal ReadDecimal()
@@ -318,17 +278,17 @@ namespace Komponent.IO
             {
                 case ByteOrder.LittleEndian:
                     lo = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-                    mid = BinaryPrimitives.ReadInt32LittleEndian(buffer[4..]);
-                    hi = BinaryPrimitives.ReadInt32LittleEndian(buffer[8..]);
-                    flags = BinaryPrimitives.ReadInt32LittleEndian(buffer[12..]);
-                    return new decimal(new[] { lo, mid, hi, flags });
+                    mid = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(4));
+                    hi = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(8));
+                    flags = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(12));
+                    return new decimal([lo, mid, hi, flags]);
 
                 case ByteOrder.BigEndian:
                     flags = BinaryPrimitives.ReadInt32BigEndian(buffer);
-                    hi = BinaryPrimitives.ReadInt32BigEndian(buffer[4..]);
-                    mid = BinaryPrimitives.ReadInt32BigEndian(buffer[8..]);
-                    lo = BinaryPrimitives.ReadInt32BigEndian(buffer[12..]);
-                    return new decimal(new[] { lo, mid, hi, flags });
+                    hi = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(4));
+                    mid = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(8));
+                    lo = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(12));
+                    return new decimal([lo, mid, hi, flags]);
 
                 default:
                     throw new InvalidOperationException($"Unsupported byte order {ByteOrder}.");
@@ -370,7 +330,7 @@ namespace Komponent.IO
                 result.AddRange(buffer);
             }
 
-            return _encoding.GetString(result.ToArray());
+            return _encoding.GetString([.. result]);
         }
 
         public string ReadString(int length)
@@ -461,17 +421,13 @@ namespace Komponent.IO
             if (_bitPosition >= _currentBlockSize * 8)
                 FillBitBuffer();
 
-            switch (BitOrder)
+            return BitOrder switch
             {
-                case BitOrder.LeastSignificantBitFirst:
-                    return (int)((_buffer >> _bitPosition++) & 0x1);
-
-                case BitOrder.MostSignificantBitFirst:
-                    return (int)((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1);
-
-                default:
-                    throw new InvalidOperationException($"Unsupported bit order {BitOrder}.");
-            }
+                BitOrder.LeastSignificantBitFirst => (int)((_buffer >> _bitPosition++) & 0x1),
+                BitOrder.MostSignificantBitFirst => (int)((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) &
+                                                          0x1),
+                _ => throw new InvalidOperationException($"Unsupported bit order {BitOrder}.")
+            };
         }
 
         public T ReadBits<T>(int count)
@@ -550,21 +506,14 @@ namespace Komponent.IO
         {
             _currentBlockSize = _blockSize;
 
-            switch (_blockSize)
+            _buffer = _blockSize switch
             {
-                case 1:
-                    _buffer = ReadByte();
-                    break;
-                case 2:
-                    _buffer = ReadInt16();
-                    break;
-                case 4:
-                    _buffer = ReadInt32();
-                    break;
-                case 8:
-                    _buffer = ReadInt64();
-                    break;
-            }
+                1 => ReadByte(),
+                2 => ReadInt16(),
+                4 => ReadInt32(),
+                8 => ReadInt64(),
+                _ => _buffer
+            };
 
             _bitPosition = 0;
         }
