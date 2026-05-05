@@ -9,6 +9,6 @@ public class LayoutContext
 
     public float VisibleX { get; set; }
 
-    public IList<TextLayoutLineData> Lines { get; set; } = new List<TextLayoutLineData>();
-    public IList<TextLayoutCharacterData> Characters { get; set; } = new List<TextLayoutCharacterData>();
+    public IList<TextLayoutLineData> Lines { get; set; } = [];
+    public IList<TextLayoutCharacterData> Characters { get; set; } = [];
 }

@@ -16,16 +16,9 @@ using Size = SixLabors.ImageSharp.Size;
 
 namespace Kaligraphy.Rendering;
 
-public class SystemFontGlyphProvider : IGlyphProvider
+public class SystemFontGlyphProvider(Font font) : IGlyphProvider
 {
-    private readonly Font _font;
-
     private readonly Dictionary<ushort, CharacterInfo> _glyphs = [];
-
-    public SystemFontGlyphProvider(Font font)
-    {
-        _font = font;
-    }
 
     public CharacterInfo? GetOrDefault(ushort codePoint)
     {
@@ -37,7 +30,7 @@ public class SystemFontGlyphProvider : IGlyphProvider
         if (_glyphs.TryGetValue(codePoint, out CharacterInfo? cachedInfo))
             return cachedInfo;
 
-        System.Drawing.SizeF glyphSize = MeasureCharacter((char)codePoint, _font);
+        System.Drawing.SizeF glyphSize = MeasureCharacter((char)codePoint, font);
         if (glyphSize.Width <= 0 || glyphSize.Height <= 0)
         {
             return _glyphs[codePoint] = new CharacterInfo
@@ -59,7 +52,7 @@ public class SystemFontGlyphProvider : IGlyphProvider
 
         var pixelColor = textColor.ToPixel<Rgba32>();
         Color glyphColor = Color.FromArgb(pixelColor.A, pixelColor.R, pixelColor.G, pixelColor.B);
-        gfx.DrawString($"{(char)codePoint}", _font, new SolidBrush(glyphColor), PointF.Empty, StringFormat.GenericTypographic);
+        gfx.DrawString($"{(char)codePoint}", font, new SolidBrush(glyphColor), PointF.Empty, StringFormat.GenericTypographic);
 
         Image<Rgba32> glyph = ConvertSystemDrawing(glyphImage);
         BorderSpaceData glyphDescription = WhiteSpaceMeasurer.MeasureWhiteSpace(glyph);
@@ -67,7 +60,7 @@ public class SystemFontGlyphProvider : IGlyphProvider
         if (glyphDescription.Size is { Width: > 0, Height: > 0 })
             glyph = glyph.Clone(context => context.Crop(new SixLabors.ImageSharp.Rectangle(glyphDescription.Position, glyphDescription.Size)));
 
-        float glyphY = GetBaseline(_font, gfx.DpiY) - GetAscent(_font, gfx.DpiY) + 0.475f;
+        float glyphY = GetBaseline(font, gfx.DpiY) - GetAscent(font, gfx.DpiY) + 0.475f;
 
         return _glyphs[codePoint] = new CharacterInfo
         {
@@ -78,7 +71,7 @@ public class SystemFontGlyphProvider : IGlyphProvider
         };
     }
 
-    public int GetMaxHeight() => (int)_font.GetHeight();
+    public int GetMaxHeight() => (int)font.GetHeight();
 
     private static System.Drawing.SizeF MeasureCharacter(char character, Font font)
     {

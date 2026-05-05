@@ -112,7 +112,7 @@ public class CharacterParser<TContext> : ICharacterParser
             return false;
 
         var buffer = new char[1];
-        context.EncodingDecoder.Convert(context.Data[position..], buffer, false, out length, out var charLength, out _);
+        context.EncodingDecoder.Convert(context.Data.AsSpan(position), buffer, false, out length, out var charLength, out _);
 
         if (charLength < 1)
             return false;
@@ -133,7 +133,7 @@ public class CharacterParser<TContext> : ICharacterParser
             return false;
 
         var buffer = new char[textLength];
-        context.EncodingDecoder.Convert(context.Data[position..], buffer, false, out length, out var charLength, out _);
+        context.EncodingDecoder.Convert(context.Data.AsSpan(position), buffer, false, out length, out var charLength, out _);
 
         if (charLength < textLength)
             return false;

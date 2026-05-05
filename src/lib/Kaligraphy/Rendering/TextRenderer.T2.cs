@@ -11,19 +11,11 @@ using SixLabors.ImageSharp.Processing;
 
 namespace Kaligraphy.Rendering;
 
-public class TextRenderer<TContext, TOptions> : ITextRenderer
+public class TextRenderer<TContext, TOptions>(TOptions options, IGlyphProvider glyphProvider) : ITextRenderer
     where TContext : RenderContext, new()
     where TOptions : RenderOptions, new()
 {
-    private readonly IGlyphProvider _glyphProvider;
-
-    protected TOptions Options { get; }
-
-    public TextRenderer(TOptions options, IGlyphProvider glyphProvider)
-    {
-        _glyphProvider = glyphProvider;
-        Options = options;
-    }
+    protected TOptions Options { get; } = options;
 
     public void Render(Image<Rgba32> image, TextLayoutData layout)
     {
@@ -128,5 +120,5 @@ public class TextRenderer<TContext, TOptions> : ITextRenderer
 
     protected virtual Color GetTextColor(TContext context) => Options.TextColor;
 
-    protected virtual IGlyphProvider GetGlyphProvider(TContext context) => _glyphProvider;
+    protected virtual IGlyphProvider GetGlyphProvider(TContext context) => glyphProvider;
 }

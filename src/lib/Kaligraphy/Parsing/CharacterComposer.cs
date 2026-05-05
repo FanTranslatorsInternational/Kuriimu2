@@ -25,16 +25,12 @@ public class CharacterComposer : ICharacterComposer
 
     private byte[]? ComposeCharacterData(CharacterData character, Encoding encoding)
     {
-        switch (character)
+        return character switch
         {
-            case ControlCodeCharacterData controlCode:
-                return ComposeControlCode(controlCode, encoding);
-
-            case TextCharacterData textCharacter:
-                return ComposeCharacter(textCharacter, encoding);
-        }
-
-        return null;
+            ControlCodeCharacterData controlCode => ComposeControlCode(controlCode, encoding),
+            TextCharacterData textCharacter => ComposeCharacter(textCharacter, encoding),
+            _ => null
+        };
     }
 
     protected virtual byte[]? ComposeControlCode(ControlCodeCharacterData controlCode, Encoding encoding)
@@ -44,15 +40,11 @@ public class CharacterComposer : ICharacterComposer
 
     protected virtual byte[]? ComposeCharacter(CharacterData character, Encoding encoding)
     {
-        switch (character)
+        return character switch
         {
-            case LineBreakCharacterData lineBreak:
-                return encoding.GetBytes(lineBreak.LineBreak);
-
-            case FontCharacterData fontCharacter:
-                return encoding.GetBytes($"{(char)fontCharacter.Character}");
-        }
-
-        return null;
+            LineBreakCharacterData lineBreak => encoding.GetBytes(lineBreak.LineBreak),
+            FontCharacterData fontCharacter => encoding.GetBytes($"{(char)fontCharacter.Character}"),
+            _ => null
+        };
     }
 }

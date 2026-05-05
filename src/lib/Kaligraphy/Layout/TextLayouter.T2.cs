@@ -10,19 +10,11 @@ using SixLabors.ImageSharp;
 
 namespace Kaligraphy.Layout;
 
-public class TextLayouter<TContext, TOptions> : ITextLayouter
+public class TextLayouter<TContext, TOptions>(TOptions options, IGlyphProvider glyphProvider) : ITextLayouter
     where TContext : LayoutContext, new()
     where TOptions : LayoutOptions, new()
 {
-    private readonly IGlyphProvider _glyphProvider;
-
-    protected TOptions Options { get; }
-
-    public TextLayouter(TOptions options, IGlyphProvider glyphProvider)
-    {
-        _glyphProvider = glyphProvider;
-        Options = options;
-    }
+    protected TOptions Options { get; } = options;
 
     public IList<TextLayoutLineData> Create(IList<CharacterData> characters)
     {
@@ -94,38 +86,24 @@ public class TextLayouter<TContext, TOptions> : ITextLayouter
 
     protected virtual float GetLinePositionX(TextLayoutLineData currentLine, Point initPoint, int boundingWidth)
     {
-        switch (Options.HorizontalAlignment)
+        return Options.HorizontalAlignment switch
         {
-            case HorizontalTextAlignment.Left:
-                return initPoint.X + currentLine.BoundingBox.X;
-
-            case HorizontalTextAlignment.Center:
-                return initPoint.X + currentLine.BoundingBox.X + (boundingWidth - initPoint.X - currentLine.BoundingBox.Width) / 2;
-
-            case HorizontalTextAlignment.Right:
-                return boundingWidth - initPoint.Y - currentLine.BoundingBox.Width;
-
-            default:
-                throw new InvalidOperationException($"Unsupported text alignment {Options.HorizontalAlignment}.");
-        }
+            HorizontalTextAlignment.Left => initPoint.X + currentLine.BoundingBox.X,
+            HorizontalTextAlignment.Center => initPoint.X + currentLine.BoundingBox.X + (boundingWidth - initPoint.X - currentLine.BoundingBox.Width) / 2,
+            HorizontalTextAlignment.Right => boundingWidth - initPoint.Y - currentLine.BoundingBox.Width,
+            _ => throw new InvalidOperationException($"Unsupported text alignment {Options.HorizontalAlignment}.")
+        };
     }
 
     protected virtual float GetLinePositionY(TextLayoutLineData currentLine, Point initPoint, int boundingHeight, float linesHeight)
     {
-        switch (Options.VerticalAlignment)
+        return Options.VerticalAlignment switch
         {
-            case VerticalTextAlignment.Top:
-                return initPoint.Y + currentLine.BoundingBox.Y;
-
-            case VerticalTextAlignment.Center:
-                return initPoint.Y + currentLine.BoundingBox.Y + (boundingHeight - initPoint.Y - linesHeight) / 2;
-
-            case VerticalTextAlignment.Bottom:
-                return boundingHeight - linesHeight - initPoint.Y + currentLine.BoundingBox.Y;
-
-            default:
-                throw new InvalidOperationException($"Unsupported text alignment {Options.VerticalAlignment}.");
-        }
+            VerticalTextAlignment.Top => initPoint.Y + currentLine.BoundingBox.Y,
+            VerticalTextAlignment.Center => initPoint.Y + currentLine.BoundingBox.Y + (boundingHeight - initPoint.Y - linesHeight) / 2,
+            VerticalTextAlignment.Bottom => boundingHeight - linesHeight - initPoint.Y + currentLine.BoundingBox.Y,
+            _ => throw new InvalidOperationException($"Unsupported text alignment {Options.VerticalAlignment}.")
+        };
     }
 
     private IList<TextLayoutLineData> CreateLines(IList<CharacterData> parsedCharacters)
@@ -173,7 +151,7 @@ public class TextLayouter<TContext, TOptions> : ITextLayouter
                 context.Y += GetLineHeight();
                 context.VisibleX = 0;
 
-                context.Characters = new List<TextLayoutCharacterData>();
+                context.Characters = [];
                 break;
 
             default:
@@ -191,7 +169,7 @@ public class TextLayouter<TContext, TOptions> : ITextLayouter
                     context.Y += GetLineHeight();
                     context.VisibleX = 0;
 
-                    context.Characters = new List<TextLayoutCharacterData>();
+                    context.Characters = [];
 
                     characterLocation = new PointF(context.VisibleX, context.Y);
                     characterBox = GetCharacterBoundingBox(character, context, characterLocation, out isVisible, out isPersistent);
@@ -273,7 +251,7 @@ public class TextLayouter<TContext, TOptions> : ITextLayouter
         return new RectangleF(characterLocation, SizeF.Empty);
     }
 
-    protected virtual IGlyphProvider GetGlyphProvider(TContext context) => _glyphProvider;
+    protected virtual IGlyphProvider GetGlyphProvider(TContext context) => glyphProvider;
 
     protected int GetLineHeight()
     {
@@ -285,6 +263,6 @@ public class TextLayouter<TContext, TOptions> : ITextLayouter
 
     protected virtual int GetFontHeight()
     {
-        return _glyphProvider.GetMaxHeight();
+        return glyphProvider.GetMaxHeight();
     }
 }

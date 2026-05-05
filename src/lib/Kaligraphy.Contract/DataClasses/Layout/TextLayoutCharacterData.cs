@@ -5,7 +5,7 @@ namespace Kaligraphy.Contract.DataClasses.Layout;
 
 public class TextLayoutCharacterData
 {
-    public CharacterData Character { get; set; }
-    public RectangleF BoundingBox { get; set; }
-    public RectangleF GlyphBoundingBox { get; set; }
+    public required CharacterData Character { get; set; }
+    public required RectangleF BoundingBox { get; set; }
+    public required RectangleF GlyphBoundingBox { get; set; }
 }

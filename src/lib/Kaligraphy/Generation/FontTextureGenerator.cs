@@ -12,23 +12,11 @@ namespace Kaligraphy.Generation;
 /// <summary>
 /// Generates textures out of a given list of glyphs.
 /// </summary>
-public class FontTextureGenerator
+public class FontTextureGenerator(Size canvasSize, int margin)
 {
-    private static readonly GraphicsOptions _options = new();
+    private static readonly GraphicsOptions Options = new();
 
-    private readonly Size _canvasSize;
-    private readonly FontBinPacker _fontPacker;
-
-    /// <summary>
-    /// Creates a new instance of <see cref="FontTextureGenerator"/>.
-    /// </summary>
-    /// <param name="canvasSize">The size of the canvas to draw on.</param>
-    /// <param name="margin">The margin to the top and left side of each texture.</param>
-    public FontTextureGenerator(Size canvasSize, int margin)
-    {
-        _canvasSize = canvasSize;
-        _fontPacker = new FontBinPacker(canvasSize, margin);
-    }
+    private readonly FontBinPacker _fontPacker = new(canvasSize, margin);
 
     /// <summary>
     /// Generate font textures for the given glyphs.
@@ -48,7 +36,7 @@ public class FontTextureGenerator
                 break;
 
             // Create new font texture to draw on.
-            var fontCanvas = new Image<Rgba32>(_canvasSize.Width, _canvasSize.Height);
+            var fontCanvas = new Image<Rgba32>(canvasSize.Width, canvasSize.Height);
 
             // Draw each positioned glyph on the font texture
             var packedGlyphs = new List<PackedGlyphData>(remainingGlyphs.Count);
@@ -69,7 +57,7 @@ public class FontTextureGenerator
             fontTextures.Add(fontImage);
 
             // Remove every handled glyph
-            remainingGlyphs = remainingGlyphs.Except(packedGlyphs.Select(g => g.Element)).ToList();
+            remainingGlyphs = [.. remainingGlyphs.Except(packedGlyphs.Select(g => g.Element))];
         }
 
         return fontTextures;
@@ -80,12 +68,12 @@ public class FontTextureGenerator
     /// </summary>
     /// <param name="fontImage">The font texture to draw on.</param>
     /// <param name="packedGlyph">The adjusted glyph positioned in relation to the texture.</param>
-    private void DrawGlyph(Image<Rgba32> fontImage, PackedGlyphData packedGlyph)
+    private static void DrawGlyph(Image<Rgba32> fontImage, PackedGlyphData packedGlyph)
     {
         GlyphData glyph = packedGlyph.Element;
 
         var sourceRect = new Rectangle(glyph.Description.Position, glyph.Description.Size);
 
-        fontImage.Mutate(i => i.DrawImage(glyph.Glyph, packedGlyph.Position, sourceRect, _options));
+        fontImage.Mutate(i => i.DrawImage(glyph.Glyph, packedGlyph.Position, sourceRect, Options));
     }
 }

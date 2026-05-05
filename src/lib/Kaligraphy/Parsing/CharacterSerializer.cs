@@ -25,16 +25,12 @@ public class CharacterSerializer : ICharacterSerializer
 
     private string? SerializeCharacterData(CharacterData character, bool includeControlCodes)
     {
-        switch (character)
+        return character switch
         {
-            case ControlCodeCharacterData controlCode when includeControlCodes:
-                return SerializeControlCode(controlCode);
-
-            case TextCharacterData textCharacter:
-                return SerializeCharacter(textCharacter);
-        }
-
-        return null;
+            ControlCodeCharacterData controlCode when includeControlCodes => SerializeControlCode(controlCode),
+            TextCharacterData textCharacter => SerializeCharacter(textCharacter),
+            _ => null
+        };
     }
 
     protected virtual string? SerializeControlCode(ControlCodeCharacterData controlCode)
@@ -44,15 +40,11 @@ public class CharacterSerializer : ICharacterSerializer
 
     protected virtual string? SerializeCharacter(CharacterData character)
     {
-        switch (character)
+        return character switch
         {
-            case LineBreakCharacterData lineBreak:
-                return lineBreak.LineBreak;
-
-            case FontCharacterData fontCharacter:
-                return $"{(char)fontCharacter.Character}";
-        }
-
-        return null;
+            LineBreakCharacterData lineBreak => lineBreak.LineBreak,
+            FontCharacterData fontCharacter => $"{(char)fontCharacter.Character}",
+            _ => null
+        };
     }
 }

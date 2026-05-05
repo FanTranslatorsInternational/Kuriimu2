@@ -5,29 +5,18 @@ using SixLabors.ImageSharp;
 
 namespace Kaligraphy.Generation.Packing;
 
-public abstract class BinPacker<TElement, TPacked> : IBinPacker<TElement, TPacked>
+public abstract class BinPacker<TElement, TPacked>(Size canvasSize, Size margin) : IBinPacker<TElement, TPacked>
     where TPacked : PackedElement<TElement>
 {
     /// <summary>
     /// Gets the total size of the canvas.
     /// </summary>
-    protected Size CanvasSize { get; }
+    protected Size CanvasSize { get; } = canvasSize;
 
     /// <summary>
     /// The margin between all elements.
     /// </summary>
-    protected Size Margin { get; }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="BinPacker{TElement,TPacked}"/>"/>.
-    /// </summary>
-    /// <param name="canvasSize">The total size of the canvas.</param>
-    /// <param name="margin">The margin between all elements.</param>
-    protected BinPacker(Size canvasSize, Size margin)
-    {
-        CanvasSize = canvasSize;
-        Margin = new Size(margin);
-    }
+    protected Size Margin { get; } = new(margin);
 
     /// <summary>
     /// Pack an enumeration of white space adjusted glyphs into the given canvas.
@@ -89,7 +78,7 @@ public abstract class BinPacker<TElement, TPacked> : IBinPacker<TElement, TPacke
     /// <param name="node">The current node to search through.</param>
     /// <param name="boxSize">The size of the box.</param>
     /// <returns>The found node.</returns>
-    private BinPackerNode? FindNode(BinPackerNode node, Size boxSize)
+    private static BinPackerNode? FindNode(BinPackerNode node, Size boxSize)
     {
         if (node.IsOccupied)
         {
@@ -120,7 +109,7 @@ public abstract class BinPacker<TElement, TPacked> : IBinPacker<TElement, TPacke
     /// </summary>
     /// <param name="node">The node to split.</param>
     /// <param name="boxSize">The size of the box.</param>
-    private void SplitNode(BinPackerNode node, Size boxSize)
+    private static void SplitNode(BinPackerNode node, Size boxSize)
     {
         node.IsOccupied = true;
 
