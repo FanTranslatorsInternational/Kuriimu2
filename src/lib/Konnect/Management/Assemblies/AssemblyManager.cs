@@ -3,22 +3,15 @@ using Konnect.Contract.Management.Assembly;
 
 namespace Konnect.Management.Assemblies;
 
-public class AssemblyManager : IAssemblyManager
+public class AssemblyManager(Assembly pluginAssembly) : IAssemblyManager
 {
-    private readonly Assembly _pluginAssembly;
-
-    public AssemblyManager(Assembly pluginAssembly)
-    {
-        _pluginAssembly = pluginAssembly;
-    }
-
     /// <summary>
     /// Register an assembly from a physical path.
     /// </summary>
     /// <param name="path">The path of the assembly, relative to the plugin it was called from.</param>
     public void FromPath(string path)
     {
-        var assemblyDirectory = Path.GetDirectoryName(_pluginAssembly.Location);
+        var assemblyDirectory = Path.GetDirectoryName(pluginAssembly.Location);
         if (string.IsNullOrEmpty(assemblyDirectory))
             throw new InvalidOperationException("No assembly directory given.");
 
@@ -36,7 +29,7 @@ public class AssemblyManager : IAssemblyManager
     /// <param name="resource">The name of the embedded resource in the plugin assembly.</param>
     public void FromResource(string resource)
     {
-        var resourceStream = _pluginAssembly.GetManifestResourceStream(resource);
+        var resourceStream = pluginAssembly.GetManifestResourceStream(resource);
         FromStream(resourceStream);
     }
 
@@ -46,16 +39,15 @@ public class AssemblyManager : IAssemblyManager
     /// <param name="stream">The stream containing a valid assembly.</param>
     public void FromStream(Stream? stream)
     {
-        if (stream == null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         Assembly.Load(GetAssemblyBytes(stream));
     }
 
-    private byte[] GetAssemblyBytes(Stream input)
+    private static byte[] GetAssemblyBytes(Stream input)
     {
         var assemblyBytes = new byte[input.Length];
-        input.Read(assemblyBytes, 0, assemblyBytes.Length);
+        _ = input.Read(assemblyBytes, 0, assemblyBytes.Length);
 
         return assemblyBytes;
     }

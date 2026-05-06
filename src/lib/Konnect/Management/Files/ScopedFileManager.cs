@@ -11,19 +11,11 @@ namespace Konnect.Management.Files;
 /// <summary>
 /// A nested <see cref="IPluginFileManager"/> for passing into plugins and controlling their behaviour.
 /// </summary>
-class ScopedFileManager : IPluginFileManager
+class ScopedFileManager(IFileManager parentFileManager) : IPluginFileManager
 {
-    private readonly IFileManager _parentFileManager;
-    private IFileState _fileState;
+    private IFileState? _fileState;
 
-    private readonly IList<IFileState> _loadedFiles;
-
-    public ScopedFileManager(IFileManager parentFileManager)
-    {
-        _parentFileManager = parentFileManager;
-
-        _loadedFiles = new List<IFileState>();
-    }
+    private readonly List<IFileState> _loadedFiles = [];
 
     public void RegisterStateInfo(IFileState fileState)
     {
@@ -35,25 +27,25 @@ class ScopedFileManager : IPluginFileManager
     /// <inheritdoc />
     public bool IsLoading(UPath filePath)
     {
-        return _parentFileManager.IsLoading(filePath);
+        return parentFileManager.IsLoading(filePath);
     }
 
     /// <inheritdoc />
     public bool IsLoaded(UPath filePath)
     {
-        return _parentFileManager.IsLoaded(filePath);
+        return parentFileManager.IsLoaded(filePath);
     }
 
     /// <inheritdoc />
     public bool IsSaving(IFileState fileState)
     {
-        return _parentFileManager.IsSaving(fileState);
+        return parentFileManager.IsSaving(fileState);
     }
 
     /// <inheritdoc />
     public bool IsClosing(IFileState fileState)
     {
-        return _parentFileManager.IsClosing(fileState);
+        return parentFileManager.IsClosing(fileState);
     }
 
     #endregion
@@ -62,17 +54,17 @@ class ScopedFileManager : IPluginFileManager
 
     public Task<bool> CanIdentify(IFileState fileState, IArchiveFile afi, Guid pluginId)
     {
-        return _parentFileManager.CanIdentify(fileState, afi, pluginId);
+        return parentFileManager.CanIdentify(fileState, afi, pluginId);
     }
 
     public Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId)
     {
-        return _parentFileManager.CanIdentify(streamFile, pluginId);
+        return parentFileManager.CanIdentify(streamFile, pluginId);
     }
 
     public Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId)
     {
-        return _parentFileManager.CanIdentify(fileSystem, path, pluginId);
+        return parentFileManager.CanIdentify(fileSystem, path, pluginId);
     }
 
     #endregion
@@ -86,7 +78,7 @@ class ScopedFileManager : IPluginFileManager
     {
         return LoadFile(fileSystem, path, new LoadFileContext
         {
-            Logger = _parentFileManager.Logger
+            Logger = parentFileManager.Logger
         });
     }
 
@@ -95,7 +87,7 @@ class ScopedFileManager : IPluginFileManager
     {
         return LoadFile(fileSystem, path, new LoadFileContext
         {
-            Logger = _parentFileManager.Logger,
+            Logger = parentFileManager.Logger,
             PluginId = pluginId
         });
     }
@@ -103,6 +95,8 @@ class ScopedFileManager : IPluginFileManager
     /// <inheritdoc />
     public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
     {
+        ArgumentNullException.ThrowIfNull(_fileState);
+
         // If the same file is passed to another plugin, take the parent of the current state
         var parent = _fileState;
         var statePath = _fileState.AbsoluteDirectory / _fileState.FilePath.ToRelative();
@@ -110,12 +104,12 @@ class ScopedFileManager : IPluginFileManager
             parent = _fileState.ParentFileState;
 
         // 1. Load file
-        var loadResult = await _parentFileManager.LoadFile(fileSystem, path, parent, loadFileContext);
-        if (loadResult.Status == LoadStatus.Successful)
+        var loadResult = await parentFileManager.LoadFile(fileSystem, path, parent, loadFileContext);
+        if (loadResult.Status != LoadStatus.Successful)
             return loadResult;
 
         // 2. Add file to loaded files
-        _loadedFiles.Add(loadResult.LoadedFileState);
+        _loadedFiles.Add(loadResult.LoadedFileState!);
 
         return loadResult;
     }
@@ -127,15 +121,15 @@ class ScopedFileManager : IPluginFileManager
     /// <inheritdoc />
     public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFile afi)
     {
-        return _parentFileManager.LoadFile(fileState, afi);
+        return parentFileManager.LoadFile(fileState, afi);
     }
 
     /// <inheritdoc />
     public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFile afi, Guid pluginId)
     {
-        return _parentFileManager.LoadFile(fileState, afi, new LoadFileContext
+        return parentFileManager.LoadFile(fileState, afi, new LoadFileContext
         {
-            Logger = _parentFileManager.Logger,
+            Logger = parentFileManager.Logger,
             PluginId = pluginId
         });
     }
@@ -143,7 +137,7 @@ class ScopedFileManager : IPluginFileManager
     /// <inheritdoc />
     public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFile afi, LoadFileContext loadFileContext)
     {
-        return _parentFileManager.LoadFile(fileState, afi, loadFileContext);
+        return parentFileManager.LoadFile(fileState, afi, loadFileContext);
     }
 
     #endregion
@@ -155,7 +149,7 @@ class ScopedFileManager : IPluginFileManager
     {
         return LoadFile(streamFile, new LoadFileContext
         {
-            Logger = _parentFileManager.Logger
+            Logger = parentFileManager.Logger
         });
     }
 
@@ -164,7 +158,7 @@ class ScopedFileManager : IPluginFileManager
     {
         return LoadFile(streamFile, new LoadFileContext
         {
-            Logger = _parentFileManager.Logger,
+            Logger = parentFileManager.Logger,
             PluginId = pluginId
         });
     }
@@ -173,12 +167,12 @@ class ScopedFileManager : IPluginFileManager
     public async Task<LoadResult> LoadFile(StreamFile streamFile, LoadFileContext loadFileContext)
     {
         // 1. Load file
-        var loadResult = await _parentFileManager.LoadFile(streamFile, loadFileContext);
+        var loadResult = await parentFileManager.LoadFile(streamFile, loadFileContext);
         if (loadResult.Status != LoadStatus.Successful)
             return loadResult;
 
         // 2. Add file to loaded files
-        _loadedFiles.Add(loadResult.LoadedFileState);
+        _loadedFiles.Add(loadResult.LoadedFileState!);
 
         return loadResult;
     }
@@ -191,12 +185,12 @@ class ScopedFileManager : IPluginFileManager
 
     public Task<SaveResult> SaveFile(IFileState fileState)
     {
-        return _parentFileManager.SaveFile(fileState);
+        return parentFileManager.SaveFile(fileState);
     }
 
     public Task<SaveResult> SaveFile(IFileState fileState, IFileSystem fileSystem, UPath savePath)
     {
-        return _parentFileManager.SaveFile(fileState, fileSystem, savePath);
+        return parentFileManager.SaveFile(fileState, fileSystem, savePath);
     }
 
     #endregion
@@ -205,7 +199,7 @@ class ScopedFileManager : IPluginFileManager
 
     public Task<SaveStreamResult> SaveStream(IFileState fileState)
     {
-        return _parentFileManager.SaveStream(fileState);
+        return parentFileManager.SaveStream(fileState);
     }
 
     #endregion
@@ -214,7 +208,7 @@ class ScopedFileManager : IPluginFileManager
 
     public CloseResult Close(IFileState fileState)
     {
-        var closeResult = _parentFileManager.Close(fileState);
+        var closeResult = parentFileManager.Close(fileState);
         _loadedFiles.Remove(fileState);
 
         return closeResult;
@@ -223,7 +217,7 @@ class ScopedFileManager : IPluginFileManager
     public void CloseAll()
     {
         foreach (var loadedFile in _loadedFiles)
-            _parentFileManager.Close(loadedFile);
+            parentFileManager.Close(loadedFile);
 
         _loadedFiles.Clear();
     }

@@ -15,8 +15,8 @@ public class ArchiveFile : IArchiveFile
 {
     private readonly ArchiveFileInfo _fileInfo;
 
-    private Lazy<Stream> _decompressedStream;
-    private Lazy<Stream> _compressedStream;
+    private Lazy<Stream>? _decompressedStream;
+    private Lazy<Stream>? _compressedStream;
     private Func<long> _getFileSizeAction;
 
     /// <inheritdoc />
@@ -104,7 +104,6 @@ public class ArchiveFile : IArchiveFile
 
         progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
-        // TODO: Change that to a manual bulk copy to better watch progress?
         dataToCopy.CopyTo(output);
 
         progress?.ReportProgress($"Writing file '{FilePath}'.", 1, 1);
@@ -117,14 +116,16 @@ public class ArchiveFile : IArchiveFile
     /// <inheritdoc />
     public void Dispose()
     {
-        _fileInfo.FileData?.Dispose();
+        _fileInfo.FileData.Dispose();
         _decompressedStream = null;
+
+        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return FilePath.FullName;
+        return FilePath.FullName ?? string.Empty;
     }
 
     #region Stream methods
@@ -163,7 +164,10 @@ public class ArchiveFile : IArchiveFile
     /// <returns>The decompressed stream of this instance.</returns>
     protected Stream GetDecompressedStream()
     {
-        var decompressedStream = _decompressedStream.Value;
+        if (UsesCompression)
+            throw new InvalidOperationException("ArchiveFile is not compressed.");
+
+        var decompressedStream = _decompressedStream!.Value;
 
         decompressedStream.Position = 0;
         return decompressedStream;
@@ -175,7 +179,10 @@ public class ArchiveFile : IArchiveFile
     /// <returns>The compressed stream of this instance.</returns>
     protected Stream GetCompressedStream()
     {
-        var compressedStream = _compressedStream.Value;
+        if (UsesCompression)
+            throw new InvalidOperationException("ArchiveFile is not compressed.");
+
+        var compressedStream = _compressedStream!.Value;
 
         compressedStream.Position = 0;
         return compressedStream;
@@ -195,7 +202,6 @@ public class ArchiveFile : IArchiveFile
     {
         var ms = new MemoryStream();
 
-        ms.Position = 0;
         fileData.Position = 0;
 
         configuration.Compress(fileData, ms);
@@ -216,7 +222,6 @@ public class ArchiveFile : IArchiveFile
     {
         var ms = new MemoryStream();
 
-        ms.Position = 0;
         fileData.Position = 0;
 
         compression.Decompress(fileData, ms);

@@ -12,7 +12,7 @@ using Kanvas.Contract.Configuration;
 
 namespace Konnect.Plugin.File.Image;
 
-public class ImageFile : IImageFile
+public class ImageFile(ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition) : IImageFile
 {
     private Image<Rgba32>? _decodedImage;
     private IList<Rgba32>? _decodedPalette;
@@ -22,10 +22,10 @@ public class ImageFile : IImageFile
     #region Properties
 
     /// <inheritdoc />
-    public IEncodingDefinition EncodingDefinition { get; }
+    public IEncodingDefinition EncodingDefinition { get; } = encodingDefinition;
 
     /// <inheritdoc />
-    public ImageFileInfo ImageInfo { get; }
+    public ImageFileInfo ImageInfo { get; } = imageInfo;
 
     /// <inheritdoc />
     public bool IsIndexed => IsIndexEncoding(ImageInfo.ImageFormat);
@@ -36,17 +36,6 @@ public class ImageFile : IImageFile
     #endregion
 
     #region Constructors
-
-    /// <summary>
-    /// Creates a new instance of <see cref="ImageInfo"/>.
-    /// </summary>
-    /// <param name="imageInfo">The image info to represent.</param>
-    /// <param name="encodingDefinition">The definition of encodings to use on the data.</param>
-    public ImageFile(ImageFileInfo imageInfo, IEncodingDefinition encodingDefinition)
-    {
-        ImageInfo = imageInfo;
-        EncodingDefinition = encodingDefinition;
-    }
 
     /// <summary>
     /// Creates a new instance of <see cref="ImageInfo"/>.
@@ -210,7 +199,7 @@ public class ImageFile : IImageFile
         (IList<byte[]> imageData, byte[]? paletteData) = EncodeImage(image, ImageInfo.ImageFormat, ImageInfo.PaletteFormat);
 
         ImageInfo.ImageData = imageData[0];
-        ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+        ImageInfo.MipMapData = [.. imageData.Skip(1)];
 
         ImageInfo.PaletteData = paletteData;
 
@@ -259,7 +248,7 @@ public class ImageFile : IImageFile
         (IList<byte[]> imageData, byte[]? paletteData) = EncodeImage(image, ImageInfo.ImageFormat, ImageInfo.PaletteFormat);
 
         ImageInfo.ImageData = imageData[0];
-        ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+        ImageInfo.MipMapData = [.. imageData.Skip(1)];
 
         ImageInfo.PaletteData = paletteData;
 
@@ -301,9 +290,9 @@ public class ImageFile : IImageFile
                 throw new InvalidOperationException("No palette data is set for this image and image is locked.");
             }
 
-            IList<Rgba32> decodedPalette = GetDecodedPalette(ImageInfo.PaletteData, ImageInfo.PaletteFormat);
-            if (palette.Count != decodedPalette.Count)
-                throw new InvalidOperationException($"Only palettes with the same amount of colors can be set. (Expected color count: {decodedPalette.Count})");
+            Rgba32[] decodedPalette = GetDecodedPalette(ImageInfo.PaletteData, ImageInfo.PaletteFormat);
+            if (palette.Count != decodedPalette.Length)
+                throw new InvalidOperationException($"Only palettes with the same amount of colors can be set. (Expected color count: {decodedPalette.Length})");
         }
 
         _decodedImage = null;
@@ -376,7 +365,7 @@ public class ImageFile : IImageFile
 
     #region Decode palette
 
-    private IList<Rgba32> GetDecodedPalette(byte[] paletteData, int paletteFormat)
+    private Rgba32[] GetDecodedPalette(byte[] paletteData, int paletteFormat)
     {
         IColorEncoding paletteEncoding = GetPaletteEncoding(paletteFormat);
 
@@ -386,7 +375,7 @@ public class ImageFile : IImageFile
             TaskCount = Environment.ProcessorCount
         };
 
-        return paletteEncoding.Load(paletteData, options).ToArray();
+        return [.. paletteEncoding.Load(paletteData, options)];
     }
 
     #endregion
@@ -426,7 +415,7 @@ public class ImageFile : IImageFile
         return (images, paletteData);
     }
 
-    private Image<Rgba32> ResizeImage(Image<Rgba32> image, int width, int height)
+    private static Image<Rgba32> ResizeImage(Image<Rgba32> image, int width, int height)
     {
         Image<Rgba32> cloned = image.Clone();
         cloned.Mutate(context => context.Resize(width, height));
@@ -517,7 +506,7 @@ public class ImageFile : IImageFile
 
         ImageInfo.BitDepth = encodingInfo.BitDepth;
         ImageInfo.ImageData = imageData[0];
-        ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+        ImageInfo.MipMapData = [.. imageData.Skip(1)];
         ImageInfo.ImageFormat = imageFormat;
 
         ImageInfo.PaletteBitDepth = paletteEncodingInfo?.BitDepth ?? -1;
@@ -610,34 +599,31 @@ public class ImageFile : IImageFile
 
     private IColorEncoding GetColorEncoding(int imageFormat)
     {
-        IColorEncoding? encoding = EncodingDefinition.GetColorEncoding(imageFormat);
-        if (encoding == null)
-            throw new InvalidOperationException($"Unknown encoding 0x{imageFormat:X2}.");
+        IColorEncoding encoding = EncodingDefinition.GetColorEncoding(imageFormat)
+                                  ?? throw new InvalidOperationException($"Unknown encoding 0x{imageFormat:X2}.");
 
         return encoding;
     }
 
     private IIndexEncoding GetIndexEncoding(int imageFormat)
     {
-        IIndexEncoding? encoding = EncodingDefinition.GetIndexEncoding(imageFormat)?.IndexEncoding;
-        if (encoding == null)
-            throw new InvalidOperationException($"Unknown encoding 0x{imageFormat:X2}.");
+        IIndexEncoding encoding = EncodingDefinition.GetIndexEncoding(imageFormat)?.IndexEncoding
+                                  ?? throw new InvalidOperationException($"Unknown encoding 0x{imageFormat:X2}.");
 
         return encoding;
     }
 
     private IColorEncoding GetPaletteEncoding(int paletteFormat)
     {
-        IColorEncoding? encoding = EncodingDefinition.GetPaletteEncoding(paletteFormat);
-        if (encoding == null)
-            throw new InvalidOperationException($"Unknown palette encoding 0x{paletteFormat:X2}.");
+        IColorEncoding encoding = EncodingDefinition.GetPaletteEncoding(paletteFormat)
+                                  ?? throw new InvalidOperationException($"Unknown palette encoding 0x{paletteFormat:X2}.");
 
         return encoding;
     }
 
     #endregion
 
-    private bool IsPointInRegion(Point point, Size region)
+    private static bool IsPointInRegion(Point point, Size region)
     {
         var rectangle = new Rectangle(Point.Empty, region);
         return rectangle.Contains(point);

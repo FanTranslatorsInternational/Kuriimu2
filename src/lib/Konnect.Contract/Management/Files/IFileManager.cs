@@ -28,7 +28,7 @@ public interface IFileManager : IPluginFileManager
     /// <summary>
     /// The logger for this plugin manager.
     /// </summary>
-    ILogger Logger { get; set; }
+    ILogger? Logger { get; set; }
 
     /// <summary>
     /// Gets a loaded file, or <see langword="null"/> if not loaded.
@@ -95,7 +95,7 @@ public interface IFileManager : IPluginFileManager
     /// <param name="parentFileState">The state from which the file system originates.</param>
     /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
     /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
-    Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState parentFileState, LoadFileContext loadFileContext);
+    Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState? parentFileState, LoadFileContext loadFileContext);
 
     /// <summary>
     /// Save a loaded state to a physical path.

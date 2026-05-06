@@ -75,15 +75,17 @@ public class SubFileSystem : ComposeFileSystem
     /// <inheritdoc />
     protected override UPath ConvertPathFromDelegate(UPath path)
     {
-        var fullPath = path.FullName;
-        if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
+        var fullPath = path.FullName ?? string.Empty;
+        var subPath = SubPath.FullName ?? string.Empty;
+
+        if (!fullPath.StartsWith(subPath, StringComparison.Ordinal) || (fullPath.Length > subPath.Length && fullPath[SubPath == UPath.Root ? 0 : subPath.Length] != UPath.DirectorySeparator))
         {
             // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
             // we are throwing an exception here
             throw new InvalidOperationException($"The path `{path}` returned by the delegate filesystem is not rooted to the subpath `{SubPath}`");
         }
 
-        var subPath = fullPath.Substring(SubPath.FullName.Length);
+        subPath = fullPath[subPath.Length..];
         return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
     }
 }

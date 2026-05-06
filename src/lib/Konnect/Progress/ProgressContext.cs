@@ -3,36 +3,28 @@ using Konnect.Contract.Progress;
 
 namespace Konnect.Progress;
 
-public class ProgressContext : ISetMaxProgressContext
+public class ProgressContext(IProgressOutput output) : ISetMaxProgressContext
 {
-    private readonly IProgressOutput _output;
-    private readonly ProgressState _state;
+    private readonly ProgressState _state = new()
+    {
+        MinPercentage = 0,
+        MaxPercentage = 100.0,
+        PartialValue = 0,
+        MaxValue = -1
+    };
 
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
     private bool _isRunning;
 
-    public string PreText { get; }
+    public string? PreText { get; }
     public double MinPercentage { get; }
     public double MaxPercentage { get; } = 100.0;
     public long MaxValue { get; private set; } = -1;
 
-    public ProgressContext(IProgressOutput output)
-    {
-        _output = output;
-        _state = new ProgressState
-        {
-            MinPercentage = 0,
-            MaxPercentage = 100.0,
-            PartialValue = 0,
-            MaxValue = -1
-        };
-    }
-
     public ProgressContext(double min, double max, IProgressOutput output) :
         this(output)
     {
-        if (min > max)
-            throw new InvalidOperationException($"The min value ({min}) has to be smaller than the max value ({max}).");
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(min, max);
 
         MinPercentage = Math.Max(0, min);
         MaxPercentage = Math.Min(100.0, max);
@@ -41,7 +33,7 @@ public class ProgressContext : ISetMaxProgressContext
         _state.MaxPercentage = MaxPercentage;
     }
 
-    public ProgressContext(string preText, double min, double max, IProgressOutput output) :
+    public ProgressContext(string? preText, double min, double max, IProgressOutput output) :
         this(min, max, output)
     {
         PreText = preText;
@@ -52,14 +44,12 @@ public class ProgressContext : ISetMaxProgressContext
     public IProgressContext CreateScope(double min, double max) =>
         CreateScope(null, min, max);
 
-    public IProgressContext CreateScope(string preText, double min, double max)
+    public IProgressContext CreateScope(string? preText, double min, double max)
     {
-        if (min < MinPercentage)
-            throw new ArgumentOutOfRangeException(nameof(min));
-        if (max > MaxPercentage)
-            throw new ArgumentOutOfRangeException(nameof(max));
+        ArgumentOutOfRangeException.ThrowIfLessThan(min, MinPercentage);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(max, MaxPercentage);
 
-        return new ProgressContext(preText, min, max, _output);
+        return new ProgressContext(preText, min, max, output);
     }
 
     public ISetMaxProgressContext SetMaxValue(long maxValue)
@@ -79,7 +69,7 @@ public class ProgressContext : ISetMaxProgressContext
         _state.PartialValue = partialValue;
         _state.Message = message;
 
-        _output.SetProgress(_state);
+        output.SetProgress(_state);
     }
 
     public void ReportProgress(long partialValue, long maxValue)
@@ -87,7 +77,7 @@ public class ProgressContext : ISetMaxProgressContext
         ReportProgress(_state.Message, partialValue, maxValue);
     }
 
-    public void ReportProgress(string message, long partialValue, long maxValue)
+    public void ReportProgress(string? message, long partialValue, long maxValue)
     {
         lock (_lock)
         {
@@ -99,7 +89,7 @@ public class ProgressContext : ISetMaxProgressContext
         _state.MaxValue = maxValue;
         _state.Message = message;
 
-        _output.SetProgress(_state);
+        output.SetProgress(_state);
     }
 
     public void StartProgress()
@@ -112,7 +102,7 @@ public class ProgressContext : ISetMaxProgressContext
             _isRunning = true;
         }
 
-        _output.StartProgress();
+        output.StartProgress();
     }
 
     public bool IsRunning()
@@ -131,6 +121,6 @@ public class ProgressContext : ISetMaxProgressContext
             _isRunning = false;
         }
 
-        _output.FinishProgress();
+        output.FinishProgress();
     }
 }

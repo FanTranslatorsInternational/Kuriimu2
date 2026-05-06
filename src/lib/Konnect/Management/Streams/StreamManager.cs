@@ -12,17 +12,17 @@ namespace Konnect.Management.Streams;
 public class StreamManager : IStreamManager
 {
     private readonly System.Timers.Timer _streamCollectionTimer;
-    private readonly object _releaseLock = new object();
+    private readonly object _releaseLock = new();
 
     private readonly Guid _guid;
 
-    private readonly IList<Stream> _streams;
-    private readonly IDictionary<Stream, Stream> _parentStreams;
+    private readonly List<Stream> _streams = [];
+    private readonly Dictionary<Stream, Stream> _parentStreams = [];
 
     public const string TemporaryDirectory = "tmp";
 
     /// <inheritdoc />
-    public ILogger Logger { get; set; }
+    public ILogger? Logger { get; set; }
 
     /// <inheritdoc />
     public int Count => _streams.Count(x => !IsStreamClosed(x));
@@ -34,16 +34,13 @@ public class StreamManager : IStreamManager
         _streamCollectionTimer.Start();
 
         _guid = Guid.NewGuid();
-
-        _streams = new List<Stream>();
-        _parentStreams = new Dictionary<Stream, Stream>();
     }
 
     /// <inheritdoc />
     public ITemporaryStreamManager CreateTemporaryStreamProvider()
     {
         var tempDirectory = UPath.Combine(TemporaryDirectory, _guid.ToString("D"));
-        return new TemporaryStreamManager(Path.GetFullPath(tempDirectory.FullName), this);
+        return new TemporaryStreamManager(Path.GetFullPath(tempDirectory.FullName ?? string.Empty), this);
     }
 
     /// <inheritdoc />
@@ -59,7 +56,7 @@ public class StreamManager : IStreamManager
     }
 
     /// <inheritdoc />
-    public void Register(Stream stream, Stream parent = null)
+    public void Register(Stream stream, Stream? parent = null)
     {
         if (ContainsStream(stream))
             throw new InvalidOperationException("The stream is already managed by this provider.");
@@ -81,19 +78,13 @@ public class StreamManager : IStreamManager
     /// <inheritdoc />
     public void Release(Stream release, bool recursive = false)
     {
-        if (release == null)
-        {
-            Logger?.Error("Probable race condition in stream manager.");
-            return;
-        }
-
         if (!ContainsStream(release))
             throw new InvalidOperationException("The stream is not managed by this provider.");
 
         // Close all children of the given stream too
-        if (recursive && _parentStreams.ContainsKey(release))
+        if (recursive && _parentStreams.TryGetValue(release, out var toRelease))
         {
-            Release(_parentStreams[release], true);
+            Release(toRelease, true);
             _parentStreams.Remove(release);
         }
 
@@ -120,8 +111,10 @@ public class StreamManager : IStreamManager
     /// <inheritdoc cref="Dispose"/>
     public void Dispose()
     {
-        _streamCollectionTimer?.Dispose();
+        _streamCollectionTimer.Dispose();
         ReleaseAll();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -129,9 +122,9 @@ public class StreamManager : IStreamManager
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void StreamCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
+    private void StreamCollectionTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
-        foreach (var stream in _streams.Where(x => x != null).ToList())
+        foreach (var stream in _streams.ToList())
         {
             if (!IsStreamClosed(stream))
                 continue;
@@ -149,8 +142,8 @@ public class StreamManager : IStreamManager
     /// </summary>
     /// <param name="stream"></param>
     /// <returns></returns>
-    private bool IsStreamClosed(Stream stream)
+    private static bool IsStreamClosed(Stream stream)
     {
-        return !stream.CanRead && !stream.CanWrite && !stream.CanSeek;
+        return stream is { CanRead: false, CanWrite: false, CanSeek: false };
     }
 }

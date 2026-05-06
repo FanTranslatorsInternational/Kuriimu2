@@ -9,8 +9,11 @@ namespace Konnect.Extensions;
 /// <summary>
 /// Extension methods for <see cref="UPath"/>
 /// </summary>
-public static class UPathExtensions
+public static partial class UPathExtensions
 {
+    [GeneratedRegex(@"^\/mnt\/[a-z]", RegexOptions.Compiled)]
+    private static partial Regex MountRegex();
+
     /// <summary>
     /// Converts the specified path to a relative path (by removing the leading `/`). If the path is already relative, returns the input.
     /// </summary>
@@ -26,7 +29,7 @@ public static class UPathExtensions
             return path;
         }
 
-        return path.FullName == "/" ? UPath.Empty : new UPath(path.FullName.Substring(1), true);
+        return path.FullName is "/" or null ? UPath.Empty : new UPath(path.FullName[1..], true);
     }
 
     /// <summary>
@@ -59,7 +62,7 @@ public static class UPathExtensions
 
         var fullname = path.FullName;
 
-        if (fullname == "/")
+        if (fullname is "/" or null)
         {
             return new UPath();
         }
@@ -67,7 +70,7 @@ public static class UPathExtensions
         var lastIndex = fullname.LastIndexOf(UPath.DirectorySeparator);
         if (lastIndex > 0)
         {
-            return fullname.Substring(0, lastIndex);
+            return fullname[..lastIndex];
         }
         return lastIndex == 0 ? UPath.Root : UPath.Empty;
     }
@@ -85,18 +88,18 @@ public static class UPathExtensions
         remainingPath = UPath.Empty;
 
         string firstDirectory;
-        var fullname = path.FullName;
+        var fullname = path.FullName ?? string.Empty;
         var index = fullname.IndexOf(UPath.DirectorySeparator, 1);
         if (index < 0)
         {
-            firstDirectory = fullname.Substring(1, fullname.Length - 1);
+            firstDirectory = fullname[1..];
         }
         else
         {
-            firstDirectory = fullname.Substring(1, index - 1);
+            firstDirectory = fullname[1..index];
             if (index + 1 < fullname.Length)
             {
-                remainingPath = fullname.Substring(index + 1);
+                remainingPath = fullname[(index + 1)..];
             }
         }
         return firstDirectory;
@@ -118,14 +121,14 @@ public static class UPathExtensions
             throw new ArgumentException("Cannot mix absolute and relative paths", nameof(root));
         }
 
-        var pathFullName = path.FullName;
-        var rootFullName = root.FullName;
-        if (!pathFullName.StartsWith(rootFullName))
+        var pathFullName = path.FullName ?? string.Empty;
+        var rootFullName = root.FullName ?? string.Empty;
+        if (!pathFullName.StartsWith(rootFullName, StringComparison.Ordinal))
         {
             throw new ArgumentException("Path must start with the given root.", nameof(path));
         }
 
-        return ((UPath)pathFullName.Substring(rootFullName.Length)).ToAbsolute();
+        return ((UPath)pathFullName[rootFullName.Length..]).ToAbsolute();
     }
 
     /// <summary>
@@ -137,10 +140,10 @@ public static class UPathExtensions
     {
         path.AssertNotNull();
 
-        var fullname = path.FullName;
-        if (fullname == string.Empty)
+        var fullname = path.FullName ?? string.Empty;
+        if (string.IsNullOrEmpty(fullname))
         {
-            return new List<string>();
+            return [];
         }
 
         var paths = new List<string>();
@@ -150,7 +153,7 @@ public static class UPathExtensions
         {
             if (nextIndex != 0)
             {
-                paths.Add(fullname.Substring(previousIndex, nextIndex - previousIndex));
+                paths.Add(fullname[previousIndex..nextIndex]);
             }
 
             previousIndex = nextIndex + 1;
@@ -158,7 +161,7 @@ public static class UPathExtensions
 
         if (previousIndex < fullname.Length)
         {
-            paths.Add(fullname.Substring(previousIndex, fullname.Length - previousIndex));
+            paths.Add(fullname[previousIndex..]);
         }
         return paths;
     }
@@ -168,7 +171,7 @@ public static class UPathExtensions
     /// </summary>
     /// <param name="path">The path string from which to obtain the file name and extension.</param>
     /// <returns>The characters after the last directory character in path. If path is null, this method returns null.</returns>
-    public static string GetName(this UPath path)
+    public static string? GetName(this UPath path)
     {
         return path.IsNull ? null : Path.GetFileName(path.FullName);
     }
@@ -178,7 +181,7 @@ public static class UPathExtensions
     /// </summary>
     /// <param name="path">The path string from which to obtain the file name without the extension.</param>
     /// <returns>The characters after the last directory character in path without the extension. If path is null, this method returns null.</returns>
-    public static string GetNameWithoutExtension(this UPath path)
+    public static string? GetNameWithoutExtension(this UPath path)
     {
         return path.IsNull ? null : Path.GetFileNameWithoutExtension(path.FullName);
     }
@@ -188,7 +191,7 @@ public static class UPathExtensions
     /// </summary>
     /// <param name="path">The path string from which to obtain the extension with a leading dot `.`.</param>
     /// <returns>The extension of the specified path (including the period "."), or null, or String.Empty. If path is null, GetExtension returns null. If path does not have extension information, GetExtension returns String.Empty..</returns>
-    public static string GetExtensionWithDot(this UPath path)
+    public static string? GetExtensionWithDot(this UPath path)
     {
         return path.IsNull ? null : Path.GetExtension(path.FullName);
     }
@@ -221,10 +224,10 @@ public static class UPathExtensions
             throw new ArgumentException("Cannot mix absolute and relative paths", nameof(directory));
         }
 
-        var target = path.FullName;
-        var dir = directory.FullName;
+        var target = path.FullName ?? string.Empty;
+        var dir = directory.FullName ?? string.Empty;
 
-        if (target.Length < dir.Length || !target.StartsWith(dir))
+        if (target.Length < dir.Length || !target.StartsWith(dir, StringComparison.Ordinal))
         {
             return false;
         }
@@ -236,7 +239,7 @@ public static class UPathExtensions
             return true;
         }
 
-        var dirHasTrailingSeparator = dir[dir.Length - 1] == UPath.DirectorySeparator;
+        var dirHasTrailingSeparator = dir[^1] == UPath.DirectorySeparator;
 
         if (!recursive)
         {
@@ -286,6 +289,7 @@ public static class UPathExtensions
 
         if (!path.IsAbsolute)
             throw new ArgumentException($"Path `{path}` must be absolute.", name);
+
         return path.FullName;
     }
 
@@ -296,7 +300,7 @@ public static class UPathExtensions
     public static UPath GetRoot(this UPath path)
     {
         // If the path only contains one character
-        if (path.FullName.Length < 2)
+        if (path.IsNull || path.FullName!.Length < 2)
         {
             // The path must be absolute
             path.AssertAbsolute();
@@ -308,15 +312,14 @@ public static class UPathExtensions
         // Check for windows specific drive letters
         var firstChar = char.ToLower(path.FullName[0]);
         var secondChar = path.FullName[1];
-        if (firstChar >= 'a' && firstChar <= 'z' && secondChar == ':')
+        if (firstChar is >= 'a' and <= 'z' && secondChar == ':')
             return $"/mnt/{firstChar}";
 
         // Assert absolute path now
         path.AssertAbsolute();
 
         // Check for /mnt/[drive]/ mount
-        var mntRegex = new Regex(@"^\/mnt\/[a-z]");
-        if (mntRegex.IsMatch(path.FullName))
+        if (MountRegex().IsMatch(path.FullName))
             return path.FullName[..6];
 
         // Otherwise just return UPath.Root

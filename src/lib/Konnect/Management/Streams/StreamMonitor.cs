@@ -13,19 +13,19 @@ internal class StreamMonitor : IDisposable
 {
     private const string TempFolder_ = "tmp";
 
-    private readonly object _elapsedLocked = new object();
-    private readonly object _streamManagersLock = new object();
+    private readonly object _elapsedLocked = new();
+    private readonly object _streamManagersLock = new();
     private bool _isCollecting;
 
     private readonly System.Timers.Timer _temporaryContainerCollectionTimer;
 
-    private readonly IList<IStreamManager> _streamManagers;
-    private readonly ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)> _temporaryFileSystemMapping;
-    private readonly ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)> _streamManagerMapping;
+    private readonly List<IStreamManager> _streamManagers = [];
+    private readonly ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)> _temporaryFileSystemMapping = [];
+    private readonly ConcurrentDictionary<IStreamManager, (IFileSystem?, UPath)> _streamManagerMapping = [];
 
-    private ILogger _logger;
+    private ILogger? _logger;
 
-    public ILogger Logger
+    public ILogger? Logger
     {
         get => _logger;
         set => SetLogger(value);
@@ -36,11 +36,6 @@ internal class StreamMonitor : IDisposable
         _temporaryContainerCollectionTimer = new System.Timers.Timer(1000.0);
         _temporaryContainerCollectionTimer.Elapsed += TemporaryContainerCollectionTimer_Elapsed;
         _temporaryContainerCollectionTimer.Start();
-
-        _streamManagers = new List<IStreamManager>();
-
-        _temporaryFileSystemMapping = new ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)>();
-        _streamManagerMapping = new ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)>();
     }
 
     public IStreamManager CreateStreamManager()
@@ -60,8 +55,8 @@ internal class StreamMonitor : IDisposable
         var tempDirectory = CreateTemporaryDirectory();
         var temporaryFileSystem = FileSystemFactory.CreateSubFileSystem(tempDirectory, streamManager);
 
-        _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, x => (streamManager, tempDirectory));
-        _streamManagerMapping.GetOrAdd(streamManager, x => (temporaryFileSystem, tempDirectory));
+        _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, _ => (streamManager, tempDirectory));
+        _streamManagerMapping.GetOrAdd(streamManager, _ => (temporaryFileSystem, tempDirectory));
 
         return temporaryFileSystem;
     }
@@ -99,24 +94,22 @@ internal class StreamMonitor : IDisposable
         if (!_temporaryFileSystemMapping.TryRemove(temporaryFileSystem, out var element))
             return;
 
-        _streamManagerMapping.AddOrUpdate(element.Item1, x => (null, element.Item2), (y, z) => (null, element.Item2));
+        _streamManagerMapping.AddOrUpdate(element.Item1, _ => (null, element.Item2), (_, _) => (null, element.Item2));
     }
 
     public void Dispose()
     {
-        _temporaryContainerCollectionTimer?.Dispose();
+        _temporaryContainerCollectionTimer.Dispose();
 
-        if (_streamManagers != null)
-            foreach (var streamManager in _streamManagers)
-                streamManager.ReleaseAll();
+        foreach (var streamManager in _streamManagers)
+            streamManager.ReleaseAll();
 
-        if (_streamManagerMapping != null)
-            foreach (var mapping in _streamManagerMapping)
-                RemoveDirectory(mapping.Value.Item2.FullName);
+        foreach (var mapping in _streamManagerMapping)
+            RemoveDirectory(mapping.Value.Item2.FullName);
 
-        _streamManagers?.Clear();
-        _streamManagerMapping?.Clear();
-        _temporaryFileSystemMapping?.Clear();
+        _streamManagers.Clear();
+        _streamManagerMapping.Clear();
+        _temporaryFileSystemMapping.Clear();
     }
 
     /// <summary>
@@ -124,7 +117,7 @@ internal class StreamMonitor : IDisposable
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void TemporaryContainerCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
+    private void TemporaryContainerCollectionTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         lock (_elapsedLocked)
         {
@@ -149,25 +142,27 @@ internal class StreamMonitor : IDisposable
             _isCollecting = false;
     }
 
-    private void RemoveDirectory(string path)
+    private static void RemoveDirectory(string? path)
     {
         if (Directory.Exists(path))
             Directory.Delete(path, true);
     }
 
-    private string CreateTemporaryDirectory()
+    private static string CreateTemporaryDirectory()
     {
         var currentDirectory = GetCurrentDirectory();
         return Path.Combine(currentDirectory, TempFolder_, Guid.NewGuid().ToString("D"));
     }
 
-    private string GetCurrentDirectory()
+    private static string GetCurrentDirectory()
     {
         var process = Process.GetCurrentProcess().MainModule;
-        return process == null || process.FileVersionInfo.InternalName == ".NET Host" ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+        return process == null || process.FileVersionInfo.InternalName == ".NET Host"
+            ? AppDomain.CurrentDomain.BaseDirectory
+            : Path.GetDirectoryName(process.FileName) ?? string.Empty;
     }
 
-    private void SetLogger(ILogger logger)
+    private void SetLogger(ILogger? logger)
     {
         _logger = logger;
 

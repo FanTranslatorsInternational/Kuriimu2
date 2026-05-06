@@ -31,13 +31,13 @@ internal class FileState : IFileState
     public IStreamManager StreamManager { get; private set; }
 
     /// <inheritdoc />
-    public IList<IFileState> ArchiveChildren { get; private set; }
+    public IList<IFileState> ArchiveChildren { get; private set; } = [];
 
     /// <inheritdoc />
-    public IFileState ParentFileState { get; private set; }
+    public IFileState? ParentFileState { get; private set; }
 
     /// <inheritdoc />
-    public IList<string> DialogOptions { get; private set; }
+    public IList<string> DialogOptions { get; private set; } = [];
 
     /// <inheritdoc />
     public bool WasPluginManuallySelected { get; init; }
@@ -61,7 +61,7 @@ internal class FileState : IFileState
     /// <param name="filePath">The path of the file to be opened in the file system.</param>
     /// <param name="streamManager">The stream manager used for this opened state.</param>
     /// <param name="fileManager">The plugin manager for this state.</param>
-    public FileState(IFilePlugin filePlugin, IFilePluginState pluginState, IFileState parentFileState,
+    public FileState(IFilePlugin filePlugin, IFilePluginState pluginState, IFileState? parentFileState,
         IFileSystem fileSystem, UPath filePath, IStreamManager streamManager, IPluginFileManager fileManager)
     {
         if (filePath == UPath.Empty || filePath.IsDirectory)
@@ -77,8 +77,6 @@ internal class FileState : IFileState
         FileManager = fileManager;
 
         ParentFileState = parentFileState;
-
-        ArchiveChildren = new List<IFileState>();
     }
 
     /// <inheritdoc />
@@ -103,27 +101,20 @@ internal class FileState : IFileState
     /// <inheritdoc />
     public virtual void Dispose()
     {
-        ArchiveChildren?.Clear();
-        DialogOptions?.Clear();
-        FileManager?.CloseAll();
-        StreamManager?.ReleaseAll();
+        ArchiveChildren.Clear();
+        DialogOptions.Clear();
+        FileManager.CloseAll();
+        StreamManager.ReleaseAll();
 
         // Dispose content of state
         if (PluginState.IsArchive)
         {
-            if (PluginState.Archive!.Files?.Count > 0)
+            if (PluginState.Archive!.Files.Count > 0)
                 foreach (IArchiveFile file in PluginState.Archive!.Files)
                     file.Dispose();
         }
 
-        FilePlugin = null;
-        PluginState = null;
         FilePath = UPath.Empty;
-        FileSystem = null;
-        StreamManager = null;
-        FileManager = null;
-        DialogOptions = null;
-
         ParentFileState = null;
 
         IsDisposed = true;

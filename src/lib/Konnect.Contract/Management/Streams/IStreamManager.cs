@@ -10,7 +10,7 @@ public interface IStreamManager : IDisposable
     /// <summary>
     /// The logger of this stream manager.
     /// </summary>
-    ILogger Logger { get; set; }
+    ILogger? Logger { get; set; }
 
     /// <summary>
     /// The amount of stream registered.
@@ -42,7 +42,7 @@ public interface IStreamManager : IDisposable
     /// </summary>
     /// <param name="register">The stream to register.</param>
     /// <param name="parent">The parent of the stream to register. Parent has to be registered in this instance.</param>
-    void Register(Stream register, Stream parent = null);
+    void Register(Stream register, Stream? parent = null);
 
     /// <summary>
     /// Disposes the given stream and releases base streams if they are managed by this instance.

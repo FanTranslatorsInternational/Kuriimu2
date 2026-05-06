@@ -36,33 +36,24 @@ namespace Konnect.FileSystem;
 /// Provides an abstract base <see cref="IFileSystem"/> for composing a filesystem with another FileSystem. 
 /// This implementation delegates by default its implementation to the filesystem passed to the constructor.
 /// </summary>
-public abstract class ComposeFileSystem : IFileSystem
+public abstract class ComposeFileSystem(IFileSystem fileSystem, bool owned = true) : IFileSystem
 {
-    protected bool Owned { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ComposeFileSystem"/> class.
-    /// </summary>
-    /// <param name="fileSystem">The delegated file system (can be null).</param>
-    /// <param name="owned">True if <paramref name="fileSystem"/> should be disposed when this instance is disposed.</param>
-    protected ComposeFileSystem(IFileSystem fileSystem, bool owned = true)
-    {
-        NextFileSystem = fileSystem;
-        Owned = owned;
-    }
+    protected bool Owned { get; } = owned;
 
     public void Dispose()
     {
         if (Owned)
         {
-            NextFileSystem?.Dispose();
+            NextFileSystem.Dispose();
         }
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
     /// Gets the next delegated file system (may be null).
     /// </summary>
-    protected IFileSystem NextFileSystem { get; }
+    protected IFileSystem NextFileSystem { get; } = fileSystem;
 
     /// <summary>
     /// Gets the next delegated file system or throws an error if it is null.

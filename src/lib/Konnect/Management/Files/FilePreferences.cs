@@ -17,7 +17,7 @@ namespace Konnect.Management.Files
 
         public static string[] GetPaths()
         {
-            return Cache.Keys.ToArray();
+            return [.. Cache.Keys];
         }
 
         public static FilePreferenceEntry? GetOrDefault(string fullPath)

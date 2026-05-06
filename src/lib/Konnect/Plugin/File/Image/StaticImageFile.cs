@@ -8,14 +8,21 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Konnect.Plugin.File.Image;
 
-public class StaticImageFile : IImageFile
+public class StaticImageFile(Image<Rgba32> image) : IImageFile
 {
     private static readonly EncodingDefinition _encodingDefinition;
 
-    private Image<Rgba32> _image;
+    private Image<Rgba32> _image = image;
 
     public IEncodingDefinition EncodingDefinition => _encodingDefinition;
-    public ImageFileInfo ImageInfo { get; }
+    public ImageFileInfo ImageInfo { get; } = new()
+    {
+        BitDepth = 32,
+        ImageSize = image.Size,
+        ImageData = [],
+        ImageFormat = 0
+    };
+
     public bool IsIndexed => false;
     public bool IsImageLocked => true;
 
@@ -25,19 +32,6 @@ public class StaticImageFile : IImageFile
 
         _encodingDefinition = new EncodingDefinition();
         _encodingDefinition.AddColorEncoding(0, encoding);
-    }
-
-    public StaticImageFile(Image<Rgba32> image)
-    {
-        _image = image;
-
-        ImageInfo = new ImageFileInfo
-        {
-            BitDepth = 32,
-            ImageSize = image.Size,
-            ImageData = [],
-            ImageFormat = 0
-        };
     }
 
     public StaticImageFile(Image<Rgba32> image, string name) : this(image)

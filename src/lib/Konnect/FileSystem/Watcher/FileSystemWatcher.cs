@@ -32,27 +32,27 @@ namespace Konnect.FileSystem.Watcher;
 public class FileSystemWatcher : IFileSystemWatcher
 {
     /// <inheritdoc />
-    public event EventHandler<FileOpenedEventArgs> Opened;
+    public event EventHandler<FileOpenedEventArgs>? Opened;
 
     /// <inheritdoc />
-    public event EventHandler<FileChangedEventArgs> Changed;
+    public event EventHandler<FileChangedEventArgs>? Changed;
 
     /// <inheritdoc />
-    public event EventHandler<FileChangedEventArgs> Created;
+    public event EventHandler<FileChangedEventArgs>? Created;
 
     /// <inheritdoc />
-    public event EventHandler<FileChangedEventArgs> Deleted;
+    public event EventHandler<FileChangedEventArgs>? Deleted;
 
     /// <inheritdoc />
-    public event EventHandler<FileSystemErrorEventArgs> Error;
+    public event EventHandler<FileSystemErrorEventArgs>? Error;
 
     /// <inheritdoc />
-    public event EventHandler<FileRenamedEventArgs> Renamed;
+    public event EventHandler<FileRenamedEventArgs>? Renamed;
 
     /// <summary>
     /// Event for when this watcher is disposed.
     /// </summary>
-    public event EventHandler<EventArgs> Disposed;
+    public event EventHandler<EventArgs>? Disposed;
 
     /// <inheritdoc />
     public IFileSystem FileSystem { get; }
@@ -62,8 +62,7 @@ public class FileSystemWatcher : IFileSystemWatcher
 
     public FileSystemWatcher(IFileSystem fileSystem, UPath path)
     {
-        if (fileSystem == null)
-            throw new ArgumentNullException(nameof(fileSystem));
+        ArgumentNullException.ThrowIfNull(fileSystem);
 
         path.AssertAbsolute();
 
@@ -171,7 +170,7 @@ public class FileSystemWatcher : IFileSystemWatcher
     /// </summary>
     private void RaiseDisposed()
     {
-        Disposed?.Invoke(this, new EventArgs());
+        Disposed?.Invoke(this, EventArgs.Empty);
     }
 
     private bool ShouldRaiseEvent(FileChangedEventArgs args)
@@ -213,10 +212,7 @@ public class FileSystemWatcher : IFileSystemWatcher
     /// <param name="watcher">Other instance to listen to.</param>
     protected void RegisterEvents(IFileSystemWatcher watcher)
     {
-        if (watcher == null)
-        {
-            throw new ArgumentNullException(nameof(watcher));
-        }
+        ArgumentNullException.ThrowIfNull(watcher);
 
         watcher.Changed += OnChanged;
         watcher.Created += OnCreated;
@@ -231,10 +227,7 @@ public class FileSystemWatcher : IFileSystemWatcher
     /// <param name="watcher">Instance to remove event handlers from.</param>
     protected void UnregisterEvents(IFileSystemWatcher watcher)
     {
-        if (watcher == null)
-        {
-            throw new ArgumentNullException(nameof(watcher));
-        }
+        ArgumentNullException.ThrowIfNull(watcher);
 
         watcher.Changed -= OnChanged;
         watcher.Created -= OnCreated;
@@ -254,7 +247,7 @@ public class FileSystemWatcher : IFileSystemWatcher
         return pathFromEvent;
     }
 
-    private void OnChanged(object sender, FileChangedEventArgs args)
+    private void OnChanged(object? sender, FileChangedEventArgs args)
     {
         var newPath = TryConvertPath(args.FullPath);
         if (!newPath.HasValue)
@@ -271,7 +264,7 @@ public class FileSystemWatcher : IFileSystemWatcher
         RaiseChanged(newArgs);
     }
 
-    private void OnCreated(object sender, FileChangedEventArgs args)
+    private void OnCreated(object? sender, FileChangedEventArgs args)
     {
         var newPath = TryConvertPath(args.FullPath);
         if (!newPath.HasValue)
@@ -288,7 +281,7 @@ public class FileSystemWatcher : IFileSystemWatcher
         RaiseCreated(newArgs);
     }
 
-    private void OnDeleted(object sender, FileChangedEventArgs args)
+    private void OnDeleted(object? sender, FileChangedEventArgs args)
     {
         var newPath = TryConvertPath(args.FullPath);
         if (!newPath.HasValue)
@@ -305,12 +298,12 @@ public class FileSystemWatcher : IFileSystemWatcher
         RaiseDeleted(newArgs);
     }
 
-    private void OnError(object sender, FileSystemErrorEventArgs args)
+    private void OnError(object? sender, FileSystemErrorEventArgs args)
     {
         RaiseError(args);
     }
 
-    private void OnRenamed(object sender, FileRenamedEventArgs args)
+    private void OnRenamed(object? sender, FileRenamedEventArgs args)
     {
         var newPath = TryConvertPath(args.FullPath);
         if (!newPath.HasValue)

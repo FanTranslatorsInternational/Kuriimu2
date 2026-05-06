@@ -21,5 +21,5 @@ public class LoadFileContext
     /// <summary>
     /// The logger to use for the load file operation.
     /// </summary>
-    public required ILogger Logger { get; init; }
+    public ILogger? Logger { get; init; }
 }

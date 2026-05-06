@@ -6,22 +6,16 @@ using SixLabors.ImageSharp.Processing;
 
 namespace Konnect.Plugin.File.Font;
 
-public class FontPluginGlyphProvider : IGlyphProvider
+public class FontPluginGlyphProvider(IReadOnlyList<CharacterInfo> characters) : IGlyphProvider
 {
     private readonly Dictionary<ushort, Kaligraphy.Contract.DataClasses.Rendering.CharacterInfo> _characterLookup = [];
-    private readonly IReadOnlyList<CharacterInfo> _characters;
-
-    public FontPluginGlyphProvider(IReadOnlyList<CharacterInfo> characters)
-    {
-        _characters = characters;
-    }
 
     public Kaligraphy.Contract.DataClasses.Rendering.CharacterInfo? GetOrDefault(ushort codePoint)
     {
         if (_characterLookup.TryGetValue(codePoint, out Kaligraphy.Contract.DataClasses.Rendering.CharacterInfo? cachedInfo))
             return cachedInfo;
 
-        CharacterInfo? foundInfo = _characters.FirstOrDefault(x => x.CodePoint == codePoint);
+        CharacterInfo? foundInfo = characters.FirstOrDefault(x => x.CodePoint == codePoint);
         if (foundInfo is null)
             return null;
 
@@ -45,9 +39,9 @@ public class FontPluginGlyphProvider : IGlyphProvider
         return characterInfo;
     }
 
-    public int GetMaxHeight() => _characters.Count <= 0 ? 0 : _characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height);
+    public int GetMaxHeight() => characters.Count <= 0 ? 0 : characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height);
 
-    private ColorMatrix CreateColorMatrix(Color targetColor)
+    private static ColorMatrix CreateColorMatrix(Color targetColor)
     {
         var pixel = targetColor.ToPixel<Rgba32>();
         float targetR = pixel.R / 255f;

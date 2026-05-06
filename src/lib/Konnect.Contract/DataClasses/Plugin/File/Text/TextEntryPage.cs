@@ -13,5 +13,5 @@ public class TextEntryPage
     /// <summary>
     /// The <see cref="TextEntry"/>s that represent a single page.
     /// </summary>
-    public IList<TextEntry> Entries { get; init; }
+    public IList<TextEntry>? Entries { get; init; }
 }

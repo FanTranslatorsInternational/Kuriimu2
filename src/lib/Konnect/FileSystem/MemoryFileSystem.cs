@@ -47,7 +47,7 @@ public class MemoryFileSystem : FileSystem
     public MemoryFileSystem(IStreamManager streamManager) :
         base(streamManager)
     {
-        _rootDirectory = new DirectoryNode(this);
+        _rootDirectory = new DirectoryNode();
         _globalLock = new FileSystemNodeReadWriteLock();
     }
 
@@ -56,10 +56,11 @@ public class MemoryFileSystem : FileSystem
     /// </summary>
     /// <param name="copyFrom">The <see cref="MemoryFileSystem"/> to clone from.</param>
     /// <param name="streamManager">The <see cref="IStreamManager"/> for this file system.</param>
+    /// <param name="watchers"></param>
     protected MemoryFileSystem(MemoryFileSystem copyFrom, IStreamManager streamManager, IList<Watcher.FileSystemWatcher> watchers) :
         base(streamManager)
     {
-        if (copyFrom == null) throw new ArgumentNullException(nameof(copyFrom));
+        ArgumentNullException.ThrowIfNull(copyFrom);
         Debug.Assert(copyFrom._globalLock.IsLocked);
         _rootDirectory = (DirectoryNode)copyFrom._rootDirectory.Clone(null, null);
         _globalLock = new FileSystemNodeReadWriteLock();
@@ -163,12 +164,12 @@ public class MemoryFileSystem : FileSystem
             {
                 AssertDirectory(result.Node, path);
 
-                if (result.Node.IsReadOnly)
+                if (result.Node!.IsReadOnly)
                 {
                     throw new IOException($"Access to the path `{path}` is denied");
                 }
 
-                using (var locks = new ListFileSystemNodes(this))
+                using (var locks = new ListFileSystemNodes())
                 {
                     TryLockExclusive(result.Node, locks, isRecursive, path);
 
@@ -200,8 +201,8 @@ public class MemoryFileSystem : FileSystem
             {
                 if (deleteRootDirectory)
                 {
-                    result.Node.DetachFromParent();
-                    result.Node.Dispose();
+                    result.Node?.DetachFromParent();
+                    result.Node?.Dispose();
                 }
 
                 GetOrCreateDispatcher().RaiseDeleted(path);
@@ -275,7 +276,7 @@ public class MemoryFileSystem : FileSystem
                     if (destNode == null)
                     {
                         // Constructor copies and attaches to directory for us
-                        var newFileNode = new FileNode(this, destDirectory, destFileName, (FileNode)srcNode);
+                        _ = new FileNode(destDirectory, destFileName, (FileNode?)srcNode);
                     }
                     else if (overwrite)
                     {
@@ -327,13 +328,13 @@ public class MemoryFileSystem : FileSystem
         var parentDestBackupPath = destBackupPath.IsNull ? new UPath() : destBackupPath.GetDirectory();
 
         // Simple case: src/dest/backup in the same folder
-        var isSameFolder = parentSrcPath == parentDestPath && (destBackupPath.IsNull || (parentDestBackupPath == parentSrcPath));
+        var isSameFolder = parentSrcPath == parentDestPath && (destBackupPath.IsNull || parentDestBackupPath == parentSrcPath);
         // Else at least one folder is different. This is a rename semantic (as per the locking guidelines)
 
         var paths = new List<KeyValuePair<UPath, int>>
         {
-            new KeyValuePair<UPath, int>(srcPath, 0),
-            new KeyValuePair<UPath, int>(destPath, 1)
+            new(srcPath, 0),
+            new(destPath, 1)
         };
 
         if (!destBackupPath.IsNull)
@@ -392,16 +393,16 @@ public class MemoryFileSystem : FileSystem
                         backupResult.Node.Dispose();
                     }
 
-                    destResult.Node.DetachFromParent();
+                    destResult.Node!.DetachFromParent();
                     destResult.Node.AttachToParent(backupResult.Directory, backupResult.Name);
                 }
                 else
                 {
-                    destResult.Node.DetachFromParent();
+                    destResult.Node!.DetachFromParent();
                     destResult.Node.Dispose();
                 }
 
-                srcResult.Node.DetachFromParent();
+                srcResult.Node!.DetachFromParent();
                 GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
                 srcResult.Node.AttachToParent(destResult.Directory, destResult.Name);
@@ -445,7 +446,7 @@ public class MemoryFileSystem : FileSystem
     /// <inheritdoc />
     protected override FileEntry GetFileEntryImpl(UPath path)
     {
-        UPath GetAbsolutePath(FileSystemNode node) =>
+        static UPath GetAbsolutePath(FileSystemNode? node) =>
             node == null ? string.Empty : GetAbsolutePath(node.Parent) / node.Name;
 
         EnterFileSystemShared();
@@ -537,8 +538,8 @@ public class MemoryFileSystem : FileSystem
         var isExclusive = share == FileShare.None;
 
         EnterFileSystemShared();
-        DirectoryNode parentDirectory = null;
-        FileNode fileNodeToRelease = null;
+        DirectoryNode? parentDirectory = null;
+        FileNode? fileNodeToRelease = null;
         try
         {
             var result = EnterFindNode(path, (isExclusive ? FindNodeFlags.NodeExclusive : FindNodeFlags.NodeShared) | FindNodeFlags.KeepParentNodeExclusive, share);
@@ -558,7 +559,7 @@ public class MemoryFileSystem : FileSystem
             parentDirectory = result.Directory;
             var srcNode = result.Node;
 
-            var fileNode = (FileNode)srcNode;
+            var fileNode = (FileNode?)srcNode;
 
             // Append: Opens the file if it exists and seeks to the end of the file, or creates a new file. 
             //         This requires FileIOPermissionAccess.Append permission. FileMode.Append can be used only in 
@@ -642,7 +643,7 @@ public class MemoryFileSystem : FileSystem
             }
 
             // Here we should only have Open or CreateNew
-            Debug.Assert(mode == FileMode.Open || mode == FileMode.CreateNew);
+            Debug.Assert(mode is FileMode.Open or FileMode.CreateNew);
 
             if (mode == FileMode.CreateNew)
             {
@@ -655,7 +656,7 @@ public class MemoryFileSystem : FileSystem
                     throw new IOException($"The destination path `{path}` is an existing file.");
                 }
 
-                fileNode = new FileNode(this, parentDirectory, filename, null);
+                fileNode = new FileNode(parentDirectory, filename, null);
                 GetOrCreateDispatcher().RaiseCreated(path);
                 GetOrCreateDispatcher().RaiseOpened(path);
 
@@ -682,7 +683,7 @@ public class MemoryFileSystem : FileSystem
             // TODO: Add checks between mode and access
 
             // Create and register a memory file stream
-            var stream = new MemoryFileStream(this, fileNode, isReading, isWriting, isExclusive);
+            var stream = new MemoryFileStream(fileNode, isReading, isWriting, isExclusive);
             StreamManager.Register(stream);
 
             if (shouldAppend)
@@ -786,14 +787,14 @@ public class MemoryFileSystem : FileSystem
                         // and the time we are going to actually visit it, it might have been
                         // removed in the meantime, so we make sure here that we have a folder
                         // and we don't throw an error if it is not
-                        if (!(result.Node is DirectoryNode))
+                        if (result.Node is not DirectoryNode)
                         {
                             continue;
                         }
                     }
 
-                    var directory = (DirectoryNode)result.Node;
-                    foreach (var nodePair in directory.Children)
+                    var directory = (DirectoryNode?)result.Node;
+                    foreach (var nodePair in directory?.Children ?? [])
                     {
                         if (nodePair.Value is FileNode && searchTarget == SearchTarget.Directory)
                         {
@@ -859,8 +860,11 @@ public class MemoryFileSystem : FileSystem
         return watcher;
     }
 
-    private void Watcher_Disposed(object sender, EventArgs e)
+    private void Watcher_Disposed(object? sender, EventArgs e)
     {
+        if (sender == null)
+            return;
+
         GetOrCreateDispatcher().Remove((Watcher.FileSystemWatcher)sender);
     }
 
@@ -871,7 +875,7 @@ public class MemoryFileSystem : FileSystem
     /// <inheritdoc />
     protected override string ConvertPathToInternalImpl(UPath path)
     {
-        return path.FullName;
+        return path.FullName ?? string.Empty;
     }
 
     /// <inheritdoc />
@@ -889,18 +893,18 @@ public class MemoryFileSystem : FileSystem
         var parentSrcPath = srcPath.GetDirectory();
         var parentDestPath = destPath.GetDirectory();
 
-        void AssertNoDestination(FileSystemNode node)
+        void AssertNoDestination(FileSystemNode? node)
         {
             if (expectDirectory)
             {
-                if (node is FileNode || node != null)
+                if (node is FileNode or not null)
                 {
                     throw new IOException($"The destination path `{destPath}` is an existing file.");
                 }
             }
             else
             {
-                if (node is DirectoryNode || node != null)
+                if (node is DirectoryNode or not null)
                 {
                     throw new IOException($"The destination path `{destPath}` is an existing directory.");
                 }
@@ -967,7 +971,7 @@ public class MemoryFileSystem : FileSystem
 
                 AssertNoDestination(destResult.Node);
 
-                srcResult.Node.DetachFromParent();
+                srcResult.Node!.DetachFromParent();
                 srcResult.Node.AttachToParent(destResult.Directory, destResult.Name);
 
                 GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
@@ -999,7 +1003,7 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void AssertDirectory(FileSystemNode node, UPath srcPath)
+    private static void AssertDirectory(FileSystemNode? node, UPath srcPath)
     {
         if (node is FileNode)
         {
@@ -1011,7 +1015,7 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void AssertFile(FileSystemNode node, UPath srcPath)
+    private static void AssertFile(FileSystemNode? node, UPath srcPath)
     {
         if (node == null)
         {
@@ -1019,7 +1023,7 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private FileSystemNode TryFindNodeSafe(UPath path)
+    private FileSystemNode? TryFindNodeSafe(UPath path)
     {
         EnterFileSystemShared();
         try
@@ -1027,8 +1031,7 @@ public class MemoryFileSystem : FileSystem
             var result = EnterFindNode(path, FindNodeFlags.NodeShared);
             try
             {
-                var node = result.Node;
-                return node;
+                return result.Node;
             }
             finally
             {
@@ -1070,23 +1073,15 @@ public class MemoryFileSystem : FileSystem
         ExitFindNode(EnterFindNode(path, FindNodeFlags.CreatePathIfNotExist | FindNodeFlags.NodeShared));
     }
 
-    private struct NodeResult
+    private readonly struct NodeResult(DirectoryNode? directory, FileSystemNode? node, string? name, FindNodeFlags flags)
     {
-        public NodeResult(DirectoryNode directory, FileSystemNode node, string name, FindNodeFlags flags)
-        {
-            Directory = directory;
-            Node = node;
-            Name = name;
-            Flags = flags;
-        }
+        public readonly DirectoryNode? Directory = directory;
 
-        public readonly DirectoryNode Directory;
+        public readonly FileSystemNode? Node = node;
 
-        public readonly FileSystemNode Node;
+        public readonly string? Name = name;
 
-        public readonly string Name;
-
-        public readonly FindNodeFlags Flags;
+        public readonly FindNodeFlags Flags = flags;
     }
 
     [Flags]
@@ -1105,7 +1100,7 @@ public class MemoryFileSystem : FileSystem
         KeepParentNodeShared = 1 << 6,
     }
 
-    private void ExitFindNode(NodeResult nodeResult)
+    private static void ExitFindNode(NodeResult nodeResult)
     {
         var flags = nodeResult.Flags;
 
@@ -1208,16 +1203,15 @@ public class MemoryFileSystem : FileSystem
             var name = names[i];
             var isLast = i + 1 == names.Count;
 
-            DirectoryNode nextParent = null;
+            DirectoryNode? nextParent = null;
             var isNextParentLockTaken = false;
             try
             {
-                FileSystemNode subNode;
-                if (!parentNode.Children.TryGetValue(name, out subNode))
+                if (!parentNode.Children.TryGetValue(name, out FileSystemNode? subNode))
                 {
                     if ((flags & FindNodeFlags.CreatePathIfNotExist) != 0)
                     {
-                        subNode = new DirectoryNode(this, parentNode, name);
+                        subNode = new DirectoryNode(parentNode, name);
                     }
                 }
                 else
@@ -1330,12 +1324,12 @@ public class MemoryFileSystem : FileSystem
         _globalLock.ExitExclusive();
     }
 
-    private void EnterSharedDirectoryOrBlock(DirectoryNode node, UPath context)
+    private static void EnterSharedDirectoryOrBlock(DirectoryNode node, UPath context)
     {
         EnterShared(node, context, true, FileShare.Read);
     }
 
-    private void EnterExclusiveOrSharedDirectoryOrBlock(DirectoryNode node, UPath context, bool isExclusive)
+    private static void EnterExclusiveOrSharedDirectoryOrBlock(DirectoryNode node, UPath context, bool isExclusive)
     {
         if (isExclusive)
         {
@@ -1347,22 +1341,22 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void EnterExclusiveDirectoryOrBlock(DirectoryNode node, UPath context)
+    private static void EnterExclusiveDirectoryOrBlock(DirectoryNode node, UPath context)
     {
         EnterExclusive(node, context, true);
     }
 
-    private void EnterExclusive(FileSystemNode node, UPath context)
+    private static void EnterExclusive(FileSystemNode node, UPath context)
     {
         EnterExclusive(node, context, node is DirectoryNode);
     }
 
-    private void EnterShared(FileSystemNode node, UPath context, FileShare share)
+    private static void EnterShared(FileSystemNode node, UPath context, FileShare share)
     {
         EnterShared(node, context, node is DirectoryNode, share);
     }
 
-    private void EnterShared(FileSystemNode node, UPath context, bool block, FileShare share)
+    private static void EnterShared(FileSystemNode node, UPath context, bool block, FileShare share)
     {
         if (block)
         {
@@ -1375,12 +1369,12 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void ExitShared(FileSystemNode node)
+    private static void ExitShared(FileSystemNode node)
     {
         node.ExitShared();
     }
 
-    private void EnterExclusive(FileSystemNode node, UPath context, bool block)
+    private static void EnterExclusive(FileSystemNode node, UPath context, bool block)
     {
         if (block)
         {
@@ -1393,7 +1387,7 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void ExitExclusiveOrShared(FileSystemNode node, bool isExclusive)
+    private static void ExitExclusiveOrShared(FileSystemNode node, bool isExclusive)
     {
         if (isExclusive)
         {
@@ -1405,14 +1399,14 @@ public class MemoryFileSystem : FileSystem
         }
     }
 
-    private void ExitExclusive(FileSystemNode node)
+    private static void ExitExclusive(FileSystemNode node)
     {
         node.ExitExclusive();
     }
 
-    private void TryLockExclusive(FileSystemNode node, ListFileSystemNodes locks, bool recursive, UPath context)
+    private static void TryLockExclusive(FileSystemNode node, ListFileSystemNodes locks, bool recursive, UPath context)
     {
-        if (locks == null) throw new ArgumentNullException(nameof(locks));
+        ArgumentNullException.ThrowIfNull(locks);
 
         if (node is DirectoryNode directory)
         {
@@ -1440,14 +1434,9 @@ public class MemoryFileSystem : FileSystem
 
     private abstract class FileSystemNode : FileSystemNodeReadWriteLock
     {
-        private readonly MemoryFileSystem _fileSystem;
-
-        protected FileSystemNode(MemoryFileSystem fileSystem, DirectoryNode parentNode, string name, FileSystemNode copyNode)
+        protected FileSystemNode(DirectoryNode? parentNode, string? name, FileSystemNode? copyNode)
         {
-            Debug.Assert(fileSystem != null);
-            Debug.Assert((parentNode == null) == string.IsNullOrEmpty(name));
-
-            _fileSystem = fileSystem;
+            Debug.Assert(parentNode == null == string.IsNullOrEmpty(name));
 
             if (parentNode != null && !string.IsNullOrEmpty(name))
             {
@@ -1467,36 +1456,40 @@ public class MemoryFileSystem : FileSystem
             LastAccessTime = copyNode?.LastAccessTime ?? CreationTime;
         }
 
-        public DirectoryNode Parent { get; private set; }
+        public DirectoryNode? Parent { get; private set; }
 
-        public string Name { get; private set; }
+        public string? Name { get; private set; }
 
-        public FileAttributes Attributes { get; set; }
+        public FileAttributes Attributes { get; init; }
 
-        public DateTime CreationTime { get; set; }
+        public DateTime CreationTime { get; }
 
         public DateTime LastWriteTime { get; set; }
 
         public DateTime LastAccessTime { get; set; }
-
-        public bool IsDisposed { get; set; }
 
         public bool IsReadOnly => (Attributes & FileAttributes.ReadOnly) != 0;
 
         public void DetachFromParent()
         {
             Debug.Assert(IsLocked);
+
             var parent = Parent;
+            if (parent == null)
+                return;
+
             Debug.Assert(parent.IsLocked);
 
-            parent.Children.Remove(Name);
+            if (Name != null)
+                parent.Children.Remove(Name);
+
             Parent = null;
             Name = null;
         }
 
-        public void AttachToParent(DirectoryNode parentNode, string name)
+        public void AttachToParent(DirectoryNode? parentNode, string? name)
         {
-            if (parentNode == null) throw new ArgumentNullException(nameof(parentNode));
+            ArgumentNullException.ThrowIfNull(parentNode);
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
             Debug.Assert(parentNode.IsLocked);
             Debug.Assert(IsLocked);
@@ -1511,12 +1504,11 @@ public class MemoryFileSystem : FileSystem
         {
             Debug.Assert(IsLocked);
             // In order to issue a Dispose, we need to have control on this node
-            IsDisposed = true;
         }
 
-        public virtual FileSystemNode Clone(DirectoryNode newParent, string newName)
+        public virtual FileSystemNode Clone(DirectoryNode? newParent, string? newName)
         {
-            Debug.Assert((newParent == null) == string.IsNullOrEmpty(newName));
+            Debug.Assert(newParent == null == string.IsNullOrEmpty(newName));
 
             var clone = (FileSystemNode)Clone();
             clone.Parent = newParent;
@@ -1527,20 +1519,12 @@ public class MemoryFileSystem : FileSystem
 
     private class ListFileSystemNodes : List<KeyValuePair<string, FileSystemNode>>, IDisposable
     {
-        private readonly MemoryFileSystem _fs;
-
-        public ListFileSystemNodes(MemoryFileSystem fs)
-        {
-            Debug.Assert(fs != null);
-            _fs = fs;
-        }
-
         public void Dispose()
         {
-            for (var i = this.Count - 1; i >= 0; i--)
+            for (var i = Count - 1; i >= 0; i--)
             {
                 var entry = this[i];
-                _fs.ExitExclusive(entry.Value);
+                ExitExclusive(entry.Value);
             }
             Clear();
         }
@@ -1552,15 +1536,15 @@ public class MemoryFileSystem : FileSystem
     {
         private Dictionary<string, FileSystemNode> _children;
 
-        public DirectoryNode(MemoryFileSystem fileSystem) : base(fileSystem, null, null, null)
+        public DirectoryNode() : base(null, null, null)
         {
-            _children = new Dictionary<string, FileSystemNode>();
+            _children = [];
         }
 
-        public DirectoryNode(MemoryFileSystem fileSystem, DirectoryNode parent, string name) : base(fileSystem, parent, name, null)
+        public DirectoryNode(DirectoryNode parent, string name) : base(parent, name, null)
         {
             Debug.Assert(parent != null);
-            _children = new Dictionary<string, FileSystemNode>();
+            _children = [];
         }
 
         public Dictionary<string, FileSystemNode> Children
@@ -1572,10 +1556,10 @@ public class MemoryFileSystem : FileSystem
             }
         }
 
-        public override FileSystemNode Clone(DirectoryNode newParent, string newName)
+        public override FileSystemNode Clone(DirectoryNode? newParent, string? newName)
         {
             var dir = (DirectoryNode)base.Clone(newParent, newName);
-            dir._children = new Dictionary<string, FileSystemNode>();
+            dir._children = [];
             foreach (var name in _children.Keys)
             {
                 dir._children[name] = _children[name].Clone(dir, name);
@@ -1588,44 +1572,37 @@ public class MemoryFileSystem : FileSystem
             return Name == null ? $"Count = {_children.Count}{base.DebuggerDisplay()}" : $"Folder: {Name}, Count = {_children.Count}{base.DebuggerDisplay()}";
         }
 
-        private sealed class DebuggerProxyInternal
+        private sealed class DebuggerProxyInternal(DirectoryNode directoryNode)
         {
-            private readonly DirectoryNode _directoryNode;
-
-            public DebuggerProxyInternal(DirectoryNode directoryNode)
-            {
-                _directoryNode = directoryNode;
-            }
-
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public FileSystemNode[] Items => _directoryNode._children.Values.ToArray();
+            public FileSystemNode[] Items => [.. directoryNode._children.Values];
         }
     }
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + "(),nq}")]
     private class FileNode : FileSystemNode
     {
-        public FileNode(MemoryFileSystem fileSystem, DirectoryNode parentNode, string name, FileNode copyNode)
-            : base(fileSystem, parentNode, name, copyNode)
+        public FileNode(DirectoryNode parentNode, string? name, FileNode? copyNode)
+            : base(parentNode, name, copyNode)
         {
             if (copyNode != null)
             {
-                Content = new FileContent(this, copyNode.Content);
+                Content = new FileContent(copyNode.Content);
             }
             else
             {
                 Attributes = FileAttributes.Archive;
-                Content = new FileContent(this);
+                Content = new FileContent();
             }
         }
 
         public FileContent Content { get; private set; }
 
 
-        public override FileSystemNode Clone(DirectoryNode newParent, string newName)
+        public override FileSystemNode Clone(DirectoryNode? newParent, string? newName)
         {
             var copy = (FileNode)base.Clone(newParent, newName);
-            copy.Content = new FileContent(copy, Content);
+            copy.Content = new FileContent(Content);
             return copy;
         }
 
@@ -1637,22 +1614,15 @@ public class MemoryFileSystem : FileSystem
 
     private class FileContent
     {
-        private readonly FileNode _fileNode;
         private readonly MemoryStream _stream;
 
-        public FileContent(FileNode fileNode)
+        public FileContent()
         {
-            Debug.Assert(fileNode != null);
-
-            _fileNode = fileNode;
             _stream = new MemoryStream();
         }
 
-        public FileContent(FileNode fileNode, FileContent copy)
+        public FileContent(FileContent copy)
         {
-            Debug.Assert(fileNode != null);
-
-            _fileNode = fileNode;
             var length = copy.Length;
             _stream = new MemoryStream(length <= int.MaxValue ? (int)length : int.MaxValue);
             CopyFrom(copy);
@@ -1728,7 +1698,6 @@ public class MemoryFileSystem : FileSystem
 
     private sealed class MemoryFileStream : Stream
     {
-        private readonly MemoryFileSystem _fs;
         private readonly FileNode _fileNode;
         private readonly bool _canRead;
         private readonly bool _canWrite;
@@ -1736,12 +1705,10 @@ public class MemoryFileSystem : FileSystem
         private int _isDisposed;
         private long _position;
 
-        public MemoryFileStream(MemoryFileSystem fs, FileNode fileNode, bool canRead, bool canWrite, bool isExclusive)
+        public MemoryFileStream(FileNode fileNode, bool canRead, bool canWrite, bool isExclusive)
         {
-            Debug.Assert(fs != null);
             Debug.Assert(fileNode != null);
             Debug.Assert(fileNode.IsLocked);
-            _fs = fs;
             _fileNode = fileNode;
             _canWrite = canWrite;
             _canRead = canRead;
@@ -1775,10 +1742,7 @@ public class MemoryFileSystem : FileSystem
             set
             {
                 CheckNotDisposed();
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException("The position cannot be negative");
-                }
+                ArgumentOutOfRangeException.ThrowIfLessThan(value, 0);
                 _position = value;
                 _fileNode.Content.SetPosition(_position);
             }
@@ -1798,11 +1762,11 @@ public class MemoryFileSystem : FileSystem
 
             if (_isExclusive)
             {
-                _fs.ExitExclusive(_fileNode);
+                ExitExclusive(_fileNode);
             }
             else
             {
-                _fs.ExitShared(_fileNode);
+                ExitShared(_fileNode);
             }
 
             base.Dispose(disposing);
@@ -1870,10 +1834,7 @@ public class MemoryFileSystem : FileSystem
 
         private void CheckNotDisposed()
         {
-            if (_isDisposed > 0)
-            {
-                throw new ObjectDisposedException("Cannot access a closed file.");
-            }
+            ObjectDisposedException.ThrowIf(_isDisposed > 0, this);
         }
     }
 

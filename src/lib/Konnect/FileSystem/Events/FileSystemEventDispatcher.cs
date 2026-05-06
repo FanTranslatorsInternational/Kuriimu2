@@ -53,7 +53,7 @@ public class FileSystemEventDispatcher<T> : IDisposable
 
         _dispatchQueue = new BlockingCollection<Action>(16);
         _dispatchCts = new CancellationTokenSource();
-        _watchers = new List<T>();
+        _watchers = [];
 
         _dispatchThread.Start();
     }
@@ -116,7 +116,7 @@ public class FileSystemEventDispatcher<T> : IDisposable
     {
         lock (_watchers)
         {
-            return _watchers.ToArray();
+            return [.. _watchers];
         }
     }
 
@@ -231,7 +231,7 @@ public class FileSystemEventDispatcher<T> : IDisposable
                 return;
             }
 
-            watchersSnapshot = _watchers.ToList(); // TODO: reduce allocations
+            watchersSnapshot = [.. _watchers];
         }
 
         // The events should be called on a separate thread because the filesystem code

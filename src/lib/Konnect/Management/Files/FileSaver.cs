@@ -15,15 +15,8 @@ namespace Konnect.Management.Files;
 /// <summary>
 /// Saves files loaded in the runtime of Kuriimu.
 /// </summary>
-class FileSaver : IFileSaver
+class FileSaver(StreamMonitor streamMonitor) : IFileSaver
 {
-    private readonly StreamMonitor _streamMonitor;
-
-    public FileSaver(StreamMonitor streamMonitor)
-    {
-        _streamMonitor = streamMonitor;
-    }
-
     /// <inheritdoc />
     public Task<SaveResult> SaveAsync(IFileState fileState, IFileSystem fileSystem, UPath savePath, SaveFileOptions saveInfo)
     {
@@ -79,12 +72,12 @@ class FileSaver : IFileSaver
         return reloadResult;
     }
 
-    private async Task<SaveResult> ReloadInternalAsync(IFileState fileState, IFileSystem destinationFileSystem, UPath savePath, SaveFileOptions saveInfo)
+    private static async Task<SaveResult> ReloadInternalAsync(IFileState fileState, IFileSystem destinationFileSystem, UPath savePath, SaveFileOptions saveInfo)
     {
         // 1. Reload current state
         var temporaryStreamProvider = fileState.StreamManager.CreateTemporaryStreamProvider();
 
-        var dialogManager = new DialogManager(saveInfo.DialogManager, fileState.DialogOptions);
+        var dialogManager = saveInfo.DialogManager != null ? new DialogManager(saveInfo.DialogManager, fileState.DialogOptions) : null;
         var loadContext = new LoadContext
         {
             DialogManager = dialogManager,
@@ -123,7 +116,7 @@ class FileSaver : IFileSaver
     private async Task<SaveResult> SaveAndReplaceStateAsync(IFileState fileState, IFileSystem destinationFileSystem, UPath savePath, SaveFileOptions saveInfo)
     {
         // 1. Save state to a temporary destination
-        var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
+        var temporaryContainer = streamMonitor.CreateTemporaryFileSystem();
         var saveStateResult = await TrySaveState(fileState, temporaryContainer, savePath, saveInfo);
         if (!saveStateResult.IsSuccessful)
             return saveStateResult;
@@ -131,7 +124,7 @@ class FileSaver : IFileSaver
         // TODO: If reload fails then the original files get closed already, which makes future save actions impossible due to disposed streams
 
         // 2. Dispose of all streams in this state
-        _streamMonitor.GetStreamManager(temporaryContainer).ReleaseAll();
+        streamMonitor.GetStreamManager(temporaryContainer).ReleaseAll();
         fileState.StreamManager.ReleaseAll();
 
         // 3. Replace files in destination file system
@@ -140,7 +133,7 @@ class FileSaver : IFileSaver
             return moveResult;
 
         // 4. Release temporary destination
-        _streamMonitor.ReleaseTemporaryFileSystem(temporaryContainer);
+        streamMonitor.ReleaseTemporaryFileSystem(temporaryContainer);
 
         return new SaveResult
         {
@@ -157,7 +150,7 @@ class FileSaver : IFileSaver
     /// <param name="savePath">The path of the initial file to save.</param>
     /// <param name="saveInfo">The context for the save operation.</param>
     /// <returns>The result of the save state process.</returns>
-    private async Task<SaveResult> TrySaveState(IFileState saveState, IFileSystem temporaryContainer, UPath savePath, SaveFileOptions saveInfo)
+    private static async Task<SaveResult> TrySaveState(IFileState saveState, IFileSystem temporaryContainer, UPath savePath, SaveFileOptions saveInfo)
     {
         try
         {
@@ -192,12 +185,12 @@ class FileSaver : IFileSaver
     /// <param name="fileState">The state to save in the destination.</param>
     /// <param name="sourceFileSystem">The file system to take the files from.</param>
     /// <param name="destinationFileSystem">The file system to replace the files in.</param>
-    private async Task<SaveResult> MoveFiles(IFileState fileState, IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
+    private static async Task<SaveResult> MoveFiles(IFileState fileState, IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
     {
         if (fileState.HasParent)
         {
             // Put source filesystem into final destination
-            var replaceResult = await TryReplaceFiles(sourceFileSystem, destinationFileSystem, fileState.ParentFileState.StreamManager);
+            var replaceResult = await TryReplaceFiles(sourceFileSystem, destinationFileSystem, fileState.ParentFileState!.StreamManager);
             return replaceResult;
         }
 
@@ -213,7 +206,7 @@ class FileSaver : IFileSaver
     /// <param name="destinationFileSystem"></param>
     /// <param name="stateStreamManager"></param>
     /// <returns>If the replacement was successful.</returns>
-    private async Task<SaveResult> TryReplaceFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem,
+    private static async Task<SaveResult> TryReplaceFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem,
         IStreamManager stateStreamManager)
     {
         // 1. Check that all saved files exist in the parent filesystem already or can at least be created if missing
@@ -260,7 +253,7 @@ class FileSaver : IFileSaver
     /// </summary>
     /// <param name="temporaryContainer"></param>
     /// <param name="destinationFileSystem"></param>
-    private async Task<SaveResult> TryCopyFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem)
+    private static async Task<SaveResult> TryCopyFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem)
     {
         // 1. Set new file data into parent file system
         foreach (var file in temporaryContainer.EnumerateAllFiles(UPath.Root))
@@ -300,7 +293,7 @@ class FileSaver : IFileSaver
     /// <param name="savePath">The <see cref="savePath"/> for the initial file.</param>
     /// <param name="loadContext">The load context.</param>
     /// <returns>If the loading was successful.</returns>
-    private async Task<LoadResult> TryLoadStateAsync(IFilePluginState pluginState, IFileSystem fileSystem, UPath savePath,
+    private static async Task<LoadResult> TryLoadStateAsync(IFilePluginState pluginState, IFileSystem fileSystem, UPath savePath,
         LoadContext loadContext)
     {
         // 1. Check if state implements ILoadFile

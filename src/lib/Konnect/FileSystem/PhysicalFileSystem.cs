@@ -41,7 +41,7 @@ namespace Konnect.FileSystem;
 public class PhysicalFileSystem : FileSystem
 {
     private const string DrivePrefixOnWindows = "/mnt/";
-    private static readonly UPath PathDrivePrefixOnWindows = new UPath(DrivePrefixOnWindows);
+    private static readonly UPath PathDrivePrefixOnWindows = new(DrivePrefixOnWindows);
 #if NETSTANDARD
         private static readonly bool IsOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #else
@@ -49,16 +49,11 @@ public class PhysicalFileSystem : FileSystem
 
     private static bool CheckIsOnWindows()
     {
-        switch (Environment.OSVersion.Platform)
+        return Environment.OSVersion.Platform switch
         {
-            case PlatformID.Xbox:
-            case PlatformID.Win32NT:
-            case PlatformID.Win32S:
-            case PlatformID.Win32Windows:
-            case PlatformID.WinCE:
-                return true;
-        }
-        return false;
+            PlatformID.Xbox or PlatformID.Win32NT or PlatformID.Win32S or PlatformID.Win32Windows or PlatformID.WinCE => true,
+            _ => false
+        };
     }
 #endif
 
@@ -315,7 +310,7 @@ public class PhysicalFileSystem : FileSystem
 
         GetOrCreateDispatcher().RaiseOpened(path);
 
-        return Task.FromResult((Stream)file);
+        return Task.FromResult(file);
     }
 
     /// <inheritdoc />
@@ -497,8 +492,11 @@ public class PhysicalFileSystem : FileSystem
         return watcher;
     }
 
-    private void Watcher_Disposed(object sender, EventArgs e)
+    private void Watcher_Disposed(object? sender, EventArgs e)
     {
+        if (sender == null)
+            return;
+
         GetOrCreateDispatcher().Remove((Watcher.FileSystemWatcher)sender);
     }
 
@@ -509,11 +507,11 @@ public class PhysicalFileSystem : FileSystem
     /// <inheritdoc />
     protected override string ConvertPathToInternalImpl(UPath path)
     {
-        var absolutePath = path.FullName;
+        var absolutePath = path.FullName ?? string.Empty;
 
         if (IsOnWindows)
         {
-            if (!absolutePath.StartsWith(DrivePrefixOnWindows) ||
+            if (!absolutePath.StartsWith(DrivePrefixOnWindows, StringComparison.Ordinal) ||
                 absolutePath.Length == DrivePrefixOnWindows.Length ||
                 !IsDriveLetter(absolutePath[DrivePrefixOnWindows.Length]))
                 throw new ArgumentException($"A path on Windows must start by `{DrivePrefixOnWindows}` followed by the drive letter");
@@ -527,7 +525,7 @@ public class PhysicalFileSystem : FileSystem
             var builder = new StringBuilder();
             builder.Append(driveLetter).Append(":\\");
             if (absolutePath.Length > DrivePrefixOnWindows.Length + 1)
-                builder.Append(absolutePath.Replace(UPath.DirectorySeparator, '\\').Substring(DrivePrefixOnWindows.Length + 2));
+                builder.Append(absolutePath.Replace(UPath.DirectorySeparator, '\\')[(DrivePrefixOnWindows.Length + 2)..]);
 
             var result = builder.ToString();
             builder.Length = 0;
@@ -542,8 +540,8 @@ public class PhysicalFileSystem : FileSystem
         if (IsOnWindows)
         {
             // We currently don't support special Windows files (\\.\ \??\  DosDevices...etc.)
-            if (innerPath.StartsWith(@"\\") || innerPath.StartsWith(@"\?"))
-                throw new NotSupportedException($"Path starting with `\\\\` or `\\?` are not supported -> `{innerPath}` ");
+            if (innerPath.StartsWith(@"\\", StringComparison.Ordinal) || innerPath.StartsWith(@"\?", StringComparison.Ordinal))
+                throw new NotSupportedException($@"Path starting with `\\` or `\?` are not supported -> `{innerPath}` ");
 
             var absolutePath = Path.GetFullPath(innerPath);
             var driveIndex = absolutePath.IndexOf(":\\", StringComparison.Ordinal);
@@ -553,7 +551,7 @@ public class PhysicalFileSystem : FileSystem
             var builder = new StringBuilder();
             builder.Append(DrivePrefixOnWindows).Append(char.ToLowerInvariant(absolutePath[0])).Append('/');
             if (absolutePath.Length > 2)
-                builder.Append(absolutePath.Substring(2));
+                builder.Append(absolutePath[2..]);
 
             var result = builder.ToString();
             builder.Length = 0;
@@ -591,7 +589,7 @@ public class PhysicalFileSystem : FileSystem
             return false;
         }
 
-        var dirName = path.GetName();
+        var dirName = path.GetName() ?? string.Empty;
         // Else check that we have a valid drive path (e.g /drive/c)
         return parentDirectory == PathDrivePrefixOnWindows &&
                dirName.Length == 1 &&

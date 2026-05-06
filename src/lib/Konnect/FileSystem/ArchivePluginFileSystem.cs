@@ -17,8 +17,8 @@ class ArchivePluginFileSystem : FileSystem
     private readonly IFileState _fileState;
     private readonly ITemporaryStreamManager _temporaryStreamManager;
 
-    private readonly IDictionary<UPath, IArchiveFile> _fileDictionary;
-    private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> _directoryDictionary;
+    private readonly Dictionary<UPath, IArchiveFile> _fileDictionary;
+    private readonly Dictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> _directoryDictionary;
 
     protected IArchiveFilePluginState ArchiveState => _fileState.PluginState.Archive!;
 
@@ -373,9 +373,7 @@ class ArchivePluginFileSystem : FileSystem
     /// <inheritdoc />
     protected override FileEntry GetFileEntryImpl(UPath path)
     {
-        var afi = GetAfi(path);
-        if (afi is null)
-            throw new FileNotFoundException($"Could not find file `{path}`.");
+        var afi = GetAfi(path) ?? throw new FileNotFoundException($"Could not find file `{path}`.");
 
         return new AfiFileEntry
         {
@@ -439,21 +437,22 @@ class ArchivePluginFileSystem : FileSystem
     protected override string ConvertPathToInternalImpl(UPath path)
     {
         var safePath = path.ToRelative();
-        return (SubPath / safePath).FullName;
+        return (SubPath / safePath).FullName ?? string.Empty;
     }
 
     /// <inheritdoc />
     protected override UPath ConvertPathFromInternalImpl(string innerPath)
     {
         var fullPath = innerPath;
-        if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
+        var subPath = SubPath.FullName ?? string.Empty;
+        if (!fullPath.StartsWith(subPath, StringComparison.Ordinal) || (fullPath.Length > subPath.Length && fullPath[SubPath == UPath.Root ? 0 : subPath.Length] != UPath.DirectorySeparator))
         {
             // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
             // we are throwing an exception here
             throw new InvalidOperationException($"The path `{innerPath}` returned by the delegate filesystem is not rooted to the subpath `{SubPath}`");
         }
 
-        var subPath = fullPath.Substring(SubPath.FullName.Length);
+        subPath = fullPath[subPath.Length..];
         return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
     }
 
@@ -469,14 +468,14 @@ class ArchivePluginFileSystem : FileSystem
         // Enumerate files of current path
         if (enumerateFiles)
         {
-            foreach (var file in files.Where(x => searchPattern.Match(x.FilePath.GetName())))
+            foreach (var file in files.Where(x => searchPattern.Match(x.FilePath.GetName() ?? string.Empty)))
                 yield return file.FilePath;
         }
 
         // Enumerate directories of current path
         if (enumerateDirectories)
         {
-            foreach (var directory in directories.Where(x => searchPattern.Match(x.GetName())))
+            foreach (var directory in directories.Where(x => searchPattern.Match(x.GetName() ?? string.Empty)))
                 yield return directory;
         }
 
@@ -493,7 +492,7 @@ class ArchivePluginFileSystem : FileSystem
 
     #region Directory tree
 
-    private IDictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> CreateDirectoryLookup()
+    private Dictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> CreateDirectoryLookup()
     {
         var result = new Dictionary<UPath, (IList<UPath>, IList<IArchiveFile>)>
         {
@@ -532,7 +531,7 @@ class ArchivePluginFileSystem : FileSystem
         CreateDirectoryEntries(_directoryDictionary, newPath);
     }
 
-    private void CreateDirectoryEntries(IDictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> directories, UPath newPath)
+    private static void CreateDirectoryEntries(Dictionary<UPath, (IList<UPath>, IList<IArchiveFile>)> directories, UPath newPath)
     {
         var path = UPath.Root;
         foreach (var part in newPath.Split())

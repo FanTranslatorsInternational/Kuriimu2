@@ -27,24 +27,23 @@ namespace Konnect.Management.Files;
 public class FileManager : IFileManager
 {
     private readonly IPluginManager _pluginManager;
-    private readonly IFileLoader _fileLoader;
-    private readonly IFileSaver _fileSaver;
-
-    private ILogger _logger;
-
+    private readonly FileLoader _fileLoader;
+    private readonly FileSaver _fileSaver;
     private readonly StreamMonitor _streamMonitor;
 
-    private readonly IList<UPath> _loadingFiles = new List<UPath>();
-    private readonly object _loadingLock = new object();
+    private ILogger? _logger;
 
-    private readonly IList<IFileState> _loadedFiles = new List<IFileState>();
-    private readonly object _loadedFilesLock = new object();
+    private readonly List<UPath> _loadingFiles = [];
+    private readonly object _loadingLock = new();
 
-    private readonly IList<IFileState> _savingStates = new List<IFileState>();
-    private readonly object _saveLock = new object();
+    private readonly List<IFileState> _loadedFiles = [];
+    private readonly object _loadedFilesLock = new();
 
-    private readonly IList<IFileState> _closingStates = new List<IFileState>();
-    private readonly object _closeLock = new object();
+    private readonly List<IFileState> _savingStates = [];
+    private readonly object _saveLock = new();
+
+    private readonly List<IFileState> _closingStates = [];
+    private readonly object _closeLock = new();
 
     /// <inheritdoc />
     public event ManualSelectionDelegate? OnManualSelection;
@@ -59,7 +58,7 @@ public class FileManager : IFileManager
 
     public IDialogManager? DialogManager { get; init; }
 
-    public ILogger Logger
+    public ILogger? Logger
     {
         get => _logger;
         set => SetLogger(value);
@@ -80,19 +79,6 @@ public class FileManager : IFileManager
         _fileSaver = new FileSaver(_streamMonitor);
 
         _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
-    }
-
-    /// <summary>
-    /// Internal constructor for testing.
-    /// </summary>
-    /// <param name="pluginManager">The plugin manager for this instance.</param>
-    /// <param name="fileLoader">The file loader for this instance.</param>
-    /// <param name="fileSaver">The file saver for this instance.</param>
-    internal FileManager(IPluginManager pluginManager, IFileLoader fileLoader, IFileSaver fileSaver)
-    {
-        _pluginManager = pluginManager;
-        _fileLoader = fileLoader;
-        _fileSaver = fileSaver;
     }
 
     #endregion
@@ -504,7 +490,7 @@ public class FileManager : IFileManager
         // 2. Load file
         IDialogManager? dialogManager = DialogManager != null
             ? new DialogManager(DialogManager, options)
-            : DialogManager;
+            : null;
         var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadFileOptions
         {
             ParentFileState = parentFileState,
@@ -538,7 +524,7 @@ public class FileManager : IFileManager
         if (UseSelectionCache)
         {
             UPath absolutePath = fileSystem.ConvertPathToInternal(path);
-            FilePreferenceEntry? cacheEntry = FilePreferences.GetOrDefault(absolutePath.FullName);
+            FilePreferenceEntry? cacheEntry = FilePreferences.GetOrDefault(absolutePath.FullName ?? string.Empty);
 
             if (cacheEntry is not null)
             {
@@ -591,7 +577,10 @@ public class FileManager : IFileManager
         var element = new FilePreferenceEntry(result.LoadedFileState.FilePlugin.PluginId, options);
 
         UPath absolutePath = result.LoadedFileState.FileSystem.ConvertPathToInternal(result.LoadedFileState.FilePath);
-        FilePreferences.Set(absolutePath.FullName, element);
+        if (absolutePath.IsNull)
+            return;
+
+        FilePreferences.Set(absolutePath.FullName!, element);
     }
 
     #endregion
@@ -849,7 +838,7 @@ public class FileManager : IFileManager
         // Indirect children occur when a file is loaded by a FileSystem and got a parent attached manually
         IList<IFileState> indirectChildren;
         lock (_loadedFilesLock)
-            indirectChildren = _loadedFiles.Where(x => x.ParentFileState == fileState).ToArray();
+            indirectChildren = [.. _loadedFiles.Where(x => x.ParentFileState == fileState)];
 
         foreach (var indirectChild in indirectChildren)
             CloseInternal(indirectChild);
@@ -872,7 +861,7 @@ public class FileManager : IFileManager
     {
         CloseAll();
 
-        _streamMonitor?.Dispose();
+        _streamMonitor.Dispose();
     }
 
     private async Task FileLoader_OnManualSelection(ManualSelectionEventArgs e)
@@ -883,7 +872,7 @@ public class FileManager : IFileManager
         await OnManualSelection.Invoke(e);
     }
 
-    private void SetLogger(ILogger logger)
+    private void SetLogger(ILogger? logger)
     {
         _logger = logger;
         _streamMonitor.Logger = logger;

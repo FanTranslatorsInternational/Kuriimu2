@@ -7,12 +7,12 @@ namespace Konnect.Progress;
 public abstract class ConcurrentProgressOutput : IProgressOutput
 {
     private readonly System.Timers.Timer _timer;
-    private ProgressState _progressState;
+    private ProgressState? _progressState;
 
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
     private bool _isUpdating;
 
-    public ConcurrentProgressOutput(int updateInterval)
+    protected ConcurrentProgressOutput(int updateInterval)
     {
         _timer = new System.Timers.Timer(updateInterval);
         _timer.Elapsed += Timer_Elapsed;
@@ -61,10 +61,13 @@ public abstract class ConcurrentProgressOutput : IProgressOutput
 
         OutputProgressInternal(completion, message);
 
-        _isUpdating = false;
+        lock (_lock)
+        {
+            _isUpdating = false;
+        }
     }
 
-    private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+    private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         OutputProgress();
     }

@@ -21,7 +21,7 @@ public class AdjustedCharacter
     public int Character { get; set; }
 
     [XmlElement(ElementName = "padding")]
-    public Padding Padding { get; set; }
+    public required Padding Padding { get; set; }
 }
 
 [XmlRoot(ElementName = "adjustedCharacters")]
@@ -29,17 +29,17 @@ public class AdjustedCharacters
 {
 
     [XmlElement(ElementName = "adjustedCharacter")]
-    public List<AdjustedCharacter> AdjustedCharacter { get; set; }
+    public required List<AdjustedCharacter> AdjustedCharacter { get; set; }
 }
 
 [XmlRoot(ElementName = "profile")]
 public class SerializedFontProfile
 {
     [XmlElement(ElementName = "adjustedCharacters")]
-    public AdjustedCharacters AdjustedCharacters { get; set; }
+    public required AdjustedCharacters AdjustedCharacters { get; set; }
 
     [XmlElement(ElementName = "fontFamily")]
-    public string FontFamily { get; set; }
+    public string? FontFamily { get; set; }
 
     [XmlElement(ElementName = "fontSize")]
     public int FontSize { get; set; }
@@ -57,10 +57,10 @@ public class SerializedFontProfile
     public bool Italic { get; set; }
 
     [XmlElement(ElementName = "textRenderingHint")]
-    public string TextRenderingHint { get; set; }
+    public string? TextRenderingHint { get; set; }
 
     [XmlElement(ElementName = "characters")]
-    public string Characters { get; set; }
+    public required string Characters { get; set; }
 
     [XmlElement(ElementName = "spaceWidth")]
     public int SpaceWidth { get; set; }

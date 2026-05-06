@@ -3,24 +3,17 @@ using Konnect.Contract.Plugin.File.Archive;
 
 namespace Konnect.DataClasses.FileSystem;
 
-public class DirectoryEntry
+public class DirectoryEntry(string name)
 {
-    private DirectoryEntry _parent;
+    private DirectoryEntry? _parent;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     public UPath AbsolutePath => CreateAbsolutePath();
 
-    public IList<DirectoryEntry> Directories { get; }
+    public IList<DirectoryEntry> Directories { get; } = [];
 
-    public IList<IArchiveFile> Files { get; }
-
-    public DirectoryEntry(string name)
-    {
-        Name = name;
-        Directories = new List<DirectoryEntry>();
-        Files = new List<IArchiveFile>();
-    }
+    public IList<IArchiveFile> Files { get; } = [];
 
     /// <summary>
     /// Adds or merges a directory entry into this one.

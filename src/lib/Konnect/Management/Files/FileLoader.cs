@@ -15,20 +15,9 @@ namespace Konnect.Management.Files;
 /// <summary>
 /// Loads files in the runtime of Kuriimu.
 /// </summary>
-internal class FileLoader : IFileLoader
+internal class FileLoader(IPluginManager pluginManager) : IFileLoader
 {
-    private readonly IPluginManager _pluginManager;
-
     public event ManualSelectionDelegate? OnManualSelection;
-
-    /// <summary>
-    /// Creates a new instance of <see cref="FileLoader"/>.
-    /// </summary>
-    /// <param name="pluginManager">The plugin manager to use.</param>
-    public FileLoader(IPluginManager pluginManager)
-    {
-        _pluginManager = pluginManager;
-    }
 
     /// <inheritdoc />
     public async Task<LoadResult> LoadAsync(IFileSystem fileSystem, UPath filePath, LoadFileOptions loadInfo)
@@ -52,7 +41,7 @@ internal class FileLoader : IFileLoader
             return createResult;
 
         // 4. Create new state info
-        var stateInfo = new FileState(plugin, state, loadInfo.ParentFileState, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
+        var stateInfo = new FileState(plugin, state!, loadInfo.ParentFileState, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
         subPluginManager.RegisterStateInfo(stateInfo);
 
         // 5. Load data from state
@@ -62,7 +51,7 @@ internal class FileLoader : IFileLoader
             TemporaryStreamManager = temporaryStreamProvider,
             ProgressContext = loadInfo.Progress
         };
-        var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, loadContext, loadInfo, plugin);
+        var loadStateResult = await TryLoadStateAsync(state!, fileSystem, filePath, loadContext, loadInfo, plugin);
         if (loadStateResult.Status != LoadStatus.Successful)
         {
             loadInfo.StreamManager.ReleaseAll();
@@ -92,7 +81,7 @@ internal class FileLoader : IFileLoader
     private async Task<IFilePlugin?> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadFileOptions loadInfo)
     {
         // 1. Get all plugins that support identification
-        var identifiablePlugins = _pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles);
+        var identifiablePlugins = pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles);
 
         // 2. Identify the file with identifiable plugins
         var matchedPlugins = new List<IFilePlugin>();
@@ -107,12 +96,12 @@ internal class FileLoader : IFileLoader
             catch (Exception e)
             {
                 // Log exceptions and carry on
-                loadInfo.Logger?.Fatal(e, "Tried to identify file '{0}' with plugin '{1}'.", filePath.FullName, identifiablePlugin?.PluginId);
+                loadInfo.Logger?.Fatal(e, "Tried to identify file '{0}' with plugin '{1}'.", filePath.FullName, identifiablePlugin.PluginId);
             }
         }
 
         // 3. Return only matched plugin or manually select one of the matched plugins
-        var allPlugins = _pluginManager.GetPlugins<IFilePlugin>().ToArray();
+        var allPlugins = pluginManager.GetPlugins<IFilePlugin>().ToArray();
 
         if (matchedPlugins.Count == 1)
             return matchedPlugins.First();
@@ -122,7 +111,7 @@ internal class FileLoader : IFileLoader
 
         // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
         if (loadInfo.AllowManualSelection)
-            return await GetManualSelection(allPlugins, allPlugins.Where(x => !x.CanIdentifyFiles).ToArray(), SelectionStatus.NonIdentifiable);
+            return await GetManualSelection(allPlugins, [.. allPlugins.Where(x => !x.CanIdentifyFiles)], SelectionStatus.NonIdentifiable);
 
         return null;
     }
@@ -135,7 +124,7 @@ internal class FileLoader : IFileLoader
     /// <param name="filePath">The path of the file to identify.</param>
     /// <param name="streamManager">The stream manager.</param>
     /// <returns>If hte identification was successful.</returns>
-    private async Task<bool> TryIdentifyFileAsync(IFilePlugin identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
+    private static async Task<bool> TryIdentifyFileAsync(IFilePlugin identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
     {
         // 1. Identify plugin
         var identifyContext = new IdentifyContext
@@ -174,7 +163,7 @@ internal class FileLoader : IFileLoader
     /// <param name="pluginState">The created state.</param>
     /// <param name="loadInfo">The load info for this loading operation.</param>
     /// <returns>If the creation was successful.</returns>
-    private LoadResult TryCreateState(IFilePlugin plugin, IPluginFileManager fileManager, LoadFileOptions loadInfo, out IFilePluginState? pluginState)
+    private static LoadResult TryCreateState(IFilePlugin plugin, IPluginFileManager fileManager, LoadFileOptions loadInfo, out IFilePluginState? pluginState)
     {
         pluginState = null;
 
@@ -223,7 +212,7 @@ internal class FileLoader : IFileLoader
     /// <param name="loadInfo">The load info for this loading operation.</param>
     /// <param name="plugin">The plugin from which the state should be loaded.</param>
     /// <returns>If the loading was successful.</returns>
-    private async Task<LoadResult> TryLoadStateAsync(IFilePluginState pluginState, IFileSystem fileSystem, UPath filePath,
+    private static async Task<LoadResult> TryLoadStateAsync(IFilePluginState pluginState, IFileSystem fileSystem, UPath filePath,
         LoadContext loadContext, LoadFileOptions loadInfo, IFilePlugin plugin)
     {
         // 1. Check if state supports loading

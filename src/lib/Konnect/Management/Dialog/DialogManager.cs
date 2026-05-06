@@ -10,7 +10,7 @@ public class DialogManager : IDialogManager
     private int _optionIndex;
 
     /// <inheritdoc />
-    public IList<string> DialogOptions { get; } = new List<string>();
+    public IList<string> DialogOptions { get; } = [];
 
     public DialogManager(IList<string> options)
     {
@@ -45,7 +45,7 @@ public class DialogManager : IDialogManager
             return true;
 
         // Collect results from dialog manager if predefined options are exhausted
-        DialogField[] subFields = fields.Skip(fieldIndex).ToArray();
+        DialogField[] subFields = [.. fields.Skip(fieldIndex)];
         if (_dialogManager != null)
         {
             var result = await _dialogManager.ShowDialog(subFields);

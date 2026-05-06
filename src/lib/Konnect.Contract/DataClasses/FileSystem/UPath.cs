@@ -14,18 +14,18 @@ namespace Konnect.Contract.DataClasses.FileSystem;
 public struct UPath : IEquatable<UPath>, IComparable<UPath>
 {
     [ThreadStatic]
-    private static InternalHelper _internalHelperTls;
+    private static InternalHelper? _internalHelperTls;
     private static InternalHelper InternalHelperTls => _internalHelperTls ??= new InternalHelper();
 
     /// <summary>
     /// An empty path.
     /// </summary>
-    public static readonly UPath Empty = new UPath(string.Empty, true);
+    public static readonly UPath Empty = new(string.Empty, true);
 
     /// <summary>
     /// The root path `/`
     /// </summary>
-    public static readonly UPath Root = new UPath("/", true);
+    public static readonly UPath Root = new("/", true);
 
     /// <summary>
     /// The directory separator `/`
@@ -46,11 +46,11 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     /// Initializes a new instance of the <see cref="UPath"/> struct.
     /// </summary>
     /// <param name="path">The path that will be normalized.</param>
-    public UPath(string path) : this(path, false)
+    public UPath(string? path) : this(path, false)
     {
     }
 
-    public UPath(string path, bool safe)
+    public UPath(string? path, bool safe)
     {
         if (safe)
         {
@@ -68,48 +68,48 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     /// Gets the full name of this path (Note that it may be null).
     /// </summary>
     /// <value>The full name of this path.</value>
-    public string FullName { get; }
+    public string? FullName { get; }
 
     /// <summary>
     /// Gets a value indicating whether this path is null.
     /// </summary>
     /// <value><c>true</c> if this instance is null; otherwise, <c>false</c>.</value>
-    public bool IsNull => FullName == null;
+    public readonly bool IsNull => FullName == null;
 
     /// <summary>
     /// Gets a value indicating whether this path is empty (<see cref="FullName"/> equals to the empty string)
     /// </summary>
     /// <value><c>true</c> if this instance is empty; otherwise, <c>false</c>.</value>
-    public bool IsEmpty => FullName == string.Empty;
+    public readonly bool IsEmpty => FullName == string.Empty;
 
     /// <summary>
     /// Gets a value indicating whether this path is absolute by starting with a leading `/`.
     /// </summary>
     /// <value><c>true</c> if this path is absolute; otherwise, <c>false</c>.</value>
-    public bool IsAbsolute => FullName?.StartsWith("/") ?? false;
+    public readonly bool IsAbsolute => FullName?.StartsWith('/') ?? false;
 
     /// <summary>
     /// Gets a value indicating whether this path is relative by **not** starting with a leading `/`.
     /// </summary>
     /// <value><c>true</c> if this instance is relative; otherwise, <c>false</c>.</value>
-    public bool IsRelative => !IsAbsolute;
+    public readonly bool IsRelative => !IsAbsolute;
 
     /// <summary>
     /// Gets a value indicating whether this path is a directory by **not** ending with a `/`.
     /// </summary>
-    public bool IsDirectory => FullName?.EndsWith("/") ?? false;
+    public readonly bool IsDirectory => FullName?.EndsWith('/') ?? false;
 
     /// <summary>
     /// Gets a value indicating whether this path is a file by ending with a `/`.
     /// </summary>
-    public bool IsFile => !IsDirectory;
+    public readonly bool IsFile => !IsDirectory;
 
     /// <summary>
     /// Performs an implicit conversion from <see cref="string"/> to <see cref="UPath"/>.
     /// </summary>
     /// <param name="path">The path as a string.</param>
     /// <returns>The result of the conversion.</returns>
-    public static implicit operator UPath(string path)
+    public static implicit operator UPath(string? path)
     {
         return new UPath(path);
     }
@@ -119,7 +119,7 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     /// </summary>
     /// <param name="path">The path.</param>
     /// <returns>The result as a string of the conversion.</returns>
-    public static explicit operator string(UPath path)
+    public static explicit operator string?(UPath path)
     {
         return path.FullName;
     }
@@ -213,19 +213,19 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     }
 
     /// <inheritdoc />
-    public bool Equals(UPath other)
+    public readonly bool Equals(UPath other)
     {
         return string.Equals(FullName, other.FullName);
     }
 
     /// <inheritdoc />
-    public override bool Equals(object obj)
+    public readonly override bool Equals(object? obj)
     {
         return obj is UPath path && Equals(path);
     }
 
     /// <inheritdoc />
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return FullName?.GetHashCode() ?? 0;
     }
@@ -253,9 +253,9 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     }
 
     /// <inheritdoc />
-    public override string ToString()
+    public readonly override string ToString()
     {
-        return FullName;
+        return FullName ?? string.Empty;
     }
 
     /// <summary>
@@ -264,14 +264,14 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
     /// <param name="path">The path as a string.</param>
     /// <param name="pathInfo">The path parsed if successful.</param>
     /// <returns><c>true</c> if path was parsed successfully, <c>false</c> otherwise.</returns>
-    public static bool TryParse(string path, out UPath pathInfo)
+    public static bool TryParse(string? path, out UPath pathInfo)
     {
         path = ValidateAndNormalize(path, out var errorMessage);
         pathInfo = errorMessage == null ? new UPath(path, true) : new UPath();
         return errorMessage == null;
     }
 
-    private static string ValidateAndNormalize(string path, out string errorMessage)
+    private static string? ValidateAndNormalize(string? path, out string? errorMessage)
     {
         errorMessage = null;
 
@@ -324,7 +324,7 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
                     // and we only have a trailing / or \\, then just perform
                     // a substring on the path
                     if (!processParts && i + 1 == path.Length)
-                        return path.Substring(0, path.Length - 1);
+                        return path[..^1];
 
                     if (c == '\\')
                         processParts = true;
@@ -464,34 +464,22 @@ public struct UPath : IEquatable<UPath>, IComparable<UPath>
 
     private class InternalHelper
     {
-        public readonly StringBuilder Builder;
+        public readonly StringBuilder Builder = new();
 
-        public readonly List<TextSlice> Slices;
-
-        public InternalHelper()
-        {
-            Builder = new StringBuilder();
-            Slices = new List<TextSlice>();
-        }
+        public readonly List<TextSlice> Slices = [];
     }
 
-    private struct TextSlice
+    private readonly struct TextSlice(int start, int end)
     {
-        public TextSlice(int start, int end)
-        {
-            Start = start;
-            End = end;
-        }
+        public readonly int Start = start;
 
-        public readonly int Start;
-
-        public readonly int End;
+        public readonly int End = end;
 
         public int Length => End - Start + 1;
     }
 
     /// <inheritdoc />
-    public int CompareTo(UPath other)
+    public readonly int CompareTo(UPath other)
     {
         return string.Compare(FullName, other.FullName, StringComparison.Ordinal);
     }

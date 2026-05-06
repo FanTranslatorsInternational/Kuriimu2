@@ -38,29 +38,18 @@ namespace Konnect.FileSystem;
 /// Abstract class for a <see cref="IFileSystem"/>. Provides default arguments safety checking and redirecting to safe implementation.
 /// Implements also the <see cref="IDisposable"/> pattern.
 /// </summary>
-public abstract class FileSystem : IFileSystem
+public abstract class FileSystem(IStreamManager streamManager) : IFileSystem
 {
-    private readonly object _dispatcherLock;
-    private FileSystemEventDispatcher<Watcher.FileSystemWatcher> _dispatcher;
+    private readonly object _dispatcherLock = new();
+    private FileSystemEventDispatcher<Watcher.FileSystemWatcher>? _dispatcher;
 
-    protected IStreamManager StreamManager { get; }
+    protected IStreamManager StreamManager { get; } = streamManager;
 
     /// <summary>
     /// The default file time if the file described in a path parameter does not exist.
     /// The default file time is 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC), adjusted to local time.
     /// </summary>
     public static readonly DateTime DefaultFileTime = new DateTime(1601, 01, 01, 0, 0, 0, DateTimeKind.Utc).ToLocalTime();
-
-    /// <summary>
-    /// Creates a new instance of <see cref="FileSystem"/>.
-    /// </summary>
-    /// <param name="streamManager">The stream manager to scope streams in.</param>
-    public FileSystem(IStreamManager streamManager)
-    {
-        _dispatcherLock = new object();
-
-        StreamManager = streamManager;
-    }
 
     /// <summary>
     /// Finalizes an instance of the <see cref="FileSystem"/> class.
@@ -471,7 +460,7 @@ public abstract class FileSystem : IFileSystem
     public IEnumerable<UPath> EnumeratePaths(UPath path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly, SearchTarget searchTarget = SearchTarget.Both)
     {
         AssertNotDisposed();
-        if (searchPattern == null) throw new ArgumentNullException(nameof(searchPattern));
+        ArgumentNullException.ThrowIfNull(searchOption);
         return EnumeratePathsImpl(ValidatePath(path), searchPattern, searchOption, searchTarget);
     }
 
@@ -568,7 +557,7 @@ public abstract class FileSystem : IFileSystem
     public UPath ConvertPathFromInternal(string systemPath)
     {
         AssertNotDisposed();
-        if (systemPath == null) throw new ArgumentNullException(nameof(systemPath));
+        ArgumentNullException.ThrowIfNull(systemPath);
         return ValidatePath(ConvertPathFromInternalImpl(systemPath));
     }
     /// <summary>
@@ -588,7 +577,7 @@ public abstract class FileSystem : IFileSystem
     /// <exception cref="System.NotSupportedException">The path cannot contain the `:` character</exception>
     protected virtual UPath ValidatePathImpl(UPath path, string name = "path")
     {
-        if (path.FullName.IndexOf(':') >= 0)
+        if (path.FullName?.IndexOf(':') >= 0)
         {
             throw new NotSupportedException($"The path `{path}` cannot contain the `:` character");
         }
@@ -625,13 +614,10 @@ public abstract class FileSystem : IFileSystem
 
     private void AssertNotDisposed()
     {
-        if (IsDisposing || IsDisposed)
-        {
-            throw new ObjectDisposedException($"This instance `{GetType()}` is already disposed.");
-        }
+        ObjectDisposedException.ThrowIf(IsDisposing || IsDisposed, this);
     }
 
-    private void AssertTrue(bool condition, string conditionName)
+    private static void AssertTrue(bool condition, string conditionName)
     {
         if (!condition)
         {

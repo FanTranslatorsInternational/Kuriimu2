@@ -37,12 +37,12 @@ namespace Konnect.FileSystem;
 /// Search pattern compiler used for custom <see cref="IFileSystem.EnumeratePaths"/> implementations.
 /// Use the method <see cref="Parse"/> to create a pattern.
 /// </summary>
-internal struct SearchPattern
+internal readonly struct SearchPattern
 {
-    private static readonly char[] WildcardChars = { '?', '*' };
+    private static readonly char[] WildcardChars = ['?', '*'];
 
-    private readonly string _exactMatch;
-    private readonly Regex _regexMatch;
+    private readonly string? _exactMatch;
+    private readonly Regex? _regexMatch;
 
     /// <summary>
     /// Tries to match the specified path with this instance.
@@ -52,7 +52,7 @@ internal struct SearchPattern
     public bool Match(UPath path)
     {
         path.AssertNotNull();
-        var name = path.FullName;
+        var name = path.FullName ?? string.Empty;
         // if _execMatch is null and _regexMatch is null, we have a * match
         return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
     }
@@ -64,7 +64,7 @@ internal struct SearchPattern
     /// <returns><c>true</c> if the path was matched, <c>false</c> otherwise.</returns>
     public bool Match(string name)
     {
-        if (name == null) throw new ArgumentNullException(nameof(name));
+        ArgumentNullException.ThrowIfNull(name);
         // if _execMatch is null and _regexMatch is null, we have a * match
         return _exactMatch != null ? _exactMatch == name : _regexMatch == null || _regexMatch.IsMatch(name);
     }
@@ -93,7 +93,7 @@ internal struct SearchPattern
     private SearchPattern(ref UPath path, ref string searchPattern)
     {
         path.AssertAbsolute();
-        if (searchPattern == null) throw new ArgumentNullException(nameof(searchPattern));
+        ArgumentNullException.ThrowIfNull(searchPattern);
 
         _exactMatch = null;
         _regexMatch = null;
@@ -104,7 +104,7 @@ internal struct SearchPattern
             return;
         }
 
-        if (searchPattern.StartsWith("/"))
+        if (searchPattern.StartsWith('/'))
         {
             throw new ArgumentException($"The search pattern `{searchPattern}` cannot start by an absolute path `/`");
         }
@@ -117,11 +117,11 @@ internal struct SearchPattern
         {
             var pathPattern = new UPath(searchPattern);
             var directory = pathPattern.GetDirectory();
-            if (!directory.IsNull && !directory.IsEmpty)
+            if (directory is { IsNull: false, IsEmpty: false })
             {
                 path /= directory;
             }
-            searchPattern = pathPattern.GetName();
+            searchPattern = pathPattern.GetName() ?? string.Empty;
 
             // If the search pattern is again a plain any, optimized path
             if (searchPattern == "*")
@@ -129,20 +129,20 @@ internal struct SearchPattern
                 return;
             }
         }
-            
+
         var regexBuilder = new StringBuilder("^");
         bool containsWildcards = false;
-            
+
         // Loop through parts of searchPattern separated by wildcards
         for (int index = 0, nextWildcard = 0; nextWildcard != -1; index = nextWildcard + 1)
         {
             // Next wildcard occurence
             nextWildcard = searchPattern.IndexOfAny(WildcardChars, index);
-                
+
             // Escape & append text up to next wildcard
             // If no new wildcard, append up to end of string
             var endOfPart = nextWildcard != -1 ? nextWildcard : searchPattern.Length;
-            regexBuilder.Append(Regex.Escape(searchPattern.Substring(index, endOfPart - index)));
+            regexBuilder.Append(Regex.Escape(searchPattern[index..endOfPart]));
 
             // Convert & append wildcard, if applicable
             if (nextWildcard != -1)
@@ -158,9 +158,9 @@ internal struct SearchPattern
                 containsWildcards = true;
             }
         }
-            
-        regexBuilder.Append("$");
-            
+
+        regexBuilder.Append('$');
+
         if (!containsWildcards)
         {
             _exactMatch = searchPattern;

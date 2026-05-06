@@ -3,57 +3,46 @@
 /// <summary>
 /// A <see cref="Stream"/> to wrap a <see cref="FileStream"/> and deletes its corresponding file on closing.
 /// </summary>
-class TemporaryStream : System.IO.Stream
+internal class TemporaryStream(FileStream baseStream) : Stream
 {
-    private readonly FileStream _baseStream;
+    /// <inheritdoc />
+    public override bool CanRead => baseStream.CanRead;
 
     /// <inheritdoc />
-    public override bool CanRead => _baseStream.CanRead;
+    public override bool CanSeek => baseStream.CanSeek;
 
     /// <inheritdoc />
-    public override bool CanSeek => _baseStream.CanSeek;
+    public override bool CanWrite => baseStream.CanWrite;
 
     /// <inheritdoc />
-    public override bool CanWrite => _baseStream.CanWrite;
-
-    /// <inheritdoc />
-    public override long Length => _baseStream.Length;
+    public override long Length => baseStream.Length;
 
     /// <inheritdoc />
     public override long Position
     {
-        get => _baseStream.Position;
-        set => _baseStream.Position = value;
-    }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="TemporaryStream"/>.
-    /// </summary>
-    /// <param name="baseStream">The <see cref="FileStream"/> to wrap.</param>
-    public TemporaryStream(FileStream baseStream)
-    {
-        _baseStream = baseStream;
+        get => baseStream.Position;
+        set => baseStream.Position = value;
     }
 
     /// <inheritdoc />
     public override void Flush()
-        => _baseStream.Flush();
+        => baseStream.Flush();
 
     /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin)
-        => _baseStream.Seek(offset, origin);
+        => baseStream.Seek(offset, origin);
 
     /// <inheritdoc />
     public override void SetLength(long value)
-        => _baseStream.SetLength(value);
+        => baseStream.SetLength(value);
 
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
-        => _baseStream.Read(buffer, offset, count);
+        => baseStream.Read(buffer, offset, count);
 
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count)
-        => _baseStream.Write(buffer, offset, count);
+        => baseStream.Write(buffer, offset, count);
 
     /// <summary>
     /// Closes the underlying <see cref="FileStream"/> and deletes the corresponding file.
@@ -62,8 +51,8 @@ class TemporaryStream : System.IO.Stream
     {
         base.Close();
 
-        _baseStream.Close();
-        if (File.Exists(_baseStream.Name))
-            File.Delete(_baseStream.Name);
+        baseStream.Close();
+        if (File.Exists(baseStream.Name))
+            File.Delete(baseStream.Name);
     }
 }

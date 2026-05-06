@@ -45,7 +45,7 @@ public class FontProfileManager : IFontProfileManager
             Characters = profile.Characters,
             AdjustedCharacters = new AdjustedCharacters
             {
-                AdjustedCharacter = profile.Paddings
+                AdjustedCharacter = [..profile.Paddings
                     .Where(x => x.Value.Item1 != 0 || x.Value.Item2 != 0)
                     .Select(p => new AdjustedCharacter
                     {
@@ -55,7 +55,7 @@ public class FontProfileManager : IFontProfileManager
                             Left = p.Value.Item1,
                             Right = p.Value.Item2
                         }
-                    }).ToList()
+                    })]
             }
         };
 

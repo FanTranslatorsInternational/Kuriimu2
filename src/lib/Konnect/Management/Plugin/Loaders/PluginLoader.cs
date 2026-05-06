@@ -11,7 +11,7 @@ public abstract class PluginLoader : IPluginLoader
     public abstract IReadOnlyList<PluginLoadError> LoadErrors { get; }
     public abstract bool Exists(Guid pluginId);
 
-    protected void LoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
+    protected static void LoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
     {
         // 1. Get all assembly file paths from the designated plugin directories
         var assemblyFilePaths = pluginPaths.Select(p => p)
@@ -26,7 +26,7 @@ public abstract class PluginLoader : IPluginLoader
         LoadPlugins(assemblyFiles, out loadedPlugins, out errors);
     }
 
-    protected void LoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
+    protected static void LoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
     {
         // 3. Get all public types assignable to IPlugin
         var pluginTypes = GetPublicTypes<TPlugin>(assemblyFiles, out var loadErrors);
@@ -35,15 +35,15 @@ public abstract class PluginLoader : IPluginLoader
         loadedPlugins = CreatePluginTypes<TPlugin>(pluginTypes, out var createErrors);
 
         // 5. Register referenced assemblies of the plugin
-        RegisterReferencedAssemblies(loadedPlugins);
+        RegisterReferencedAssemblies<TPlugin>(loadedPlugins);
 
-        errors = loadErrors.Concat(createErrors).ToArray();
+        errors = [.. loadErrors.Concat(createErrors)];
     }
 
-    private IList<Type> GetPublicTypes<TPlugin>(IEnumerable<Assembly> assemblies, out IList<PluginLoadError> errors)
+    private static List<Type> GetPublicTypes<TPlugin>(Assembly[] assemblies, out IList<PluginLoadError> errors)
     {
         var result = new List<Type>();
-        errors = new List<PluginLoadError>();
+        errors = [];
 
         var pluginType = typeof(TPlugin);
 
@@ -52,7 +52,7 @@ public abstract class PluginLoader : IPluginLoader
             try
             {
                 var exportedTypes = assembly.GetExportedTypes();
-                result.AddRange(exportedTypes.Where(t => pluginType.IsAssignableFrom(t)));
+                result.AddRange(exportedTypes.Where(pluginType.IsAssignableFrom));
             }
             catch (Exception e)
             {
@@ -67,17 +67,17 @@ public abstract class PluginLoader : IPluginLoader
         return result;
     }
 
-    private IReadOnlyList<TPlugin> CreatePluginTypes<TPlugin>(IEnumerable<Type> pluginTypes, out IList<PluginLoadError> errors)
+    private static List<TPlugin> CreatePluginTypes<TPlugin>(List<Type> pluginTypes, out IList<PluginLoadError> errors)
     {
         var result = new List<TPlugin>();
-        errors = new List<PluginLoadError>();
+        errors = [];
 
         foreach (Type pluginType in pluginTypes)
         {
             try
             {
                 var instance = (TPlugin?)Activator.CreateInstance(pluginType);
-                if(instance is null)
+                if (instance is null)
                     continue;
 
                 result.Add(instance);
@@ -95,7 +95,7 @@ public abstract class PluginLoader : IPluginLoader
         return result;
     }
 
-    private void RegisterReferencedAssemblies<TPlugin>(IReadOnlyList<TPlugin> loadedPlugins) where TPlugin : IPlugin
+    private static void RegisterReferencedAssemblies<TPlugin>(IReadOnlyList<TPlugin> loadedPlugins) where TPlugin : IPlugin
     {
         AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
@@ -108,9 +108,9 @@ public abstract class PluginLoader : IPluginLoader
         }
     }
 
-    private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+    private static Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
     {
-        var appDomain = (AppDomain)sender;
-        return appDomain.GetAssemblies().FirstOrDefault(x => x.FullName == args.Name);
+        var appDomain = (AppDomain?)sender;
+        return appDomain?.GetAssemblies().FirstOrDefault(x => x.FullName == args.Name);
     }
 }

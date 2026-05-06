@@ -41,7 +41,7 @@ internal class PhysicalFileSystemWatcher : FileSystemWatcher
         };
     }
 
-    private FileSystemErrorEventArgs Remap(ErrorEventArgs args)
+    private static FileSystemErrorEventArgs Remap(ErrorEventArgs args)
     {
         return new FileSystemErrorEventArgs
         {

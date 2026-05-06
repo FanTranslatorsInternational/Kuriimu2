@@ -7,12 +7,12 @@ namespace Konnect.Plugin.File.Image;
 
 public class EncodingDefinition : IEncodingDefinition
 {
-    private readonly Dictionary<int, IColorEncoding> _colorEncodings;
-    private readonly Dictionary<int, IndexEncodingDefinition> _indexEncodings;
-    private readonly Dictionary<int, IColorEncoding> _paletteEncodings;
+    private readonly Dictionary<int, IColorEncoding> _colorEncodings = [];
+    private readonly Dictionary<int, IndexEncodingDefinition> _indexEncodings = [];
+    private readonly Dictionary<int, IColorEncoding> _paletteEncodings = [];
 
-    private readonly Dictionary<int, IColorShader> _colorShaders;
-    private readonly Dictionary<int, IColorShader> _paletteShaders;
+    private readonly Dictionary<int, IColorShader> _colorShaders = [];
+    private readonly Dictionary<int, IColorShader> _paletteShaders = [];
 
     public static EncodingDefinition Empty { get; } = new();
 
@@ -23,16 +23,6 @@ public class EncodingDefinition : IEncodingDefinition
     public IReadOnlyDictionary<int, IndexEncodingDefinition> IndexEncodings => _indexEncodings;
 
     public IReadOnlyDictionary<int, IColorEncoding> PaletteEncodings => _paletteEncodings;
-
-    public EncodingDefinition()
-    {
-        _colorEncodings = new Dictionary<int, IColorEncoding>();
-        _paletteEncodings = new Dictionary<int, IColorEncoding>();
-        _indexEncodings = new Dictionary<int, IndexEncodingDefinition>();
-
-        _colorShaders = new Dictionary<int, IColorShader>();
-        _paletteShaders = new Dictionary<int, IColorShader>();
-    }
 
     public bool ContainsColorEncoding(int imageFormat)
     {

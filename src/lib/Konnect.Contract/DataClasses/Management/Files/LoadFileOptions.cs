@@ -9,19 +9,19 @@ namespace Konnect.Contract.DataClasses.Management.Files;
 
 public class LoadFileOptions
 {
-    public IFileState ParentFileState { get; set; }
+    public IFileState? ParentFileState { get; set; }
 
-    public IStreamManager StreamManager { get; set; }
+    public required IStreamManager StreamManager { get; set; }
 
-    public IFileManager FileManager { get; set; }
+    public required IFileManager FileManager { get; set; }
 
     public IFilePlugin? Plugin { get; set; }
 
-    public IProgressContext Progress { get; set; }
+    public required IProgressContext Progress { get; set; }
 
     public IDialogManager? DialogManager { get; set; }
 
     public bool AllowManualSelection { get; set; }
 
-    public ILogger Logger { get; set; }
+    public ILogger? Logger { get; set; }
 }
