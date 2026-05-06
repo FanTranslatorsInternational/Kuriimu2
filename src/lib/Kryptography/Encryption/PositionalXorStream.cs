@@ -1,11 +1,7 @@
 ﻿namespace Kryptography.Encryption
 {
-    public class PositionalXorStream : XorStream
+    public class PositionalXorStream(Stream input, byte[] key) : XorStream(input, key)
     {
-        public PositionalXorStream(Stream input, byte[] key) : base(input, key)
-        {
-        }
-
         protected override void FillXorBuffer(byte[] fill, long pos, byte[] key)
         {
             base.FillXorBuffer(fill, pos, key);

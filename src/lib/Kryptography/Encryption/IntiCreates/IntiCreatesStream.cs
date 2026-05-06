@@ -2,7 +2,6 @@
 
 namespace Kryptography.Encryption.IntiCreates
 {
-    // TODO: Remove from Kryptography if cipher extensions are plugin-able
     public class IntiCreatesStream : Stream
     {
         private static readonly byte[] Buffer = new byte[0x1000];
@@ -114,7 +113,7 @@ namespace Kryptography.Encryption.IntiCreates
             _baseStream.Position = bkPos;
         }
 
-        private ulong PrepareKeyValues(string password)
+        private static ulong PrepareKeyValues(string password)
         {
             var key = 0xa1b34f58cad705b2;
             foreach (var b in Encoding.ASCII.GetBytes(password))
@@ -131,7 +130,7 @@ namespace Kryptography.Encryption.IntiCreates
             while (offset > 0)
             {
                 var count = (int)Math.Min(offset, 0x1000);
-                _baseStream.Read(Buffer, 0, count);
+                _ = _baseStream.Read(Buffer, 0, count);
 
                 for (var i = 0; i < count; i++)
                     _currentKey = AdvanceKeyValue(Buffer[i], _currentKey);
@@ -142,7 +141,7 @@ namespace Kryptography.Encryption.IntiCreates
             _baseStream.Position = bkPos1;
         }
 
-        private ulong AdvanceKeyValue(byte value, ulong key)
+        private static ulong AdvanceKeyValue(byte value, ulong key)
         {
             return (key + value) * 0x8D;
         }

@@ -10,19 +10,18 @@ namespace Kryptography.Encryption.Nintendo.Wii
 
         private const int PartitionTitleKeyStart_ = 0x1BF;
         private const int PartitionTitleIdStart_ = 0x1DC;
-        private const int PartitionTitleIdEnd_ = 0x1E4;
         private const int PartitionCommonKeyIndexStart_ = 0x1F1;
 
-        private static IList<byte[]> _commonKeys = new List<byte[]>
-        {
-            new byte[] {0xEB, 0xE4, 0x2A, 0x22, 0x5E, 0x85, 0x93, 0xE4, 0x48, 0xD9, 0xC5, 0x45, 0x73, 0x81, 0xAA, 0xF7},
-            new byte[] {0x63, 0xB8, 0x2B, 0xB4, 0xF4, 0x61, 0x4E, 0x2E, 0x13, 0xF2, 0xFE, 0xFB, 0xBA, 0x4C, 0x9B, 0x7E}
-        };
+        private static readonly List<byte[]> CommonKeys =
+        [
+            [0xEB, 0xE4, 0x2A, 0x22, 0x5E, 0x85, 0x93, 0xE4, 0x48, 0xD9, 0xC5, 0x45, 0x73, 0x81, 0xAA, 0xF7],
+            [0x63, 0xB8, 0x2B, 0xB4, 0xF4, 0x61, 0x4E, 0x2E, 0x13, 0xF2, 0xFE, 0xFB, 0xBA, 0x4C, 0x9B, 0x7E]
+        ];
 
         private const int PartitionEntrySize_ = 8;
 
         private readonly Stream _baseStream;
-        private readonly IList<(long offset, Stream stream)> _partitions;
+        private readonly List<(long offset, Stream stream)> _partitions;
 
         public override bool CanRead => _baseStream.CanRead;
         public override bool CanSeek => _baseStream.CanSeek;
@@ -32,14 +31,10 @@ namespace Kryptography.Encryption.Nintendo.Wii
 
         public WiiDiscStream(Stream baseStream)
         {
-            if (baseStream == null)
-                throw new ArgumentNullException(nameof(baseStream));
-
             _baseStream = baseStream;
 
-            var partitions = PeekPartitions(baseStream);
-            if (partitions == null)
-                throw new InvalidOperationException("Stream is not a WiiDisc.");
+            var partitions = PeekPartitions(baseStream)
+                             ?? throw new InvalidOperationException("Stream is not a WiiDisc.");
 
             _partitions = new List<(long, Stream)>(partitions.Count);
             for (var i = 0; i < partitions.Count; i++)
@@ -60,19 +55,13 @@ namespace Kryptography.Encryption.Nintendo.Wii
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            switch (origin)
+            return origin switch
             {
-                case SeekOrigin.Begin:
-                    return Position = offset;
-
-                case SeekOrigin.Current:
-                    return Position += offset;
-
-                case SeekOrigin.End:
-                    return Position = Length + offset;
-            }
-
-            throw new ArgumentException("Origin is invalid.");
+                SeekOrigin.Begin => Position = offset,
+                SeekOrigin.Current => Position += offset,
+                SeekOrigin.End => Position = Length + offset,
+                _ => throw new ArgumentException("Origin is invalid.")
+            };
         }
 
         public override void SetLength(long value)
@@ -137,24 +126,17 @@ namespace Kryptography.Encryption.Nintendo.Wii
             ValidateInput(buffer, offset, count);
         }
 
-        private void ValidateWrite(byte[] buffer, int offset, int count)
+        private static void ValidateInput(byte[] buffer, int offset, int count)
         {
-            if (!CanWrite) throw new NotSupportedException("Write is not supported");
-            if (Position >= Length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
-            if (Length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(offset, 0);
+            ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
 
-            ValidateInput(buffer, offset, count);
-        }
-
-        private void ValidateInput(byte[] buffer, int offset, int count)
-        {
-            if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
         }
 
         #endregion
 
-        private IList<(int offset, int type)> PeekPartitions(Stream input)
+        private static List<(int offset, int type)>? PeekPartitions(Stream input)
         {
             if (input.Length <= PartitionInfoEnd_)
                 return null;
@@ -167,8 +149,8 @@ namespace Kryptography.Encryption.Nintendo.Wii
             for (var i = 0; i < 4; i++)
                 partitionInfos.Add((ReadInt32(input), ReadInt32(input) << 2));
 
-            // If any partition entry is outside of the stream
-            if (partitionInfos.Any(x => input.Length <= x.Item2 + x.Item1 * PartitionEntrySize_))
+            // If any partition entry is outside the stream
+            if (partitionInfos.Any(x => input.Length <= x.offset + x.count * PartitionEntrySize_))
             {
                 input.Position = bkPos;
                 return null;
@@ -176,18 +158,18 @@ namespace Kryptography.Encryption.Nintendo.Wii
 
             // Read partition entries
             var partitionEntries = new List<(int offset, int type)>();
-            foreach (var partitionInfo in partitionInfos)
+            foreach ((int count, int offset) in partitionInfos)
             {
-                input.Position = partitionInfo.offset;
+                input.Position = offset;
 
                 var localPartitionEntries = new List<(int, int)>();
-                for (var i = 0; i < partitionInfo.count; i++)
+                for (var i = 0; i < count; i++)
                     localPartitionEntries.Add((ReadInt32(input) << 2, ReadInt32(input)));
 
                 partitionEntries.AddRange(localPartitionEntries);
             }
 
-            // If any partition is outside of the stream
+            // If any partition is outside the stream
             if (partitionEntries.Any(x => input.Length <= x.offset))
             {
                 input.Position = bkPos;
@@ -198,7 +180,7 @@ namespace Kryptography.Encryption.Nintendo.Wii
             return partitionEntries;
         }
 
-        private byte[] PeekPartitionKey(Stream partitionStream)
+        private static byte[]? PeekPartitionKey(Stream partitionStream)
         {
             if (partitionStream.Length <= PartitionCommonKeyIndexStart_)
                 return null;
@@ -208,26 +190,26 @@ namespace Kryptography.Encryption.Nintendo.Wii
             // Read encrypted partitionKey
             partitionStream.Position = PartitionTitleKeyStart_;
             var partitionKey = new byte[0x10];
-            partitionStream.Read(partitionKey, 0, 0x10);
+            _ = partitionStream.Read(partitionKey, 0, 0x10);
 
             // Read titleId
             partitionStream.Position = PartitionTitleIdStart_;
             var titleId = new byte[0x10];
-            partitionStream.Read(titleId, 0, 8);
+            _ = partitionStream.Read(titleId, 0, 8);
 
             // Read common key index
             partitionStream.Position = PartitionCommonKeyIndexStart_;
             var commonKeyIndex = partitionStream.ReadByte();
-            if (commonKeyIndex < 0 || commonKeyIndex >= _commonKeys.Count)
+            if (commonKeyIndex < 0 || commonKeyIndex >= CommonKeys.Count)
             {
                 partitionStream.Position = bkPos;
                 return null;
             }
 
             // Decrypt partitionKey
-            var cbcStream = new CbcStream(new MemoryStream(partitionKey), _commonKeys[commonKeyIndex], titleId);
+            var cbcStream = new CbcStream(new MemoryStream(partitionKey), CommonKeys[commonKeyIndex], titleId);
             var decryptedPartitionKey = new byte[0x10];
-            cbcStream.Read(decryptedPartitionKey, 0, 0x10);
+            _ = cbcStream.Read(decryptedPartitionKey, 0, 0x10);
 
             partitionStream.Position = bkPos;
             return decryptedPartitionKey;
@@ -243,12 +225,12 @@ namespace Kryptography.Encryption.Nintendo.Wii
             return -1;
         }
 
-        private int ReadInt32(Stream input)
+        private static int ReadInt32(Stream input)
         {
             // BigEndian
             var buffer = new byte[4];
-            input.Read(buffer, 0, 4);
-            return buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+            _ = input.Read(buffer, 0, 4);
+            return (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
         }
     }
 }

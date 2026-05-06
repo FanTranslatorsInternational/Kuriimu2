@@ -8,10 +8,18 @@ namespace Kryptography.Encryption.AES.CTR
     {
         public byte[] Ctr { get; set; }
 
-        private ICryptoTransform _cryptor;
+        private readonly ICryptoTransform _cryptor;
         private readonly bool _littleEndianCtr;
 
         private bool _firstTransform = true;
+
+        public int InputBlockSize => 16;
+
+        public int OutputBlockSize => 16;
+
+        public bool CanTransformMultipleBlocks => true;
+
+        public bool CanReuseTransform => true;
 
         public AesCtrCryptoTransform(ICryptoTransform cryptor, byte[] ctr, bool littleEndianCtr)
         {
@@ -22,19 +30,11 @@ namespace Kryptography.Encryption.AES.CTR
             _littleEndianCtr = littleEndianCtr;
         }
 
-        public int InputBlockSize => 16;
-
-        public int OutputBlockSize => 16;
-
-        public bool CanTransformMultipleBlocks => true;
-
-        public bool CanReuseTransform => true;
-
         public void Dispose()
         {
             _cryptor.Dispose();
-            _cryptor = null;
-            Ctr = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
@@ -97,7 +97,7 @@ namespace Kryptography.Encryption.AES.CTR
             return ctrs;
         }
 
-        private void XorData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedCtrs)
+        private static void XorData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedCtrs)
         {
             var simdLength = Vector<byte>.Count;
             int j;
@@ -114,7 +114,7 @@ namespace Kryptography.Encryption.AES.CTR
             }
         }
 
-        private long RoundUpToMultiple(long numToRound, int multiple)
+        private static long RoundUpToMultiple(long numToRound, int multiple)
         {
             if (multiple == 0)
                 return numToRound;

@@ -12,7 +12,7 @@ namespace Kryptography.Encryption.Nintendo.Switch
     public class NcaStreamFactory
     {
         private NcaKeyStorage _keyStorage;
-        private NcaTitleKeyStorage _titleKeyStorage;
+        private NcaTitleKeyStorage? _titleKeyStorage;
 
         /// <summary>
         /// The version of the NCA
@@ -27,7 +27,7 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// <summary>
         /// Information on each body section in the NCA
         /// </summary>
-        public NcaBodySection[] Sections { get; private set; }
+        public NcaBodySection[]? Sections { get; private set; }
 
         /// <summary>
         /// The key index to decrypt the key area
@@ -37,7 +37,7 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// <summary>
         /// The encrypted key area to be used for body section cipher operations
         /// </summary>
-        public byte[] EncryptedKeyArea { get; set; }
+        public byte[]? EncryptedKeyArea { get; set; }
 
         /// <summary>
         /// Defines if the title key encryption should be used
@@ -47,19 +47,19 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// <summary>
         /// The encrypted title key to be used for body section cipher operations
         /// </summary>
-        public byte[] EncryptedTitleKey { get; set; }
+        public byte[]? EncryptedTitleKey { get; set; }
 
         /// <summary>
-        /// The title id for auto detecting encrypted title key
+        /// The title id for auto-detecting encrypted title key
         /// </summary>
-        public byte[] TitleId { get; set; }
+        public byte[]? TitleId { get; set; }
 
         /// <summary>
         /// Creates a factory for write operations, based on the information identified by the given NCA.
         /// </summary>
         /// <param name="nca">The nca to identify cipher information from</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
-        public NcaStreamFactory(Stream nca, string keyFile) : this(nca, keyFile, null)
+        public NcaStreamFactory(Stream nca, string? keyFile) : this(nca, keyFile, null)
         {
         }
 
@@ -69,17 +69,15 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// <param name="nca">The nca to identify cipher information from</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
         /// <param name="titleKeyFile">The file containing all title keys for cipher operations</param>
-        public NcaStreamFactory(Stream nca, string keyFile, string titleKeyFile)
+        public NcaStreamFactory(Stream nca, string? keyFile, string? titleKeyFile)
         {
-            if (nca == null)
-                throw new ArgumentNullException(nameof(nca));
+            ArgumentException.ThrowIfNullOrEmpty(keyFile);
+
             if (nca.Length < NcaConstants.HeaderSize)
                 throw new InvalidOperationException("Stream is too short.");
-            if (string.IsNullOrEmpty(keyFile))
-                throw new ArgumentNullException(nameof(keyFile));
 
-            SetKeyFile(keyFile);
-            SetTitleKeyFile(titleKeyFile);
+            _keyStorage = new NcaKeyStorage(keyFile);
+            _titleKeyStorage = string.IsNullOrEmpty(titleKeyFile) ? null : new NcaTitleKeyStorage(titleKeyFile);
 
             IdentifyInformation(nca);
         }
@@ -91,16 +89,16 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// <param name="masterKeyRevision">The master key revision to be used</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
         /// <param name="sections">the NCA body section information</param>
-        public NcaStreamFactory(NcaVersion version, int masterKeyRevision, string keyFile, params NcaBodySection[] sections)
+        public NcaStreamFactory(NcaVersion version, int masterKeyRevision, string? keyFile, params NcaBodySection[] sections)
         {
-            if (masterKeyRevision < 0 || masterKeyRevision > 31)
+            ArgumentException.ThrowIfNullOrEmpty(keyFile);
+
+            if (masterKeyRevision is < 0 or > 31)
                 throw new InvalidOperationException("Invalid master key revision.");
             if (sections.Length > 4)
                 throw new InvalidOperationException("Only 4 sections are allowed at most.");
-            if (string.IsNullOrEmpty(keyFile))
-                throw new ArgumentNullException(nameof(keyFile));
 
-            SetKeyFile(keyFile);
+            _keyStorage = new NcaKeyStorage(keyFile);
 
             NcaVersion = version;
             MasterKeyRevision = masterKeyRevision;
@@ -120,15 +118,9 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// Sets the title key storage
         /// </summary>
         /// <param name="titleKeyFile">File containing all title keys for cipher operations</param>
-        public void SetTitleKeyFile(string titleKeyFile)
+        public void SetTitleKeyFile(string? titleKeyFile)
         {
-            if (string.IsNullOrEmpty(titleKeyFile))
-            {
-                _titleKeyStorage = null;
-                return;
-            }
-
-            _titleKeyStorage = new NcaTitleKeyStorage(titleKeyFile);
+            _titleKeyStorage = string.IsNullOrEmpty(titleKeyFile) ? null : new NcaTitleKeyStorage(titleKeyFile);
         }
 
         /// <summary>
@@ -140,6 +132,8 @@ namespace Kryptography.Encryption.Nintendo.Switch
         /// Otherwise if <see cref="UseTitleKeyEncryption"/> is not set and section crypto type is title key, section crypto type gets set to ctr encryption.</remarks>
         public Stream CreateStream(Stream baseStream)
         {
+            ArgumentNullException.ThrowIfNull(Sections);
+
             foreach (var section in Sections)
             {
                 if (UseTitleKeyEncryption && section.SectionCrypto == NcaSectionCrypto.Ctr)
@@ -149,8 +143,8 @@ namespace Kryptography.Encryption.Nintendo.Switch
                     section.SectionCrypto = NcaSectionCrypto.Ctr;
             }
 
-            byte[] decTitleKey = null;
-            byte[] decKeyArea = null;
+            byte[]? decTitleKey = null;
+            byte[]? decKeyArea = null;
             if (UseTitleKeyEncryption)
             {
                 if (EncryptedTitleKey == null && _titleKeyStorage == null)
@@ -158,9 +152,11 @@ namespace Kryptography.Encryption.Nintendo.Switch
 
                 if (EncryptedTitleKey == null)
                 {
+                    ArgumentNullException.ThrowIfNull(TitleId);
+
                     if (TitleId.Length != 0x10)
                         throw new InvalidOperationException("Title id has invalid length.");
-                    if (!_titleKeyStorage.Contains(Convert.ToHexString(TitleId)))
+                    if (!_titleKeyStorage!.Contains(Convert.ToHexString(TitleId)))
                         throw new InvalidOperationException("Title id was not found in title key storage.");
 
                     EncryptedTitleKey = new byte[0x10];
@@ -173,38 +169,30 @@ namespace Kryptography.Encryption.Nintendo.Switch
                 }
 
                 // Decrypt title key
-                if (!_keyStorage.TitleKek.ContainsKey(MasterKeyRevision))
+                if (!_keyStorage.TitleKek.TryGetValue(MasterKeyRevision, out byte[]? masterKey))
                     throw new InvalidOperationException($"No title kek found for master key revision {MasterKeyRevision}.");
 
                 decTitleKey = new byte[0x10];
-                new EcbStream(new MemoryStream(EncryptedTitleKey), _keyStorage.TitleKek[MasterKeyRevision]).Read(decTitleKey, 0, decTitleKey.Length); ;
+                _ = new EcbStream(new MemoryStream(EncryptedTitleKey), masterKey).Read(decTitleKey, 0, decTitleKey.Length);
             }
             else
             {
-                if (EncryptedKeyArea == null)
-                    throw new ArgumentNullException(nameof(EncryptedKeyArea));
+                ArgumentNullException.ThrowIfNull(EncryptedKeyArea);
+
                 if (EncryptedKeyArea.Length != 0x40)
-                    throw new InvalidOperationException($"Invalid key area length.");
+                    throw new InvalidOperationException("Invalid key area length.");
 
                 // Decrypt key area
                 decKeyArea = new byte[0x40];
-                byte[] decKey;
-                switch (KeyAreaKeyType)
+                byte[] decKey = KeyAreaKeyType switch
                 {
-                    case KeyAreaKeyType.Application:
-                        decKey = _keyStorage[$"key_area_key_application_{MasterKeyRevision:00}"];
-                        break;
-                    case KeyAreaKeyType.Ocean:
-                        decKey = _keyStorage[$"key_area_key_ocean_{MasterKeyRevision:00}"];
-                        break;
-                    case KeyAreaKeyType.System:
-                        decKey = _keyStorage[$"key_area_key_system_{MasterKeyRevision:00}"];
-                        break;
-                    default:
-                        throw new InvalidOperationException($"KeyAreaType {KeyAreaKeyType} not supported.");
-                }
+                    KeyAreaKeyType.Application => _keyStorage[$"key_area_key_application_{MasterKeyRevision:00}"],
+                    KeyAreaKeyType.Ocean => _keyStorage[$"key_area_key_ocean_{MasterKeyRevision:00}"],
+                    KeyAreaKeyType.System => _keyStorage[$"key_area_key_system_{MasterKeyRevision:00}"],
+                    _ => throw new InvalidOperationException($"KeyAreaType {KeyAreaKeyType} not supported.")
+                };
 
-                new EcbStream(new MemoryStream(EncryptedKeyArea), decKey).Read(decKeyArea, 0, decKeyArea.Length);
+                _ = new EcbStream(new MemoryStream(EncryptedKeyArea), decKey).Read(decKeyArea, 0, decKeyArea.Length);
             }
 
             return new NcaStream(baseStream, NcaVersion, Sections, _keyStorage, decKeyArea, decTitleKey);
@@ -216,7 +204,7 @@ namespace Kryptography.Encryption.Nintendo.Switch
 
             nca.Position = 0x200;
             var magic = new byte[4];
-            nca.Read(magic, 0, 4);
+            _ = nca.Read(magic, 0, 4);
             nca.Position = bkPos;
 
             var header = nca;
@@ -226,7 +214,7 @@ namespace Kryptography.Encryption.Nintendo.Switch
                 {
                     Position = 0x200
                 };
-                xts.Read(magic, 0, 4);
+                _ = xts.Read(magic, 0, 4);
 
                 if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
                     throw new InvalidOperationException("No valid Nca.");
@@ -248,11 +236,11 @@ namespace Kryptography.Encryption.Nintendo.Switch
         {
             header.Position = 0x206;
             var type1 = new byte[1];
-            header.Read(type1, 0, 1);
+            _ = header.Read(type1, 0, 1);
 
             header.Position = 0x220;
             var type2 = new byte[1];
-            header.Read(type2, 0, 1);
+            _ = header.Read(type2, 0, 1);
 
             var cryptoType = Math.Max(type2[0], type1[0]);
             if (cryptoType >= 1) cryptoType--;
@@ -263,14 +251,14 @@ namespace Kryptography.Encryption.Nintendo.Switch
         {
             header.Position = 0x300;
             EncryptedKeyArea = new byte[0x40];
-            header.Read(EncryptedKeyArea, 0, 0x40);
+            _ = header.Read(EncryptedKeyArea, 0, 0x40);
         }
 
         private void IdentifyEncryptedTitleKey(Stream header)
         {
             var rightsId = new byte[0x10];
             header.Position = 0x230;
-            header.Read(rightsId, 0, 0x10);
+            _ = header.Read(rightsId, 0, 0x10);
 
             UseTitleKeyEncryption = false;
             for (int i = 0; i < 0x10; i++)
@@ -291,14 +279,14 @@ namespace Kryptography.Encryption.Nintendo.Switch
         {
             header.Position = 0x230;
             TitleId = new byte[0x10];
-            header.Read(TitleId, 0, 0x10);
+            _ = header.Read(TitleId, 0, 0x10);
         }
 
         private void IdentifyBodySections(Stream header)
         {
             header.Position = 0x240;
             var sections = new byte[0x40];
-            header.Read(sections, 0, 0x40);
+            _ = header.Read(sections, 0, 0x40);
 
             var bodySections = new List<NcaBodySection>();
             for (int i = 0; i < 4; i++)
@@ -311,21 +299,21 @@ namespace Kryptography.Encryption.Nintendo.Switch
                 var sectionHeaderOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
                 header.Position = sectionHeaderOffset + 4;
                 var sectionCrypto = new byte[1];
-                header.Read(sectionCrypto, 0, 1);
+                _ = header.Read(sectionCrypto, 0, 1);
                 if (sectionCrypto[0] < 1 || sectionCrypto[0] > 4)
                     throw new InvalidOperationException($"CryptoType for section {i} must be 1-4. Found CryptoType: {sectionCrypto[0]}");
 
                 var sectionCtr = new byte[8];
                 header.Position = sectionHeaderOffset + 0x140;
-                header.Read(sectionCtr, 0, 8);
-                sectionCtr = sectionCtr.Reverse().ToArray();
+                _ = header.Read(sectionCtr, 0, 8);
+                sectionCtr = [.. sectionCtr.Reverse()];
                 var sectionIv = new byte[0x10];
                 Array.Copy(sectionCtr, sectionIv, 8);
 
                 bodySections.Add(new NcaBodySection(mediaOffset, mediaEndOffset - mediaOffset, (NcaSectionCrypto)sectionCrypto[0], sectionIv));
             }
 
-            Sections = bodySections.ToArray();
+            Sections = [.. bodySections];
         }
     }
 }

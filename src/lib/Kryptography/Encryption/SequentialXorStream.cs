@@ -1,11 +1,7 @@
 ﻿namespace Kryptography.Encryption
 {
-    public class SequentialXorStream : XorStream
+    public class SequentialXorStream(Stream input, byte key, byte step) : XorStream(input, GetStepBuffer(key, step))
     {
-        public SequentialXorStream(Stream input, byte key, byte step) : base(input, GetStepBuffer(key, step))
-        {
-        }
-
         private static byte[] GetStepBuffer(byte key, byte step)
         {
             var size = GetSize(key, step);

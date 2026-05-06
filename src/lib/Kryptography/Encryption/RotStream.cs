@@ -2,29 +2,19 @@
 
 namespace Kryptography.Encryption
 {
-    public sealed class RotStream : Stream
+    public sealed class RotStream(Stream input, byte key) : Stream
     {
-        private Stream _baseStream;
+        public override bool CanRead => input.CanRead;
 
-        public override bool CanRead => _baseStream.CanRead && true;
+        public override bool CanSeek => input.CanSeek;
 
-        public override bool CanSeek => _baseStream.CanSeek && true;
+        public override bool CanWrite => input.CanWrite;
 
-        public override bool CanWrite => _baseStream.CanWrite && true;
-
-        public override long Length => _baseStream.Length;
+        public override long Length => input.Length;
 
         public override long Position { get; set; }
 
-        private byte _key;
-
-        public RotStream(Stream input, byte key)
-        {
-            _baseStream = input;
-            _key = key;
-        }
-
-        private void RotData(byte[] buffer, int offset, int count, byte rotBy)
+        private static void RotData(byte[] buffer, int offset, int count, byte rotBy)
         {
             var simdLength = Vector<byte>.Count;
             var rotBuffer = new byte[simdLength];
@@ -32,7 +22,7 @@ namespace Kryptography.Encryption
                 rotBuffer[i] = rotBy;
             var vr = new Vector<byte>(rotBuffer);
 
-            var j = 0;
+            int j;
             for (j = 0; j <= count - simdLength; j += simdLength)
             {
                 var va = new Vector<byte>(buffer, j + offset);
@@ -43,7 +33,7 @@ namespace Kryptography.Encryption
                 buffer[offset + j] += rotBy;
         }
 
-        public override void Flush() => _baseStream.Flush();
+        public override void Flush() => input.Flush();
 
         public override void SetLength(long value)
         {
@@ -55,9 +45,9 @@ namespace Kryptography.Encryption
             if (value > Length)
             {
                 var bkPosThis = Position;
-                var bkPosBase = _baseStream.Position;
+                var bkPosBase = input.Position;
 
-                var startPos = Math.Max(_baseStream.Length, Length);
+                var startPos = Math.Max(input.Length, Length);
                 var newDataLength = value - startPos;
                 var written = 0;
                 var newData = new byte[0x10000];
@@ -70,11 +60,11 @@ namespace Kryptography.Encryption
                     startPos += toWrite;
                 }
 
-                _baseStream.Position = bkPosBase;
+                input.Position = bkPosBase;
                 Position = bkPosThis;
             }
             else
-                _baseStream.SetLength(value);
+                input.SetLength(value);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -103,12 +93,12 @@ namespace Kryptography.Encryption
             if (!CanRead)
                 throw new NotSupportedException("Can't read from stream.");
 
-            var bkPos = _baseStream.Position;
-            _baseStream.Position = Position;
-            _baseStream.Read(buffer, offset, count);
-            _baseStream.Position = bkPos;
+            var bkPos = input.Position;
+            input.Position = Position;
+            _ = input.Read(buffer, offset, count);
+            input.Position = bkPos;
 
-            RotData(buffer, offset, count, (byte)(0x100 - _key));
+            RotData(buffer, offset, count, (byte)(0x100 - key));
 
             Position += count;
             return count;
@@ -119,12 +109,12 @@ namespace Kryptography.Encryption
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
-            RotData(buffer, offset, count, _key);
+            RotData(buffer, offset, count, key);
 
-            var bkPos = _baseStream.Position;
-            _baseStream.Position = Position;
-            _baseStream.Write(buffer, offset, count);
-            _baseStream.Position = bkPos;
+            var bkPos = input.Position;
+            input.Position = Position;
+            input.Write(buffer, offset, count);
+            input.Position = bkPos;
 
             Position += count;
         }

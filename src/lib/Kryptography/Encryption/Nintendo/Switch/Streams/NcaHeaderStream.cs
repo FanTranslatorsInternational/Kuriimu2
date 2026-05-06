@@ -3,12 +3,10 @@ using Kryptography.Encryption.Nintendo.Switch.Models;
 
 namespace Kryptography.Encryption.Nintendo.Switch.Streams
 {
-    class NcaHeaderStream : Stream
+    internal class NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey) : Stream
     {
-        private readonly Stream _baseStream;
-        private readonly Stream _advancingBaseStream;
-        private readonly Stream _nonAdvancingBaseStream;
-        private readonly NcaVersion _version;
+        private readonly Stream _advancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+        private readonly Stream _nonAdvancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
 
         public override bool CanRead => true;
 
@@ -16,23 +14,15 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
 
         public override bool CanWrite => true;
 
-        public override long Length => _baseStream.Length;
+        public override long Length => header.Length;
 
         public override long Position { get; set; }
-
-        public NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey)
-        {
-            _baseStream = header;
-            _advancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
-            _nonAdvancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
-            _version = version;
-        }
 
         public override void Flush()
         {
             _advancingBaseStream.Flush();
             _nonAdvancingBaseStream.Flush();
-            _baseStream.Flush();
+            header.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -46,7 +36,7 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
             var bkPosAdvance = _advancingBaseStream.Position;
 
             int readBytes = 0;
-            switch (_version)
+            switch (version)
             {
                 case NcaVersion.NCA2:
                     int toRead;
@@ -100,7 +90,7 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
         {
             _nonAdvancingBaseStream.SetLength(value);
             _advancingBaseStream.SetLength(value);
-            _baseStream.SetLength(value);
+            header.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -124,7 +114,7 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
                 }
                 else
                 {
-                    switch (_version)
+                    switch (version)
                     {
                         case NcaVersion.NCA2:
                             _nonAdvancingBaseStream.Position = newPosition;
@@ -140,7 +130,7 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
                 writtenBytes += toWrite;
                 newPosition += toWrite;
 
-                SetLength(_baseStream.Length);
+                SetLength(header.Length);
             }
 
             Position += writtenBytes;

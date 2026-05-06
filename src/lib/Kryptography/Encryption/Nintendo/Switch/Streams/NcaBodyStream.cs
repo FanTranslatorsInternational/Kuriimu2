@@ -3,55 +3,55 @@ using Kryptography.Encryption.Nintendo.Switch.Models;
 
 namespace Kryptography.Encryption.Nintendo.Switch.Streams
 {
-    class NcaBodyStream : Stream
+    internal class NcaBodyStream : Stream
     {
         private readonly Stream _baseStream;
 
-        public override bool CanRead => _baseStream.CanRead && true;
+        public override bool CanRead => _baseStream.CanRead;
 
-        public override bool CanSeek => _baseStream.CanSeek && true;
+        public override bool CanSeek => _baseStream.CanSeek;
 
-        public override bool CanWrite => _baseStream.CanWrite && true;
+        public override bool CanWrite => _baseStream.CanWrite;
 
         public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
-        public NcaBodyStream(Stream input, NcaSectionCrypto sectionCryptoType, byte[] iv, byte[] decKeyArea, byte[] decTitleKey)
+        public NcaBodyStream(Stream input, NcaSectionCrypto sectionCryptoType, byte[] iv, byte[]? decKeyArea, byte[]? decTitleKey)
         {
-            if (sectionCryptoType == NcaSectionCrypto.TitleKey)
+            switch (sectionCryptoType)
             {
-                if (decTitleKey == null)
-                    throw new ArgumentNullException(nameof(decTitleKey));
+                case NcaSectionCrypto.TitleKey:
+                    ArgumentNullException.ThrowIfNull(decTitleKey);
+                    _baseStream = new CtrStream(input, decTitleKey, iv, false);
+                    break;
 
-                _baseStream = new CtrStream(input, decTitleKey, iv, false);
-            }
-            else
-            {
-                switch (sectionCryptoType)
-                {
-                    case NcaSectionCrypto.NoCrypto:
-                        _baseStream = input;
-                        break;
+                case NcaSectionCrypto.NoCrypto:
+                    _baseStream = input;
+                    break;
 
-                    case NcaSectionCrypto.Xts:
-                        var keyAreaKey = new byte[0x20];
-                        Array.Copy(decKeyArea, keyAreaKey, 0x20);
-                        _baseStream = new XtsStream(input, keyAreaKey, iv, true, false, 0x200);
-                        break;
+                case NcaSectionCrypto.Xts:
+                    ArgumentNullException.ThrowIfNull(decKeyArea);
+                    var keyAreaKey = new byte[0x20];
+                    Array.Copy(decKeyArea, keyAreaKey, 0x20);
+                    _baseStream = new XtsStream(input, keyAreaKey, iv, true, false, 0x200);
+                    break;
 
-                    case NcaSectionCrypto.Ctr:
-                        keyAreaKey = new byte[0x10];
-                        Array.Copy(decKeyArea, 0x20, keyAreaKey, 0, 0x10);
-                        _baseStream = new CtrStream(input, keyAreaKey, iv, false);
-                        break;
+                case NcaSectionCrypto.Ctr:
+                    ArgumentNullException.ThrowIfNull(decKeyArea);
+                    keyAreaKey = new byte[0x10];
+                    Array.Copy(decKeyArea, 0x20, keyAreaKey, 0, 0x10);
+                    _baseStream = new CtrStream(input, keyAreaKey, iv, false);
+                    break;
 
-                    case NcaSectionCrypto.Bktr:
-                        //BKTR, some CTR
-                        //stub
-                        // TODO: Implement BKTR cryptography
-                        throw new NotSupportedException($"This section crypto is not supported.");
-                }
+                case NcaSectionCrypto.Bktr:
+                    //BKTR, some CTR
+                    //stub
+                    // TODO: Implement BKTR cryptography
+                    throw new NotSupportedException("This section crypto is not supported.");
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sectionCryptoType), sectionCryptoType, null);
             }
         }
 

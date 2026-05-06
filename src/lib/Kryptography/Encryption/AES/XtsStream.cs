@@ -20,11 +20,11 @@ namespace Kryptography.Encryption.AES
 
         private static int BlockSize => 16;
 
-        public override bool CanRead => _baseStream.CanRead && true;
+        public override bool CanRead => _baseStream.CanRead;
 
-        public override bool CanSeek => _baseStream.CanSeek && true;
+        public override bool CanSeek => _baseStream.CanSeek;
 
-        public override bool CanWrite => _baseStream.CanWrite && true;
+        public override bool CanWrite => _baseStream.CanWrite;
 
         public override long Length => _internalLength;
 
@@ -151,7 +151,7 @@ namespace Kryptography.Encryption.AES
                 {
                     var bkPos = _baseStream.Position;
                     _baseStream.Position = value % BlockSize;
-                    _baseStream.Read(_lastBlockBuffer, 0, 0x10);
+                    _ = _baseStream.Read(_lastBlockBuffer, 0, 0x10);
                     _baseStream.Position = bkPos;
                 }
                 _baseStream.SetLength(value);
@@ -208,7 +208,7 @@ namespace Kryptography.Encryption.AES
 
             var bkPos = _baseStream.Position;
             _baseStream.Position = alignedPosition;
-            _baseStream.Read(internalBuffer, 0, (int)alignedCount - (alignedPosition + alignedCount > Length ? BlockSize : 0));
+            _ = _baseStream.Read(internalBuffer, 0, (int)alignedCount - (alignedPosition + alignedCount > Length ? BlockSize : 0));
             _baseStream.Position = bkPos;
 
             var sectorAlignedCount = RoundUpToMultiple(alignedCount, _sectorSize);
@@ -243,7 +243,7 @@ namespace Kryptography.Encryption.AES
             if (Position < Length)
             {
                 readCount = Position + count <= Length ? alignedCount - (useLastBlockBuffer ? BlockSize : 0) : alignedLengthSector - alignedPos;
-                _baseStream.Read(internalBuffer, 0, (int)readCount);
+                _ = _baseStream.Read(internalBuffer, 0, (int)readCount);
             }
             if (useLastBlockBuffer) Array.Copy(_lastBlockBuffer, 0, internalBuffer, readCount, BlockSize);
 
@@ -283,7 +283,7 @@ namespace Kryptography.Encryption.AES
             Position += count;
         }
 
-        private long RoundUpToMultiple(long numToRound, int multiple)
+        private static long RoundUpToMultiple(long numToRound, int multiple)
         {
             if (multiple == 0)
                 return numToRound;

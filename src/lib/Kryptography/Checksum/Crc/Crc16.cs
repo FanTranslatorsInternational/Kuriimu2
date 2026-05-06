@@ -5,8 +5,8 @@ namespace Kryptography.Checksum.Crc
     public class Crc16 : Checksum<ushort>
     {
         // https://crccalc.com
-        public static Crc16 X25 => new Crc16(0x1021, 0xFFFF, 0xFFFF, true, true);
-        public static Crc16 ModBus => new Crc16(0x8005, 0xFFFF, 0x0000, true, true);
+        public static Crc16 X25 => new(0x1021, 0xFFFF, 0xFFFF, true, true);
+        public static Crc16 ModBus => new(0x8005, 0xFFFF, 0x0000, true, true);
 
         private readonly ushort _polynomial;
         private readonly ushort _initial;

@@ -257,7 +257,7 @@ namespace Kryptography.Encryption.AES
             Position += count;
         }
 
-        private long RoundUpToMultiple(long numToRound, int multiple)
+        private static long RoundUpToMultiple(long numToRound, int multiple)
         {
             if (multiple == 0)
                 return numToRound;

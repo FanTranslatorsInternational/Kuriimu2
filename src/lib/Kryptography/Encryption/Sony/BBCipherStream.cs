@@ -2,13 +2,13 @@
 
 namespace Kryptography.Encryption.Sony
 {
-    public sealed class BBCipherStream : KryptoStream
+    public sealed class BbCipherStream : KryptoStream
     {
         public override int BlockSize => 128;
 
         public override int BlockSizeBytes => 16;
 
-        public override List<byte[]> Keys { get; protected set; }
+        public override List<byte[]> Keys { get; protected set; } = [];
 
         public override int KeySize => Keys[0].Length;
 
@@ -17,35 +17,35 @@ namespace Kryptography.Encryption.Sony
         protected override int BlockAlign => 0x10;
         protected override int SectorAlign => 0x800;
 
-        BBCipherTransform _decryptor;
-        BBCipherTransform _encryptor;
+        private BbCipherTransform? _decryptor;
+        private BbCipherTransform? _encryptor;
 
-        public BBCipherStream(Stream input, byte[] key, byte[] vkey, int seed, int cipher_type) : base(input)
+        public BbCipherStream(Stream input, byte[] key, byte[] vkey, int seed, int cipherType) : base(input)
         {
-            Initialize(key, vkey, seed, cipher_type);
+            Initialize(key, vkey, seed, cipherType);
         }
 
-        public BBCipherStream(byte[] input, byte[] key, byte[] vkey, int seed, int cipher_type) : base(input)
+        public BbCipherStream(byte[] input, byte[] key, byte[] vkey, int seed, int cipherType) : base(input)
         {
-            Initialize(key, vkey, seed, cipher_type);
+            Initialize(key, vkey, seed, cipherType);
         }
 
-        public BBCipherStream(Stream input, long offset, long length, byte[] key, byte[] vkey, int seed, int cipher_type) : base(input, offset, length)
+        public BbCipherStream(Stream input, long offset, long length, byte[] key, byte[] vkey, int seed, int cipherType) : base(input, offset, length)
         {
-            Initialize(key, vkey, seed, cipher_type);
+            Initialize(key, vkey, seed, cipherType);
         }
 
-        public BBCipherStream(byte[] input, long offset, long length, byte[] key, byte[] vkey, int seed, int cipher_type) : base(input, offset, length)
+        public BbCipherStream(byte[] input, long offset, long length, byte[] key, byte[] vkey, int seed, int cipherType) : base(input, offset, length)
         {
-            Initialize(key, vkey, seed, cipher_type);
+            Initialize(key, vkey, seed, cipherType);
         }
 
-        private void Initialize(byte[] key, byte[] vkey, int seed, int cipher_type)
+        private void Initialize(byte[] key, byte[] vkey, int seed, int cipherType)
         {
-            var context = new BBCipherContext(key, vkey, seed, cipher_type);
+            var context = new BbCipherContext(key, vkey, seed, cipherType);
 
-            _decryptor = (BBCipherTransform)context.CreateDecryptor();
-            _encryptor = (BBCipherTransform)context.CreateEncryptor();
+            _decryptor = (BbCipherTransform)context.CreateDecryptor();
+            _encryptor = (BbCipherTransform)context.CreateEncryptor();
         }
 
         public override void Flush()
@@ -59,13 +59,17 @@ namespace Kryptography.Encryption.Sony
 
         protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            _decryptor.Seed = (int)(_baseStream.Position / 0x10 + 1);
+            ArgumentNullException.ThrowIfNull(_decryptor);
+
+            _decryptor.Seed = (int)(BaseStream.Position / 0x10 + 1);
             _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
         protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            _encryptor.Seed = (int)(_baseStream.Position / 0x10 + 1);
+            ArgumentNullException.ThrowIfNull(_encryptor);
+
+            _encryptor.Seed = (int)(BaseStream.Position / 0x10 + 1);
             _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
     }

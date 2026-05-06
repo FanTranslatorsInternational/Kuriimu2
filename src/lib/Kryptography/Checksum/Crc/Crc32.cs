@@ -33,7 +33,8 @@ namespace Kryptography.Checksum.Crc
 
         #region Tables
 
-        private static readonly uint[] _defaultCrc32Table = {
+        private static readonly uint[] DefaultCrc32Table =
+        [
             0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
             0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61, 0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD,
             0x4C11DB70, 0x48D0C6C7, 0x4593E01E, 0x4152FDA9, 0x5F15ADAC, 0x5BD4B01B, 0x569796C2, 0x52568B75,
@@ -66,8 +67,9 @@ namespace Kryptography.Checksum.Crc
             0xE3A1CBC1, 0xE760D676, 0xEA23F0AF, 0xEEE2ED18, 0xF0A5BD1D, 0xF464A0AA, 0xF9278673, 0xFDE69BC4,
             0x89B8FD09, 0x8D79E0BE, 0x803AC667, 0x84FBDBD0, 0x9ABC8BD5, 0x9E7D9662, 0x933EB0BB, 0x97FFAD0C,
             0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4
-        };
-        private static readonly uint[] _defaultReflectedCrc32Table = {
+        ];
+        private static readonly uint[] DefaultReflectedCrc32Table =
+        [
             0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
             0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
             0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -100,7 +102,7 @@ namespace Kryptography.Checksum.Crc
             0xAED16A4A, 0xD9D65ADC, 0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5, 0x47B2CF7F, 0x30B5FFE9,
             0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF,
             0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
-        };
+        ];
 
         #endregion
 
@@ -113,10 +115,10 @@ namespace Kryptography.Checksum.Crc
         private static uint[] InitializeTable(Crc32Formula formula, uint polynomial)
         {
             if (formula == Crc32Formula.Normal && polynomial == DefaultPolynomial)
-                return _defaultCrc32Table;
+                return DefaultCrc32Table;
 
             if (formula == Crc32Formula.Reflected && polynomial == DefaultReflectedPolynomial)
-                return _defaultReflectedCrc32Table;
+                return DefaultReflectedCrc32Table;
 
             var polynomialTable = new uint[256];
             for (uint i = 0; i < 256; i++)
@@ -198,17 +200,17 @@ namespace Kryptography.Checksum.Crc
 
         #endregion
 
-        private byte ReverseBits(byte toReverse)
+        private static byte ReverseBits(byte toReverse)
         {
             return (byte)ReverseBitsInternal(toReverse, 8);
         }
 
-        private uint ReverseBits(uint toReverse)
+        private static uint ReverseBits(uint toReverse)
         {
             return ReverseBitsInternal(toReverse, 32);
         }
 
-        private uint ReverseBitsInternal(uint toReverse, int reverseCount)
+        private static uint ReverseBitsInternal(uint toReverse, int reverseCount)
         {
             uint result = 0;
             for (var i = 0; i < reverseCount; i++)

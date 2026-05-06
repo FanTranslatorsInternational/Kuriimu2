@@ -2,10 +2,9 @@
 
 namespace Kryptography.Encryption.Sony
 {
-    // TODO: Remove when Sony krypto is reimplemented.
     public abstract class KryptoStream : Stream
     {
-        protected Stream _baseStream;
+        protected Stream BaseStream;
 
         public delegate void ProgressEventHandler(KryptoStream sender, long done, long total, TimeSpan elapsedTime, bool write);
 
@@ -26,30 +25,32 @@ namespace Kryptography.Encryption.Sony
         public override bool CanWrite => true;
 
         private long _length;
-        public override long Length { get => _length; }
+        public override long Length => _length;
 
         public override long Position { get; set; }
 
         public KryptoStream(Stream input)
         {
-            _baseStream = input;
+            BaseStream = input;
         }
 
         public KryptoStream(Stream input, long offset, long length)
         {
-            _baseStream = new SubStream(input, offset, length);
-            _baseStream.Position = Math.Min(Math.Max(input.Position, offset) - offset, length);
+            BaseStream = new SubStream(input, offset, length)
+            {
+                Position = Math.Min(Math.Max(input.Position, offset) - offset, length)
+            };
             _length = length;
         }
 
         public KryptoStream(byte[] input)
         {
-            _baseStream = new MemoryStream(input);
+            BaseStream = new MemoryStream(input);
         }
 
         public KryptoStream(byte[] input, long offset, long length)
         {
-            _baseStream = new SubStream(new MemoryStream(input), offset, length);
+            BaseStream = new SubStream(new MemoryStream(input), offset, length);
             _length = length;
         }
 
@@ -68,8 +69,8 @@ namespace Kryptography.Encryption.Sony
             var alignedCount = GetAlignedCount((int)Math.Min(Position - alignedPos + count, Length - alignedPos));
             if (alignedCount == 0) return 0;
 
-            var origPos = _baseStream.Position;
-            _baseStream.Position = alignedPos;
+            var origPos = BaseStream.Position;
+            BaseStream.Position = alignedPos;
 
             var read = 0;
             var bufOffset = offset;
@@ -78,10 +79,10 @@ namespace Kryptography.Encryption.Sony
             {
                 var size = Math.Min(alignedCount - read, BufferSize);
 
-                _baseStream.Position = alignedPos + read;
-                var readCurrent = _baseStream.Read(decData, 0, size);
+                BaseStream.Position = alignedPos + read;
+                var readCurrent = BaseStream.Read(decData, 0, size);
 
-                _baseStream.Position = alignedPos + read;
+                BaseStream.Position = alignedPos + read;
                 Decrypt(decData, 0, size);
 
                 read += readCurrent;
@@ -95,7 +96,7 @@ namespace Kryptography.Encryption.Sony
             Position += count;
             Position = Math.Min(Length, Position);
 
-            _baseStream.Position = origPos;
+            BaseStream.Position = origPos;
 
             return count;
         }
@@ -127,10 +128,10 @@ namespace Kryptography.Encryption.Sony
                 var decPos = 0;
                 if (preSize > 0)
                 {
-                    _baseStream.Position = alignedPos + write;
-                    _baseStream.Read(decData, 0, preSize);
+                    BaseStream.Position = alignedPos + write;
+                    _ = BaseStream.Read(decData, 0, preSize);
 
-                    _baseStream.Position = alignedPos + write;
+                    BaseStream.Position = alignedPos + write;
                     Decrypt(decData, 0, preSize);
 
                     decPos += preSize;
@@ -145,16 +146,15 @@ namespace Kryptography.Encryption.Sony
                     var decSize = encPos + encSize > count ? count - encPos : encSize;
                     Array.Copy(buffer, offset + encPos, decData, decPos, decSize);
                     encPos += decSize;
-                    decPos += decSize;
                 }
 
                 //Encrypt data (finally)
-                _baseStream.Position = alignedPos + write;
+                BaseStream.Position = alignedPos + write;
                 Encrypt(decData, 0, decData.Length);
 
                 //Write data
                 var size = Math.Min(alignedCount - write, BufferSize);
-                _baseStream.Write(decData, 0, size);
+                BaseStream.Write(decData, 0, size);
                 write += size;
             }
             Position += count;
@@ -163,7 +163,7 @@ namespace Kryptography.Encryption.Sony
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            var seeked = _baseStream.Seek(offset, origin);
+            var seeked = BaseStream.Seek(offset, origin);
             Position = seeked;
             return seeked;
         }
@@ -174,12 +174,13 @@ namespace Kryptography.Encryption.Sony
 
             if (disposing)
             {
-                _baseStream.Dispose();
+                BaseStream.Dispose();
             }
         }
         #endregion
 
         #region Private Methods
+
         private void ValidateRead(byte[] buffer, int offset, int count)
         {
             if (!CanRead) throw new NotSupportedException("Reading is not supported.");
@@ -194,9 +195,11 @@ namespace Kryptography.Encryption.Sony
             ValidateInput(buffer, offset, count);
         }
 
-        private void ValidateInput(byte[] buffer, int offset, int count)
+        private static void ValidateInput(byte[] buffer, int offset, int count)
         {
-            if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(offset, 0);
+            ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
+
             if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
         }
 
@@ -204,6 +207,7 @@ namespace Kryptography.Encryption.Sony
         {
             return (int)Math.Ceiling((double)count / BlockAlign) * BlockAlign;
         }
+
         #endregion
     }
 }

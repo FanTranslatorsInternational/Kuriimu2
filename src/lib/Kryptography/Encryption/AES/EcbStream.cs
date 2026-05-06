@@ -36,7 +36,7 @@ namespace Kryptography.Encryption.AES
             _internalLength = input.Length;
             _lastBlockBuffer = new byte[BlockSize];
 
-            Aes aes = Aes.Create() ?? throw new ArgumentNullException(nameof(aes));
+            Aes aes = Aes.Create();
             aes.Padding = PaddingMode.None;
             aes.Mode = CipherMode.ECB;
 

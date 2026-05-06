@@ -3,7 +3,7 @@ using Kryptography.Encryption.AES;
 
 namespace Kryptography.Encryption.Nintendo.Wii
 {
-    class WiiDiscPartitionStream : Stream
+    internal class WiiDiscPartitionStream : Stream
     {
         private const int BlockSize_ = 0x8000;
         private const int DataOffsetStart_ = 0x2B8;
@@ -24,10 +24,10 @@ namespace Kryptography.Encryption.Nintendo.Wii
         public override long Length => _baseStream.Length;
         public override long Position { get; set; }
 
-        public WiiDiscPartitionStream(Stream baseStream, byte[] partitionKey)
+        public WiiDiscPartitionStream(Stream baseStream, byte[]? partitionKey)
         {
-            if (baseStream == null)
-                throw new ArgumentNullException(nameof(baseStream));
+            ArgumentNullException.ThrowIfNull(partitionKey);
+
             if (partitionKey.Length != 0x10)
                 throw new ArgumentException("Partition key has to be 16 bytes.");
             if (baseStream.Length % BlockSize_ != 0)
@@ -48,19 +48,13 @@ namespace Kryptography.Encryption.Nintendo.Wii
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            switch (origin)
+            return origin switch
             {
-                case SeekOrigin.Begin:
-                    return Position = offset;
-
-                case SeekOrigin.Current:
-                    return Position += offset;
-
-                case SeekOrigin.End:
-                    return Position = Length + offset;
-            }
-
-            throw new ArgumentException("Origin is invalid.");
+                SeekOrigin.Begin => Position = offset,
+                SeekOrigin.Current => Position += offset,
+                SeekOrigin.End => Position = Length + offset,
+                _ => throw new ArgumentException("Origin is invalid.")
+            };
         }
 
         public override void SetLength(long value)
@@ -114,15 +108,17 @@ namespace Kryptography.Encryption.Nintendo.Wii
             ValidateInput(buffer, offset, count);
         }
 
-        private void ValidateInput(byte[] buffer, int offset, int count)
+        private static void ValidateInput(byte[] buffer, int offset, int count)
         {
-            if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(offset, 0);
+            ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
+
             if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
         }
 
         #endregion
 
-        private int PeekDataOffset(Stream input)
+        private static int PeekDataOffset(Stream input)
         {
             if (input.Length < DataSizeEnd_)
                 return -1;
@@ -144,12 +140,12 @@ namespace Kryptography.Encryption.Nintendo.Wii
             return dataOffset;
         }
 
-        private int ReadInt32(Stream input)
+        private static int ReadInt32(Stream input)
         {
             // BigEndian
             var buffer = new byte[4];
-            input.Read(buffer, 0, 4);
-            return buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+            _ = input.Read(buffer, 0, 4);
+            return (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
         }
 
         private int ReadNextBlock(byte[] buffer, ref int offset, ref int count)
@@ -185,7 +181,7 @@ namespace Kryptography.Encryption.Nintendo.Wii
             // Read and decrypt user data
             hashPartStream.Position = BlockDataIvStart_;
             var dataIv = new byte[0x10];
-            hashPartStream.Read(dataIv, 0, 0x10);
+            _ = hashPartStream.Read(dataIv, 0, 0x10);
 
             var dataPartStream = new SubStream(_baseStream, blockStart + BlockHashSize_, BlockDataSize_);
             var cbcDataPartStream = new CbcStream(dataPartStream, _partitionKey, dataIv);

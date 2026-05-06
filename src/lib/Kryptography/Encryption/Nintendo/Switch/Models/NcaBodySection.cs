@@ -4,12 +4,10 @@
     {
         public NcaBodySection(long mediaOffset, long mediaLength, NcaSectionCrypto sectionCrypto, byte[] baseSectionCtr)
         {
-            if (mediaOffset < 6)
-                throw new ArgumentOutOfRangeException(nameof(mediaOffset));
-            if (mediaLength <= 0)
-                throw new ArgumentOutOfRangeException(nameof(mediaLength));
-            if (baseSectionCtr == null)
-                throw new ArgumentNullException(nameof(baseSectionCtr));
+            ArgumentOutOfRangeException.ThrowIfLessThan(mediaOffset, 6);
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(mediaLength, 0);
+            ArgumentNullException.ThrowIfNull(baseSectionCtr);
+
             if (baseSectionCtr.Length != 0x10)
                 throw new InvalidOperationException("Base section ctr needs a length of 0x10 bytes.");
 

@@ -2,44 +2,44 @@
 
 namespace Kryptography.Encryption.Sony.BBCipher
 {
-    public class BBCipherContext : SymmetricAlgorithm
+    public class BbCipherContext : SymmetricAlgorithm
     {
-        private byte[] _header_key;
-        private byte[] _vkey;
+        private readonly byte[] _headerKey;
+        private readonly byte[] _vkey;
 
-        private int _type;
-        private int _seed;
+        private readonly int _type;
+        private readonly int _seed;
 
-        public BBCipherContext(byte[] header_key, byte[] vkey, int seed, int cipher_type)
+        public BbCipherContext(byte[] headerKey, byte[] vkey, int seed, int cipherType)
         {
-            _header_key = new byte[header_key.Length];
-            Array.Copy(header_key, _header_key, header_key.Length);
+            _headerKey = new byte[headerKey.Length];
+            Array.Copy(headerKey, _headerKey, headerKey.Length);
 
             _vkey = new byte[vkey.Length];
             Array.Copy(vkey, _vkey, vkey.Length);
 
-            _type = cipher_type;
+            _type = cipherType;
             _seed = seed;
         }
 
         public override ICryptoTransform CreateDecryptor()
         {
-            return CreateDecryptor(null, null);
+            return CreateDecryptor(null!, null);
         }
 
-        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
+        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIv)
         {
-            return new BBCipherTransform(_header_key, _vkey, _seed, _type, true);
+            return new BbCipherTransform(_headerKey, _vkey, _seed, _type, true);
         }
 
         public override ICryptoTransform CreateEncryptor()
         {
-            return CreateEncryptor(null, null);
+            return CreateEncryptor(null!, null);
         }
 
-        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
+        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIv)
         {
-            return new BBCipherTransform(_header_key, _vkey, _seed, _type, false);
+            return new BbCipherTransform(_headerKey, _vkey, _seed, _type, false);
         }
 
         public override void GenerateIV()

@@ -4,31 +4,31 @@ using Kryptography.Extensions;
 
 namespace Kryptography.Encryption.Nintendo.Switch.Streams
 {
-    class NcaStream : Stream
+    internal class NcaStream : Stream
     {
         private readonly Stream _baseStream;
 
         private readonly Stream _headerStream;
         private readonly Stream[] _sectionStreams;
-        private readonly List<NcaBodySection> _sections;
+        private readonly List<NcaBodySection?> _sections;
 
-        public override bool CanRead => _baseStream.CanRead && _headerStream.CanRead && _sectionStreams.All(x => x.CanRead) && true;
+        public override bool CanRead => _baseStream.CanRead && _headerStream.CanRead && _sectionStreams.All(x => x.CanRead);
 
-        public override bool CanSeek => _baseStream.CanSeek && _headerStream.CanSeek && _sectionStreams.All(x => x.CanSeek) && true;
+        public override bool CanSeek => _baseStream.CanSeek && _headerStream.CanSeek && _sectionStreams.All(x => x.CanSeek);
 
-        public override bool CanWrite => _baseStream.CanWrite && _headerStream.CanWrite && _sectionStreams.All(x => x.CanWrite) && true;
+        public override bool CanWrite => _baseStream.CanWrite && _headerStream.CanWrite && _sectionStreams.All(x => x.CanWrite);
 
         public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
-        public NcaStream(Stream input, NcaVersion version, NcaBodySection[] sections, NcaKeyStorage keyStorage, byte[] decKeyArea, byte[] decTitleKey)
+        public NcaStream(Stream input, NcaVersion version, NcaBodySection[] sections, NcaKeyStorage keyStorage, byte[]? decKeyArea, byte[]? decTitleKey)
         {
             _baseStream = input;
 
             _headerStream = new NcaHeaderStream(input, version, keyStorage.HeaderKey);
 
-            _sections = sections.ToList();
+            _sections = [.. sections];
             _sectionStreams = new Stream[sections.Length];
             for (int i = 0; i < sections.Length; i++)
             {
@@ -83,8 +83,8 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
                 if (sectionToRead == null)
                 {
                     var nextSectionLimits = _sections.Where(x => x != null && x.MediaOffset * NcaConstants.MediaSize - newPosition >= 0).ToArray();
-                    if (nextSectionLimits.Any())
-                        toRead = (int)Math.Min(toRead, nextSectionLimits.Min(x => x.MediaOffset * NcaConstants.MediaSize) - newPosition);
+                    if (nextSectionLimits.Length > 0)
+                        toRead = (int)Math.Min(toRead, nextSectionLimits.Min(x => x!.MediaOffset * NcaConstants.MediaSize) - newPosition);
 
                     var bkPos = _baseStream.Position;
                     _baseStream.Position = newPosition;
@@ -165,8 +165,8 @@ namespace Kryptography.Encryption.Nintendo.Switch.Streams
                     if (sectionToWrite == null)
                     {
                         var nextSections = _sections.Where(x => x != null && x.MediaOffset * NcaConstants.MediaSize - newPosition >= 0).ToList();
-                        if (nextSections.Any())
-                            toWrite = Math.Min(toWrite, (int)(nextSections.Min(x => x.MediaOffset * NcaConstants.MediaSize) - newPosition));
+                        if (nextSections.Count > 0)
+                            toWrite = Math.Min(toWrite, (int)(nextSections.Min(x => x!.MediaOffset * NcaConstants.MediaSize) - newPosition));
 
                         var bkPos = _baseStream.Position;
                         _baseStream.Position = newPosition;

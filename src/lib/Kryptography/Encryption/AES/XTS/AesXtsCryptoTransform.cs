@@ -6,8 +6,8 @@ namespace Kryptography.Encryption.AES.XTS
 {
     public class AesXtsCryptoTransform : ICryptoTransform
     {
-        private ICryptoTransform _key1;
-        private ICryptoTransform _key2;
+        private readonly ICryptoTransform _key1;
+        private readonly ICryptoTransform _key2;
         private readonly int _sectorSize;
         private readonly bool _advanceSectorId;
         private bool _firstTransform;
@@ -40,9 +40,9 @@ namespace Kryptography.Encryption.AES.XTS
         public void Dispose()
         {
             _key1.Dispose();
-            _key1 = null;
             _key2.Dispose();
-            _key2 = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
@@ -57,7 +57,8 @@ namespace Kryptography.Encryption.AES.XTS
 
         private void Validate(int inputCount)
         {
-            if (inputCount <= 0) throw new ArgumentOutOfRangeException(nameof(inputCount));
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(inputCount, 0);
+
             if (!_firstTransform && !CanReuseTransform)
                 throw new InvalidOperationException("Can't reuse transform.");
             if (inputCount % InputBlockSize > 0)
@@ -164,7 +165,7 @@ namespace Kryptography.Encryption.AES.XTS
             XorData(outputBuffer, outputOffset, inputCount, outputBuffer, outputOffset, encryptedTweaks);
         }
 
-        private void XorData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedTweaks)
+        private static void XorData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedTweaks)
         {
             var simdLength = Vector<byte>.Count;
             int j;
@@ -189,7 +190,7 @@ namespace Kryptography.Encryption.AES.XTS
             return outputBuffer;
         }
 
-        private long RoundUpToMultiple(long numToRound, int multiple)
+        private static long RoundUpToMultiple(long numToRound, int multiple)
         {
             if (multiple == 0)
                 return numToRound;

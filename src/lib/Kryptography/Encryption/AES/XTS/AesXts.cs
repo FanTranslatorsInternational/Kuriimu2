@@ -7,16 +7,17 @@ namespace Kryptography.Encryption.AES.XTS
         private readonly int _sectorSize;
         private readonly bool _littleEndianId;
         private readonly bool _advanceSectorId;
-        private Aes _aes;
+        private readonly Aes _aes;
 
-        public override byte[] Key { get; set; }
-        public override byte[] IV { get; set; }
+        public override byte[] Key { get; set; } = [];
+        public override byte[] IV { get; set; } = [];
 
         /// <summary>
         /// Creates a AesXts
         /// </summary>
         /// <param name="littleEndianId">Defines if the id is little endian</param>
         /// <param name="sectorSize">Defines the size of a sector</param>
+        /// <param name="advanceSectorId">The sector ID for XTS.</param>
         public static AesXts Create(bool littleEndianId, int sectorSize, bool advanceSectorId)
         {
             return new AesXts(littleEndianId, sectorSize, advanceSectorId);
@@ -27,23 +28,19 @@ namespace Kryptography.Encryption.AES.XTS
             _littleEndianId = littleEndianId;
             _sectorSize = sectorSize;
             _advanceSectorId = advanceSectorId;
-            CreateAesContext();
-        }
 
-        private void CreateAesContext()
-        {
-            _aes = Aes.Create() ?? throw new ArgumentNullException(nameof(_aes));
+            _aes = Aes.Create();
             _aes.Mode = CipherMode.ECB;
             _aes.Padding = PaddingMode.None;
         }
 
-        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIv)
+        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIv)
         {
             ValidateInput(rgbKey, rgbIv);
 
             Key = new byte[rgbKey.Length];
             Array.Copy(rgbKey, Key, rgbKey.Length);
-            IV = new byte[rgbIv.Length];
+            IV = new byte[rgbIv!.Length];
             Array.Copy(rgbIv, IV, rgbIv.Length);
 
             var key1 = new byte[rgbKey.Length / 2];
@@ -60,13 +57,13 @@ namespace Kryptography.Encryption.AES.XTS
                 _littleEndianId);
         }
 
-        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIv)
+        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIv)
         {
             ValidateInput(rgbKey, rgbIv);
 
             Key = new byte[rgbKey.Length];
             Array.Copy(rgbKey, Key, rgbKey.Length);
-            IV = new byte[rgbIv.Length];
+            IV = new byte[rgbIv!.Length];
             Array.Copy(rgbIv, IV, rgbIv.Length);
 
             var key1 = new byte[rgbKey.Length / 2];
@@ -83,10 +80,10 @@ namespace Kryptography.Encryption.AES.XTS
                 _littleEndianId);
         }
 
-        private void ValidateInput(byte[] key, byte[] iv)
+        private static void ValidateInput(byte[] key, byte[]? iv)
         {
-            if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            ArgumentNullException.ThrowIfNull(iv);
+
             if (key.Length != 32 && key.Length != 64)
                 throw new InvalidOperationException("Key has invalid length.");
             if (iv.Length != 16)

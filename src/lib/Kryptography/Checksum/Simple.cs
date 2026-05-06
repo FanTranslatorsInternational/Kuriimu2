@@ -2,15 +2,8 @@
 
 namespace Kryptography.Checksum
 {
-    public class Simple : Checksum<uint>
+    public class Simple(uint magic) : Checksum<uint>
     {
-        private readonly uint _magic;
-
-        public Simple(uint magic)
-        {
-            _magic = magic;
-        }
-
         protected override uint CreateInitialValue()
         {
             return 0;
@@ -23,7 +16,7 @@ namespace Kryptography.Checksum
         public override void ComputeBlock(Span<byte> input, ref uint result)
         {
             foreach (var value in input)
-                result = result * _magic + value;
+                result = result * magic + value;
         }
 
         protected override byte[] ConvertResult(uint result)
