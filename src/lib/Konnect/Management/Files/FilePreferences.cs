@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
-using Konnect.DataClasses.Management.Files;
+﻿using Konnect.DataClasses.Management.Files;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Konnect.Management.Files
 {
@@ -7,7 +8,6 @@ namespace Konnect.Management.Files
     {
         private const string CacheName = "preferences.json";
 
-        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
         private static readonly Dictionary<string, FilePreferenceEntry> Cache;
 
         static FilePreferences()
@@ -48,7 +48,7 @@ namespace Konnect.Management.Files
             try
             {
                 using Stream fileStream = File.OpenRead(CacheName);
-                return JsonSerializer.Deserialize<Dictionary<string, FilePreferenceEntry>>(fileStream);
+                return JsonSerializer.Deserialize(fileStream, PreferenceDictionaryJsonSerializerContext.Default.DictionaryStringFilePreferenceEntry);
             }
             catch
             {
@@ -61,7 +61,7 @@ namespace Konnect.Management.Files
             try
             {
                 using Stream fileStream = File.Create(CacheName);
-                JsonSerializer.Serialize(fileStream, cache, JsonOptions);
+                JsonSerializer.Serialize(fileStream, cache, PreferenceDictionaryJsonSerializerContext.Default.DictionaryStringFilePreferenceEntry);
             }
             catch
             {
@@ -69,4 +69,8 @@ namespace Konnect.Management.Files
             }
         }
     }
+
+    [JsonSourceGenerationOptions(WriteIndented = false)]
+    [JsonSerializable(typeof(Dictionary<string, FilePreferenceEntry>))]
+    internal partial class PreferenceDictionaryJsonSerializerContext : JsonSerializerContext;
 }

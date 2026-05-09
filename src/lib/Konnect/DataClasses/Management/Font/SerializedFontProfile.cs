@@ -5,7 +5,6 @@ namespace Konnect.DataClasses.Management.Font;
 [XmlRoot(ElementName = "padding")]
 public class Padding
 {
-
     [XmlElement(ElementName = "Left")]
     public int Left { get; set; }
 
@@ -16,7 +15,6 @@ public class Padding
 [XmlRoot(ElementName = "adjustedCharacter")]
 public class AdjustedCharacter
 {
-
     [XmlElement(ElementName = "character")]
     public int Character { get; set; }
 
@@ -27,7 +25,6 @@ public class AdjustedCharacter
 [XmlRoot(ElementName = "adjustedCharacters")]
 public class AdjustedCharacters
 {
-
     [XmlElement(ElementName = "adjustedCharacter")]
     public required List<AdjustedCharacter> AdjustedCharacter { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿using System.Xml.Serialization;
+﻿using System.Xml;
 using Konnect.DataClasses.Management.Text;
 
 namespace Konnect.Management.Text;
@@ -7,24 +7,15 @@ public static class KupManager
 {
     public static TranslationFileEntry[] Load(Stream input)
     {
-        var serializer = new XmlSerializer(typeof(KupXmlRoot));
-
-        KupXmlRoot? root;
-        try
-        {
-            root = (KupXmlRoot?)serializer.Deserialize(input);
-        }
-        catch (Exception)
-        {
-            root = null;
-        }
+        using var reader = XmlReader.Create(input);
+        SerializedKup? root = KupXmlProvider.Read(reader);
 
         if (root is null)
             return [];
 
         var result = new List<TranslationFileEntry>();
 
-        foreach (KupXmlEntry entry in root.Entries.Entry)
+        foreach (SerializedKupEntry entry in root.Entries.Entry)
         {
             int pageIndex = entry.Name.IndexOf(';');
 
@@ -42,7 +33,7 @@ public static class KupManager
 
     public static void Save(Stream output, TranslationFileEntry[] entries)
     {
-        var xmlEntries = new List<KupXmlEntry>();
+        var xmlEntries = new List<SerializedKupEntry>();
 
         foreach (TranslationFileEntry entry in entries)
         {
@@ -50,7 +41,7 @@ public static class KupManager
             if (entry.PageName is not null)
                 name += $";{entry.PageName}";
 
-            xmlEntries.Add(new KupXmlEntry
+            xmlEntries.Add(new SerializedKupEntry
             {
                 Name = name,
                 OriginalText = entry.OriginalText,
@@ -58,15 +49,16 @@ public static class KupManager
             });
         }
 
-        var root = new KupXmlRoot
+        var root = new SerializedKup
         {
-            Entries = new KupXmlEntries
+            Entries = new SerializedKupEntries
             {
                 Entry = [.. xmlEntries]
             }
         };
 
-        var serializer = new XmlSerializer(typeof(KupXmlRoot));
-        serializer.Serialize(output, root);
+        using var writer = XmlWriter.Create(output);
+
+        KupXmlProvider.Write(root, writer);
     }
 }

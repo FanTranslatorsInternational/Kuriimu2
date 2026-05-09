@@ -19,14 +19,14 @@ public static class PoManager
         string[] lines = poText.Split(Environment.NewLine);
         for (var i = 0; i < lines.Length; i++)
         {
-            if (lines[i].StartsWith("#:"))
+            if (lines[i].StartsWith("#:", StringComparison.Ordinal))
             {
                 if (reference is not null)
                     throw new PoFileMalformedException(i + 1);
 
                 reference = lines[i].Length > 2 ? lines[i][2..].Trim() : string.Empty;
             }
-            else if (lines[i].StartsWith("msgid"))
+            else if (lines[i].StartsWith("msgid", StringComparison.Ordinal))
             {
                 if (msgId is not null)
                     throw new PoFileMalformedException(i + 1);
@@ -41,7 +41,7 @@ public static class PoManager
 
                 msgId = lines[i][(beginIndex + 1)..endIndex];
             }
-            else if (lines[i].StartsWith("msgstr"))
+            else if (lines[i].StartsWith("msgstr", StringComparison.Ordinal))
             {
                 if (msgStr is not null)
                     throw new PoFileMalformedException(i + 1);
