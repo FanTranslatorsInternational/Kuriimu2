@@ -78,23 +78,23 @@ namespace Konnect.DataClasses.Management.Text
 
             using XmlReader subtree = reader.ReadSubtree();
 
-            while (subtree.Read())
+            while (!subtree.EOF)
             {
-                if (subtree.NodeType != XmlNodeType.Element)
+                if (subtree.NodeType == XmlNodeType.Element)
                 {
-                    continue;
+                    switch (subtree.Name)
+                    {
+                        case "original":
+                            original = subtree.ReadElementContentAsString();
+                            continue;
+
+                        case "edited":
+                            edited = subtree.ReadElementContentAsString();
+                            continue;
+                    }
                 }
 
-                switch (subtree.Name)
-                {
-                    case "original":
-                        original = subtree.ReadElementContentAsString();
-                        break;
-
-                    case "edited":
-                        edited = subtree.ReadElementContentAsString();
-                        break;
-                }
+                subtree.Read();
             }
 
             return new SerializedKupEntry

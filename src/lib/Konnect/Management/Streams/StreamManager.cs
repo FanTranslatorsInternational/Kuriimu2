@@ -16,7 +16,7 @@ public class StreamManager : IStreamManager
 
     private readonly Guid _guid;
 
-    private readonly List<Stream> _streams = [];
+    private readonly List<Stream?> _streams = [];
     private readonly Dictionary<Stream, Stream> _parentStreams = [];
 
     public const string TemporaryDirectory = "tmp";
@@ -39,7 +39,7 @@ public class StreamManager : IStreamManager
     /// <inheritdoc />
     public ITemporaryStreamManager CreateTemporaryStreamProvider()
     {
-        var tempDirectory = UPath.Combine(TemporaryDirectory, _guid.ToString("D"));
+        var tempDirectory = UPath.Combine(TemporaryDirectory, $"{_guid}");
         return new TemporaryStreamManager(Path.GetFullPath(tempDirectory.FullName ?? string.Empty), this);
     }
 
@@ -70,21 +70,27 @@ public class StreamManager : IStreamManager
     }
 
     /// <inheritdoc />
-    public bool ContainsStream(Stream stream)
+    public bool ContainsStream(Stream? stream)
     {
         return _streams.Contains(stream);
     }
 
     /// <inheritdoc />
-    public void Release(Stream release, bool recursive = false)
+    public void Release(Stream? release, bool recursive = false)
     {
+        if (release == null)
+        {
+            Logger?.Error("Probable race condition in stream manager.");
+            return;
+        }
+
         if (!ContainsStream(release))
             throw new InvalidOperationException("The stream is not managed by this provider.");
 
         // Close all children of the given stream too
-        if (recursive && _parentStreams.TryGetValue(release, out var toRelease))
+        if (recursive && _parentStreams.TryGetValue(release, out var parentStream))
         {
-            Release(toRelease, true);
+            Release(parentStream, true);
             _parentStreams.Remove(release);
         }
 
@@ -124,7 +130,7 @@ public class StreamManager : IStreamManager
     /// <param name="e"></param>
     private void StreamCollectionTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
-        foreach (var stream in _streams.ToList())
+        foreach (var stream in _streams.Where(x => x != null).ToList())
         {
             if (!IsStreamClosed(stream))
                 continue;
@@ -142,8 +148,11 @@ public class StreamManager : IStreamManager
     /// </summary>
     /// <param name="stream"></param>
     /// <returns></returns>
-    private static bool IsStreamClosed(Stream stream)
+    private static bool IsStreamClosed(Stream? stream)
     {
+        if (stream is null)
+            return true;
+
         return stream is { CanRead: false, CanWrite: false, CanSeek: false };
     }
 }

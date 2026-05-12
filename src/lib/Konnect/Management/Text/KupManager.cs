@@ -58,7 +58,6 @@ public static class KupManager
         };
 
         using var writer = XmlWriter.Create(output);
-
         KupXmlProvider.Write(root, writer);
     }
 }

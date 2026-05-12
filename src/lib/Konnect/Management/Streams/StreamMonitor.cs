@@ -53,7 +53,7 @@ internal class StreamMonitor : IDisposable
         var streamManager = CreateStreamManager();
 
         var tempDirectory = CreateTemporaryDirectory();
-        var temporaryFileSystem = FileSystemFactory.CreateSubFileSystem(tempDirectory, streamManager);
+        var temporaryFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(tempDirectory, streamManager);
 
         _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, _ => (streamManager, tempDirectory));
         _streamManagerMapping.GetOrAdd(streamManager, _ => (temporaryFileSystem, tempDirectory));

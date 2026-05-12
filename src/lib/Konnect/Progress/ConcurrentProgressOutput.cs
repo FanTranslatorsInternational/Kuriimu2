@@ -49,7 +49,7 @@ public abstract class ConcurrentProgressOutput : IProgressOutput
 
         var localProgress = _progressState;
 
-        var percentageValue = localProgress.PartialValue / (double)localProgress.MaxValue;
+        var percentageValue = localProgress.MaxValue <= 0 ? 0 : localProgress.PartialValue / (double)localProgress.MaxValue;
         var percentageInRange = (localProgress.MaxPercentage - localProgress.MinPercentage) * percentageValue;
 
         var message = string.IsNullOrWhiteSpace(localProgress.PreText) ?

@@ -28,7 +28,7 @@ public static class FileSystemFactory
     /// <param name="subPath">The path on a physical drive to root the file system to.</param>
     /// <param name="streamManager">The <see cref="IStreamManager"/> for the file system.</param>
     /// <returns>The rooted physical file system.</returns>
-    public static IFileSystem CreateSubFileSystem(string subPath, IStreamManager streamManager)
+    public static IFileSystem CreatePhysicalSubFileSystem(string subPath, IStreamManager streamManager)
     {
         var physicalFileSystem = new PhysicalFileSystem(streamManager);
         return CreateSubFileSystem(physicalFileSystem, physicalFileSystem.ConvertPathFromInternal(subPath));

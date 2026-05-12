@@ -21,6 +21,14 @@ public class ProgressContext(IProgressOutput output) : ISetMaxProgressContext
     public double MaxPercentage { get; } = 100.0;
     public long MaxValue { get; private set; } = -1;
 
+    public ProgressContext(string? preText, IProgressOutput output) :
+        this(output)
+    {
+        PreText = preText;
+
+        _state.PreText = preText;
+    }
+
     public ProgressContext(double min, double max, IProgressOutput output) :
         this(output)
     {
@@ -42,7 +50,7 @@ public class ProgressContext(IProgressOutput output) : ISetMaxProgressContext
     }
 
     public IProgressContext CreateScope(double min, double max) =>
-        CreateScope(null, min, max);
+        CreateScope(PreText, min, max);
 
     public IProgressContext CreateScope(string? preText, double min, double max)
     {
