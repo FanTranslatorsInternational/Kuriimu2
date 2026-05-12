@@ -21,11 +21,6 @@ public interface IFileManager : IPluginFileManager
     bool AllowManualSelection { get; set; }
 
     /// <summary>
-    /// Declares if plugin id and dialog options of a successful file load should be remembered and re-used
-    /// </summary>
-    bool UseSelectionCache { get; set; }
-
-    /// <summary>
     /// The logger for this plugin manager.
     /// </summary>
     ILogger? Logger { get; set; }

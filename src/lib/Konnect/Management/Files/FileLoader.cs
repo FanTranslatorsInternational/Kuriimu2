@@ -3,12 +3,14 @@ using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Plugin.File;
 using Konnect.Contract.Enums.Management.Files;
+using Konnect.Contract.Exceptions.Management.Dialog;
 using Konnect.Contract.Exceptions.Management.Files;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Streams;
 using Konnect.Contract.Plugin.File;
+using Konnect.Management.Dialog;
 
 namespace Konnect.Management.Files;
 
@@ -26,13 +28,19 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
         var temporaryStreamProvider = loadInfo.StreamManager.CreateTemporaryStreamProvider();
 
         // 2. Identify the plugin to use
-        var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
-        if (plugin == null)
-            return new LoadResult
+        var plugin = loadInfo.Plugin;
+        if (plugin is null)
+        {
+            (plugin, var error) = await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
+            if (plugin is null)
             {
-                Status = LoadStatus.Errored,
-                Reason = LoadErrorReason.NoPlugin
-            };
+                return new LoadResult
+                {
+                    Status = LoadStatus.Errored,
+                    Reason = error!.Value
+                };
+            }
+        }
 
         // 3. Create state from identified plugin
         var subPluginManager = new ScopedFileManager(loadInfo.FileManager);
@@ -47,7 +55,7 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
         // 5. Load data from state
         var loadContext = new LoadContext
         {
-            DialogManager = loadInfo.DialogManager,
+            DialogManager = loadInfo.DialogManager ?? new PredefinedDialogManager([]),
             TemporaryStreamManager = temporaryStreamProvider,
             ProgressContext = loadInfo.Progress
         };
@@ -78,7 +86,7 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
     /// <param name="filePath">The path of the file to identify.</param>
     /// <param name="loadInfo">The context for the load operation.</param>
     /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
-    private async Task<IFilePlugin?> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadFileOptions loadInfo)
+    private async Task<(IFilePlugin?, LoadErrorReason?)> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadFileOptions loadInfo)
     {
         // 1. Get all plugins that support identification
         var identifiablePlugins = pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles);
@@ -93,10 +101,10 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
                 if (identifyResult)
                     matchedPlugins.Add(identifiablePlugin);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                // Log exceptions and carry on
-                loadInfo.Logger?.Fatal(e, "Tried to identify file '{0}' with plugin '{1}'.", filePath.FullName, identifiablePlugin.PluginId);
+                // Do not log exceptions on errors identifying with every identifiable plugins
+                // Reduces false error logs for better error discovery
             }
         }
 
@@ -104,16 +112,14 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
         var allPlugins = pluginManager.GetPlugins<IFilePlugin>().ToArray();
 
         if (matchedPlugins.Count == 1)
-            return matchedPlugins.First();
+            return (matchedPlugins.First(), null);
 
+        // 4. If multiple plugins could identify the file, get manual feedback on all plugins that could identify it
         if (matchedPlugins.Count > 1)
-            return await GetManualSelection(allPlugins, [.. matchedPlugins], SelectionStatus.MultipleMatches);
+            return await GetManualSelection(allPlugins, [.. matchedPlugins], SelectionStatus.MultipleMatches, loadInfo);
 
         // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
-        if (loadInfo.AllowManualSelection)
-            return await GetManualSelection(allPlugins, [.. allPlugins.Where(x => !x.CanIdentifyFiles)], SelectionStatus.NonIdentifiable);
-
-        return null;
+        return await GetManualSelection(allPlugins, [.. allPlugins.Where(x => !x.CanIdentifyFiles)], SelectionStatus.NonIdentifiable, loadInfo);
     }
 
     /// <summary>
@@ -143,16 +149,18 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
     /// Select a plugin manually.
     /// </summary>
     /// <returns>The manually selected plugin.</returns>
-    private async Task<IFilePlugin?> GetManualSelection(IFilePlugin[] allFilePlugins, IFilePlugin[] filteredFilePlugins, SelectionStatus status)
+    private async Task<(IFilePlugin?, LoadErrorReason?)> GetManualSelection(IFilePlugin[] allFilePlugins, IFilePlugin[] filteredFilePlugins, SelectionStatus status, LoadFileOptions loadInfo)
     {
-        if (OnManualSelection == null)
-            return null;
+        var errorReason = status == SelectionStatus.MultipleMatches ? LoadErrorReason.MultiplePlugins : LoadErrorReason.NoPlugin;
+
+        if (!loadInfo.AllowManualSelection || OnManualSelection == null)
+            return (null, errorReason);
 
         // 1. Request manual selection by the user
         var selectionArgs = new ManualSelectionEventArgs(allFilePlugins, filteredFilePlugins, status);
         await OnManualSelection.Invoke(selectionArgs);
 
-        return selectionArgs.Result;
+        return (selectionArgs.Result, selectionArgs.Result is null ? errorReason : null);
     }
 
     /// <summary>
@@ -227,6 +235,15 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
         try
         {
             await Task.Run(async () => await pluginState.AttemptLoad(fileSystem, filePath, loadContext));
+        }
+        catch (NotEnoughDialogOptionsProvidedException e)
+        {
+            return new LoadResult
+            {
+                Status = LoadStatus.Errored,
+                Exception = e,
+                Reason = LoadErrorReason.NoOptions
+            };
         }
         catch (Exception e)
         {

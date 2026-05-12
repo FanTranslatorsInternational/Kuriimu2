@@ -12,7 +12,6 @@ using Konnect.Contract.Management.Streams;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Contract.Progress;
-using Konnect.DataClasses.Management.Files;
 using Konnect.Extensions;
 using Konnect.FileSystem;
 using Konnect.Management.Dialog;
@@ -52,10 +51,9 @@ public class FileManager : IFileManager
     /// <inheritdoc />
     public bool AllowManualSelection { get; set; }
 
-    /// <inheritdoc />
-    public bool UseSelectionCache { get; set; }
-
     public IProgressContext Progress { get; set; } = new ProgressContext(new NullProgressOutput());
+
+    public IFilePreferences? Preferences { get; init; }
 
     public IDialogManager? DialogManager { get; init; }
 
@@ -507,7 +505,7 @@ public class FileManager : IFileManager
 
         // 2. Load file
         IDialogManager? dialogManager = DialogManager != null
-            ? new DialogManager(DialogManager, options)
+            ? new PredefinedDialogManager(DialogManager, options)
             : null;
         var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadFileOptions
         {
@@ -539,10 +537,10 @@ public class FileManager : IFileManager
         Guid pluginId = loadFileContext.PluginId;
         List<string> options = loadFileContext.Options;
 
-        if (UseSelectionCache)
+        if (Preferences is not null)
         {
             UPath absolutePath = fileSystem.ConvertPathToInternal(path);
-            FilePreferenceEntry? cacheEntry = FilePreferences.GetOrDefault(absolutePath.FullName ?? string.Empty);
+            FilePreferenceEntry? cacheEntry = Preferences.GetOrDefault(absolutePath.FullName ?? string.Empty);
 
             if (cacheEntry is not null)
             {
@@ -580,7 +578,7 @@ public class FileManager : IFileManager
 
     private void SetToCache(LoadResult result)
     {
-        if (!UseSelectionCache)
+        if (Preferences is null)
             return;
 
         if (result.LoadedFileState is null)
@@ -598,7 +596,7 @@ public class FileManager : IFileManager
         if (absolutePath.IsNull)
             return;
 
-        FilePreferences.Set(absolutePath.FullName!, element);
+        Preferences.Set(absolutePath.FullName!, element);
     }
 
     #endregion

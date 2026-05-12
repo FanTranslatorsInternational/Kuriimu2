@@ -20,6 +20,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Management\Batch\BatchExtractor.cs~RF174a99e7.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Konnect.Contract\Konnect.Contract.csproj" />
   </ItemGroup>
 

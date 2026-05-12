@@ -77,10 +77,11 @@ class FileSaver(StreamMonitor streamMonitor) : IFileSaver
         // 1. Reload current state
         var temporaryStreamProvider = fileState.StreamManager.CreateTemporaryStreamProvider();
 
-        var dialogManager = saveInfo.DialogManager != null ? new DialogManager(saveInfo.DialogManager, fileState.DialogOptions) : null;
         var loadContext = new LoadContext
         {
-            DialogManager = dialogManager,
+            DialogManager = saveInfo.DialogManager != null 
+                ? new PredefinedDialogManager(saveInfo.DialogManager, fileState.DialogOptions) 
+                : new PredefinedDialogManager(fileState.DialogOptions),
             TemporaryStreamManager = temporaryStreamProvider,
             ProgressContext = saveInfo.Progress
         };

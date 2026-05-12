@@ -1,53 +1,54 @@
-﻿using Konnect.DataClasses.Management.Files;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Konnect.Contract.DataClasses.Management.Files;
+using Konnect.Contract.Management.Files;
 
 namespace Konnect.Management.Files
 {
-    public static class FilePreferences
+    public class FilePreferences : IFilePreferences
     {
-        private const string CacheName = "preferences.json";
+        private readonly string _cachePath;
+        private readonly Dictionary<string, FilePreferenceEntry> _cache;
 
-        private static readonly Dictionary<string, FilePreferenceEntry> Cache;
-
-        static FilePreferences()
+        public FilePreferences(string cachePath)
         {
-            Cache = LoadCache() ?? [];
+            _cachePath = cachePath;
+            _cache = LoadCache() ?? [];
         }
 
-        public static string[] GetPaths()
+        public string[] GetPaths()
         {
-            return [.. Cache.Keys];
+            return [.. _cache.Keys];
         }
 
-        public static FilePreferenceEntry? GetOrDefault(string fullPath)
+        public FilePreferenceEntry? GetOrDefault(string fullPath)
         {
-            if (Cache.TryGetValue(fullPath, out FilePreferenceEntry entry))
+            if (_cache.TryGetValue(fullPath, out FilePreferenceEntry entry))
                 return entry;
 
             return null;
         }
 
-        public static void Set(string fullPath, FilePreferenceEntry entry)
+        public void Set(string fullPath, FilePreferenceEntry entry)
         {
-            Cache[fullPath] = entry;
-            PersistCache(Cache);
+            _cache[fullPath] = entry;
+            PersistCache(_cache);
         }
 
-        public static void Remove(string filePath)
+        public void Remove(string filePath)
         {
-            if (Cache.Remove(filePath))
-                PersistCache(Cache);
+            if (_cache.Remove(filePath))
+                PersistCache(_cache);
         }
 
-        private static Dictionary<string, FilePreferenceEntry>? LoadCache()
+        private Dictionary<string, FilePreferenceEntry>? LoadCache()
         {
-            if (!File.Exists(CacheName))
+            if (!File.Exists(_cachePath))
                 return null;
 
             try
             {
-                using Stream fileStream = File.OpenRead(CacheName);
+                using Stream fileStream = File.OpenRead(_cachePath);
                 return JsonSerializer.Deserialize(fileStream, PreferenceDictionaryJsonSerializerContext.Default.DictionaryStringFilePreferenceEntry);
             }
             catch
@@ -56,11 +57,11 @@ namespace Konnect.Management.Files
             }
         }
 
-        private static void PersistCache(Dictionary<string, FilePreferenceEntry> cache)
+        private void PersistCache(Dictionary<string, FilePreferenceEntry> cache)
         {
             try
             {
-                using Stream fileStream = File.Create(CacheName);
+                using Stream fileStream = File.Create(_cachePath);
                 JsonSerializer.Serialize(fileStream, cache, PreferenceDictionaryJsonSerializerContext.Default.DictionaryStringFilePreferenceEntry);
             }
             catch

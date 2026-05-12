@@ -23,5 +23,5 @@ public class LoadContext
     /// <summary>
     /// The dialog manager.
     /// </summary>
-    public IDialogManager? DialogManager { get; init; }
+    public required IDialogManager DialogManager { get; init; }
 }

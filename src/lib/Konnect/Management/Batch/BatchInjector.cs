@@ -127,12 +127,13 @@ namespace Konnect.Management.Batch
             }
 
             _ = await fileManager.SaveFile(loadResult.LoadedFileState);
-            _ = fileManager.Close(loadResult.LoadedFileState);
 
             await OnFileProcessed(filePath, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
 
             if (ReuseDialogOptions)
-                _options = loadResult.LoadedFileState.DialogOptions;
+                _options = [.. loadResult.LoadedFileState.DialogOptions];
+
+            _ = fileManager.Close(loadResult.LoadedFileState);
         }
 
         private async Task InjectText(IFileState file, ITextFilePluginState state, string filePath, BatchTextOptions? options)

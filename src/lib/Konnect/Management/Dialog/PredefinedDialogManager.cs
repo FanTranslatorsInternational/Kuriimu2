@@ -1,9 +1,10 @@
 ﻿using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.Exceptions.Management.Dialog;
 using Konnect.Contract.Management.Dialog;
 
 namespace Konnect.Management.Dialog;
 
-public class DialogManager : IDialogManager
+public class PredefinedDialogManager : IDialogManager
 {
     private readonly IDialogManager? _dialogManager;
     private readonly IList<string> _options;
@@ -12,12 +13,12 @@ public class DialogManager : IDialogManager
     /// <inheritdoc />
     public IList<string> DialogOptions { get; } = [];
 
-    public DialogManager(IList<string> options)
+    public PredefinedDialogManager(IList<string> options)
     {
         _options = options;
     }
 
-    public DialogManager(IDialogManager dialogManager, IList<string> options)
+    public PredefinedDialogManager(IDialogManager dialogManager, IList<string> options)
     {
         _dialogManager = dialogManager;
         _options = options;
@@ -28,7 +29,7 @@ public class DialogManager : IDialogManager
     {
         // If no dialog Manager is given and not enough predefined options are available.
         if (_dialogManager == null && _options.Count - _optionIndex < fields.Length)
-            throw new InvalidOperationException("Not enough predefined dialog options.");
+            throw new NotEnoughDialogOptionsProvidedException(fields.Length, _options.Count - _optionIndex);
 
         // Collect predefined options for each field
         var fieldIndex = 0;
