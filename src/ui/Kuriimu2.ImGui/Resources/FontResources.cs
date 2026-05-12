@@ -1,36 +1,34 @@
 ﻿using System;
+using System.Reflection;
 using ImGui.Forms.Factories;
 using ImGui.Forms.Resources;
 
 namespace Kuriimu2.ImGui.Resources
 {
-    static class FontResources
+    internal static class FontResources
     {
         public static void RegisterFonts()
         {
-            FontFactory.RegisterFromResource("Roboto", "roboto.ttf");
-            FontFactory.RegisterFromResource("NotoJp", "notojp.ttf");
-            FontFactory.RegisterFromResource("NotoKr", "notokr.ttf");
-            FontFactory.RegisterFromResource("NotoZhTc", "notozhtc.ttf");
+            Assembly assembly = typeof(FontResources).Assembly;
+
+            FontFactory.RegisterFromResource("Roboto", assembly, "roboto.ttf");
+            FontFactory.RegisterFromResource("NotoJp", assembly, "notojp.ttf");
+            FontFactory.RegisterFromResource("NotoKr", assembly, "notokr.ttf");
+            FontFactory.RegisterFromResource("NotoZhTc", assembly, "notozhtc.ttf");
         }
 
         public static FontResource GetFont(FontType type, int size)
         {
-            switch (type)
+            return type switch
             {
-                case FontType.Application:
-                    return FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size))));
-
-                case FontType.Hexadecimal:
-                    return FontFactory.GetDefault(size);
-
-                default:
-                    throw new InvalidOperationException($"Invalid font type {type}.");
-            }
+                FontType.Application => FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size)))),
+                FontType.Hexadecimal => FontFactory.GetDefault(size),
+                _ => throw new InvalidOperationException($"Invalid font type {type}.")
+            };
         }
     }
 
-    enum FontType
+    internal enum FontType
     {
         Application,
         Hexadecimal

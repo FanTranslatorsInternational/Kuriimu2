@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class PluginDeprecatedDialog
+    internal partial class PluginDeprecatedDialog
     {
         public PluginDeprecatedDialog(IDeprecatedFilePlugin deprecatedPlugin)
         {

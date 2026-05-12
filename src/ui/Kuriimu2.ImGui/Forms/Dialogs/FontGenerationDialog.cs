@@ -57,27 +57,27 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             InitializeComponent(type, selectedCharacters);
 
-            _loadBtn.Clicked += _loadBtn_Clicked;
-            _saveBtn.Clicked += _saveBtn_Clicked;
-            _executeBtn.Clicked += _executeBtn_Clicked;
+            _loadBtn.Clicked += LoadBtn_Clicked;
+            _saveBtn.Clicked += SaveBtn_Clicked;
+            _executeBtn.Clicked += ExecuteBtn_Clicked;
 
-            _paddingLeftBox.TextChanged += _paddingLeftBox_TextChanged;
-            _paddingRightBox.TextChanged += _paddingRightBox_TextChanged;
-            _fontFamilyBox.SelectedItemChanged += _fontFamilyBox_SelectedItemChanged;
-            _boldCheckBox.CheckChanged += _boldCheckBox_CheckChanged;
-            _italicCheckBox.CheckChanged += _italicCheckBox_CheckChanged;
-            _fontSizeBox.TextChanged += _fontSizeBox_TextChanged;
-            _baselineBox.TextChanged += _baselineBox_TextChanged;
-            _glyphHeightBox.TextChanged += _glyphHeightBox_TextChanged;
-            _spaceWidthBox.TextChanged += _spaceWidthBox_TextChanged;
-            _characterEditor.CursorPositionChanged += _characterEditor_CursorPositionChanged;
-            _replaceCharactersCheck.CheckChanged += _replaceCharactersCheck_CheckChanged;
+            _paddingLeftBox.TextChanged += PaddingLeftBox_TextChanged;
+            _paddingRightBox.TextChanged += PaddingRightBox_TextChanged;
+            _fontFamilyBox.SelectedItemChanged += FontFamilyBox_SelectedItemChanged;
+            _boldCheckBox.CheckChanged += BoldCheckBox_CheckChanged;
+            _italicCheckBox.CheckChanged += ItalicCheckBox_CheckChanged;
+            _fontSizeBox.TextChanged += FontSizeBox_TextChanged;
+            _baselineBox.TextChanged += BaselineBox_TextChanged;
+            _glyphHeightBox.TextChanged += GlyphHeightBox_TextChanged;
+            _spaceWidthBox.TextChanged += SpaceWidthBox_TextChanged;
+            _characterEditor.CursorPositionChanged += CharacterEditor_CursorPositionChanged;
+            _replaceCharactersCheck.CheckChanged += ReplaceCharactersCheck_CheckChanged;
 
             SetFontFamilies();
 
             _profile = new FontProfile
             {
-                FontFamily = _fontFamilyBox.SelectedItem.Name,
+                FontFamily = _fontFamilyBox.SelectedItem?.Name,
                 FontSize = DefaultFontSize_,
                 Baseline = DefaultBaseline_,
                 GlyphHeight = DefaultGlyphHeight_,
@@ -87,7 +87,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             };
         }
 
-        private void _replaceCharactersCheck_CheckChanged(object? sender, EventArgs e)
+        private void ReplaceCharactersCheck_CheckChanged(object? sender, EventArgs e)
         {
             SettingsResources.ReplaceFontCharacters = _replaceCharactersCheck.Checked;
         }
@@ -141,17 +141,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return true;
         }
 
-        private async void _loadBtn_Clicked(object sender, EventArgs e)
+        private async void LoadBtn_Clicked(object? sender, EventArgs e)
         {
             ToggleForm(false);
 
             var ofd = new WindowsOpenFileDialog
             {
                 Title = LocalizationResources.DialogFontGenerateLoadCaption,
-                Filters = new List<FileFilter>
-                {
-                    new(LocalizationResources.DialogFontGenerateProfile, "bfgp")
-                }
+                Filters =
+                [
+                    new FileFilter(LocalizationResources.DialogFontGenerateProfile, "bfgp")
+                ]
             };
 
             DialogResult result = await ofd.ShowAsync();
@@ -161,17 +161,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             ToggleForm(true);
         }
 
-        private async void _saveBtn_Clicked(object sender, EventArgs e)
+        private async void SaveBtn_Clicked(object? sender, EventArgs e)
         {
             ToggleForm(false);
 
             var sfd = new WindowsSaveFileDialog
             {
                 Title = LocalizationResources.DialogFontGenerateSaveCaption,
-                Filters = new List<FileFilter>
-                {
-                    new(LocalizationResources.DialogFontGenerateProfile, "bfgp")
-                }
+                Filters =
+                [
+                    new FileFilter(LocalizationResources.DialogFontGenerateProfile, "bfgp")
+                ]
             };
 
             DialogResult result = await sfd.ShowAsync();
@@ -181,12 +181,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             ToggleForm(true);
         }
 
-        private void _executeBtn_Clicked(object? sender, EventArgs e)
+        private void ExecuteBtn_Clicked(object? sender, EventArgs e)
         {
-            if (_type == FontGenerationType.Create)
-                GenerateFont();
-            else if (_type == FontGenerationType.Edit)
-                EditFont();
+            switch (_type)
+            {
+                case FontGenerationType.Create:
+                    GenerateFont();
+                    break;
+
+                case FontGenerationType.Edit:
+                    EditFont();
+                    break;
+            }
         }
 
         private void GenerateFont()
@@ -277,7 +283,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Close(DialogResult.Ok);
         }
 
-        private void _paddingRightBox_TextChanged(object sender, EventArgs e)
+        private void PaddingRightBox_TextChanged(object? sender, EventArgs e)
         {
             if (!int.TryParse(_paddingRightBox.Text, out int paddingRight))
                 return;
@@ -293,7 +299,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateCurrentGlyph();
         }
 
-        private void _paddingLeftBox_TextChanged(object sender, EventArgs e)
+        private void PaddingLeftBox_TextChanged(object? sender, EventArgs e)
         {
             if (!int.TryParse(_paddingLeftBox.Text, out int paddingLeft))
                 return;
@@ -309,7 +315,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateCurrentGlyph();
         }
 
-        private void _characterEditor_CursorPositionChanged(object sender, Coordinate e)
+        private void CharacterEditor_CursorPositionChanged(object? sender, Coordinate e)
         {
             var text = _characterEditor.GetText(e);
             if (text.Length <= 0)
@@ -322,7 +328,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             SetCurrentCharacter(character);
         }
 
-        private void _fontFamilyBox_SelectedItemChanged(object sender, EventArgs e)
+        private void FontFamilyBox_SelectedItemChanged(object? sender, EventArgs e)
         {
             if (_fontFamilyBox.SelectedItem != null)
                 _profile.FontFamily = _fontFamilyBox.SelectedItem.Name;
@@ -330,18 +336,18 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateCurrentGlyph();
         }
 
-        private void SetFontFamily(string fontName)
+        private void SetFontFamily(string? fontName)
         {
-            _fontFamilyBox.SelectedItemChanged -= _fontFamilyBox_SelectedItemChanged;
+            _fontFamilyBox.SelectedItemChanged -= FontFamilyBox_SelectedItemChanged;
 
-            DropDownItem<FontFamily> fontFamily = _fontFamilyBox.Items.FirstOrDefault(x => x.Name == fontName);
+            DropDownItem<FontFamily>? fontFamily = _fontFamilyBox.Items.FirstOrDefault(x => x.Name == fontName);
             if (fontFamily != null)
                 _fontFamilyBox.SelectedItem = fontFamily;
 
-            _fontFamilyBox.SelectedItemChanged += _fontFamilyBox_SelectedItemChanged;
+            _fontFamilyBox.SelectedItemChanged += FontFamilyBox_SelectedItemChanged;
         }
 
-        private void _italicCheckBox_CheckChanged(object? sender, EventArgs e)
+        private void ItalicCheckBox_CheckChanged(object? sender, EventArgs e)
         {
             _profile.IsItalic = _italicCheckBox.Checked;
 
@@ -350,14 +356,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetItalic(bool isItalic)
         {
-            _italicCheckBox.CheckChanged -= _italicCheckBox_CheckChanged;
+            _italicCheckBox.CheckChanged -= ItalicCheckBox_CheckChanged;
 
             _italicCheckBox.Checked = isItalic;
 
-            _italicCheckBox.CheckChanged += _italicCheckBox_CheckChanged;
+            _italicCheckBox.CheckChanged += ItalicCheckBox_CheckChanged;
         }
 
-        private void _boldCheckBox_CheckChanged(object? sender, EventArgs e)
+        private void BoldCheckBox_CheckChanged(object? sender, EventArgs e)
         {
             _profile.IsBold = _boldCheckBox.Checked;
 
@@ -366,14 +372,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetBold(bool isBold)
         {
-            _boldCheckBox.CheckChanged -= _boldCheckBox_CheckChanged;
+            _boldCheckBox.CheckChanged -= BoldCheckBox_CheckChanged;
 
             _boldCheckBox.Checked = isBold;
 
-            _boldCheckBox.CheckChanged += _boldCheckBox_CheckChanged;
+            _boldCheckBox.CheckChanged += BoldCheckBox_CheckChanged;
         }
 
-        private void _fontSizeBox_TextChanged(object sender, EventArgs e)
+        private void FontSizeBox_TextChanged(object? sender, EventArgs e)
         {
             if (int.TryParse(_fontSizeBox.Text, out int fontSize))
                 _profile.FontSize = fontSize;
@@ -383,14 +389,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetFontSize(int fontSize)
         {
-            _fontSizeBox.TextChanged -= _fontSizeBox_TextChanged;
+            _fontSizeBox.TextChanged -= FontSizeBox_TextChanged;
 
             _fontSizeBox.Text = $"{fontSize}";
 
-            _fontSizeBox.TextChanged += _fontSizeBox_TextChanged;
+            _fontSizeBox.TextChanged += FontSizeBox_TextChanged;
         }
 
-        private void _baselineBox_TextChanged(object sender, EventArgs e)
+        private void BaselineBox_TextChanged(object? sender, EventArgs e)
         {
             if (int.TryParse(_baselineBox.Text, out int baseline))
                 _profile.Baseline = baseline;
@@ -400,14 +406,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetBaseline(int baseline)
         {
-            _baselineBox.TextChanged -= _baselineBox_TextChanged;
+            _baselineBox.TextChanged -= BaselineBox_TextChanged;
 
             _baselineBox.Text = $"{baseline}";
 
-            _baselineBox.TextChanged += _baselineBox_TextChanged;
+            _baselineBox.TextChanged += BaselineBox_TextChanged;
         }
 
-        private void _glyphHeightBox_TextChanged(object sender, EventArgs e)
+        private void GlyphHeightBox_TextChanged(object? sender, EventArgs e)
         {
             if (int.TryParse(_glyphHeightBox.Text, out int glyphHeight))
                 _profile.GlyphHeight = glyphHeight;
@@ -417,14 +423,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetGlyphHeight(int glyphHeight)
         {
-            _glyphHeightBox.TextChanged -= _glyphHeightBox_TextChanged;
+            _glyphHeightBox.TextChanged -= GlyphHeightBox_TextChanged;
 
             _glyphHeightBox.Text = $"{glyphHeight}";
 
-            _glyphHeightBox.TextChanged += _glyphHeightBox_TextChanged;
+            _glyphHeightBox.TextChanged += GlyphHeightBox_TextChanged;
         }
 
-        private void _spaceWidthBox_TextChanged(object sender, EventArgs e)
+        private void SpaceWidthBox_TextChanged(object? sender, EventArgs e)
         {
             if (int.TryParse(_spaceWidthBox.Text, out int spaceWidth))
                 _profile.SpaceWidth = spaceWidth;
@@ -432,11 +438,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetSpaceWidth(int spaceWidth)
         {
-            _spaceWidthBox.TextChanged -= _spaceWidthBox_TextChanged;
+            _spaceWidthBox.TextChanged -= SpaceWidthBox_TextChanged;
 
             _spaceWidthBox.Text = $"{spaceWidth}";
 
-            _spaceWidthBox.TextChanged += _spaceWidthBox_TextChanged;
+            _spaceWidthBox.TextChanged += SpaceWidthBox_TextChanged;
         }
 
         private void SetCurrentCharacter(char character)
@@ -451,14 +457,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void SetPaddingTexts((int, int) padding)
         {
-            _paddingLeftBox.TextChanged -= _paddingLeftBox_TextChanged;
-            _paddingRightBox.TextChanged -= _paddingRightBox_TextChanged;
+            _paddingLeftBox.TextChanged -= PaddingLeftBox_TextChanged;
+            _paddingRightBox.TextChanged -= PaddingRightBox_TextChanged;
 
             _paddingLeftBox.Text = $"{padding.Item1}";
             _paddingRightBox.Text = $"{padding.Item2}";
 
-            _paddingLeftBox.TextChanged += _paddingLeftBox_TextChanged;
-            _paddingRightBox.TextChanged += _paddingRightBox_TextChanged;
+            _paddingLeftBox.TextChanged += PaddingLeftBox_TextChanged;
+            _paddingRightBox.TextChanged += PaddingRightBox_TextChanged;
         }
 
         private void UpdateCurrentGlyph()
@@ -479,6 +485,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private Font GetFont()
         {
+            if (_fontFamilyBox.SelectedItem is null)
+                throw new InvalidOperationException("No font family selected.");
+
             var fontStyle = FontStyle.Regular;
             if (_profile.IsBold)
                 fontStyle |= FontStyle.Bold;
@@ -539,7 +548,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return glyph;
         }
 
-        private System.Drawing.Image? GetNativeGlyph(char character, Font font)
+        private Bitmap? GetNativeGlyph(char character, Font font)
         {
             int measuredWidth = _profile.SpaceWidth;
             if (!char.IsWhiteSpace(character))
@@ -561,7 +570,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return glyphImage;
         }
 
-        private System.Drawing.SizeF MeasureCharacter(char character, Font font)
+        private static System.Drawing.SizeF MeasureCharacter(char character, Font font)
         {
             var gfx = Graphics.FromHwnd(nint.Zero);
             return gfx.MeasureString($"{character}", font, PointF.Empty, StringFormat.GenericTypographic);

@@ -47,8 +47,7 @@
   "Menu.Tools.ImageTranscoder": "Transcodificador de Imagens",
   "Menu.Tools.RawImageViewer": "Visualizador de Imagem Bruta",
   "Menu.Tools.TextSequenceSearcher": "Buscador de Texto",
-  "Menu.Tools.BatchExtractor": "Extrair Tudo",
-  "Menu.Tools.BatchInjector": "Substituir Tudo",
+  // "Menu.Tools.Batch": "Batch Operations", // TODO
   "Menu.Tools.Hashes": "Hashes",
 
   // Settings Menu
@@ -157,11 +156,11 @@
   "Archive.Status.Add.None": "Nenhum arquivo para adicionar.",
 
   // Archive Progress
-  "Archive.Progress.Extract": "Extrair arquivos",
-  "Archive.Progress.Replace": "Substituir arquivos",
-  "Archive.Progress.Rename": "Renomear arquivos",
-  "Archive.Progress.Delete": "Excluir arquivos",
-  "Archive.Progress.Add": "Adicionar arquivos",
+  "Archive.Progress.Extract": "Extrair arquivos - {0:0.00}%",
+  "Archive.Progress.Replace": "Substituir arquivos - {0:0.00}%",
+  "Archive.Progress.Rename": "Renomear arquivos - {0:0.00}%",
+  "Archive.Progress.Delete": "Excluir arquivos - {0:0.00}%",
+  "Archive.Progress.Add": "Adicionar arquivos - {0:0.00}%",
 
   // Archive Rename Dialog
   "Archive.Dialog.Rename.File.Caption": "Renomear arquivo",
@@ -205,9 +204,6 @@
   "Image.Status.Import.Cancel": "Importação de imagem cancelada.",
   "Image.Status.Import.Success": "Imagem importada com sucesso.", // TODO
   "Image.Status.Import.Failure": "Falha na importação da imagem.",
-
-  // Image Progress
-  "Image.Progress.Decode": "Decodificar imagem(ns)",
 
   // Indexed PictureBox
   "Image.PictureBox.Index.SelectColorControl": "Selecionar cor da paleta: Ctrl + Botão esquerdo do mouse",
@@ -316,6 +312,10 @@
   // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
   // "Dialog.Font.Remapping.Remap": "Remap", // TODO
 
+  // Batch Reuse Options Dialog
+  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
+  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
@@ -331,6 +331,7 @@
   "Dialog.Tools.Ciphers.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Ciphers.Log.Error": "Erro ao processar arquivo {0}.",
   "Dialog.Tools.Ciphers.Progress": "Processar",
+  "Dialog.Tools.Ciphers.Progress.Value": "Processar - {0:0.00}%",
   "Dialog.Tools.Ciphers.Cancel": "Cancelar",
 
   // Compressions Dialog
@@ -344,6 +345,7 @@
   "Dialog.Tools.Compressions.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Compressions.Log.Error": "Erro ao processar arquivo {0}.",
   "Dialog.Tools.Compressions.Progress": "Processar",
+  "Dialog.Tools.Compressions.Progress.Value": "Processar - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Cancelar",
 
   // Image Transcoder Dialog
@@ -389,10 +391,29 @@
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Selecionar arquivo",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdiretórios",
   "Dialog.Tools.TextSequenceSearcher.Progress": "Processar",
+  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Processar - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Cancelar",
   // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Batch Dialog
+  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
+  // "Dialog.Tools.Batch.Export": "Export", // TODO
+  // "Dialog.Tools.Batch.Import": "Import", // TODO
+  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Execute": "Executar",
+  "Dialog.Tools.Batch.Input.Folder": "Selecionar pasta",
+  "Dialog.Tools.Batch.Input.SubDirectories": "Subdiretórios",
+  "Dialog.Tools.Batch.Log.Process": "Processando arquivo {0}.",
+  "Dialog.Tools.Batch.Log.Error": "Erro ao processar arquivo {0}.",
+  "Dialog.Tools.Batch.Progress": "Processar",
+  "Dialog.Tools.Batch.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Batch.Cancel": "Cancelar",
+  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
+  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
+  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
+  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Plugins instalados",
@@ -424,23 +445,33 @@
   "Dialog.About.Version": "Versão {0}",
   "Dialog.About.Description": "Kuriimu2 é um toolkit de gerenciamento de projetos de\ntradução destinado a autores de mods e traduções de fãs.",
 
-  // Manual Selection Plugin Dialog
+  // Manual Plugin Selection Dialog
   "Dialog.Plugins.ManualSelection.Caption": "Escolher plugin",
-
   "Dialog.Plugins.ManualSelection.Identification": "Escolha o plugin para abrir o arquivo:",
   "Dialog.Plugins.ManualSelection.Identification.None": "Não foi possivel determinar automaticamente o plugin para abrir\no arquivo. Por favor, escolha manualmente:",
   "Dialog.Plugins.ManualSelection.Identification.Multiple": "Mais de um plugin pode identificar este arquivo. Por favor, escolha um:",
   "Dialog.Plugins.ManualSelection.Identification.Note": "Por padrão, apenas plugins que não puderam determinar automaticamente se suportam o arquivo são mostrados.",
-
   "Dialog.Plugins.ManualSelection.Name": "Nome",
   "Dialog.Plugins.ManualSelection.Type": "Tipo",
   "Dialog.Plugins.ManualSelection.Description": "Descrição",
   "Dialog.Plugins.ManualSelection.Id": "ID",
-
   "Dialog.Plugins.ManualSelection.Continue": "Continuar",
-  "Dialog.Plugins.ManualSelection.ViewRaw": "Visualizar bytes brutos",
   "Dialog.Plugins.ManualSelection.Cancel": "Cancelar",
   "Dialog.Plugins.ManualSelection.ShowAll": "Mostrar todos os plugins",
+
+  // Plugin Selection Dialog
+  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Id": "ID",
+  "Dialog.Plugins.Selection.Name": "Nome",
+  "Dialog.Plugins.Selection.Publisher": "Publicadora",
+  "Dialog.Plugins.Selection.Developer": "Desenvolvedora",
+  "Dialog.Plugins.Selection.Authors": "Autores",
+  "Dialog.Plugins.Selection.Platforms": "Plataformas",
+  "Dialog.Plugins.Selection.Type.Archive": "Contêiner de dados",
+  "Dialog.Plugins.Selection.Type.Image": "Imagem",
+  "Dialog.Plugins.Selection.Type.Font": "Fonte",
+  "Dialog.Plugins.Selection.Type.Text": "Texto",
+  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Geração de Fonte",

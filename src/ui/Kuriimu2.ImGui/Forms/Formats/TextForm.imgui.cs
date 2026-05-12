@@ -13,6 +13,7 @@ using Kuriimu2.ImGui.Models.Forms.Formats;
 using Kuriimu2.ImGui.Resources;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -21,7 +22,7 @@ using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class TextForm : Component
+    internal partial class TextForm : Component
     {
         private StackLayout _mainLayout;
 
@@ -59,6 +60,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private readonly Dictionary<string, int> _entryNameLookup = [];
         private readonly Dictionary<string, int> _pageNameLookup = [];
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_treeView), nameof(_entryContext))]
+        [MemberNotNull(nameof(_origTextEditor), nameof(_editTextEditor), nameof(_controlTextEditor), nameof(_textPreview))]
+        [MemberNotNull(nameof(_fontFamilyBox), nameof(_previewBox))]
+        [MemberNotNull(nameof(_saveBtn), nameof(_saveAsBtn), nameof(_poExportBtn), nameof(_poImportBtn), nameof(_kupExportBtn), nameof(_kupImportBtn))]
+        [MemberNotNull(nameof(_previousPageBtn), nameof(_nextPageBtn))]
+        [MemberNotNull(nameof(_renameEntryButton), nameof(_addEntryButton), nameof(_deleteEntryButton))]
         private void InitializeComponent()
         {
             #region Controls
@@ -78,7 +85,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -87,15 +94,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
             _poExportBtn = new ImageButton { Image = ImageResources.PoExport, Tooltip = LocalizationResources.TextMenuExportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _poImportBtn = new ImageButton { Image = ImageResources.PoImport, Tooltip = LocalizationResources.TextMenuImportPo, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _kupExportBtn = new ImageButton { Image = ImageResources.KupExport, Tooltip = LocalizationResources.TextMenuExportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _kupImportBtn = new ImageButton { Image = ImageResources.KupImport, Tooltip = LocalizationResources.TextMenuImportKup, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
 
-            _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new(ImGuiKey.LeftArrow) };
-            _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new(ImGuiKey.RightArrow) };
+            _previousPageBtn = new ArrowButton(ImGuiDir.Left) { KeyAction = new KeyCommand(ImGuiKey.LeftArrow) };
+            _nextPageBtn = new ArrowButton(ImGuiDir.Right) { KeyAction = new KeyCommand(ImGuiKey.RightArrow) };
 
             _renameEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextRename };
             _addEntryButton = new MenuBarButton { Text = LocalizationResources.TextContextAdd };
@@ -153,7 +160,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                             new TableLayout
                             {
                                 Size = new Size(.8f, SizeValue.Parent),
-                                Spacing = new(4, 4),
+                                Spacing = new Vector2(4, 4),
                                 Rows =
                                 {
                                     new TableRow
@@ -243,7 +250,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private void InitializePreviewPlugins()
         {
             IReadOnlyList<Guid> preferredGamePluginIds = _state.PluginState.PreviewGuids ?? [];
-            IGamePlugin[] gamePlugins = _pluginManager.GetPlugins<IGamePlugin>().ToArray();
+            IGamePlugin[] gamePlugins = [.. _pluginManager.GetPlugins<IGamePlugin>()];
 
             foreach (Guid preferredGamePluginId in preferredGamePluginIds)
             {
@@ -305,7 +312,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                         for (var i = 0; i < node.Nodes.Count; i++)
                         {
-                            var translatedEntry = (TranslatedTextEntry)node.Nodes[i].Data;
+                            var translatedEntry = (TranslatedTextEntry?)node.Nodes[i].Data;
+                            if (translatedEntry is null)
+                                continue;
+
                             node.Nodes[i].Text = translatedEntry.Name = CreateEntryName(translatedEntry.Entry, i);
                         }
                         break;
@@ -333,25 +343,28 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     {
                         Page = pages[i],
                         Name = pageName,
-                        Entries = new List<TranslatedTextEntry>()
+                        Entries = []
                     };
 
-                    for (var j = 0; j < pages[i].Entries.Count; j++)
+                    result.Add(translatedPage);
+
+                    if (pages[i].Entries is null)
+                        continue;
+
+                    for (var j = 0; j < pages[i].Entries!.Count; j++)
                     {
-                        string entryName = CreateEntryName(pages[i].Entries[j], j);
+                        string entryName = CreateEntryName(pages[i].Entries![j], j);
 
                         var translatedEntry = new TranslatedTextEntry
                         {
                             Page = translatedPage,
-                            Entry = pages[i].Entries[j],
+                            Entry = pages[i].Entries![j],
                             Name = entryName,
-                            OriginalTextData = pages[i].Entries[j].TextData
+                            OriginalTextData = pages[i].Entries![j].TextData
                         };
 
                         translatedPage.Entries.Add(translatedEntry);
                     }
-
-                    result.Add(translatedPage);
                 }
             }
             else

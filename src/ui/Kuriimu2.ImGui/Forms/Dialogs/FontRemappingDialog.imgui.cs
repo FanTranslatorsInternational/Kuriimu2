@@ -1,4 +1,5 @@
-﻿using ImGui.Forms.Controls.Layouts;
+﻿using System.Diagnostics.CodeAnalysis;
+using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
 using System.Numerics;
@@ -7,12 +8,13 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class FontRemappingDialog : Modal
+    internal partial class FontRemappingDialog : Modal
     {
         private StackLayout _mainLayout;
         private UniformZLayout _glyphsLayout;
         private Button _remapButton;
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_glyphsLayout), nameof(_remapButton))]
         private void InitializeComponent()
         {
             _glyphsLayout = new UniformZLayout(new Vector2(36, 61))

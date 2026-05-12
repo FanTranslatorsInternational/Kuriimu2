@@ -12,6 +12,8 @@ namespace Kuriimu2.ImGui.Update
 {
     internal static class UpdateUtilities
     {
+        private static readonly HttpClient Client = new();
+
         private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
         private const string ExecutableName_ = "update.exe";
 
@@ -24,7 +26,7 @@ namespace Kuriimu2.ImGui.Update
             var reader = new StreamReader(resourceStream);
             var text = await reader.ReadToEndAsync();
 
-            return JsonSerializer.Deserialize<Manifest>(text);
+            return JsonSerializer.Deserialize(text, ManifestJsonSerializerContext.Default.Manifest);
         }
 
         public static bool IsUpdateAvailable(Manifest? remoteManifest, Manifest? localManifest, bool includeDevBuilds)
@@ -43,13 +45,16 @@ namespace Kuriimu2.ImGui.Update
             return includeDevBuilds && localVersion == remoteVersion ? buildCheck : result;
         }
 
-        public static async Task<string> DownloadUpdateExecutableAsync()
+        public static async Task<string?> DownloadUpdateExecutableAsync()
         {
             var platform = GetCurrentPlatform();
 
             var updateUrl = UpdateUrl_ + "/" + platform + "/" + ExecutableName_;
             var resourceStream = await GetResourceStreamAsync(updateUrl);
-            var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            if (resourceStream is null)
+                return null;
+
+            var currentDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
 
             var executablePath = Path.Combine(currentDirectory, ExecutableName_);
             var executableFileStream = File.Open(executablePath, FileMode.Create);
@@ -78,10 +83,9 @@ namespace Kuriimu2.ImGui.Update
 
         private static async Task<Stream?> GetResourceStreamAsync(string resourceUrl)
         {
-            var client = new HttpClient();
             var request = new HttpRequestMessage(HttpMethod.Get, resourceUrl);
 
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadAsStreamAsync();
 

@@ -8,7 +8,7 @@ using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Interfaces
 {
-    interface IMainForm
+    internal interface IMainForm
     {
         Task<bool> OpenFile(IFileState fileState, IArchiveFile file, Guid pluginId);
         Task<bool> SaveFile(IFileState fileState, bool saveAs);

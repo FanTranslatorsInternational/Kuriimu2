@@ -3,9 +3,10 @@ using System.Text.RegularExpressions;
 
 namespace Kuriimu2.ImGui.Models
 {
-    public class Version
+    public partial class Version
     {
-        private static readonly Regex VersionRegex = new Regex(@"(\d+)\.(\d+)\.(\d+)");
+        [GeneratedRegex(@"(\d+)\.(\d+)\.(\d+)", RegexOptions.Compiled)]
+        private static partial Regex VersionRegex();
 
         public int Major { get; }
         public int Minor { get; }
@@ -20,14 +21,27 @@ namespace Kuriimu2.ImGui.Models
 
         public Version(string version)
         {
-            if (!VersionRegex.IsMatch(version))
-                throw new InvalidOperationException("The given version is not of pattern '0.0.0'");
+            if (!VersionRegex().IsMatch(version))
+                throw new InvalidOperationException("The given version is not of pattern 'x.x.x'.");
 
-            var versionMatch = VersionRegex.Match(version);
+            var versionMatch = VersionRegex().Match(version);
 
             Major = int.Parse(versionMatch.Groups[1].Value);
             Minor = int.Parse(versionMatch.Groups[2].Value);
             Patch = int.Parse(versionMatch.Groups[3].Value);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Version)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Major, Minor, Patch);
         }
 
         public static bool operator <=(Version v1, Version v2)
@@ -96,7 +110,12 @@ namespace Kuriimu2.ImGui.Models
             return v1.Patch > v2.Patch;
         }
 
-        public static bool operator ==(Version v1, Version v2)=> v1.Major == v2.Major && v1.Minor == v2.Minor && v1.Patch == v2.Patch;
-        public static bool operator !=(Version v1, Version v2)=> v1.Major != v2.Major || v1.Minor != v2.Minor || v1.Patch != v2.Patch;
+        public static bool operator ==(Version v1, Version v2) => v1.Major == v2.Major && v1.Minor == v2.Minor && v1.Patch == v2.Patch;
+        public static bool operator !=(Version v1, Version v2) => v1.Major != v2.Major || v1.Minor != v2.Minor || v1.Patch != v2.Patch;
+
+        protected bool Equals(Version other)
+        {
+            return Major == other.Major && Minor == other.Minor && Patch == other.Patch;
+        }
     }
 }

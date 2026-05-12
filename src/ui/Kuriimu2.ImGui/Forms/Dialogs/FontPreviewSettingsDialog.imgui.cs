@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Numerics;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
@@ -9,13 +11,14 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class FontPreviewSettingsDialog : Modal
+    internal partial class FontPreviewSettingsDialog : Modal
     {
         private CheckBox _debugBoxCheck;
         private TextBox _spacingTextBox;
         private TextBox _lineHeightBox;
         private ComboBox<HorizontalTextAlignment> _alignmentComboBox;
 
+        [MemberNotNull(nameof(_debugBoxCheck), nameof(_spacingTextBox), nameof(_lineHeightBox), nameof(_alignmentComboBox))]
         private void InitializeComponent()
         {
             #region Controls
@@ -48,7 +51,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var mainLayout = new TableLayout
             {
                 Size = Size.Content,
-                Spacing = new(4, 4),
+                Spacing = new Vector2(4, 4),
                 Rows =
                 {
                     new TableRow

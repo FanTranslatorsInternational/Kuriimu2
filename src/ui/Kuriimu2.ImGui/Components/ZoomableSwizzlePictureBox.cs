@@ -10,7 +10,7 @@ using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class ZoomableSwizzlePictureBox : ZoomablePictureBox
+    internal class ZoomableSwizzlePictureBox : ZoomablePictureBox
     {
         private IImageSwizzle? _swizzle;
 
@@ -51,7 +51,7 @@ namespace Kuriimu2.ImGui.Components
 
             for (var i = 1; i < Image!.Width * Image!.Height; i++)
             {
-                Vector2 swizzledCoordinate = _swizzle.Get(i);
+                Vector2 swizzledCoordinate = _swizzle!.Get(i);
                 Vector2 centeredSwizzledCoordinate = swizzledCoordinate + new Vector2(.5f, .5f);
 
                 points.Add(Transform(contentRect, centeredSwizzledCoordinate) - macroBlockRect.Position + imageRect.Position);
@@ -60,7 +60,7 @@ namespace Kuriimu2.ImGui.Components
                     break;
             }
 
-            Vector2[] pointsArray = points.ToArray();
+            Vector2[] pointsArray = [.. points];
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
         }
     }

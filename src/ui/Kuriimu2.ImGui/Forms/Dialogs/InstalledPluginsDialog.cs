@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class InstalledPluginsDialog
+    internal partial class InstalledPluginsDialog
     {
         public InstalledPluginsDialog(IPluginManager pluginManager)
         {

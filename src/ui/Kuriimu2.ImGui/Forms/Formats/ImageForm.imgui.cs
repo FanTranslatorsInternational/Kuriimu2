@@ -2,6 +2,7 @@
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using ImGui.Forms.Resources;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using Konnect.Contract.Plugin.File.Image;
@@ -9,8 +10,8 @@ using Konnect.Contract.Progress;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using ImageResources = Kuriimu2.ImGui.Resources.ImageResources;
@@ -18,7 +19,7 @@ using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class ImageForm
+    internal partial class ImageForm
     {
         private StackLayout _mainLayout;
         private StackLayout _listPaletteLayout;
@@ -47,6 +48,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private global::ImGui.Forms.Controls.Lists.List<ImageThumbnail> _imgList;
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_listPaletteLayout), nameof(_imageInfoLayout))]
+        [MemberNotNull(nameof(_saveBtn), nameof(_saveAsBtn), nameof(_imgExportBtn), nameof(_imgImportBtn), nameof(_batchImgExportBtn), nameof(_batchImgImportBtn))]
+        [MemberNotNull(nameof(_widthTextLbl), nameof(_heightTextLbl), nameof(_widthContentLbl), nameof(_heightContentLbl))]
+        [MemberNotNull(nameof(_formatTextLbl), nameof(_paletteTextLbl), nameof(_formatBox), nameof(_paletteBox))]
+        [MemberNotNull(nameof(_imageBox), nameof(_indexedImageBox), nameof(_paletteView), nameof(_imgList))]
         private void InitializeComponent()
         {
             #region Controls
@@ -58,7 +64,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _formatTextLbl = new Label(LocalizationResources.ImageLabelFormat);
             _paletteTextLbl = new Label(LocalizationResources.ImageLabelPalette);
-            _formatBox = new ComboBox<int> { MaxShowItems = 10, ShowBorder = true};
+            _formatBox = new ComboBox<int> { MaxShowItems = 10, ShowBorder = true };
             _paletteBox = new ComboBox<int> { MaxShowItems = 10 };
 
             _imageBox = new ZoomablePictureBox { ShowBorder = true };
@@ -79,7 +85,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -88,7 +94,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
             _imgExportBtn = new ImageButton { Image = ImageResources.ImageExport, Tooltip = LocalizationResources.ImageMenuExport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
             _imgImportBtn = new ImageButton { Image = ImageResources.ImageImport, Tooltip = LocalizationResources.ImageMenuImport, ImageSize = new Vector2(16, 16), Padding = new Vector2(5, 5) };
@@ -176,25 +182,19 @@ namespace Kuriimu2.ImGui.Forms.Formats
             };
         }
 
-        private void SetImages(IReadOnlyList<IImageFile> images, IProgressContext progress)
+        private void SetImages(IReadOnlyList<IImageFile> images)
         {
             _imgList.Items.Clear();
             _imgList.SelectedItem = null;
 
-            if (images == null || images.Count <= 0)
+            if (images.Count <= 0)
                 return;
-
-            var perPart = 100f / images.Count;
-            var perStart = 0f;
 
             for (var i = 0; i < images.Count; i++)
             {
                 var img = images[i];
-                var scopeProgress = progress.CreateScope(LocalizationResources.ImageProgressDecode, perStart, Math.Min(100f, perStart + perPart));
 
-                _imgList.Items.Add(new ImageThumbnail(img, i, img.GetImage(scopeProgress)));
-
-                perStart += perPart;
+                _imgList.Items.Add(new ImageThumbnail(img, i, img.GetImage()));
             }
         }
 
@@ -231,7 +231,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _imageBox.SetImage(ImageResource.FromImage(image));
             }
 
-            _imgList.SelectedItem.SetThumbnail(image);
+            _imgList.SelectedItem?.SetThumbnail(image);
         }
 
         private void SetPalette(IImageFile img, IProgressContext progress)
@@ -256,9 +256,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _formatBox.Items.Clear();
             _formatBox.SelectedItem = null;
 
-            if (img == null)
-                return;
-
             var hasFormats = img.EncodingDefinition.ColorEncodings.Any() || img.EncodingDefinition.IndexEncodings.Any();
             _formatBox.Visible = _formatTextLbl.Visible = hasFormats;
 
@@ -281,9 +278,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _paletteBox.Items.Clear();
             _paletteBox.SelectedItem = null;
 
-            if (img == null)
-                return;
-
             IndexEncodingDefinition? indexInfo = img.EncodingDefinition.GetIndexEncoding(img.ImageInfo.ImageFormat);
 
             var hasPalettes = indexInfo is { PaletteEncodingIndices.Count: > 0 };
@@ -292,7 +286,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (!hasPalettes)
                 return;
 
-            foreach (var paletteFormat in indexInfo.PaletteEncodingIndices)
+            foreach (var paletteFormat in indexInfo!.PaletteEncodingIndices)
             {
                 var paletteEncoding = img.EncodingDefinition.GetPaletteEncoding(paletteFormat);
                 if (paletteEncoding == null)

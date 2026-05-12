@@ -1,6 +1,4 @@
-﻿using ImGui.Forms.Controls;
-using ImGui.Forms.Controls.Base;
-using ImGui.Forms.Controls.Lists;
+﻿using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
@@ -21,7 +19,7 @@ using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class ImageForm : Component, IKuriimuForm
+    internal partial class ImageForm : Component, IKuriimuForm
     {
         private readonly FormInfo<IImageFilePluginState> _state;
 
@@ -35,17 +33,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             InitializeComponent();
 
-            _formatBox.SelectedItemChanged += _formatBox_SelectedItemChanged;
-            _paletteBox.SelectedItemChanged += _paletteBox_SelectedItemChanged;
-            _imgList.SelectedItemChanged += _imgList_SelectedItemChanged;
-            _saveBtn.Clicked += _saveBtn_Clicked;
-            _saveAsBtn.Clicked += _saveAsBtn_Clicked;
-            _imgExportBtn.Clicked += _imgExportBtn_Clicked;
-            _imgImportBtn.Clicked += _imgImportBtn_Clicked;
-            _batchImgExportBtn.Clicked += _batchImgExportBtn_Clicked; ;
-            _batchImgImportBtn.Clicked += _batchImgImportBtn_Clicked; ;
-            _indexedImageBox.PixelSelected += _indexedImageBox_PixelSelected;
-            _paletteView.ColorChanged += _paletteView_ColorChanged;
+            _formatBox.SelectedItemChanged += FormatBox_SelectedItemChanged;
+            _paletteBox.SelectedItemChanged += PaletteBox_SelectedItemChanged;
+            _imgList.SelectedItemChanged += ImgList_SelectedItemChanged;
+            _saveBtn.Clicked += SaveBtn_Clicked;
+            _saveAsBtn.Clicked += SaveAsBtn_Clicked;
+            _imgExportBtn.Clicked += ImgExportBtn_Clicked;
+            _imgImportBtn.Clicked += ImgImportBtn_Clicked;
+            _batchImgExportBtn.Clicked += BatchImgExportBtn_Clicked;
+            _batchImgImportBtn.Clicked += BatchImgImportBtn_Clicked;
+            _indexedImageBox.PixelSelected += IndexedImageBox_PixelSelected;
+            _paletteView.ColorChanged += PaletteView_ColorChanged;
 
             UpdateState();
             UpdateFormInternal();
@@ -53,15 +51,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Events
 
-        private void _formatBox_SelectedItemChanged(object sender, EventArgs e)
+        private void FormatBox_SelectedItemChanged(object? sender, EventArgs e)
         {
-            var selectedFormat = ((ComboBox<int>)sender).SelectedItem.Content;
-
-            var selectedImg = GetSelectedImage();
-            if (selectedImg?.ImageInfo.ImageFormat == selectedFormat)
+            var selectedFormat = _formatBox.SelectedItem?.Content;
+            if (selectedFormat is null)
                 return;
 
-            selectedImg?.TranscodeImage(selectedFormat, _state.Progress);
+            var selectedImg = GetSelectedImage();
+            if (selectedImg.ImageInfo.ImageFormat == selectedFormat)
+                return;
+
+            selectedImg.TranscodeImage(selectedFormat.Value, _state.Progress);
             SetImage(selectedImg, _state.Progress);
 
             SetPalette(selectedImg, _state.Progress);
@@ -72,15 +72,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _paletteBox_SelectedItemChanged(object sender, EventArgs e)
+        private void PaletteBox_SelectedItemChanged(object? sender, EventArgs e)
         {
-            var selectedFormat = ((ComboBox<int>)sender).SelectedItem.Content;
-
-            var selectedImg = GetSelectedImage();
-            if (selectedImg?.ImageInfo.PaletteFormat == selectedFormat)
+            var selectedFormat = _paletteBox.SelectedItem?.Content;
+            if (selectedFormat is null)
                 return;
 
-            selectedImg?.TranscodePalette(selectedFormat, _state.Progress);
+            var selectedImg = GetSelectedImage();
+            if (selectedImg.ImageInfo.PaletteFormat == selectedFormat)
+                return;
+
+            selectedImg.TranscodePalette(selectedFormat.Value, _state.Progress);
             SetImage(selectedImg, _state.Progress);
 
             SetPalette(selectedImg, _state.Progress);
@@ -89,47 +91,48 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _imgList_SelectedItemChanged(object sender, EventArgs e)
+        private void ImgList_SelectedItemChanged(object? sender, EventArgs e)
         {
-            var imgList = (List<ImageThumbnail>)sender;
-            var selectedItem = imgList.SelectedItem;
+            var selectedItem = _imgList.SelectedItem;
+            if (selectedItem is null)
+                return;
 
-            _selectedImgIndex = imgList.Items.IndexOf(selectedItem);
+            _selectedImgIndex = _imgList.Items.IndexOf(selectedItem);
 
             SetSelectedImage(selectedItem.ImageFile, _state.Progress);
         }
 
-        private async void _saveBtn_Clicked(object sender, EventArgs e)
+        private async void SaveBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(false);
         }
 
-        private async void _saveAsBtn_Clicked(object sender, EventArgs e)
+        private async void SaveAsBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(true);
         }
 
-        private async void _imgExportBtn_Clicked(object sender, EventArgs e)
+        private async void ImgExportBtn_Clicked(object? sender, EventArgs e)
         {
             await ExportSelected();
         }
 
-        private async void _imgImportBtn_Clicked(object sender, EventArgs e)
+        private async void ImgImportBtn_Clicked(object? sender, EventArgs e)
         {
             await ImportSelected();
         }
 
-        private async void _batchImgExportBtn_Clicked(object? sender, EventArgs e)
+        private async void BatchImgExportBtn_Clicked(object? sender, EventArgs e)
         {
             await ExportAll();
         }
 
-        private async void _batchImgImportBtn_Clicked(object? sender, EventArgs e)
+        private async void BatchImgImportBtn_Clicked(object? sender, EventArgs e)
         {
             await ImportAll();
         }
 
-        private void _paletteView_ColorChanged(object? sender, int colorIndex)
+        private void PaletteView_ColorChanged(object? sender, int colorIndex)
         {
             if (_paletteView.Palette is null || colorIndex < 0 || colorIndex >= _paletteView.Palette.Count)
                 return;
@@ -146,7 +149,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _indexedImageBox_PixelSelected(object? sender, PixelSelectedEventArgs e)
+        private void IndexedImageBox_PixelSelected(object? sender, PixelSelectedEventArgs e)
         {
             var selectedImage = GetSelectedImage();
             if (!selectedImage.IsIndexed)
@@ -209,7 +212,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]) ?? string.Empty;
 
             // Export image
             await _asyncOperation.StartAsync(_ => selectedItem.ImageFile.GetImage(_state.Progress).SaveAsPng(sfd.Files[0]));
@@ -218,7 +221,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             if (!_asyncOperation.WasSuccessful)
             {
-                _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                _state.Logger.Fatal(_asyncOperation.Exception, "");
                 _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusExportFailure);
 
                 return;
@@ -246,7 +249,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = sfd.Directory;
+            SettingsResources.LastDirectory = sfd.Directory ?? string.Empty;
 
             var allFailed = true;
             foreach (var image in _imgList.Items)
@@ -254,11 +257,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusExportStart(image.Name));
 
                 // Export image
-                var path = Path.Combine(sfd.Directory, GetImageName(image) + ".png");
+                var path = Path.Combine(sfd.Directory!, GetImageName(image) + ".png");
                 await _asyncOperation.StartAsync(_ => image.ImageFile.GetImage(_state.Progress).SaveAsPng(path));
 
                 if (!_asyncOperation.WasSuccessful)
-                    _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                    _state.Logger.Fatal(_asyncOperation.Exception, "");
                 else
                     allFailed = false;
             }
@@ -297,7 +300,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
 
             // Import image
             var newImage = Image.Load<Rgba32>(ofd.Files[0]);
@@ -307,7 +310,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             if (!_asyncOperation.WasSuccessful)
             {
-                _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                _state.Logger.Fatal(_asyncOperation.Exception, "");
                 _state.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ImageStatusImportFailure);
 
                 return;
@@ -340,14 +343,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Save selected path
-            SettingsResources.LastDirectory = sfd.Directory;
+            SettingsResources.LastDirectory = sfd.Directory ?? string.Empty;
 
             var allFailed = true;
             foreach (var image in _imgList.Items)
             {
                 _state.FormCommunicator.ReportStatus(StatusKind.Info, LocalizationResources.ImageStatusImportStart(image.Name));
 
-                var path = Path.Combine(sfd.Directory, GetImageName(image) + ".png");
+                var path = Path.Combine(sfd.Directory!, GetImageName(image) + ".png");
                 if (!File.Exists(path))
                     continue;
 
@@ -356,7 +359,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 await _asyncOperation.StartAsync(_ => image.ImageFile.SetImage(newImage, _state.Progress));
 
                 if (!_asyncOperation.WasSuccessful)
-                    _state.Logger.Fatal(_asyncOperation.Exception, string.Empty);
+                    _state.Logger.Fatal(_asyncOperation.Exception, "");
                 else
                     allFailed = false;
             }
@@ -422,7 +425,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 item.ImageFile.ImageInfo.Name;
         }
 
-        private string GetLastDirectory()
+        private static string GetLastDirectory()
         {
             var settingsDir = SettingsResources.LastDirectory;
             return string.IsNullOrEmpty(settingsDir) ? Path.GetFullPath(".") : settingsDir;
@@ -439,7 +442,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return _imgList.Items[clampedIndex];
         }
 
-        private bool TryLoadImage(string filePath, [NotNullWhen(true)] out Image<Rgba32>? loadedImage)
+        private static bool TryLoadImage(string filePath, [NotNullWhen(true)] out Image<Rgba32>? loadedImage)
         {
             loadedImage = null;
 
@@ -460,7 +463,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void UpdateState()
         {
-            SetImages(_state.PluginState.Images, _state.Progress);
+            SetImages(_state.PluginState.Images);
             SetSelectedImage(GetSelectedImage(), _state.Progress);
         }
 

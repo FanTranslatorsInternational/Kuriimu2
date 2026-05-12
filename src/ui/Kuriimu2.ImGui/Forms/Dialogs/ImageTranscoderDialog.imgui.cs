@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
@@ -7,6 +8,7 @@ using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using Kanvas;
 using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Encoding;
@@ -20,7 +22,7 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class ImageTranscoderDialog : Modal
+    internal partial class ImageTranscoderDialog : Modal
     {
         private StackLayout _mainLayout;
 
@@ -44,6 +46,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private EncodingDefinition _encodingDefinition;
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_openBtn), nameof(_exportBtn))]
+        [MemberNotNull(nameof(_imageCompareLayout), nameof(_transcodingSettingsLayout))]
+        [MemberNotNull(nameof(_compareImageBox), nameof(_origImageBox), nameof(_transcodedImageBox))]
+        [MemberNotNull(nameof(_formats), nameof(_paletteFormats))]
+        [MemberNotNull(nameof(_quantizers), nameof(_caches), nameof(_ditherers))]
+        [MemberNotNull(nameof(_countText))]
+        [MemberNotNull(nameof(_encodingDefinition))]
         private void InitializeComponent()
         {
             #region Components
@@ -51,7 +60,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _openBtn = new MenuBarButton
             {
                 Text = LocalizationResources.DialogToolsImageTranscoderFileOpen,
-                KeyAction = new(ImGuiKey.ModCtrl,ImGuiKey.O, LocalizationResources.DialogToolsImageTranscoderFileOpenShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.DialogToolsImageTranscoderFileOpenShortcut)
             };
 
             _exportBtn = new ImageButton(ImageResources.ImageExport)
@@ -92,7 +101,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _transcodingSettingsLayout = new TableLayout
             {
                 Size = Size.Content,
-                Spacing = new(4, 4),
+                Spacing = new Vector2(4, 4),
                 VerticalAlignment = VerticalAlignment.Center,
                 Rows =
                 {
@@ -165,6 +174,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             AllowDragDrop = true;
         }
 
+        [MemberNotNull(nameof(_encodingDefinition))]
         private void InitializeFormats()
         {
             _encodingDefinition = new EncodingDefinition();
@@ -300,7 +310,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void AddIndexEncoding(EncodingDefinition encodingDefinition, int format, IIndexEncoding encoding)
         {
-            encodingDefinition.AddIndexEncoding(format, encoding, _paletteFormats.Items.Select(f => f.Content).ToArray());
+            encodingDefinition.AddIndexEncoding(format, encoding, [.. _paletteFormats.Items.Select(f => f.Content)]);
             _formats.Items.Add(new DropDownItem<int>(format, encoding.FormatName));
         }
     }

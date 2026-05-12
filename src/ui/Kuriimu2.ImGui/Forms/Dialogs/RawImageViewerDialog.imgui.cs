@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Hexa.NET.ImGui;
@@ -21,7 +22,7 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class RawImageViewerDialog : Modal
+    internal partial class RawImageViewerDialog : Modal
     {
         private static readonly KeyCommand CustomSwizzleCopyCommand = new(ImGuiKey.ModAlt, ImGuiKey.C);
 
@@ -52,10 +53,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private DropDownItem<CreatePixelRemapperDelegate?> _customSwizzleItem;
 
-        private readonly Dictionary<int, string> _components = new();
-        private readonly Dictionary<int, string> _paletteComponents = new();
-        private readonly HashSet<DropDownItem<CreatePixelRemapperDelegate?>> _swizzleParameterItems = new();
+        private readonly Dictionary<int, string> _components = [];
+        private readonly Dictionary<int, string> _paletteComponents = [];
+        private readonly HashSet<DropDownItem<CreatePixelRemapperDelegate?>> _swizzleParameterItems = [];
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_settingsLayout))]
+        [MemberNotNull(nameof(_renderSwizzleBox), nameof(_openBtn), nameof(_exportBtn))]
+        [MemberNotNull(nameof(_widthTextBox), nameof(_heightTextBox), nameof(_offsetTextBox), nameof(_paletteOffsetTextBox))]
+        [MemberNotNull(nameof(_formats), nameof(_paletteFormats), nameof(_componentsTextBox), nameof(_paletteComponentsTextBox))]
+        [MemberNotNull(nameof(_swizzles), nameof(_swizzleTextBox))]
+        [MemberNotNull(nameof(_imageBox), nameof(_imageEditorBox))]
+        [MemberNotNull(nameof(_encodingDefinition), nameof(_customSwizzleItem))]
         private void InitializeComponent()
         {
             #region Components
@@ -63,7 +71,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _openBtn = new MenuBarButton
             {
                 Text = LocalizationResources.DialogToolsRawImageViewerFileOpen,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.DialogToolsRawImageViewerFileOpenShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.DialogToolsRawImageViewerFileOpenShortcut)
             };
 
             _renderSwizzleBox = new CheckBox
@@ -218,6 +226,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             base.UpdateInternal(contentRect);
         }
 
+        [MemberNotNull(nameof(_encodingDefinition))]
         private void InitializeFormats()
         {
             _encodingDefinition = new EncodingDefinition();
@@ -229,6 +238,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _formats.SelectedItem = _formats.Items.FirstOrDefault()!;
         }
 
+        [MemberNotNull(nameof(_customSwizzleItem))]
         private void InitializeSwizzles()
         {
             _swizzles.Items.Add(new DropDownItem<CreatePixelRemapperDelegate?>(null, LocalizationResources.DialogToolsRawImageViewerNoSwizzle));
@@ -255,6 +265,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateFormats()
         {
+            if (_paletteFormats.SelectedItem is null || _formats.SelectedItem is null)
+                return;
+
             _encodingDefinition = new EncodingDefinition();
 
             int selectedPalette = _paletteFormats.Items.IndexOf(_paletteFormats.SelectedItem);
@@ -407,7 +420,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             if (components is not null)
                 _components[format] = components;
 
-            encodingDefinition.AddIndexEncoding(format, encoding, _paletteFormats.Items.Select(f => f.Content).ToArray());
+            encodingDefinition.AddIndexEncoding(format, encoding, [.. _paletteFormats.Items.Select(f => f.Content)]);
             _formats.Items.Add(new DropDownItem<int>(format, encoding.FormatName));
         }
     }

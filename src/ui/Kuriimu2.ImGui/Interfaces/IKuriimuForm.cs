@@ -1,6 +1,6 @@
 ﻿namespace Kuriimu2.ImGui.Interfaces
 {
-    interface IKuriimuForm
+    internal interface IKuriimuForm
     {
         void UpdateForm();
 

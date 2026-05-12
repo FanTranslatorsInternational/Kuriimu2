@@ -1,6 +1,6 @@
 ﻿namespace Kuriimu2.ImGui.Models
 {
-    enum StatusKind
+    internal enum StatusKind
     {
         Info,
         Success,

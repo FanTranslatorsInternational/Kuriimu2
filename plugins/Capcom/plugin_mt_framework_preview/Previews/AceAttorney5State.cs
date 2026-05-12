@@ -99,7 +99,7 @@ namespace plugin_mt_framework_preview.Previews
             if (!Directory.Exists(resourcePath))
                 return null;
 
-            IFileSystem fileSystem = FileSystemFactory.CreateSubFileSystem(resourcePath, new StreamManager());
+            IFileSystem fileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(resourcePath, new StreamManager());
             LoadResult loadResult = await _pluginManager.LoadFile(fileSystem, "font00_eng.gfd", Guid.Parse("e95928dd-31b9-445c-afbd-d692c694abae"));
 
             var fontState = loadResult.LoadedFileState?.PluginState as IFontFilePluginState;

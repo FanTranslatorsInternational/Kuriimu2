@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Numerics;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text.Editor;
@@ -13,7 +14,7 @@ using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class FontGenerationDialog : Modal
+    internal partial class FontGenerationDialog : Modal
     {
         private ZoomablePaddedGlyph _glyphBox;
         private TextBox _paddingLeftBox;
@@ -32,6 +33,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private Button _saveBtn;
         private Button _executeBtn;
 
+        [MemberNotNull(nameof(_glyphBox), nameof(_paddingLeftBox), nameof(_paddingRightBox))]
+        [MemberNotNull(nameof(_fontFamilyBox), nameof(_boldCheckBox), nameof(_italicCheckBox))]
+        [MemberNotNull(nameof(_fontSizeBox), nameof(_baselineBox), nameof(_glyphHeightBox))]
+        [MemberNotNull(nameof(_spaceWidthBox), nameof(_characterEditor), nameof(_replaceCharactersCheck))]
+        [MemberNotNull(nameof(_loadBtn), nameof(_saveBtn), nameof(_executeBtn))]
         private void InitializeComponent(FontGenerationType type, string? selectedCharacters)
         {
             _glyphBox = new ZoomablePaddedGlyph { ShowBorder = true };

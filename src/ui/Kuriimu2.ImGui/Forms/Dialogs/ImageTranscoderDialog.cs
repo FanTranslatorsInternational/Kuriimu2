@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class ImageTranscoderDialog
+    internal partial class ImageTranscoderDialog
     {
         private string? _filePath;
         private Image<Rgba32>? _origImage;
@@ -27,29 +27,29 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             InitializeComponent();
 
-            _openBtn.Clicked += _openBtn_Clicked;
+            _openBtn.Clicked += OpenBtn_Clicked;
 
-            _exportBtn.Clicked += _exportBtn_Clicked;
+            _exportBtn.Clicked += ExportBtn_Clicked;
 
-            _formats.SelectedItemChanged += _formats_SelectedItemChanged;
-            _paletteFormats.SelectedItemChanged += _paletteFormats_SelectedItemChanged;
+            _formats.SelectedItemChanged += Formats_SelectedItemChanged;
+            _paletteFormats.SelectedItemChanged += PaletteFormats_SelectedItemChanged;
 
-            _quantizers.SelectedItemChanged += _quantizers_SelectedItemChanged;
-            _caches.SelectedItemChanged += _caches_SelectedItemChanged;
-            _ditherers.SelectedItemChanged += _ditherers_SelectedItemChanged;
-            _countText.TextChanged += _countText_TextChanged;
+            _quantizers.SelectedItemChanged += Quantizers_SelectedItemChanged;
+            _caches.SelectedItemChanged += Caches_SelectedItemChanged;
+            _ditherers.SelectedItemChanged += Ditherers_SelectedItemChanged;
+            _countText.TextChanged += CountText_TextChanged;
 
-            _origImageBox.ContentZoomed += _origImageBox_ContentZoomed;
-            _origImageBox.ContentMoved += _origImageBox_ContentMoved;
-            _transcodedImageBox.ContentZoomed += _transcodedImageBox_ContentZoomed;
-            _transcodedImageBox.ContentMoved += _transcodedImageBox_ContentMoved; ;
+            _origImageBox.ContentZoomed += OrigImageBox_ContentZoomed;
+            _origImageBox.ContentMoved += OrigImageBox_ContentMoved;
+            _transcodedImageBox.ContentZoomed += TranscodedImageBox_ContentZoomed;
+            _transcodedImageBox.ContentMoved += TranscodedImageBox_ContentMoved;
 
             DragDrop += ImageTranscoderDialog_DragDrop;
 
             UpdateFormInternal();
         }
 
-        private async void _openBtn_Clicked(object? sender, EventArgs e)
+        private async void OpenBtn_Clicked(object? sender, EventArgs e)
         {
             string? selectedFile = await SelectFile();
             if (selectedFile is null)
@@ -61,7 +61,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private async void _exportBtn_Clicked(object? sender, EventArgs e)
+        private async void ExportBtn_Clicked(object? sender, EventArgs e)
         {
             if (_transcodedImage is null || _filePath is null)
                 return;
@@ -80,22 +80,22 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             await _transcodedImage.GetImage().SaveAsPngAsync(sfd.Files[0]);
         }
 
-        private void _origImageBox_ContentZoomed(object? sender, EventArgs e)
+        private void OrigImageBox_ContentZoomed(object? sender, EventArgs e)
         {
             _origImageBox.CopyTransformTo(_transcodedImageBox);
         }
 
-        private void _origImageBox_ContentMoved(object? sender, EventArgs e)
+        private void OrigImageBox_ContentMoved(object? sender, EventArgs e)
         {
             _origImageBox.CopyTransformTo(_transcodedImageBox);
         }
 
-        private void _transcodedImageBox_ContentZoomed(object? sender, EventArgs e)
+        private void TranscodedImageBox_ContentZoomed(object? sender, EventArgs e)
         {
             _transcodedImageBox.CopyTransformTo(_origImageBox);
         }
 
-        private void _transcodedImageBox_ContentMoved(object? sender, EventArgs e)
+        private void TranscodedImageBox_ContentMoved(object? sender, EventArgs e)
         {
             _transcodedImageBox.CopyTransformTo(_origImageBox);
         }
@@ -108,8 +108,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _formats_SelectedItemChanged(object? sender, EventArgs e)
+        private void Formats_SelectedItemChanged(object? sender, EventArgs e)
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (_transcodedImage is not null)
                 _transcodedImage.ImageInfo.Quantize = GetQuantizationOptions();
 
@@ -119,16 +122,22 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _paletteFormats_SelectedItemChanged(object? sender, EventArgs e)
+        private void PaletteFormats_SelectedItemChanged(object? sender, EventArgs e)
         {
+            if (_paletteFormats.SelectedItem is null)
+                return;
+
             _transcodedImage?.TranscodePalette(_paletteFormats.SelectedItem.Content);
 
             UpdateTranscodedImage();
             UpdateFormInternal();
         }
 
-        private void _quantizers_SelectedItemChanged(object? sender, EventArgs e)
+        private void Quantizers_SelectedItemChanged(object? sender, EventArgs e)
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (_transcodedImage is not null)
                 _transcodedImage.ImageInfo.Quantize = GetQuantizationOptions();
 
@@ -138,8 +147,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _caches_SelectedItemChanged(object? sender, EventArgs e)
+        private void Caches_SelectedItemChanged(object? sender, EventArgs e)
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (_transcodedImage is not null)
                 _transcodedImage.ImageInfo.Quantize = GetQuantizationOptions();
 
@@ -149,8 +161,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _ditherers_SelectedItemChanged(object? sender, EventArgs e)
+        private void Ditherers_SelectedItemChanged(object? sender, EventArgs e)
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (_transcodedImage is not null)
                 _transcodedImage.ImageInfo.Quantize = GetQuantizationOptions();
 
@@ -160,8 +175,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _countText_TextChanged(object? sender, EventArgs e)
+        private void CountText_TextChanged(object? sender, EventArgs e)
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (_transcodedImage is not null)
                 _transcodedImage.ImageInfo.Quantize = GetQuantizationOptions();
 
@@ -181,7 +199,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             var bitDepths = GetSelectedPaletteColorBitDepths();
             var isFixedCache = false;
 
-            if (bitDepths is not null)
+            if (bitDepths is not null && _quantizers.SelectedItem is not null)
             {
                 IColorQuantizer quantizer = _quantizers.SelectedItem.Content(GetColorCount(), 1, bitDepths.Value);
                 isFixedCache = quantizer.IsColorCacheFixed;
@@ -209,6 +227,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializeImages(string filePath)
         {
+            if (_formats.SelectedItem is null || _paletteFormats.SelectedItem is null)
+                return;
+
             try
             {
                 _origImage = Image.Load<Rgba32>(filePath);
@@ -233,7 +254,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 _origImageBox.Reset();
                 _transcodedImageBox.Reset();
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
         }
 
         private CreateQuantizationDelegate? GetQuantizationOptions()
@@ -242,17 +266,23 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             if (!isIndexEncoding)
                 return null;
 
-            if (_ditherers.SelectedItem.Content is null)
-                return options => options
-                    .WithColorQuantizer(_quantizers.SelectedItem.Content)
-                    .WithColorCache(_caches.SelectedItem.Content)
-                    .WithColorCount(GetColorCount());
+            return BuildQuantizationOptions;
+        }
 
-            return options => options
-                .WithColorQuantizer(_quantizers.SelectedItem.Content)
-                .WithColorCache(_caches.SelectedItem.Content)
-                .WithColorDitherer(_ditherers.SelectedItem.Content)
-                .WithColorCount(GetColorCount());
+        private IQuantizationConfigurationBuilder BuildQuantizationOptions(IQuantizationConfigurationBuilder builder)
+        {
+            if (_quantizers.SelectedItem is not null)
+                builder = builder.WithColorQuantizer(_quantizers.SelectedItem.Content);
+
+            if (_caches.SelectedItem is not null)
+                builder = builder.WithColorCache(_caches.SelectedItem.Content);
+
+            if (_ditherers.SelectedItem?.Content is not null)
+                builder = builder.WithColorDitherer(_ditherers.SelectedItem.Content);
+
+            builder.WithColorCount(GetColorCount());
+
+            return builder;
         }
 
         private int GetColorCount()
@@ -260,14 +290,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             if (string.IsNullOrEmpty(_countText.Text))
                 return 256;
 
-            if (int.TryParse(_countText.Text, out int colorCount))
-                return colorCount;
-
-            return 256;
+            return int.TryParse(_countText.Text, out int colorCount) ? colorCount : 256;
         }
 
         private int GetSelectedBitDepth()
         {
+            if (_formats.SelectedItem is null)
+                return -1;
+
             return IsSelectedIndexEncoding()
                 ? _encodingDefinition.GetIndexEncoding(_formats.SelectedItem.Content)!.IndexEncoding.BitDepth
                 : _encodingDefinition.GetColorEncoding(_formats.SelectedItem.Content)!.BitDepth;
@@ -275,20 +305,29 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private int GetSelectedPaletteBitDepth()
         {
+            if (_paletteFormats.SelectedItem is null)
+                return -1;
+
             return _encodingDefinition.GetPaletteEncoding(_paletteFormats.SelectedItem.Content)!.BitDepth;
         }
 
         private ColorChannelBitDepths? GetSelectedPaletteColorBitDepths()
         {
+            if (_paletteFormats.SelectedItem is null)
+                return null;
+
             return _encodingDefinition.GetPaletteEncoding(_paletteFormats.SelectedItem.Content)?.ColorChannelBitDepths;
         }
 
         private bool IsSelectedIndexEncoding()
         {
+            if (_formats.SelectedItem is null)
+                return false;
+
             return _encodingDefinition.ContainsIndexEncoding(_formats.SelectedItem.Content);
         }
 
-        private async Task<string?> SelectFile()
+        private static async Task<string?> SelectFile()
         {
             var ofd = new WindowsOpenFileDialog
             {
@@ -302,7 +341,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
 
             return ofd.Files[0];
         }

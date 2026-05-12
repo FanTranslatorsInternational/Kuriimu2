@@ -6,11 +6,11 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kuriimu2.ImGui.Resources
 {
-    static class ColorResources
+    internal static class ColorResources
     {
         private const int ImGuiColMax_ = 55;
 
-        private static readonly IDictionary<Theme, IDictionary<uint, Color>> Store = new Dictionary<Theme, IDictionary<uint, Color>>
+        private static readonly Dictionary<Theme, IDictionary<uint, Color>> Store = new()
         {
             [Theme.Dark] = new Dictionary<uint, Color>
             {
@@ -28,13 +28,13 @@ namespace Kuriimu2.ImGui.Resources
             }
         };
 
-        public static Color TextSuccessful => Store[Style.Theme][ImGuiColMax_ + 1];
+        public static ThemedColor TextSuccessful => new(Store[Theme.Light][ImGuiColMax_ + 1], Store[Theme.Dark][ImGuiColMax_ + 1]);
 
-        public static Color TextFatal => Store[Style.Theme][ImGuiColMax_ + 2];
+        public static ThemedColor TextFatal => new(Store[Theme.Light][ImGuiColMax_ + 2], Store[Theme.Dark][ImGuiColMax_ + 2]);
 
-        public static Color Progress => Store[Style.Theme][ImGuiColMax_ + 3];
+        public static ThemedColor Progress => new(Store[Theme.Light][ImGuiColMax_ + 3], Store[Theme.Dark][ImGuiColMax_ + 3]);
 
-        public static Color Changed => Store[Style.Theme][ImGuiColMax_ + 4];
+        public static ThemedColor Changed => new(Store[Theme.Light][ImGuiColMax_ + 4], Store[Theme.Dark][ImGuiColMax_ + 4]);
 
         public static ThemedColor GlyphBackground => new(Color.FromRgba(0xdb, 0xdb, 0xdb, 0xff), Color.FromRgba(0x1d, 0x1d, 0x1d, 0xff));
     }

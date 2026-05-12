@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Controls.Layouts;
@@ -8,16 +8,17 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class ManualPluginSelectionDialog
+    internal partial class ManualPluginSelectionDialog
     {
         private Label _msgLabel;
         private List<Component> _pluginList;
         private CheckBox _showAllPlugins;
 
         private Button _continueButton;
-        private Button _viewRawButton;
         private Button _cancelButton;
 
+        [MemberNotNull(nameof(_msgLabel), nameof(_pluginList), nameof(_showAllPlugins))]
+        [MemberNotNull(nameof(_continueButton), nameof(_cancelButton))]
         private void InitializeComponent()
         {
             #region Controls
@@ -27,7 +28,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _showAllPlugins = new CheckBox { Text = LocalizationResources.DialogPluginsManualSelectionShowAll };
 
             _continueButton = new Button { Width = 70, Text = LocalizationResources.DialogPluginsManualSelectionContinue, Enabled = false };
-            _viewRawButton = new Button { Padding = new Vector2(10, 2), Text = LocalizationResources.DialogPluginsManualSelectionViewRaw };
             _cancelButton = new Button { Width = 70, Text = LocalizationResources.DialogPluginsManualSelectionCancel };
 
             #region Main layout
@@ -50,7 +50,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                         Items =
                         {
                             _continueButton,
-                            _viewRawButton,
                             _cancelButton
                         }
                     }

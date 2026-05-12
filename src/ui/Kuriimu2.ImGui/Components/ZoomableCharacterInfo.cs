@@ -10,7 +10,7 @@ using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class ZoomableCharacterInfo : ZoomableComponent
+    internal class ZoomableCharacterInfo : ZoomableComponent
     {
         private ImageResource? _glyphResource;
 

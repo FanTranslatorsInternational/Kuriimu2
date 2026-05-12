@@ -31,12 +31,15 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class FontForm : Component, IKuriimuForm
+    internal partial class FontForm : Component, IKuriimuForm
     {
+        [GeneratedRegex(@"^\\u([a-fA-F0-9]{4})$", RegexOptions.Compiled)]
+        private static partial Regex UnicodeRegex();
+
         private readonly UnicodeCharacterParser _parser = new();
         private readonly FormInfo<IFontFilePluginState> _state;
+        private readonly FontPreviewSettingsDialog _previewSettingsDialog = new();
 
-        private FontPreviewSettingsDialog _previewSettingsDialog = new();
         private Image<Rgba32>? _generatedPreview;
 
         public FontForm(FormInfo<IFontFilePluginState> state)
@@ -45,20 +48,20 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             InitializeComponent(state.PluginState);
 
-            _saveBtn.Clicked += _saveBtn_Clicked;
-            _saveAsBtn.Clicked += _saveAsBtn_Clicked;
+            _saveBtn.Clicked += SaveBtn_Clicked;
+            _saveAsBtn.Clicked += SaveAsBtn_Clicked;
 
-            _searchCharBox.TextChanged += _searchCharBox_TextChanged;
-            _generateBtn.Clicked += _generateBtn_Clicked;
-            _editBtn.Clicked += _editBtn_Clicked;
-            _removeBtn.Clicked += _removeBtn_Clicked;
-            _remapBtn.Clicked += _remapBtn_Clicked;
-            _changeBtn.Clicked += _changeBtn_Clicked;
+            _searchCharBox.TextChanged += SearchCharBox_TextChanged;
+            _generateBtn.Clicked += GenerateBtn_Clicked;
+            _editBtn.Clicked += EditBtn_Clicked;
+            _removeBtn.Clicked += RemoveBtn_Clicked;
+            _remapBtn.Clicked += RemapBtn_Clicked;
+            _changeBtn.Clicked += ChangeBtn_Clicked;
 
-            _previewTextEditor.TextChanged += _previewTextEditor_TextChanged;
+            _previewTextEditor.TextChanged += PreviewTextEditor_TextChanged;
 
-            _exportBtn.Clicked += _exportBtn_Clicked;
-            _settingsBtn.Clicked += _settingsBtn_Clicked;
+            _exportBtn.Clicked += ExportBtn_Clicked;
+            _settingsBtn.Clicked += SettingsBtn_Clicked;
 
             _glyphBox.Zoom(20f);
             _previewTextEditor.SetText(LocalizationResources.FontPreviewPlaceholder);
@@ -67,14 +70,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _settingsBtn_Clicked(object? sender, EventArgs e)
+        private async void SettingsBtn_Clicked(object? sender, EventArgs e)
         {
             await _previewSettingsDialog.ShowAsync();
 
             UpdateTextPreview();
         }
 
-        private async void _exportBtn_Clicked(object? sender, EventArgs e)
+        private async void ExportBtn_Clicked(object? sender, EventArgs e)
         {
             if (_generatedPreview is null)
                 return;
@@ -93,12 +96,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Events
 
-        private async void _saveBtn_Clicked(object sender, EventArgs e)
+        private async void SaveBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(false);
         }
 
-        private async void _saveAsBtn_Clicked(object sender, EventArgs e)
+        private async void SaveAsBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(true);
         }
@@ -111,8 +114,11 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _searchCharBox_TextChanged(object? sender, EventArgs e)
+        private void SearchCharBox_TextChanged(object? sender, EventArgs e)
         {
+            if (_searchCharBox.Text is null)
+                return;
+
             char? searchChar = GetCharacter(_searchCharBox.Text);
             if (!searchChar.HasValue)
                 return;
@@ -124,7 +130,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             SetSelectedGlyph(glyph);
         }
 
-        private async void _generateBtn_Clicked(object sender, EventArgs e)
+        private async void GenerateBtn_Clicked(object? sender, EventArgs e)
         {
             var generationDialog = new FontGenerationDialog(_state.PluginState, FontGenerationType.Create, null);
 
@@ -138,7 +144,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _editBtn_Clicked(object? sender, EventArgs e)
+        private async void EditBtn_Clicked(object? sender, EventArgs e)
         {
             string selectedCharacters = string.Concat(_selectedCharacters.Select(c => c.CodePoint));
 
@@ -154,7 +160,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _removeBtn_Clicked(object? sender, EventArgs e)
+        private async void RemoveBtn_Clicked(object? sender, EventArgs e)
         {
             if (_selectedCharacters.Count <= 0)
                 return;
@@ -181,7 +187,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _remapBtn_Clicked(object? sender, EventArgs e)
+        private async void RemapBtn_Clicked(object? sender, EventArgs e)
         {
             var selectedCharacters = _selectedCharacters.OrderBy(c => c.CodePoint).ToArray();
 
@@ -197,13 +203,16 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _changeBtn_Clicked(object? sender, EventArgs e)
+        private async void ChangeBtn_Clicked(object? sender, EventArgs e)
         {
             if (_selectedElement is null)
                 return;
 
             var result = await InputBox.ShowAsync(LocalizationResources.FontGenerateChangeCaption, string.Empty,
                 $"{_selectedElement.CharacterInfo.CodePoint}", LocalizationResources.FontGenerateChangePlaceholder);
+            if (result is null)
+                return;
+
             var code = GetCharacter(result);
 
             if (!code.HasValue)
@@ -235,7 +244,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _previewTextEditor_TextChanged(object? sender, string e)
+        private void PreviewTextEditor_TextChanged(object? sender, string e)
         {
             UpdateTextPreview();
         }
@@ -363,10 +372,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Support
 
-        private char? GetCharacter(string searchText)
+        private static char? GetCharacter(string searchText)
         {
-            var regex = new Regex(@"^\\u([a-fA-F0-9]{4})$");
-            Match match = regex.Match(searchText);
+            Match match = UnicodeRegex().Match(searchText);
 
             if (match.Groups.Count > 1)
                 return (char)BinaryPrimitives.ReadInt16BigEndian(Convert.FromHexString(match.Groups[1].Value));
@@ -377,7 +385,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return null;
         }
 
-        private string GetLastDirectory()
+        private static string GetLastDirectory()
         {
             var settingsDir = SettingsResources.LastDirectory;
             return string.IsNullOrEmpty(settingsDir) ? Path.GetFullPath(".") : settingsDir;

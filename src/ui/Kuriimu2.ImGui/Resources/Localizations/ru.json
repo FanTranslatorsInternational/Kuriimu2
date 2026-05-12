@@ -47,8 +47,7 @@
   "Menu.Tools.ImageTranscoder": "Транскодер изображений",
   "Menu.Tools.RawImageViewer": "Просмотрщик RAW-изображений",
   "Menu.Tools.TextSequenceSearcher": "Поиск текста",
-  "Menu.Tools.BatchExtractor": "Извлечь всё",
-  "Menu.Tools.BatchInjector": "Заменить всё",
+  // "Menu.Tools.Batch": "Batch Operations", // TODO
   "Menu.Tools.Hashes": "Хеши",
 
   // Settings Menu
@@ -157,11 +156,11 @@
   "Archive.Status.Add.None": "Нечего добавлять.",
 
   // Archive Progress
-  "Archive.Progress.Extract": "Извлечение файлов",
-  "Archive.Progress.Replace": "Замена файлов",
-  "Archive.Progress.Rename": "Переименование файлов",
-  "Archive.Progress.Delete": "Удаление файлов",
-  "Archive.Progress.Add": "Добавление файлов",
+  "Archive.Progress.Extract": "Извлечение файлов - {0:0.00}%",
+  "Archive.Progress.Replace": "Замена файлов - {0:0.00}%",
+  "Archive.Progress.Rename": "Переименование файлов - {0:0.00}%",
+  "Archive.Progress.Delete": "Удаление файлов - {0:0.00}%",
+  "Archive.Progress.Add": "Добавление файлов - {0:0.00}%",
 
   // Archive Rename Dialog
   "Archive.Dialog.Rename.File.Caption": "Переименовать файл",
@@ -205,9 +204,6 @@
   "Image.Status.Import.Cancel": "Импорт изображения отменён.",
   "Image.Status.Import.Success": "Импорт изображения прошёл успешно.", // TODO
   "Image.Status.Import.Failure": "Не удалось импортировать изображение.",
-
-  // Image Progress
-  "Image.Progress.Decode": "Раскодировать изображение(-я)",
 
   // Indexed PictureBox
   "Image.PictureBox.Index.SelectColorControl": "Выбрать цвет палитры: Ctrl + ЛКМ",
@@ -316,6 +312,10 @@
   // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
   // "Dialog.Font.Remapping.Remap": "Remap", // TODO
 
+  // Batch Reuse Options Dialog
+  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
+  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "ОК",
 
@@ -331,6 +331,7 @@
   "Dialog.Tools.Ciphers.Log.Process": "Обработка файла {0}.",
   "Dialog.Tools.Ciphers.Log.Error": "Ошибка при обработке файла {0}.",
   "Dialog.Tools.Ciphers.Progress": "Процесс",
+  "Dialog.Tools.Ciphers.Progress.Value": "Процесс - {0:0.00}%",
   "Dialog.Tools.Ciphers.Cancel": "Отмена",
 
   // Compressions Dialog
@@ -344,6 +345,7 @@
   "Dialog.Tools.Compressions.Log.Process": "Обработка файла {0}.",
   "Dialog.Tools.Compressions.Log.Error": "Ошибка при обработке файла {0}.",
   "Dialog.Tools.Compressions.Progress": "Процесс",
+  "Dialog.Tools.Compressions.Progress.Value": "Процесс - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Отмена",
 
   // Image Transcoder Dialog
@@ -389,10 +391,29 @@
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Выберите файл",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Подпапки",
   "Dialog.Tools.TextSequenceSearcher.Progress": "Процесс",
+  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Процесс - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Отмена",
   // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Batch Dialog
+  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
+  // "Dialog.Tools.Batch.Export": "Export", // TODO
+  // "Dialog.Tools.Batch.Import": "Import", // TODO
+  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Execute": "Исполнить",
+  "Dialog.Tools.Batch.Input.Folder": "Выберите папку",
+  "Dialog.Tools.Batch.Input.SubDirectories": "Подпапки",
+  "Dialog.Tools.Batch.Log.Process": "Обработка файла {0}.",
+  "Dialog.Tools.Batch.Log.Error": "Ошибка при обработке файла {0}.",
+  "Dialog.Tools.Batch.Progress": "Процесс",
+  "Dialog.Tools.Batch.Progress.Value": "Процесс - {0:0.00}%",
+  "Dialog.Tools.Batch.Cancel": "Отмена",
+  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
+  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
+  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
+  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Установленные плагины",
@@ -424,23 +445,33 @@
   "Dialog.About.Version": "Версия {0}",
   "Dialog.About.Description": "Kuriimu2 — универсальный менеджер переводов игр и набор утилит для переводчиков и моддеров.",
 
-  // Manual Selection Plugin Dialog
+  // Manual Plugin Selection Dialog
   "Dialog.Plugins.ManualSelection.Caption": "Выберите плагин",
-
   "Dialog.Plugins.ManualSelection.Identification": "Выберите плагин, чтобы открыть файл:",
   "Dialog.Plugins.ManualSelection.Identification.None": "Не удалось автоматически определить плагин для этого файла.\nПожалуйста, выберите плагин вручную:",
   "Dialog.Plugins.ManualSelection.Identification.Multiple": "Данный файл поддерживается сразу несколькими плагинами. Пожалуйста, выберите один из них:",
   "Dialog.Plugins.ManualSelection.Identification.Note": "По умолчанию отображаются только те плагины, которые не могут автоматически определить поддержку файла.",
-
   "Dialog.Plugins.ManualSelection.Name": "Название",
   "Dialog.Plugins.ManualSelection.Type": "Тип",
   "Dialog.Plugins.ManualSelection.Description": "Описание",
   "Dialog.Plugins.ManualSelection.Id": "ID",
-
   "Dialog.Plugins.ManualSelection.Continue": "Продолжить",
-  "Dialog.Plugins.ManualSelection.ViewRaw": "Просмотреть RAW-байты",
   "Dialog.Plugins.ManualSelection.Cancel": "Отмена",
   "Dialog.Plugins.ManualSelection.ShowAll": "Показать все плагины",
+
+  // Plugin Selection Dialog
+  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Id": "ID",
+  "Dialog.Plugins.Selection.Name": "Название",
+  "Dialog.Plugins.Selection.Publisher": "Издатель",
+  "Dialog.Plugins.Selection.Developer": "Разработчик",
+  "Dialog.Plugins.Selection.Authors": "Авторы",
+  "Dialog.Plugins.Selection.Platforms": "Платформы",
+  "Dialog.Plugins.Selection.Type.Archive": "Архив",
+  "Dialog.Plugins.Selection.Type.Image": "Изображение",
+  "Dialog.Plugins.Selection.Type.Font": "Шрифт",
+  "Dialog.Plugins.Selection.Type.Text": "Текст",
+  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Генерация шрифта",

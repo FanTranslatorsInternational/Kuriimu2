@@ -108,7 +108,7 @@ namespace plugin_level5_preview.Preview.Narration
             if (!Directory.Exists(resourcePath))
                 return null;
 
-            IFileSystem fileSystem = FileSystemFactory.CreateSubFileSystem(resourcePath, new StreamManager());
+            IFileSystem fileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(resourcePath, new StreamManager());
             LoadResult loadResult = await _pluginManager.LoadFile(fileSystem, "nrm_main.xf", new LoadFileContext
             {
                 Logger = Logger.None,

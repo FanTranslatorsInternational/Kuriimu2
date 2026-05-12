@@ -54,16 +54,13 @@ namespace Kuriimu2.ImGui.Components
                 Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(contentRect.Position, contentRect.Position + ThumbnailSize, Style.GetColor(ImGuiCol.Border).ToUInt32());
 
             // Add name
-            if (Name != null)
-            {
-                var textHeight = Application.Instance.MainForm.DefaultFont.GetLineHeight();
-                var textPosition = contentRect.Position + new Vector2(4, 0) + ThumbnailSize with { Y = ThumbnailSize.Y / 2 - textHeight / 2 };
-                var textColor = ImageFile.ImageInfo.ContentChanged
-                    ? ColorResources.Changed.ToUInt32()
-                    : Style.GetColor(ImGuiCol.Text).ToUInt32();
+            var textHeight = Application.Instance.MainForm!.DefaultFont.GetLineHeight();
+            var textPosition = contentRect.Position + new Vector2(4, 0) + ThumbnailSize with { Y = ThumbnailSize.Y / 2 - textHeight / 2 };
+            var textColor = ImageFile.ImageInfo.ContentChanged
+                ? ColorResources.Changed.ToUInt32()
+                : Style.GetColor(ImGuiCol.Text).ToUInt32();
 
-                Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(textPosition, textColor, Name);
-            }
+            Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(textPosition, textColor, Name);
         }
 
         private ImageResource CreateThumbnailResource(Image<Rgba32> image)

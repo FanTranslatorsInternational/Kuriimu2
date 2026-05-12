@@ -10,7 +10,7 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class StatusLabel : Component
+    internal class StatusLabel : Component
     {
         private readonly Label _label;
 

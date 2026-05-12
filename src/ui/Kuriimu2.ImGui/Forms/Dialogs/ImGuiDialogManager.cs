@@ -14,9 +14,9 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    class ImGuiDialogManager : IDialogManager
+    internal class ImGuiDialogManager : IDialogManager
     {
-        public IList<string> DialogOptions { get; } = new List<string>();
+        public IList<string> DialogOptions { get; } = [];
 
         public async Task<bool> ShowDialog(DialogField[] fields)
         {
@@ -33,7 +33,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return result == DialogResult.Ok;
         }
 
-        private Modal CreateDialog(DialogField[] fields)
+        private static DialogManagerModal CreateDialog(DialogField[] fields)
         {
             // Setup layout
             var layout = new TableLayout
@@ -54,7 +54,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return modal;
         }
 
-        private void AddOkButton(TableLayout layout, Button okButton)
+        private static void AddOkButton(TableLayout layout, Button okButton)
         {
             layout.Rows.Add(new TableRow
             {
@@ -66,13 +66,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             });
         }
 
-        private void AddFields(DialogField[] fields, TableLayout layout)
+        private static void AddFields(DialogField[] fields, TableLayout layout)
         {
             foreach (var field in fields)
                 AddField(field, layout);
         }
 
-        private void AddField(DialogField field, TableLayout layout)
+        private static void AddField(DialogField field, TableLayout layout)
         {
             var row = new TableRow();
 
@@ -81,17 +81,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             row.Cells.Add(new TableCell(textLabel));
 
             // Add field input
-            Component input = null;
-            switch (field.Type)
+            Component? input = field.Type switch
             {
-                case DialogFieldType.TextBox:
-                    input = CreateTextBox(field);
-                    break;
-
-                case DialogFieldType.DropDown:
-                    input = CreateComboBox(field);
-                    break;
-            }
+                DialogFieldType.TextBox => CreateTextBox(field),
+                DialogFieldType.DropDown => CreateComboBox(field),
+                _ => null
+            };
 
             row.Cells.Add(input);
 
@@ -99,23 +94,23 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             layout.Rows.Add(row);
         }
 
-        private Button CreateOkButton()
+        private static Button CreateOkButton()
         {
             return new Button { Text = LocalizationResources.DialogManagerButtonOk, Width = 75 };
         }
 
-        private TextBox CreateTextBox(DialogField field)
+        private static TextBox CreateTextBox(DialogField field)
         {
             var input = new TextBox { Text = field.DefaultValue };
-            input.TextChanged += (s, e) => field.Result = input.Text;
+            input.TextChanged += (_, _) => field.Result = input.Text;
 
             return input;
         }
 
-        private ComboBox<string> CreateComboBox(DialogField field)
+        private static ComboBox<string> CreateComboBox(DialogField field)
         {
             var comboBox = new ComboBox<string> { MaxShowItems = 3 };
-            comboBox.SelectedItemChanged += (s, e) => field.Result = comboBox.SelectedItem.Content;
+            comboBox.SelectedItemChanged += (_, _) => field.Result = comboBox.SelectedItem?.Content;
 
             foreach (var option in field.Options)
                 comboBox.Items.Add(option);
@@ -126,7 +121,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return comboBox;
         }
 
-        class DialogManagerModal : Modal
+        private class DialogManagerModal : Modal
         {
             public DialogManagerModal(Component content)
             {

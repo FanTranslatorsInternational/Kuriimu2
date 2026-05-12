@@ -1,24 +1,26 @@
-﻿using Hexa.NET.ImGui;
+﻿using System.Diagnostics.CodeAnalysis;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using Kompression;
 using Kompression.Contract;
 using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class CompressionsDialog : Modal
+    internal partial class CompressionsDialog : Modal
     {
         private StackLayout _mainLayout;
         private StackLayout _settingsLayout;
 
         private RadioButtonGroup _operations;
-
         private ComboBox<ICompression> _compressions;
+
         private TextBox _inputTextBox;
         private Button _fileBtn;
         private Button _folderBtn;
@@ -29,6 +31,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private ProgressBar _progress;
 
+        [MemberNotNull(nameof(_mainLayout),nameof(_settingsLayout))]
+        [MemberNotNull(nameof(_operations),nameof(_compressions))]
+        [MemberNotNull(nameof(_inputTextBox), nameof(_fileBtn), nameof(_folderBtn), nameof(_subDirCheckBox))]
+        [MemberNotNull(nameof(_executeBtn), nameof(_cancelBtn))]
+        [MemberNotNull(nameof(_logEditor), nameof(_progress))]
         private void InitializeComponent()
         {
             #region Components
@@ -48,7 +55,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsInputFile };
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsInputFolder };
             _subDirCheckBox = new CheckBox { Text = LocalizationResources.DialogToolsCompressionsInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsExecute, KeyAction = new(ImGuiKey.Enter) };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsExecute, KeyAction = new KeyCommand(ImGuiKey.Enter) };
             _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCompressionsCancel, Enabled = false };
             _logEditor = new TextEditor { IsReadOnly = true };
 

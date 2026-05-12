@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 
 namespace Kuriimu2.ImGui.Resources
 {
-    static class BinaryResources
+    internal static class BinaryResources
     {
         #region Resource Names
 
@@ -19,11 +20,10 @@ namespace Kuriimu2.ImGui.Resources
 
         private static string FromResource(string name)
         {
-            var resourceStream= Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
-            if (resourceStream == null)
-                return null;
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name) 
+                                 ?? throw new InvalidOperationException($"Could not load resource stream with name '{name}'.");
 
-            var reader=new StreamReader(resourceStream);
+            var reader = new StreamReader(resourceStream);
             return reader.ReadToEnd();
         }
     }

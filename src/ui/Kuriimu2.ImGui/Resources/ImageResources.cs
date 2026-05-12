@@ -1,11 +1,12 @@
-﻿using System.Reflection;
-using ImGui.Forms.Resources;
+﻿using ImGui.Forms.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Reflection;
 
 namespace Kuriimu2.ImGui.Resources
 {
-    static class ImageResources
+    internal static class ImageResources
     {
         #region Resource Names
 
@@ -97,8 +98,10 @@ namespace Kuriimu2.ImGui.Resources
 
         private static Image<Rgba32> FromResource(string name)
         {
-            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
-            return resourceStream == null ? null : Image.Load<Rgba32>(resourceStream);
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name)
+                                 ?? throw new InvalidOperationException($"Could not load resource stream with name '{name}'.");
+
+            return Image.Load<Rgba32>(resourceStream);
         }
 
         #endregion

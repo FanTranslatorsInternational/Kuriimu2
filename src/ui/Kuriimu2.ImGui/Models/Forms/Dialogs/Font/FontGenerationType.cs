@@ -1,6 +1,6 @@
 ﻿namespace Kuriimu2.ImGui.Models.Forms.Dialogs.Font
 {
-    enum FontGenerationType
+    internal enum FontGenerationType
     {
         Create,
         Edit

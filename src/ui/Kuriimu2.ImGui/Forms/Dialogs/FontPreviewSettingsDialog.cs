@@ -1,8 +1,9 @@
-﻿using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
+﻿using Kaligraphy.Enums.Layout;
+using Kuriimu2.ImGui.Models.Forms.Dialogs.Font;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class FontPreviewSettingsDialog
+    internal partial class FontPreviewSettingsDialog
     {
         public FontPreviewSettings Settings { get; } = new();
 
@@ -10,13 +11,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             InitializeComponent();
 
-            _debugBoxCheck.CheckChanged += _debugBoxCheck_CheckChanged;
+            _debugBoxCheck.CheckChanged += DebugBoxCheck_CheckChanged;
             _spacingTextBox.TextChanged += SpacingTextBoxTextChanged;
-            _lineHeightBox.TextChanged += _lineHeightBox_TextChanged;
-            _alignmentComboBox.SelectedItemChanged += _alignmentComboBox_SelectedItemChanged;
+            _lineHeightBox.TextChanged += LineHeightBox_TextChanged;
+            _alignmentComboBox.SelectedItemChanged += AlignmentComboBox_SelectedItemChanged;
         }
 
-        private void _lineHeightBox_TextChanged(object? sender, System.EventArgs e)
+        private void LineHeightBox_TextChanged(object? sender, System.EventArgs e)
         {
             if (!int.TryParse(_lineHeightBox.Text, out int lineHeight))
                 return;
@@ -24,9 +25,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Settings.LineHeight = lineHeight;
         }
 
-        private void _alignmentComboBox_SelectedItemChanged(object? sender, System.EventArgs e)
+        private void AlignmentComboBox_SelectedItemChanged(object? sender, System.EventArgs e)
         {
-            Settings.HorizontalAlignment = _alignmentComboBox.SelectedItem.Content;
+            Settings.HorizontalAlignment = _alignmentComboBox.SelectedItem?.Content ?? HorizontalTextAlignment.Left;
         }
 
         private void SpacingTextBoxTextChanged(object? sender, System.EventArgs e)
@@ -37,7 +38,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Settings.Spacing = spacing;
         }
 
-        private void _debugBoxCheck_CheckChanged(object? sender, System.EventArgs e)
+        private void DebugBoxCheck_CheckChanged(object? sender, System.EventArgs e)
         {
             Settings.ShowDebugBoxes = _debugBoxCheck.Checked;
         }

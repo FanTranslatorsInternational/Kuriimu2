@@ -8,9 +8,9 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class ZoomableIndexedPictureBox : ZoomablePictureBox
+    internal class ZoomableIndexedPictureBox : ZoomablePictureBox
     {
-        public event EventHandler<PixelSelectedEventArgs> PixelSelected;
+        public event EventHandler<PixelSelectedEventArgs>? PixelSelected;
 
         protected override void DrawInternal(Rectangle contentRect)
         {
@@ -52,7 +52,7 @@ namespace Kuriimu2.ImGui.Components
             PixelSelected?.Invoke(this, new PixelSelectedEventArgs { X = x, Y = y, IsSelect = isSelect, IsSet = isSet });
         }
 
-        private void DrawControlLegend(Rectangle contentRect)
+        private static void DrawControlLegend(Rectangle contentRect)
         {
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSelectColorControl);
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.ImagePictureBoxIndexSetColorControl);

@@ -1,13 +1,17 @@
-﻿using Konnect.Contract.Management.Plugin;
-using Konnect.Management.Files;
+﻿using Konnect.Contract.Management.Files;
+using Konnect.Contract.Management.Plugin;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     internal partial class FilePreferenceDialog
     {
-        public FilePreferenceDialog(IPluginManager pluginManager)
+        private readonly IFilePreferences _preferences;
+
+        public FilePreferenceDialog(IFilePreferences preferences, IPluginManager pluginManager)
         {
-            InitializeComponent(pluginManager);
+            _preferences = preferences;
+
+            InitializeComponent(preferences, pluginManager);
         }
 
         private void RemoveSelectedRows()
@@ -19,7 +23,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             foreach (var selectedRow in _preferenceTable.SelectedRows)
             {
-                FilePreferences.Remove(selectedRow.Data.FilePath);
+                _preferences.Remove(selectedRow.Data.FilePath);
                 rows.Remove(selectedRow);
             }
 

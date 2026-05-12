@@ -7,14 +7,14 @@ using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Interfaces
 {
-    interface IFormCommunicator
+    internal interface IFormCommunicator
     {
         Task<bool> Save(bool saveAs);
         void Update(bool updateParents, bool updateChildren);
         void ReportStatus(StatusKind status, LocalizedString message);
     }
 
-    interface IArchiveFormCommunicator : IFormCommunicator
+    internal interface IArchiveFormCommunicator : IFormCommunicator
     {
         Task<bool> Open(IArchiveFile file);
         Task<bool> Open(IArchiveFile file, Guid pluginId);

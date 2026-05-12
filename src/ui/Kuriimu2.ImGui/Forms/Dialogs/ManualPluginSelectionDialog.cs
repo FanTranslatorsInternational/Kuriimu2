@@ -8,24 +8,24 @@ using ImGui.Forms.Models;
 using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Enums.Plugin.File;
 using Konnect.Contract.Plugin.File;
-using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Resources;
+#pragma warning disable IL3002
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class ManualPluginSelectionDialog : Modal
+    internal partial class ManualPluginSelectionDialog : Modal
     {
         private readonly IList<IFilePlugin> _allPlugins;
         private readonly IList<IFilePlugin> _filteredPlugins;
 
-        public IFilePlugin SelectedPlugin { get; private set; }
+        public IFilePlugin? SelectedPlugin { get; private set; }
 
         public ManualPluginSelectionDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
             InitializeComponent();
 
-            _allPlugins = allFilePlugins.ToArray();
-            _filteredPlugins = filteredFilePlugins.ToArray();
+            _allPlugins = [.. allFilePlugins];
+            _filteredPlugins = [.. filteredFilePlugins];
 
             switch (status)
             {
@@ -47,10 +47,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             ListPlugins(_filteredPlugins);
 
-            _continueButton.Clicked += _continueButton_Clicked;
-            _viewRawButton.Clicked += _viewRawButton_Clicked;
-            _cancelButton.Clicked += _cancelButton_Clicked;
-            _showAllPlugins.CheckChanged += _showAllPlugins_CheckChanged;
+            _continueButton.Clicked += ContinueButton_Clicked;
+            _cancelButton.Clicked += CancelButton_Clicked;
+            _showAllPlugins.CheckChanged += ShowAllPlugins_CheckChanged;
         }
 
         private void ListPlugins(IEnumerable<IFilePlugin> plugins)
@@ -60,7 +59,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             foreach (var groupedPlugins in plugins.GroupBy(x => x.GetType().Assembly))
             {
                 var pluginElements = new System.Collections.Generic.List<DataTableRow<ChoosePluginElement>>();
-                foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? string.Empty))
+                foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata.Name))
                     pluginElements.Add(new DataTableRow<ChoosePluginElement>(new ChoosePluginElement(plugin)));
 
                 _pluginList.Items.Add(new Expander(CreateDataTable(pluginElements), groupedPlugins.Key.ManifestModule.Name)
@@ -95,48 +94,43 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         #region Events
 
-        private void _continueButton_Clicked(object sender, EventArgs e)
+        private void ContinueButton_Clicked(object? sender, EventArgs e)
         {
             Result = DialogResult.Ok;
 
             Close();
         }
 
-        private void _viewRawButton_Clicked(object sender, EventArgs e)
-        {
-            SelectedPlugin = new HexPlugin();
-            Result = DialogResult.Ok;
-
-            Close();
-        }
-
-        private void _cancelButton_Clicked(object sender, EventArgs e)
+        private void CancelButton_Clicked(object? sender, EventArgs e)
         {
             Result = DialogResult.Cancel;
 
             Close();
         }
 
-        private void _showAllPlugins_CheckChanged(object sender, EventArgs e)
+        private void ShowAllPlugins_CheckChanged(object? sender, EventArgs e)
         {
             ListPlugins(_showAllPlugins.Checked ? _allPlugins : _filteredPlugins);
         }
 
-        private void DataTable_SelectedRowsChanged(object sender, EventArgs e)
+        private void DataTable_SelectedRowsChanged(object? sender, EventArgs e)
         {
-            var dataTable = (DataTable<ChoosePluginElement>)sender;
-            if (!dataTable.SelectedRows.Any()) return;
+            var dataTable = (DataTable<ChoosePluginElement>?)sender;
+            if (dataTable is null || dataTable.SelectedRows.Count <= 0)
+                return;
 
-            SelectedPlugin = dataTable.SelectedRows.First().Data.Plugin;
+            SelectedPlugin = dataTable.SelectedRows[0].Data.Plugin;
+
             _continueButton.Enabled = true;
         }
 
-        private void DataTable_DoubleClicked(object sender, EventArgs e)
+        private void DataTable_DoubleClicked(object? sender, EventArgs e)
         {
-            var dataTable = (DataTable<ChoosePluginElement>)sender;
-            if (!dataTable.SelectedRows.Any()) return;
+            var dataTable = (DataTable<ChoosePluginElement>?)sender;
+            if (dataTable is null || dataTable.SelectedRows.Count <= 0)
+                return;
 
-            SelectedPlugin = dataTable.SelectedRows.First().Data.Plugin;
+            SelectedPlugin = dataTable.SelectedRows[0].Data.Plugin;
             Result = DialogResult.Ok;
 
             Close();
@@ -145,20 +139,15 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         #endregion
     }
 
-    class ChoosePluginElement
+    internal class ChoosePluginElement(IFilePlugin plugin)
     {
-        public IFilePlugin Plugin { get; }
+        public IFilePlugin Plugin { get; } = plugin;
 
-        public string Name => Plugin.Metadata?.Name ?? "<undefined>";
-        public string Description => Plugin.Metadata?.LongDescription ?? "<undefined>";
+        public string Name => Plugin.Metadata.Name;
+        public string Description => Plugin.Metadata.LongDescription ?? "<undefined>";
 
         public PluginType Type => Plugin.PluginType;
 
         public Guid PluginId => Plugin.PluginId;
-
-        public ChoosePluginElement(IFilePlugin plugin)
-        {
-            Plugin = plugin;
-        }
     }
 }

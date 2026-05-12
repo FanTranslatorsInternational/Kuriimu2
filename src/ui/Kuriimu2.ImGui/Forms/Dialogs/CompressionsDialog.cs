@@ -1,6 +1,8 @@
 ﻿using ImGui.Forms.Modals;
 using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
+using Konnect.Progress;
+using Kuriimu2.ImGui.Progress;
 using Kuriimu2.ImGui.Resources;
 using System;
 using System.IO;
@@ -9,26 +11,30 @@ using System.Threading.Tasks;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class CompressionsDialog
+    internal partial class CompressionsDialog
     {
+        private readonly ProgressContext _progressContext;
+
         private CancellationTokenSource? _source;
 
         public CompressionsDialog()
         {
             InitializeComponent();
 
-            _folderBtn.Clicked += _folderBtn_Clicked;
-            _fileBtn.Clicked += _fileBtn_Clicked;
+            _progressContext = new ProgressContext(new ProgressBarOutput(_progress, 20, LocalizationResources.DialogToolsCompressionsProgressValue));
 
-            _executeBtn.Clicked += _executeBtn_Clicked;
-            _cancelBtn.Clicked += _cancelBtn_Clicked;
+            _folderBtn.Clicked += FolderBtn_Clicked;
+            _fileBtn.Clicked += FileBtn_Clicked;
+
+            _executeBtn.Clicked += ExecuteBtn_Clicked;
+            _cancelBtn.Clicked += CancelBtn_Clicked;
 
             DragDrop += CompressionsDialog_DragDrop;
 
             UpdateFormInternal();
         }
 
-        private async void _executeBtn_Clicked(object? sender, EventArgs e)
+        private async void ExecuteBtn_Clicked(object? sender, EventArgs e)
         {
             _source = new CancellationTokenSource();
 
@@ -41,12 +47,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             await Task.Run(Process);
         }
 
-        private void _cancelBtn_Clicked(object? sender, EventArgs e)
+        private void CancelBtn_Clicked(object? sender, EventArgs e)
         {
             _source?.Cancel();
         }
 
-        private async void _folderBtn_Clicked(object? sender, EventArgs e)
+        private async void FolderBtn_Clicked(object? sender, EventArgs e)
         {
             var folderPath = await SelectFolder();
             if (folderPath is null)
@@ -57,7 +63,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private async void _fileBtn_Clicked(object? sender, EventArgs e)
+        private async void FileBtn_Clicked(object? sender, EventArgs e)
         {
             var filePath = await SelectFile();
             if (filePath is null)
@@ -80,7 +86,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _executeBtn.Enabled = _operations.SelectedItem is not null && _compressions.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
         }
 
-        private async Task<string?> SelectFile()
+        private static async Task<string?> SelectFile()
         {
             var ofd = new WindowsOpenFileDialog
             {
@@ -94,12 +100,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
 
             return ofd.Files[0];
         }
 
-        private async Task<string?> SelectFolder()
+        private static async Task<string?> SelectFolder()
         {
             var sfd = new WindowsSelectFolderDialog
             {
@@ -112,7 +118,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = sfd.Directory;
+            SettingsResources.LastDirectory = sfd.Directory ?? string.Empty;
 
             return sfd.Directory;
         }
@@ -120,18 +126,23 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void Process()
         {
             _logEditor.SetText(string.Empty);
-            _progress.Value = 0;
+
+            _progressContext.StartProgress();
 
             if (File.Exists(_inputTextBox.Text))
             {
-                _progress.Maximum = 1;
+                _progressContext.ReportProgress(0, 1);
 
                 ProcessFile(_inputTextBox.Text);
+
+                _progressContext.ReportProgress(1, 1);
             }
             else
             {
-                ProcessDirectory(_inputTextBox.Text);
+                ProcessDirectory(_inputTextBox.Text!);
             }
+
+            _progressContext.FinishProgress();
 
             _operations.Enabled = true;
             _compressions.Enabled = true;
@@ -147,15 +158,19 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 : SearchOption.TopDirectoryOnly;
 
             var files = Directory.GetFiles(directoryPath, "*", searchOptions);
-            _progress.Maximum = files.Length;
 
+            var index = 0;
             foreach (string filePath in files)
             {
+                _progressContext.ReportProgress(index++, files.Length);
+
                 if (_source?.IsCancellationRequested ?? false)
                     break;
 
                 ProcessFile(filePath);
             }
+
+            _progressContext.ReportProgress(files.Length, files.Length);
         }
 
         private void ProcessFile(string filePath)
@@ -171,9 +186,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             try
             {
                 if (_operations.SelectedItem == _operations.Items[0])
-                    _compressions.SelectedItem.Content.Compress(input, output);
+                    _compressions.SelectedItem?.Content.Compress(input, output);
                 else
-                    _compressions.SelectedItem.Content.Decompress(input, output);
+                    _compressions.SelectedItem?.Content.Decompress(input, output);
             }
             catch (Exception)
             {
@@ -182,8 +197,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 output.Close();
                 File.Delete(outPath);
             }
-
-            _progress.Value++;
         }
     }
 }

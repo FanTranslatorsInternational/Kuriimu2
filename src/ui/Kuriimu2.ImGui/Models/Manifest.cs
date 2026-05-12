@@ -2,15 +2,18 @@
 
 namespace Kuriimu2.ImGui.Models
 {
-    internal class Manifest
+    public class Manifest
     {
         [JsonPropertyName("source_type")]
-        public string SourceType { get; set; }
+        public required string SourceType { get; set; }
 
         [JsonPropertyName("version")]
-        public string Version { get; set; }
+        public required string Version { get; set; }
 
         [JsonPropertyName("build_number")]
-        public string BuildNumber { get; set; }
+        public required string BuildNumber { get; set; }
     }
+
+    [JsonSerializable(typeof(Manifest))]
+    public partial class ManifestJsonSerializerContext : JsonSerializerContext;
 }

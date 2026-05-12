@@ -47,8 +47,7 @@
   "Menu.Tools.ImageTranscoder": "Giải Mã Ảnh",
   "Menu.Tools.RawImageViewer": "Trình Xem Ảnh Raw",
   "Menu.Tools.TextSequenceSearcher": "Trình Tìm Văn Bản",
-  "Menu.Tools.BatchExtractor": "Giải Nén Tất Cả",
-  "Menu.Tools.BatchInjector": "Thay Thế Tất Cả",
+  // "Menu.Tools.Batch": "Batch Operations", // TODO
   "Menu.Tools.Hashes": "Hashes",
 
   // Settings Menu
@@ -157,11 +156,11 @@
   "Archive.Status.Add.None": "Không có tệp để thêm.",
 
   // Archive Progress
-  "Archive.Progress.Extract": "Giải nén các tệp",
-  "Archive.Progress.Replace": "Thay thế các tệp",
-  "Archive.Progress.Rename": "Đổi tên các tệp",
-  "Archive.Progress.Delete": "Xóa các tệp",
-  "Archive.Progress.Add": "Thêm các tệp",
+  "Archive.Progress.Extract": "Giải nén các tệp - {0:0.00}%",
+  "Archive.Progress.Replace": "Thay thế các tệp - {0:0.00}%",
+  "Archive.Progress.Rename": "Đổi tên các tệp - {0:0.00}%",
+  "Archive.Progress.Delete": "Xóa các tệp - {0:0.00}%",
+  "Archive.Progress.Add": "Thêm các tệp - {0:0.00}%",
 
   // Archive Rename Dialog
   "Archive.Dialog.Rename.File.Caption": "Đổi tên tệp",
@@ -205,9 +204,6 @@
   "Image.Status.Import.Cancel": "Đã hủy nhập ảnh.",
   "Image.Status.Import.Success": "Đã nhập ảnh thành công.", // TODO
   "Image.Status.Import.Failure": "Đã nhập ảnh thất bại.",
-
-  // Image Progress
-  "Image.Progress.Decode": "Giải mã ảnh(s)",
 
   // Indexed PictureBox
   "Image.PictureBox.Index.SelectColorControl": "Chọn Bảng Màu: Ctrl + Nhấn Chuột Trái",
@@ -316,6 +312,10 @@
   // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
   // "Dialog.Font.Remapping.Remap": "Remap", // TODO
 
+  // Batch Reuse Options Dialog
+  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
+  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
@@ -331,6 +331,7 @@
   "Dialog.Tools.Ciphers.Log.Process": "Tệp đang xử lý {0}.",
   "Dialog.Tools.Ciphers.Log.Error": "Lỗi khi xử lý tệp {0}.",
   "Dialog.Tools.Ciphers.Progress": "Xử Lý",
+  "Dialog.Tools.Ciphers.Progress.Value": "Xử Lý - {0:0.00}%",
   "Dialog.Tools.Ciphers.Cancel": "Hủy",
 
   // Compressions Dialog
@@ -344,6 +345,7 @@
   "Dialog.Tools.Compressions.Log.Process": "Tệp đang xử lý {0}.",
   "Dialog.Tools.Compressions.Log.Error": "Lỗi khi xử lý tệp {0}.",
   "Dialog.Tools.Compressions.Progress": "Xử Lý",
+  "Dialog.Tools.Compressions.Progress.Value": "Xử Lý - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Hủy",
 
   // Image Transcoder Dialog
@@ -389,10 +391,29 @@
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Chọn tệp",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Thư Mục Con",
   "Dialog.Tools.TextSequenceSearcher.Progress": "Xử Lý",
+  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Xử Lý - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Hủy",
   // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
   // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+
+  // Batch Dialog
+  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
+  // "Dialog.Tools.Batch.Export": "Export", // TODO
+  // "Dialog.Tools.Batch.Import": "Import", // TODO
+  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Execute": "Thực Thi",
+  "Dialog.Tools.Batch.Input.Folder": "Chọn thư mục",
+  "Dialog.Tools.Batch.Input.SubDirectories": "Thư Mục Con",
+  "Dialog.Tools.Batch.Log.Process": "Tệp đang xử lý {0}.",
+  "Dialog.Tools.Batch.Log.Error": "Lỗi khi xử lý tệp {0}.",
+  "Dialog.Tools.Batch.Progress": "Xử Lý",
+  "Dialog.Tools.Batch.Progress.Value": "Xử Lý - {0:0.00}%",
+  "Dialog.Tools.Batch.Cancel": "Hủy",
+  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
+  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
+  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
+  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Plugin Đã Cài",
@@ -424,23 +445,33 @@
   "Dialog.About.Version": "Phiên bản {0}",
   "Dialog.About.Description": "Kuriimu2 là một dự án quản lý dịch trò chơi đa năng\nvà bộ công cụ dành cho các fan thực hiện bản địa hóa\nvà các bản mod trò chơi.",
 
-  // Manual Selection Plugin Dialog
+  // Manual Plugin Selection Dialog
   "Dialog.Plugins.ManualSelection.Caption": "Chọn plugin",
-
   "Dialog.Plugins.ManualSelection.Identification": "Chọn plugin để mở tệp:",
   "Dialog.Plugins.ManualSelection.Identification.None": "Không thể tự động xác định plugin để mở tệp này,\nvui lòng chọn thủ công.:",
   "Dialog.Plugins.ManualSelection.Identification.Multiple": "Có nhiều plugin có thể nhận diện tệp này. Vui lòng chọn một:",
   "Dialog.Plugins.ManualSelection.Identification.Note": "Mặc định, chỉ các plugin không thể tự động xác định rằng chúng hỗ trợ tệp này mới được hiển thị.",
-
   "Dialog.Plugins.ManualSelection.Name": "Tên",
   "Dialog.Plugins.ManualSelection.Type": "Loại",
   "Dialog.Plugins.ManualSelection.Description": "Mô Tả",
   "Dialog.Plugins.ManualSelection.Id": "ID",
-
   "Dialog.Plugins.ManualSelection.Continue": "Tiếp Tục",
-  "Dialog.Plugins.ManualSelection.ViewRaw": "Xem raw bytes",
   "Dialog.Plugins.ManualSelection.Cancel": "Hủy",
   "Dialog.Plugins.ManualSelection.ShowAll": "Hiện toàn bộ plugin",
+
+  // Plugin Selection Dialog
+  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Id": "ID",
+  "Dialog.Plugins.Selection.Name": "Tên",
+  "Dialog.Plugins.Selection.Publisher": "Xuất Bản",
+  "Dialog.Plugins.Selection.Developer": "Phát Triển",
+  "Dialog.Plugins.Selection.Authors": "Tác Giả",
+  "Dialog.Plugins.Selection.Platforms": "Hệ Máy",
+  "Dialog.Plugins.Selection.Type.Archive": "Lưu Trữ",
+  "Dialog.Plugins.Selection.Type.Image": "Ảnh",
+  "Dialog.Plugins.Selection.Type.Font": "Font",
+  "Dialog.Plugins.Selection.Type.Text": "Text",
+  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Tạo Font",

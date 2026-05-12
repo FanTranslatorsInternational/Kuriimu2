@@ -12,7 +12,7 @@ using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class PaletteView : Component
+    internal class PaletteView : Component
     {
         private readonly ColorPicker _colorPicker;
 
@@ -24,19 +24,17 @@ namespace Kuriimu2.ImGui.Components
         private int _cols;
         private int _rows;
 
-        private int _selectedColorIndex = -1;
-
         public IList<Rgba32>? Palette { get; set; }
-        public int SelectedIndex => _selectedColorIndex;
+        public int SelectedIndex { get; private set; } = -1;
 
         public Vector2 Spacing { get; set; }
 
-        public event EventHandler<int> ColorChanged;
+        public event EventHandler<int>? ColorChanged;
 
         public PaletteView()
         {
-            _colorPicker = new();
-            _colorPicker.ColorChanged += _colorPicker_ColorChanged;
+            _colorPicker = new ColorPicker();
+            _colorPicker.ColorChanged += ColorPicker_ColorChanged;
         }
 
         public override Size GetSize() => Size.Parent;
@@ -50,7 +48,7 @@ namespace Kuriimu2.ImGui.Components
             if (colorIndex < 0)
                 return;
 
-            _selectedColorIndex = colorIndex;
+            SelectedIndex = colorIndex;
         }
 
         protected override void UpdateInternal(Rectangle contentRect)
@@ -83,15 +81,15 @@ namespace Kuriimu2.ImGui.Components
                     {
                         if (Hexa.NET.ImGui.ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
-                            if (_selectedColorIndex == index)
-                                _selectedColorIndex = -1;
+                            if (SelectedIndex == index)
+                                SelectedIndex = -1;
                             else
-                                _selectedColorIndex = index;
+                                SelectedIndex = index;
                         }
                         else if (Hexa.NET.ImGui.ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                         {
-                            if (_selectedColorIndex != index)
-                                _selectedColorIndex = index;
+                            if (SelectedIndex != index)
+                                SelectedIndex = index;
                         }
                     }
 
@@ -106,21 +104,21 @@ namespace Kuriimu2.ImGui.Components
                 colorPos = new Vector2(contentRect.X, colorPos.Y + _colorSize.Y + Spacing.Y);
             }
 
-            if (_selectedColorIndex >= 0)
+            if (SelectedIndex >= 0)
             {
                 var spacedColorSize = new Vector2(_colorSize.X + Spacing.X, _colorSize.Y + Spacing.Y);
-                Vector2 selectedColorPos = new Vector2(_selectedColorIndex % _cols, _selectedColorIndex / _cols) * spacedColorSize + contentRect.Position;
+                Vector2 selectedColorPos = new Vector2(SelectedIndex % _cols, SelectedIndex / _cols) * spacedColorSize + contentRect.Position;
 
                 Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddRect(selectedColorPos, selectedColorPos + _colorSize, Color.Red.ToUInt32(), 0f, ImDrawFlags.None, 2f);
             }
 
-            if (_selectedColorIndex >= 0 && Hexa.NET.ImGui.ImGui.BeginPopupContextWindow($"{Id}context", ImGuiPopupFlags.NoOpenOverExistingPopup | ImGuiPopupFlags.MouseButtonRight))
+            if (SelectedIndex >= 0 && Hexa.NET.ImGui.ImGui.BeginPopupContextWindow($"{Id}context", ImGuiPopupFlags.NoOpenOverExistingPopup | ImGuiPopupFlags.MouseButtonRight))
             {
                 int width = _colorPicker.GetWidth((int)contentRect.Width, (int)contentRect.Height);
                 int height = _colorPicker.GetHeight((int)contentRect.Width, (int)contentRect.Height);
                 var pos = Hexa.NET.ImGui.ImGui.GetCursorPos();
 
-                _colorPicker.PickedColor = Palette[_selectedColorIndex];
+                _colorPicker.PickedColor = Palette[SelectedIndex];
                 _colorPicker.Update(new Rectangle(pos, new Vector2(width, height)));
 
                 Hexa.NET.ImGui.ImGui.EndPopup();
@@ -159,17 +157,17 @@ namespace Kuriimu2.ImGui.Components
             return new Vector2(bestS);
         }
 
-        private void _colorPicker_ColorChanged(object? sender, EventArgs e)
+        private void ColorPicker_ColorChanged(object? sender, EventArgs e)
         {
-            if (_selectedColorIndex < 0 || Palette is null || _selectedColorIndex >= Palette.Count)
+            if (SelectedIndex < 0 || Palette is null || SelectedIndex >= Palette.Count)
                 return;
 
-            if (Palette[_selectedColorIndex] == _colorPicker.PickedColor)
+            if (Palette[SelectedIndex] == _colorPicker.PickedColor)
                 return;
 
-            Palette[_selectedColorIndex] = _colorPicker.PickedColor;
+            Palette[SelectedIndex] = _colorPicker.PickedColor;
 
-            OnColorChanged(_selectedColorIndex);
+            OnColorChanged(SelectedIndex);
         }
 
         private void OnColorChanged(int colorIndex)

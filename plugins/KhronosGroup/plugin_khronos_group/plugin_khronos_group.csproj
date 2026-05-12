@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kanvas" Version="2.1.36" />
-    <PackageReference Include="Konnect" Version="2.1.87" />
+    <PackageReference Include="Kanvas" Version="2.1.37" />
+    <PackageReference Include="Konnect" Version="2.1.91" />
   </ItemGroup>
 
   <ItemGroup>

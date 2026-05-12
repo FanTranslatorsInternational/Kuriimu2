@@ -1,16 +1,16 @@
-﻿using System.Linq;
-using ImGui.Forms.Controls.Layouts;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls.Lists;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
-using Konnect.Contract.Management.Plugin;
-using Konnect.Contract.Plugin.File;
-using Konnect.Management.Files;
-using Kuriimu2.ImGui.Models.Forms.Dialogs;
-using Kuriimu2.ImGui.Resources;
-using Hexa.NET.ImGui;
 using ImGui.Forms.Models.IO;
 using ImGui.Forms.Support;
+using Konnect.Contract.Management.Files;
+using Konnect.Contract.Management.Plugin;
+using Konnect.Contract.Plugin.File;
+using Kuriimu2.ImGui.Models.Forms.Dialogs;
+using Kuriimu2.ImGui.Resources;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -28,7 +28,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 RemoveSelectedRows();
         }
 
-        private void InitializeComponent(IPluginManager pluginManager)
+        [MemberNotNull(nameof(_preferenceTable))]
+        private void InitializeComponent(IFilePreferences preferences, IPluginManager pluginManager)
         {
             _preferenceTable = new DataTable<FilePreference>
             {
@@ -48,16 +49,16 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Content = _preferenceTable;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
 
-            InitializePreferences(pluginManager);
+            InitializePreferences(preferences,pluginManager);
         }
 
-        private void InitializePreferences(IPluginManager pluginManager)
+        private void InitializePreferences(IFilePreferences preferences, IPluginManager pluginManager)
         {
-            var files = FilePreferences.GetPaths();
+            var files = preferences.GetPaths();
 
             foreach (var file in files)
             {
-                var entry = FilePreferences.GetOrDefault(file);
+                var entry = preferences.GetOrDefault(file);
                 if (entry is null)
                     continue;
 

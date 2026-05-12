@@ -47,8 +47,7 @@
   "Menu.Tools.ImageTranscoder": "Bild-Transcoder",
   "Menu.Tools.RawImageViewer": "Rohbildansicht",
   "Menu.Tools.TextSequenceSearcher": "Text-Sucher",
-  "Menu.Tools.BatchExtractor": "Alles extrahieren",
-  "Menu.Tools.BatchInjector": "Alles ersetzen",
+  "Menu.Tools.Batch": "Batch Operationen",
   "Menu.Tools.Hashes": "Prüfsummen",
 
   // Settings Menu
@@ -157,11 +156,11 @@
   "Archive.Status.Add.None": "Keine Dateien zum Hinzufügen.",
 
   // Archive Progress
-  "Archive.Progress.Extract": "Dateien extrahieren",
-  "Archive.Progress.Replace": "Dateien ersetzen",
-  "Archive.Progress.Rename": "Dateien umbenennen",
-  "Archive.Progress.Delete": "Dateien löschen",
-  "Archive.Progress.Add": "Dateien hinzufügen",
+  "Archive.Progress.Extract": "Dateien extrahieren - {0:0.00}%",
+  "Archive.Progress.Replace": "Dateien ersetzen - {0:0.00}%",
+  "Archive.Progress.Rename": "Dateien umbenennen - {0:0.00}%",
+  "Archive.Progress.Delete": "Dateien löschen - {0:0.00}%",
+  "Archive.Progress.Add": "Dateien hinzufügen - {0:0.00}%",
 
   // Archive Rename Dialog
   "Archive.Dialog.Rename.File.Caption": "Datei umbenennen",
@@ -205,9 +204,6 @@
   "Image.Status.Import.Cancel": "Import des Bilds abgebrochen.",
   "Image.Status.Import.Success": "Bild(er) erfolgreich importiert.",
   "Image.Status.Import.Failure": "Import des Bilds fehlgeschlagen.",
-
-  // Image Progress
-  "Image.Progress.Decode": "Bild(er) dekodieren",
 
   // Indexed PictureBox
   "Image.PictureBox.Index.SelectColorControl": "Palettenfarbe auswählen: Strg + Linksklick",
@@ -316,6 +312,10 @@
   "Dialog.Font.Remapping.Text": "Wähle eine zusammenhängende Reihe von Glyphen zum Zuordnen:",
   "Dialog.Font.Remapping.Remap": "Zuordnen",
 
+  // Batch Reuse Options Dialog
+  "Dialog.Batch.ReuseOptions.Caption": "Optionen wiederverwenden",
+  "Dialog.Batch.ReuseOptions.Text": "Möchtest du die selben Optionen für nachfolgende Dateien verwenden?",
+
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
 
@@ -331,6 +331,7 @@
   "Dialog.Tools.Ciphers.Log.Process": "Datei {0} wird verarbeitet.",
   "Dialog.Tools.Ciphers.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
   "Dialog.Tools.Ciphers.Progress": "Verarbeitung",
+  "Dialog.Tools.Ciphers.Progress.Value": "Verarbeitung - {0:0.00}%",
   "Dialog.Tools.Ciphers.Cancel": "Abbrechen",
 
   // Compressions Dialog
@@ -344,6 +345,7 @@
   "Dialog.Tools.Compressions.Log.Process": "Datei {0} wird verarbeitet.",
   "Dialog.Tools.Compressions.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
   "Dialog.Tools.Compressions.Progress": "Verarbeitung",
+  "Dialog.Tools.Compressions.Progress.Value": "Verarbeitung - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Abbrechen",
 
   // Image Transcoder Dialog
@@ -389,10 +391,29 @@
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Datei auswählen",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Unterordner",
   "Dialog.Tools.TextSequenceSearcher.Progress": "Verarbeitung",
+  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Verarbeitung - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Abbrechen",
   "Dialog.Tools.TextSequenceSearcher.Path": "Pfad",
   "Dialog.Tools.TextSequenceSearcher.Offset": "Position",
   "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Zu suchender Text...",
+
+  // Batch Dialog
+  "Dialog.Tools.Batch.Caption": "Batch Operationen",
+  "Dialog.Tools.Batch.Export": "Export",
+  "Dialog.Tools.Batch.Import": "Import",
+  "Dialog.Tools.Batch.SelectPlugin": "Plugin auswählen",
+  "Dialog.Tools.Batch.Execute": "Ausführen",
+  "Dialog.Tools.Batch.Input.Folder": "Ordner auswählen",
+  "Dialog.Tools.Batch.Input.SubDirectories": "Unterordner",
+  "Dialog.Tools.Batch.Log.Process": "Datei {0} wird verarbeitet.",
+  "Dialog.Tools.Batch.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
+  "Dialog.Tools.Batch.Progress": "Verarbeitung",
+  "Dialog.Tools.Batch.Progress.Value": "Verarbeitung - {0:0.00}%",
+  "Dialog.Tools.Batch.Cancel": "Abbrechen",
+  "Dialog.Tools.Batch.Text": "Textparameter",
+  "Dialog.Tools.Batch.Text.Kup": "KUP",
+  "Dialog.Tools.Batch.Text.Po": "PO",
+  "Dialog.Tools.Batch.Text.SelectPlugin": "Plugin auswählen",
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Installierte Plugins",
@@ -424,23 +445,33 @@
   "Dialog.About.Version": "Version {0}",
   "Dialog.About.Description": "Kuriimu2 ist ein universelles Toolkit für Spielübersetzungen,\ngedacht für Autoren von Fanübersetzungen\nund Spiel-Modifikationen.",
 
-  // Manual Selection Plugin Dialog
+  // Manual Plugin Selection Dialog
   "Dialog.Plugins.ManualSelection.Caption": "Plugin auswählen",
-
   "Dialog.Plugins.ManualSelection.Identification": "Wähle ein Plugin, um die Datei zu öffnen:",
   "Dialog.Plugins.ManualSelection.Identification.None": "Das Plugin für diese Datei konnte nicht automatisch bestimmt werden,\nbitte wähle manuell:",
   "Dialog.Plugins.ManualSelection.Identification.Multiple": "Mehrere Plugins können diese Datei identifizieren. Bitte wähle eines aus:",
   "Dialog.Plugins.ManualSelection.Identification.Note": "Standardmäßig werden nur Plugins angezeigt, die nicht automatisch bestimmen konnten, ob sie die Datei unterstützen.",
-
   "Dialog.Plugins.ManualSelection.Name": "Name",
   "Dialog.Plugins.ManualSelection.Type": "Typ",
   "Dialog.Plugins.ManualSelection.Description": "Beschreibung",
   "Dialog.Plugins.ManualSelection.Id": "ID",
-
   "Dialog.Plugins.ManualSelection.Continue": "Fortfahren",
-  "Dialog.Plugins.ManualSelection.ViewRaw": "Rohdaten anzeigen",
   "Dialog.Plugins.ManualSelection.Cancel": "Abbrechen",
   "Dialog.Plugins.ManualSelection.ShowAll": "Alle Plugins anzeigen",
+
+  // Plugin Selection Dialog
+  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Id": "ID",
+  "Dialog.Plugins.Selection.Name": "Name",
+  "Dialog.Plugins.Selection.Publisher": "Publisher",
+  "Dialog.Plugins.Selection.Developer": "Entwickler",
+  "Dialog.Plugins.Selection.Authors": "Autoren",
+  "Dialog.Plugins.Selection.Platforms": "Plattformen",
+  "Dialog.Plugins.Selection.Type.Archive": "Archiv",
+  "Dialog.Plugins.Selection.Type.Image": "Bild",
+  "Dialog.Plugins.Selection.Type.Font": "Schriftart",
+  "Dialog.Plugins.Selection.Type.Text": "Text",
+  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Schriftart erstellen",

@@ -6,7 +6,7 @@ using Konnect.Contract.Plugin.File;
 
 namespace Kuriimu2.ImGui.Resources
 {
-    static class LocalizationResources
+    internal static class LocalizationResources
     {
         private static readonly Lazy<ILocalizer> Lazy = new(() => new Localizer());
         public static ILocalizer Instance => Lazy.Value;
@@ -41,8 +41,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString MenuToolsImageTranscoder => LocalizedString.FromId("Menu.Tools.ImageTranscoder");
         public static LocalizedString MenuToolsRawImageViewer => LocalizedString.FromId("Menu.Tools.RawImageViewer");
         public static LocalizedString MenuToolsTextSequenceSearcher => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher");
-        public static LocalizedString MenuToolsBatchExtractor => LocalizedString.FromId("Menu.Tools.BatchExtractor");
-        public static LocalizedString MenuToolsBatchInjector => LocalizedString.FromId("Menu.Tools.BatchInjector");
+        public static LocalizedString MenuToolsBatch => LocalizedString.FromId("Menu.Tools.Batch");
         public static LocalizedString MenuToolsHashes => LocalizedString.FromId("Menu.Tools.Hashes");
 
         // Settings Menu
@@ -152,11 +151,11 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ArchiveStatusAddNone => LocalizedString.FromId("Archive.Status.Add.None");
 
         // Archive Progress
-        public static LocalizedString ArchiveProgressExtract => LocalizedString.FromId("Archive.Progress.Extract");
-        public static LocalizedString ArchiveProgressReplace => LocalizedString.FromId("Archive.Progress.Replace");
-        public static LocalizedString ArchiveProgressRename => LocalizedString.FromId("Archive.Progress.Rename");
-        public static LocalizedString ArchiveProgressDelete => LocalizedString.FromId("Archive.Progress.Delete");
-        public static LocalizedString ArchiveProgressAdd => LocalizedString.FromId("Archive.Progress.Add");
+        public static LocalizedString ArchiveProgressExtract(double completion) => LocalizedString.FromId("Archive.Progress.Extract", () => completion);
+        public static LocalizedString ArchiveProgressReplace(double completion) => LocalizedString.FromId("Archive.Progress.Replace", () => completion);
+        public static LocalizedString ArchiveProgressRename(double completion) => LocalizedString.FromId("Archive.Progress.Rename", () => completion);
+        public static LocalizedString ArchiveProgressDelete(double completion) => LocalizedString.FromId("Archive.Progress.Delete", () => completion);
+        public static LocalizedString ArchiveProgressAdd(double completion) => LocalizedString.FromId("Archive.Progress.Add", () => completion);
 
         // Archive Rename Dialog
         public static LocalizedString ArchiveDialogRenameFileCaption => LocalizedString.FromId("Archive.Dialog.Rename.File.Caption");
@@ -200,9 +199,6 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString ImageStatusImportCancel => LocalizedString.FromId("Image.Status.Import.Cancel");
         public static LocalizedString ImageStatusImportSuccess => LocalizedString.FromId("Image.Status.Import.Success");
         public static LocalizedString ImageStatusImportFailure => LocalizedString.FromId("Image.Status.Import.Failure");
-
-        // Image Progress
-        public static LocalizedString ImageProgressDecode => LocalizedString.FromId("Image.Progress.Decode");
 
         // Indexed PictureBox
         public static LocalizedString ImagePictureBoxIndexSelectColorControl => LocalizedString.FromId("Image.PictureBox.Index.SelectColorControl");
@@ -312,6 +308,10 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogFontRemappingText => LocalizedString.FromId("Dialog.Font.Remapping.Text");
         public static LocalizedString DialogFontRemappingRemap => LocalizedString.FromId("Dialog.Font.Remapping.Remap");
 
+        // Batch Reuse Options Dialog
+        public static LocalizedString DialogBatchReuseOptionsCaption => LocalizedString.FromId("Dialog.Batch.ReuseOptions.Caption");
+        public static LocalizedString DialogBatchReuseOptionsText => LocalizedString.FromId("Dialog.Batch.ReuseOptions.Text");
+
         // Dialog Manager
         public static LocalizedString DialogManagerButtonOk => LocalizedString.FromId("Dialog.Manager.Button.Ok");
 
@@ -329,6 +329,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogToolsCiphersLogError(string filePath)
             => LocalizedString.FromId("Dialog.Tools.Ciphers.Log.Error", () => filePath);
         public static LocalizedString DialogToolsCiphersProgress => LocalizedString.FromId("Dialog.Tools.Ciphers.Progress");
+        public static LocalizedString DialogToolsCiphersProgressValue(double completion) => LocalizedString.FromId("Dialog.Tools.Ciphers.Progress.Value", () => completion);
         public static LocalizedString DialogToolsCiphersCancel => LocalizedString.FromId("Dialog.Tools.Ciphers.Cancel");
 
         // Compressions Dialog
@@ -344,6 +345,7 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogToolsCompressionsLogError(string filePath)
             => LocalizedString.FromId("Dialog.Tools.Compressions.Log.Error", () => filePath);
         public static LocalizedString DialogToolsCompressionsProgress => LocalizedString.FromId("Dialog.Tools.Compressions.Progress");
+        public static LocalizedString DialogToolsCompressionsProgressValue(double completion) => LocalizedString.FromId("Dialog.Tools.Compressions.Progress.Value", () => completion);
         public static LocalizedString DialogToolsCompressionsCancel => LocalizedString.FromId("Dialog.Tools.Compressions.Cancel");
 
         // Image Transcoder Dialog
@@ -389,10 +391,32 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogToolsTextSequenceSearcherInputFile => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Input.File");
         public static LocalizedString DialogToolsTextSequenceSearcherInputSubDirectories => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Input.SubDirectories");
         public static LocalizedString DialogToolsTextSequenceSearcherProgress => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Progress");
+        public static LocalizedString DialogToolsTextSequenceSearcherProgressValue(double completion)
+            => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Progress.Value", () => completion);
         public static LocalizedString DialogToolsTextSequenceSearcherCancel => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Cancel");
         public static LocalizedString DialogToolsTextSequenceSearcherPath => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Path");
         public static LocalizedString DialogToolsTextSequenceSearcherOffset => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Offset");
         public static LocalizedString DialogToolsTextSequenceSearcherSearchPlaceholder => LocalizedString.FromId("Dialog.Tools.TextSequenceSearcher.Search.Placeholder");
+
+        // Batch Dialog
+        public static LocalizedString DialogToolsBatchCaption => LocalizedString.FromId("Dialog.Tools.Batch.Caption");
+        public static LocalizedString DialogToolsBatchExport => LocalizedString.FromId("Dialog.Tools.Batch.Export");
+        public static LocalizedString DialogToolsBatchImport => LocalizedString.FromId("Dialog.Tools.Batch.Import");
+        public static LocalizedString DialogToolsBatchSelectPlugin => LocalizedString.FromId("Dialog.Tools.Batch.SelectPlugin");
+        public static LocalizedString DialogToolsBatchExecute => LocalizedString.FromId("Dialog.Tools.Batch.Execute");
+        public static LocalizedString DialogToolsBatchInputFolder => LocalizedString.FromId("Dialog.Tools.Batch.Input.Folder");
+        public static LocalizedString DialogToolsBatchInputSubDirectories => LocalizedString.FromId("Dialog.Tools.Batch.Input.SubDirectories");
+        public static LocalizedString DialogToolsBatchLogProcess(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Batch.Log.Process", () => filePath);
+        public static LocalizedString DialogToolsBatchLogError(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Batch.Log.Error", () => filePath);
+        public static LocalizedString DialogToolsBatchProgress => LocalizedString.FromId("Dialog.Tools.Batch.Progress");
+        public static LocalizedString DialogToolsBatchProgressValue(double completion) => LocalizedString.FromId("Dialog.Tools.Batch.Progress.Value", () => completion);
+        public static LocalizedString DialogToolsBatchCancel => LocalizedString.FromId("Dialog.Tools.Batch.Cancel");
+        public static LocalizedString DialogToolsBatchText => LocalizedString.FromId("Dialog.Tools.Batch.Text");
+        public static LocalizedString DialogToolsBatchTextKup => LocalizedString.FromId("Dialog.Tools.Batch.Text.Kup");
+        public static LocalizedString DialogToolsBatchTextPo => LocalizedString.FromId("Dialog.Tools.Batch.Text.Po");
+        public static LocalizedString DialogToolsBatchTextSelectPlugin => LocalizedString.FromId("Dialog.Tools.Batch.Text.SelectPlugin");
 
         // Installed Plugins Dialog
         public static LocalizedString DialogPluginsInstalledCaption => LocalizedString.FromId("Dialog.Plugins.Installed.Caption");
@@ -446,9 +470,26 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogPluginsManualSelectionId => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Id");
 
         public static LocalizedString DialogPluginsManualSelectionContinue => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Continue");
-        public static LocalizedString DialogPluginsManualSelectionViewRaw => LocalizedString.FromId("Dialog.Plugins.ManualSelection.ViewRaw");
         public static LocalizedString DialogPluginsManualSelectionCancel => LocalizedString.FromId("Dialog.Plugins.ManualSelection.Cancel");
         public static LocalizedString DialogPluginsManualSelectionShowAll => LocalizedString.FromId("Dialog.Plugins.ManualSelection.ShowAll");
+
+        // Plugin Selection Dialog
+        public static LocalizedString DialogPluginsSelectionCaption => LocalizedString.FromId("Dialog.Plugins.Selection.Caption");
+        public static LocalizedString DialogPluginsSelectionId => LocalizedString.FromId("Dialog.Plugins.Selection.Id");
+        public static LocalizedString DialogPluginsSelectionName => LocalizedString.FromId("Dialog.Plugins.Selection.Name");
+        public static LocalizedString DialogPluginsSelectionPublisher => LocalizedString.FromId("Dialog.Plugins.Selection.Publisher");
+        public static LocalizedString DialogPluginsSelectionDeveloper => LocalizedString.FromId("Dialog.Plugins.Selection.Developer");
+        public static LocalizedString DialogPluginsSelectionAuthors => LocalizedString.FromId("Dialog.Plugins.Selection.Authors");
+        public static LocalizedString DialogPluginsSelectionPlatforms => LocalizedString.FromId("Dialog.Plugins.Selection.Platforms");
+        public static LocalizedString DialogPluginsSelectionType(PluginType type) => type switch
+        {
+            PluginType.Archive => LocalizedString.FromId("Dialog.Plugins.Selection.Type.Archive"),
+            PluginType.Image => LocalizedString.FromId("Dialog.Plugins.Selection.Type.Image"),
+            PluginType.Font => LocalizedString.FromId("Dialog.Plugins.Selection.Type.Font"),
+            PluginType.Text => LocalizedString.FromId("Dialog.Plugins.Selection.Type.Text"),
+            _ => string.Empty
+        };
+        public static LocalizedString DialogPluginsSelectionTypeGame => LocalizedString.FromId("Dialog.Plugins.Selection.Type.Game");
 
         // Font Generation Dialog
         public static LocalizedString DialogFontGenerateCaption => LocalizedString.FromId("Dialog.Font.Generate.Caption");

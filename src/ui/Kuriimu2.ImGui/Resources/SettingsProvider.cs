@@ -51,26 +51,26 @@ namespace Kuriimu2.ImGui.Resources
                 File.WriteAllText(settingsPath, settingsJson);
         }
 
-        private Dictionary<string, string> CreateOrReadValues()
+        private static Dictionary<string, string> CreateOrReadValues()
         {
             string settingsPath = GetSettingsPath();
             if (!File.Exists(settingsPath))
-                return new Dictionary<string, string>();
+                return [];
 
             string settingsJson = File.ReadAllText(settingsPath);
             Dictionary<string, string>? jsonData = JsonSerializer.Deserialize(settingsJson, DictionaryJsonContext.Default.DictionaryStringString);
             if (jsonData == null)
-                return new Dictionary<string, string>();
+                return [];
 
             return jsonData;
         }
 
-        private string GetSettingsPath()
+        private static string GetSettingsPath()
         {
             return Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "settings.json");
         }
     }
 
     [JsonSerializable(typeof(Dictionary<string, string>))]
-    partial class DictionaryJsonContext : JsonSerializerContext;
+    internal partial class DictionaryJsonContext : JsonSerializerContext;
 }

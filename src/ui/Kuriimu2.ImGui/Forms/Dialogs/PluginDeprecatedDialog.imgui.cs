@@ -10,7 +10,7 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class PluginDeprecatedDialog : Modal
+    internal partial class PluginDeprecatedDialog : Modal
     {
         private void InitializeComponent(IDeprecatedFilePlugin deprecatedPlugin)
         {

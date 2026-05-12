@@ -4,21 +4,21 @@ using System.Threading.Tasks;
 
 namespace Kuriimu2.ImGui.Models
 {
-    class AsyncOperation
+    internal class AsyncOperation
     {
         private readonly object _runningLock = new();
 
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource? _cts;
 
-        public event EventHandler Started;
-        public event EventHandler Finished;
+        public event EventHandler? Started;
+        public event EventHandler? Finished;
 
         public bool IsRunning { get; private set; }
 
         public bool WasCancelled { get; private set; }
         public bool WasSuccessful { get; private set; }
 
-        public Exception Exception { get; private set; }
+        public Exception? Exception { get; private set; }
 
         public async Task StartAsync(Func<CancellationTokenSource, Task> action)
         {
@@ -114,7 +114,7 @@ namespace Kuriimu2.ImGui.Models
             lock (_runningLock)
             {
                 IsRunning = false;
-                WasCancelled = _cts.IsCancellationRequested;
+                WasCancelled = _cts?.IsCancellationRequested ?? false;
 
                 // Invoke StateChanged event
                 OnFinished();

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Localization;
@@ -15,6 +16,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private Label _versionLabel;
         private Label _descriptionLabel;
 
+        [MemberNotNull(nameof(_titleLabel), nameof(_versionLabel), nameof(_descriptionLabel))]
         private void InitializeComponent()
         {
             Size = new Size(SizeValue.Relative(.3f), SizeValue.Relative(.3f));
@@ -22,6 +24,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _titleLabel = new Label { Text = LocalizationResources.ApplicationName };
             _versionLabel = new Label { Text = GetVersionText() };
             _descriptionLabel = new Label { Text = LocalizationResources.DialogAboutDescription };
+
             var mainLayout = new StackLayout
             {
                 Size = Size,
@@ -40,12 +43,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Content = mainLayout;
         }
 
-        private LocalizedString GetVersionText()
+        private static LocalizedString GetVersionText()
         {
             string manifest = BinaryResources.VersionManifest;
-            var manifestObject = JsonSerializer.Deserialize<Manifest>(manifest);
+            var manifestObject = JsonSerializer.Deserialize(manifest, ManifestJsonSerializerContext.Default.Manifest);
 
-            return LocalizationResources.DialogAboutVersion(manifestObject?.Version);
+            return LocalizationResources.DialogAboutVersion(manifestObject?.Version ?? string.Empty);
         }
     }
 }

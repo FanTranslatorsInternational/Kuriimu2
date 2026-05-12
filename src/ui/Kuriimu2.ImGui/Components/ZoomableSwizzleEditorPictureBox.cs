@@ -15,9 +15,9 @@ using Rectangle = ImGui.Forms.Support.Rectangle;
 
 namespace Kuriimu2.ImGui.Components
 {
-    class ZoomableSwizzleEditorPictureBox : ZoomablePictureBox
+    internal class ZoomableSwizzleEditorPictureBox : ZoomablePictureBox
     {
-        private readonly List<Vector2> _coordinates = new();
+        private readonly List<Vector2> _coordinates = [];
         private MasterSwizzle? _swizzle;
 
         private bool _isMouseDown;
@@ -29,7 +29,7 @@ namespace Kuriimu2.ImGui.Components
 
         public IReadOnlyList<Vector2> Coordinates => _coordinates;
 
-        public event EventHandler CoordinatesChanged;
+        public event EventHandler? CoordinatesChanged;
 
         protected override void DrawInternal(Rectangle contentRect)
         {
@@ -143,7 +143,7 @@ namespace Kuriimu2.ImGui.Components
             DrawControlLegend(contentRect);
         }
 
-        private void DrawControlLegend(Rectangle contentRect)
+        private static void DrawControlLegend(Rectangle contentRect)
         {
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position, Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorAddControl);
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddText(contentRect.Position + new Vector2(0, TextMeasurer.GetCurrentLineHeight()), Hexa.NET.ImGui.ImGui.GetColorU32(ImGuiCol.Text), LocalizationResources.DialogToolsRawImageViewerSwizzleEditorRemoveControl);
@@ -168,7 +168,7 @@ namespace Kuriimu2.ImGui.Components
 
             for (var i = 1; i < Image!.Width * Image!.Height; i++)
             {
-                Vector2 swizzledCoordinate = _swizzle.Get(i);
+                Vector2 swizzledCoordinate = _swizzle!.Get(i);
                 Vector2 centeredSwizzledCoordinate = swizzledCoordinate + new Vector2(.5f, .5f);
 
                 points.Add(Transform(contentRect, centeredSwizzledCoordinate) - macroBlockRect.Position + imageRect.Position);
@@ -177,7 +177,7 @@ namespace Kuriimu2.ImGui.Components
                     break;
             }
 
-            Vector2[] pointsArray = points.ToArray();
+            Vector2[] pointsArray = [.. points];
             Hexa.NET.ImGui.ImGui.GetWindowDrawList().AddPolyline(ref pointsArray[0], points.Count, Color.Red.ToUInt32(), ImDrawFlags.None, 1f);
         }
 
@@ -202,7 +202,7 @@ namespace Kuriimu2.ImGui.Components
 
         private void CreateSwizzle()
         {
-            (int, int)[] coords = _coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
+            (int, int)[] coords = [.. _coordinates.Select(x => ((int)x.X, (int)x.Y))];
             _swizzle = new MasterSwizzle(Image!.Width, Point.Empty, coords);
         }
 

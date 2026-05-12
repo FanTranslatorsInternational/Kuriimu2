@@ -19,7 +19,6 @@ namespace Kuriimu2.ImGui.Components
         private readonly FontResource _mainFont = FontResources.GetFont(FontType.Application, 15);
         private readonly FontResource _codeFont = FontResources.GetFont(FontType.Hexadecimal, 11);
 
-        private readonly CharacterInfo _charInfo;
         private readonly ThemedImageResource? _glyph;
 
         public CharacterInfo CharacterInfo { get; }
@@ -28,13 +27,12 @@ namespace Kuriimu2.ImGui.Components
 
         public bool IsSelected { get; set; }
 
-        public event EventHandler SelectedChanged;
+        public event EventHandler? SelectedChanged;
 
         public GlyphElement(CharacterInfo charInfo)
         {
             CharacterInfo = charInfo;
 
-            _charInfo = charInfo;
             if (charInfo.Glyph != null)
                 _glyph = ImageResource.FromImage(charInfo.Glyph);
 
@@ -69,9 +67,9 @@ namespace Kuriimu2.ImGui.Components
             }
 
             // Draw character and code
-            var character = $"{_charInfo.CodePoint}";
-            var codeUpper = $"{(_charInfo.CodePoint >> 8) & 0xFF:X2}";
-            var codeLower = $"{_charInfo.CodePoint & 0xFF:X2}";
+            var character = $"{CharacterInfo.CodePoint}";
+            var codeUpper = $"{(CharacterInfo.CodePoint >> 8) & 0xFF:X2}";
+            var codeLower = $"{CharacterInfo.CodePoint & 0xFF:X2}";
 
             var characterSize = new Vector2(_mainFont.GetLineWidth(character), _mainFont.GetLineHeight());
             var codeUpperSize = new Vector2(_codeFont.GetLineWidth(codeUpper), _codeFont.GetLineHeight());

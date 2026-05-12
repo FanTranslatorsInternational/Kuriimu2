@@ -9,7 +9,7 @@ using Konnect.Contract.DataClasses.Plugin.File.Font;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class FontRemappingDialog
+    internal partial class FontRemappingDialog
     {
         private readonly IReadOnlyList<CharacterInfo> _remapCharacters;
 
@@ -21,12 +21,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _remapCharacters = remapCharacters;
 
-            _remapButton!.Clicked += _remapButton_Clicked;
+            _remapButton.Clicked += RemapButton_Clicked;
 
             SetGlyphs(fontState.Characters);
         }
 
-        private void _remapButton_Clicked(object? sender, EventArgs e)
+        private void RemapButton_Clicked(object? sender, EventArgs e)
         {
             if (_selectedGlyphs.Count <= 0)
                 return;

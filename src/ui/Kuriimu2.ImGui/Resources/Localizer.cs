@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Kuriimu2.ImGui.Resources
 {
@@ -22,7 +23,7 @@ namespace Kuriimu2.ImGui.Resources
         {
             var result = new List<LanguageInfo>();
 
-            string applicationDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            string applicationDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) ?? string.Empty;
             string localeDirectory = Path.Combine(applicationDirectory, LocalizationFolder_);
 
             if (!Directory.Exists(localeDirectory))
@@ -30,14 +31,13 @@ namespace Kuriimu2.ImGui.Resources
 
             string[] localeFiles = Directory.GetFiles(localeDirectory);
 
-            var jsonOptions = new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip };
             foreach (string localeFile in localeFiles)
             {
                 // Read text from stream
                 string json = File.ReadAllText(localeFile);
 
                 // Deserialize JSON
-                var translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json, jsonOptions);
+                var translations = JsonSerializer.Deserialize(json, DictionaryJsonSerializerContext.Default.DictionaryStringString);
                 if (translations is null || !translations.TryGetValue("Name", out string? localeName))
                     continue;
 
@@ -47,7 +47,7 @@ namespace Kuriimu2.ImGui.Resources
             return result;
         }
 
-        private string GetLocale(string localeFile)
+        private static string GetLocale(string localeFile)
         {
             return Path.GetFileNameWithoutExtension(localeFile);
         }
@@ -57,4 +57,8 @@ namespace Kuriimu2.ImGui.Resources
             return SettingsResources.Locale;
         }
     }
+
+    [JsonSourceGenerationOptions(ReadCommentHandling = JsonCommentHandling.Skip)]
+    [JsonSerializable(typeof(Dictionary<string, string>))]
+    public partial class DictionaryJsonSerializerContext : JsonSerializerContext;
 }

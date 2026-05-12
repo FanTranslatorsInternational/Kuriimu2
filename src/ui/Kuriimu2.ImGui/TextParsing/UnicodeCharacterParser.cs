@@ -5,7 +5,7 @@ using Kaligraphy.Parsing;
 
 namespace Kuriimu2.ImGui.TextParsing
 {
-    class UnicodeCharacterParser : CharacterParser
+    internal class UnicodeCharacterParser : CharacterParser
     {
         protected override bool TryParseCharacter(CharacterParserContext context, int position, out int length, out TextCharacterData? textCharacter)
         {

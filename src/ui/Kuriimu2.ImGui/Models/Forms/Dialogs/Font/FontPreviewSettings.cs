@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.ImGui.Models.Forms.Dialogs.Font
 {
-    class FontPreviewSettings
+    internal class FontPreviewSettings
     {
         public bool ShowDebugBoxes { get; set; }
         public int Spacing { get; set; } = 1;

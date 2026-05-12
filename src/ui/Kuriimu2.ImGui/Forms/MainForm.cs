@@ -27,7 +27,6 @@ using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
 using Konnect.Contract.Plugin.File.Font;
-using Konnect.Contract.Plugin.File.Hex;
 using Konnect.Contract.Plugin.File.Image;
 using Konnect.Contract.Plugin.File.Text;
 using Konnect.Contract.Plugin.Game;
@@ -45,20 +44,24 @@ using Kuriimu2.ImGui.Progress;
 using Kuriimu2.ImGui.Resources;
 using Kuriimu2.ImGui.Update;
 using Serilog;
+using Serilog.Core;
 using Color = System.Drawing.Color;
+#pragma warning disable IL3000
 
 namespace Kuriimu2.ImGui.Forms
 {
-    partial class MainForm : Form, IMainForm
+    internal partial class MainForm : Form, IMainForm
     {
         private readonly Random _rand = new();
 
         private readonly Manifest? _localManifest;
 
-        private readonly ILogger _logger;
+        private readonly Logger _logger;
+        private readonly ProgressBarOutput _progressOutput;
         private readonly IProgressContext _progress;
-        private readonly IFileManager _fileManager;
-        private readonly IPluginManager _pluginManager;
+        private readonly FilePreferences _preferences;
+        private readonly FileManager _fileManager;
+        private readonly PluginManager _pluginManager;
 
         private readonly IDictionary<IFileState, OpenedFile> _stateDictionary = new Dictionary<IFileState, OpenedFile>();
         private readonly IDictionary<TabPage, OpenedFile> _tabDictionary = new Dictionary<TabPage, OpenedFile>();
@@ -82,9 +85,11 @@ namespace Kuriimu2.ImGui.Forms
             _localManifest = LoadLocalManifest();
 
             _logger = LoadLogger();
-            _progress = LoadProgressContext(_progressBar);
+            _progressOutput = LoadProgressOutput(_progressBar);
+            _progress = new ProgressContext(_progressOutput);
             _pluginManager = LoadPluginManager();
-            _fileManager = LoadFileManager(_logger, _pluginManager, _progress);
+            _preferences = LoadPreferences();
+            _fileManager = LoadFileManager(_logger, _preferences, _pluginManager, _progress);
 
             #endregion
 
@@ -96,27 +101,28 @@ namespace Kuriimu2.ImGui.Forms
 
             _fileManager.OnManualSelection += FileManagerOnManualSelection;
 
-            _includeDevBuildsButton.CheckChanged += _includeDevBuildsButton_CheckChanged;
-            _changeLanguageMenu.SelectedItemChanged += _changeLanguageMenu_SelectedItemChanged;
-            _changeThemeMenu.SelectedItemChanged += _changeThemeMenu_SelectedItemChanged;
+            _includeDevBuildsButton.CheckChanged += IncludeDevBuildsButton_CheckChanged;
+            _changeLanguageMenu.SelectedItemChanged += ChangeLanguageMenu_SelectedItemChanged;
+            _changeThemeMenu.SelectedItemChanged += ChangeThemeMenu_SelectedItemChanged;
 
-            _openButton.Clicked += _openButton_Clicked;
-            _openWithButton.Clicked += _openWithButton_Clicked;
-            _saveAllButton.Clicked += _saveAllButton_Clicked;
+            _openButton.Clicked += OpenButton_Clicked;
+            _openWithButton.Clicked += OpenWithButton_Clicked;
+            _saveAllButton.Clicked += SaveAllButton_Clicked;
 
-            _ciphersButton.Clicked += _ciphersButton_Clicked;
-            _compressionsButton.Clicked += _compressionsButton_Clicked;
-            _imageTranscoderButton.Clicked += _imageTranscoderButton_Clicked;
-            _rawImageViewerButton.Clicked += _rawImageViewerButton_Clicked;
-            _textSequencerButton.Clicked += _textSequencerButton_Clicked;
+            _ciphersButton.Clicked += CiphersButton_Clicked;
+            _compressionsButton.Clicked += CompressionsButton_Clicked;
+            _imageTranscoderButton.Clicked += ImageTranscoderButton_Clicked;
+            _rawImageViewerButton.Clicked += RawImageViewerButton_Clicked;
+            _textSequencerButton.Clicked += TextSequencerButton_Clicked;
+            _batchButton.Clicked += BatchButton_Clicked;
 
-            _tabControl.PageRemoving += _tabControl_PageRemoving;
-            _tabControl.PageRemoved += _tabControl_PageRemoved;
-            _tabControl.SelectedPageChanged += _tabControl_SelectedPageChanged;
+            _tabControl.PageRemoving += TabControl_PageRemoving;
+            _tabControl.PageRemoved += TabControl_PageRemoved;
+            _tabControl.SelectedPageChanged += TabControl_SelectedPageChanged;
 
-            _pluginsButton.Clicked += _pluginsButton_Clicked;
-            _preferencesButton.Clicked += _preferencesButton_Clicked;
-            _aboutButton.Clicked += _aboutButton_Clicked;
+            _pluginsButton.Clicked += PluginsButton_Clicked;
+            _preferencesButton.Clicked += PreferencesButton_Clicked;
+            _aboutButton.Clicked += AboutButton_Clicked;
 
             #endregion
 
@@ -127,12 +133,10 @@ namespace Kuriimu2.ImGui.Forms
 
         #region Form
 
-        private async void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object? sender, EventArgs e)
         {
-#if !DEBUG
             // Check if updates are available
             await CheckForUpdate();
-#endif
 
             // Set stored theme
             Style.ChangeTheme(SettingsResources.Theme);
@@ -184,27 +188,26 @@ namespace Kuriimu2.ImGui.Forms
             }
         }
 
-        private async void MainForm_DragDrop(object sender, string[] e)
+        private async void MainForm_DragDrop(object? sender, string[] e)
         {
-            foreach (string file in e)
-                await OpenPhysicalFiles([file], false);
+            await OpenPhysicalFiles(e, false);
         }
 
         #endregion
 
         #region File Management
 
-        private async void _openButton_Clicked(object sender, EventArgs e)
+        private async void OpenButton_Clicked(object? sender, EventArgs e)
         {
             await OpenPhysicalFile(false);
         }
 
-        private async void _openWithButton_Clicked(object sender, EventArgs e)
+        private async void OpenWithButton_Clicked(object? sender, EventArgs e)
         {
             await OpenPhysicalFile(true);
         }
 
-        private async void _saveAllButton_Clicked(object sender, EventArgs e)
+        private async void SaveAllButton_Clicked(object? sender, EventArgs e)
         {
             await SaveAll(true);
         }
@@ -213,14 +216,17 @@ namespace Kuriimu2.ImGui.Forms
 
         #region Change application settings
 
-        private void _includeDevBuildsButton_CheckChanged(object sender, EventArgs e)
+        private void IncludeDevBuildsButton_CheckChanged(object? sender, EventArgs e)
         {
             SettingsResources.IncludeDevBuilds = _includeDevBuildsButton.Checked;
         }
 
-        private void _changeLanguageMenu_SelectedItemChanged(object sender, EventArgs e)
+        private void ChangeLanguageMenu_SelectedItemChanged(object? sender, EventArgs e)
         {
-            if (!_localeItems.TryGetValue(_changeLanguageMenu.SelectedItem, out string locale))
+            if (_changeLanguageMenu.SelectedItem is null)
+                return;
+
+            if (!_localeItems.TryGetValue(_changeLanguageMenu.SelectedItem, out string? locale))
                 return;
 
             SettingsResources.Locale = locale;
@@ -228,16 +234,17 @@ namespace Kuriimu2.ImGui.Forms
             LocalizationResources.Instance.ChangeLocale(locale);
         }
 
-        private void _changeThemeMenu_SelectedItemChanged(object sender, EventArgs e)
+        private void ChangeThemeMenu_SelectedItemChanged(object? sender, EventArgs e)
         {
-            var theme = _themes[((MenuBarRadio)sender).SelectedItem];
+            var themeItem = ((MenuBarRadio?)sender)?.SelectedItem;
+            if (themeItem is null)
+                return;
+
+            var theme = _themes[themeItem];
 
             SettingsResources.Theme = theme;
 
             Style.ChangeTheme(theme);
-
-            // Update colors manually
-            _progressBar.ProgressColor = ColorResources.Progress;
         }
 
         #endregion
@@ -259,20 +266,20 @@ namespace Kuriimu2.ImGui.Forms
 
         #region TabControl
 
-        private void _tabControl_PageRemoved(object sender, RemoveEventArgs e)
+        private void TabControl_PageRemoved(object? sender, RemoveEventArgs e)
         {
             UpdateFormTitle();
         }
 
-        private async Task _tabControl_PageRemoving(object sender, RemovingEventArgs e)
+        private async Task TabControl_PageRemoving(object? sender, RemovingEventArgs e)
         {
             var tabEntry = _tabDictionary[e.Page];
             var parentStateInfo = tabEntry.FileState.ParentFileState;
 
             // Select parent tab
-            TabPage parentTab = null;
-            if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
-                parentTab = _stateDictionary[parentStateInfo].TabPage;
+            TabPage? parentTab = null;
+            if (parentStateInfo != null && _stateDictionary.TryGetValue(parentStateInfo, out OpenedFile? openedFile))
+                parentTab = openedFile.TabPage;
 
             // Close file
             if (!await CloseFile(tabEntry.FileState))
@@ -286,49 +293,54 @@ namespace Kuriimu2.ImGui.Forms
                 _tabControl.SelectedPage = parentTab;
         }
 
-        private void _tabControl_SelectedPageChanged(object? sender, EventArgs e)
+        private void TabControl_SelectedPageChanged(object? sender, EventArgs e)
         {
             UpdateFormTitle();
         }
 
         #endregion
 
-        private async void _ciphersButton_Clicked(object? sender, EventArgs e)
+        private async void CiphersButton_Clicked(object? sender, EventArgs e)
         {
             await ShowCiphersDialog();
         }
 
-        private async void _compressionsButton_Clicked(object? sender, EventArgs e)
+        private async void CompressionsButton_Clicked(object? sender, EventArgs e)
         {
             await ShowCompressionsDialog();
         }
 
-        private async void _imageTranscoderButton_Clicked(object? sender, EventArgs e)
+        private async void ImageTranscoderButton_Clicked(object? sender, EventArgs e)
         {
             await ShowImageTranscoderDialog();
         }
 
-        private async void _rawImageViewerButton_Clicked(object? sender, EventArgs e)
+        private async void RawImageViewerButton_Clicked(object? sender, EventArgs e)
         {
             await ShowRawImageViewerDialog();
         }
 
-        private async void _textSequencerButton_Clicked(object? sender, EventArgs e)
+        private async void TextSequencerButton_Clicked(object? sender, EventArgs e)
         {
             await ShowTextSequenceSearcherDialog();
         }
 
-        private async void _pluginsButton_Clicked(object? sender, EventArgs e)
+        private async void BatchButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowBatchDialog();
+        }
+
+        private async void PluginsButton_Clicked(object? sender, EventArgs e)
         {
             await ShowPluginsDialog();
         }
 
-        private async void _preferencesButton_Clicked(object? sender, EventArgs e)
+        private async void PreferencesButton_Clicked(object? sender, EventArgs e)
         {
             await ShowPreferencesDialog();
         }
 
-        private async void _aboutButton_Clicked(object sender, EventArgs e)
+        private async void AboutButton_Clicked(object? sender, EventArgs e)
         {
             await ShowAboutDialog();
         }
@@ -337,37 +349,42 @@ namespace Kuriimu2.ImGui.Forms
 
         #region Load methods
 
-        private Manifest LoadLocalManifest()
+        private static Manifest? LoadLocalManifest()
         {
-            return JsonSerializer.Deserialize<Manifest>(BinaryResources.VersionManifest);
+            return JsonSerializer.Deserialize(BinaryResources.VersionManifest, ManifestJsonSerializerContext.Default.Manifest);
         }
 
-        private ILogger LoadLogger()
+        private static Logger LoadLogger()
         {
             var logPath = Path.Combine(GetBaseDirectory(), "Kuriimu2.log");
             return new LoggerConfiguration().WriteTo.File(logPath).CreateLogger();
         }
 
-        private ProgressContext LoadProgressContext(ProgressBar progressBar)
+        private static ProgressBarOutput LoadProgressOutput(ProgressBar progressBar)
         {
-            return new ProgressContext(new ProgressBarOutput(progressBar, 20));
+            return new ProgressBarOutput(progressBar, 20, _ => string.Empty);
         }
 
-        private IPluginManager LoadPluginManager()
+        private static PluginManager LoadPluginManager()
         {
             string pluginPath = Path.Combine(GetBaseDirectory(), "plugins");
 
             return new PluginManager(new PluginLoader<IFilePlugin>(pluginPath), new PluginLoader<IGamePlugin>(pluginPath), new PluginLoader<IFilePlugin>(Assembly.GetExecutingAssembly()));
         }
 
-        private IFileManager LoadFileManager(ILogger logger, IPluginManager pluginManager, IProgressContext progress)
+        private static FilePreferences LoadPreferences()
+        {
+            return new FilePreferences("preferences.json");
+        }
+
+        private static FileManager LoadFileManager(ILogger logger, IFilePreferences preferences, IPluginManager pluginManager, IProgressContext progress)
         {
             return new FileManager(pluginManager)
             {
                 AllowManualSelection = true,
-                UseSelectionCache = true,
 
                 Progress = progress,
+                Preferences = preferences,
                 DialogManager = new ImGuiDialogManager(),
                 Logger = logger
             };
@@ -396,6 +413,9 @@ namespace Kuriimu2.ImGui.Forms
         {
             foreach (string fileToOpen in filesToOpen)
             {
+                if (!File.Exists(fileToOpen))
+                    continue;
+
                 // If currently visible form is an ImageForm, try importing file to ImageForm
                 if (_tabControl.SelectedPage is not null && _tabDictionary[_tabControl.SelectedPage].Form is ImageForm imageForm)
                 {
@@ -404,7 +424,7 @@ namespace Kuriimu2.ImGui.Forms
                         continue;
                 }
 
-                var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
+                var loadAction = new Func<IFilePlugin?, Task<LoadResult>>(plugin =>
                     _fileManager.LoadFile(fileToOpen, plugin?.PluginId ?? Guid.Empty));
                 Color tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
@@ -412,7 +432,7 @@ namespace Kuriimu2.ImGui.Forms
             }
         }
 
-        private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)
+        private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin?, Task<LoadResult>> loadFileFunc, Color tabColor)
         {
             ReportStatus(StatusKind.Info, LocalizationResources.StatusFileLoadStart(filePath));
 
@@ -433,7 +453,7 @@ namespace Kuriimu2.ImGui.Forms
             // Check if file is already opened
             if (_fileManager.IsLoaded(filePath))
             {
-                var selectedTabPage = _stateDictionary[_fileManager.GetLoadedFile(filePath)].TabPage;
+                var selectedTabPage = _stateDictionary[_fileManager.GetLoadedFile(filePath)!].TabPage;
                 _tabControl.SelectedPage = selectedTabPage;
 
                 ClearStatus();
@@ -441,7 +461,7 @@ namespace Kuriimu2.ImGui.Forms
             }
 
             // Choose plugin
-            IFilePlugin chosenPlugin = null;
+            IFilePlugin? chosenPlugin = null;
             if (manualIdentification)
             {
                 var allPlugins = _pluginManager.GetPlugins<IFilePlugin>().ToArray();
@@ -469,7 +489,7 @@ namespace Kuriimu2.ImGui.Forms
                 {
                     var deprecatedException = loadResult.Exception as FilePluginDeprecatedException;
 
-                    var dialog = new PluginDeprecatedDialog(deprecatedException?.Plugin);
+                    var dialog = new PluginDeprecatedDialog(deprecatedException!.Plugin);
                     await dialog.ShowAsync();
                 }
 
@@ -478,10 +498,10 @@ namespace Kuriimu2.ImGui.Forms
             }
 
             // Open tab page
-            var wasAdded = await AddTabPage(loadResult.LoadedFileState, tabColor);
+            var wasAdded = await AddTabPage(loadResult.LoadedFileState!, tabColor);
             if (!wasAdded)
             {
-                _fileManager.Close(loadResult.LoadedFileState);
+                _fileManager.Close(loadResult.LoadedFileState!);
 
                 ClearStatus();
                 return false;
@@ -494,37 +514,20 @@ namespace Kuriimu2.ImGui.Forms
             return true;
         }
 
-        private LocalizedString GetReasonString(UPath path, LoadErrorReason reason)
+        private static LocalizedString GetReasonString(UPath path, LoadErrorReason reason)
         {
-            switch (reason)
+            return reason switch
             {
-                case LoadErrorReason.Loading:
-                    return LocalizationResources.StatusFileLoadOpening(path);
-
-                case LoadErrorReason.Deprecated:
-                    return LocalizationResources.StatusPluginDeprecated;
-
-                case LoadErrorReason.NoPlugin:
-                    return LocalizationResources.StatusPluginLoadNone;
-
-                case LoadErrorReason.NoArchive:
-                    return LocalizationResources.StatusPluginLoadNoArchive;
-
-                case LoadErrorReason.StateCreateError:
-                    return LocalizationResources.StatusPluginStateInitError;
-
-                case LoadErrorReason.StateNoLoad:
-                    return LocalizationResources.StatusPluginStateLoadNone;
-
-                case LoadErrorReason.StateLoadError:
-                    return LocalizationResources.StatusPluginStateLoadError;
-
-                case LoadErrorReason.None:
-                    return string.Empty;
-
-                default:
-                    throw new InvalidOperationException();
-            }
+                LoadErrorReason.Loading => LocalizationResources.StatusFileLoadOpening(path),
+                LoadErrorReason.Deprecated => LocalizationResources.StatusPluginDeprecated,
+                LoadErrorReason.NoPlugin => LocalizationResources.StatusPluginLoadNone,
+                LoadErrorReason.NoArchive => LocalizationResources.StatusPluginLoadNoArchive,
+                LoadErrorReason.StateCreateError => LocalizationResources.StatusPluginStateInitError,
+                LoadErrorReason.StateNoLoad => LocalizationResources.StatusPluginStateLoadNone,
+                LoadErrorReason.StateLoadError => LocalizationResources.StatusPluginStateLoadError,
+                LoadErrorReason.None => string.Empty,
+                _ => throw new InvalidOperationException($"Unknown load error {reason}.")
+            };
         }
 
         #endregion
@@ -562,7 +565,7 @@ namespace Kuriimu2.ImGui.Forms
 
             var saveResult = savePath.IsEmpty ?
                 await _fileManager.SaveFile(fileState) :
-                await _fileManager.SaveFile(fileState, savePath.FullName);
+                await _fileManager.SaveFile(fileState, savePath.FullName!);
 
             if (!saveResult.IsSuccessful)
             {
@@ -590,49 +593,24 @@ namespace Kuriimu2.ImGui.Forms
             return true;
         }
 
-        private LocalizedString GetReasonString(UPath path, SaveErrorReason reason)
+        private static LocalizedString GetReasonString(UPath path, SaveErrorReason reason)
         {
-            switch (reason)
+            return reason switch
             {
-                case SaveErrorReason.Closed:
-                    return LocalizationResources.StatusFileSaveClosed;
-
-                case SaveErrorReason.Saving:
-                    return LocalizationResources.StatusFileSaveSaving(path);
-
-                case SaveErrorReason.Closing:
-                    return LocalizationResources.StatusFileSaveClosing(path);
-
-                case SaveErrorReason.NotLoaded:
-                    return LocalizationResources.StatusFileSaveNotLoaded;
-
-                case SaveErrorReason.NoChanges:
-                    return LocalizationResources.StatusFileSaveNoChanges;
-
-                case SaveErrorReason.SaveNotSupported:
-                    return LocalizationResources.StatusFileSaveNotSupported;
-
-                case SaveErrorReason.StateSaveError:
-                    return LocalizationResources.StatusFileSaveStateError;
-
-                case SaveErrorReason.DestinationNotExist:
-                    return LocalizationResources.StatusFileSaveDestinationNotExist;
-
-                case SaveErrorReason.FileReplaceError:
-                    return LocalizationResources.StatusFileSaveReplaceError;
-
-                case SaveErrorReason.FileCopyError:
-                    return LocalizationResources.StatusFileSaveCopyError;
-
-                case SaveErrorReason.StateReloadError:
-                    return LocalizationResources.StatusFileSaveStateReloadError;
-
-                case SaveErrorReason.None:
-                    return string.Empty;
-
-                default:
-                    throw new InvalidOperationException();
-            }
+                SaveErrorReason.Closed => LocalizationResources.StatusFileSaveClosed,
+                SaveErrorReason.Saving => LocalizationResources.StatusFileSaveSaving(path),
+                SaveErrorReason.Closing => LocalizationResources.StatusFileSaveClosing(path),
+                SaveErrorReason.NotLoaded => LocalizationResources.StatusFileSaveNotLoaded,
+                SaveErrorReason.NoChanges => LocalizationResources.StatusFileSaveNoChanges,
+                SaveErrorReason.SaveNotSupported => LocalizationResources.StatusFileSaveNotSupported,
+                SaveErrorReason.StateSaveError => LocalizationResources.StatusFileSaveStateError,
+                SaveErrorReason.DestinationNotExist => LocalizationResources.StatusFileSaveDestinationNotExist,
+                SaveErrorReason.FileReplaceError => LocalizationResources.StatusFileSaveReplaceError,
+                SaveErrorReason.FileCopyError => LocalizationResources.StatusFileSaveCopyError,
+                SaveErrorReason.StateReloadError => LocalizationResources.StatusFileSaveStateReloadError,
+                SaveErrorReason.None => string.Empty,
+                _ => throw new InvalidOperationException($"Unknown save error {reason}.")
+            };
         }
 
         #endregion
@@ -719,7 +697,7 @@ namespace Kuriimu2.ImGui.Forms
             return true;
         }
 
-        private Task<DialogResult> ConfirmSavingChanges(IFileState fileState = null)
+        private static Task<DialogResult> ConfirmSavingChanges(IFileState? fileState = null)
         {
             var text = fileState == null ? LocalizationResources.DialogUnsavedChangesTextGeneric : LocalizationResources.DialogUnsavedChangesTextSpecific(fileState.FilePath);
             return MessageBox.ShowYesNoCancelAsync(LocalizationResources.DialogUnsavedChangesCaption, text);
@@ -729,67 +707,62 @@ namespace Kuriimu2.ImGui.Forms
         {
             // We only close the tab related to the state itself, not its archive children
             // Closing archive children is done by CloseFile, to enable proper rollback if closing the state itself was unsuccessful
-            if (!_stateDictionary.ContainsKey(fileState))
+            if (!_stateDictionary.TryGetValue(fileState, out OpenedFile? openedFile))
                 return;
 
-            var stateEntry = _stateDictionary[fileState];
-
-            _tabControl.RemovePage(stateEntry.TabPage);
-            _tabDictionary.Remove(stateEntry.TabPage);
+            _tabControl.RemovePage(openedFile.TabPage);
+            _tabDictionary.Remove(openedFile.TabPage);
             _stateDictionary.Remove(fileState);
         }
 
-        private LocalizedString GetReasonString(UPath path, CloseErrorReason reason)
+        private static LocalizedString GetReasonString(UPath path, CloseErrorReason reason)
         {
-            switch (reason)
+            return reason switch
             {
-                case CloseErrorReason.Saving:
-                    return LocalizationResources.StatusFileCloseSaving(path);
-
-                case CloseErrorReason.Closing:
-                    return LocalizationResources.StatusFileCloseClosing(path);
-
-                case CloseErrorReason.NotLoaded:
-                    return LocalizationResources.StatusFileCloseNotLoaded;
-
-                case CloseErrorReason.None:
-                    return string.Empty;
-
-                default:
-                    throw new InvalidOperationException();
-            }
+                CloseErrorReason.Saving => LocalizationResources.StatusFileCloseSaving(path),
+                CloseErrorReason.Closing => LocalizationResources.StatusFileCloseClosing(path),
+                CloseErrorReason.NotLoaded => LocalizationResources.StatusFileCloseNotLoaded,
+                CloseErrorReason.None => string.Empty,
+                _ => throw new InvalidOperationException($"Unknown close error {reason}.")
+            };
         }
 
         #endregion
 
-        private async Task ShowCiphersDialog()
+        private static async Task ShowCiphersDialog()
         {
             var ciphersDialog = new CiphersDialog();
             await ciphersDialog.ShowAsync();
         }
 
-        private async Task ShowCompressionsDialog()
+        private static async Task ShowCompressionsDialog()
         {
             var compressionsDialog = new CompressionsDialog();
             await compressionsDialog.ShowAsync();
         }
 
-        private async Task ShowImageTranscoderDialog()
+        private static async Task ShowImageTranscoderDialog()
         {
             var imageTranscoderDialog = new ImageTranscoderDialog();
             await imageTranscoderDialog.ShowAsync();
         }
 
-        private async Task ShowRawImageViewerDialog()
+        private static async Task ShowRawImageViewerDialog()
         {
             var imageTranscoderDialog = new RawImageViewerDialog();
             await imageTranscoderDialog.ShowAsync();
         }
 
-        private async Task ShowTextSequenceSearcherDialog()
+        private static async Task ShowTextSequenceSearcherDialog()
         {
             var textSequenceSearcherDialog = new TextSequenceSearchDialog();
             await textSequenceSearcherDialog.ShowAsync();
+        }
+
+        private async Task ShowBatchDialog()
+        {
+            var batchDialog = new BatchDialog(_pluginManager);
+            await batchDialog.ShowAsync();
         }
 
         private async Task ShowPluginsDialog()
@@ -800,11 +773,11 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task ShowPreferencesDialog()
         {
-            var preferencesDialog = new FilePreferenceDialog(_pluginManager);
+            var preferencesDialog = new FilePreferenceDialog(_preferences, _pluginManager);
             await preferencesDialog.ShowAsync();
         }
 
-        private async Task ShowAboutDialog()
+        private static async Task ShowAboutDialog()
         {
             var aboutDialog = new AboutDialog();
             await aboutDialog.ShowAsync();
@@ -816,9 +789,12 @@ namespace Kuriimu2.ImGui.Forms
 
         private void UpdateFormTitle()
         {
+            var version = _localManifest?.Version ?? string.Empty;
+            var buildNumber = _localManifest?.BuildNumber ?? string.Empty;
+
             if (_tabControl.SelectedPage == null)
             {
-                Title = string.Format(FormTitle_, _localManifest.Version, _localManifest.BuildNumber);
+                Title = string.Format(FormTitle_, version, buildNumber);
                 return;
             }
 
@@ -828,23 +804,22 @@ namespace Kuriimu2.ImGui.Forms
             var pluginName = stateEntry.FileState.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.FileState.FilePlugin.PluginId;
 
-            Title = string.Format(FormTitlePlugin_, _localManifest.Version, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
+            Title = string.Format(FormTitlePlugin_, version, buildNumber, pluginAssemblyName, pluginName, pluginId);
         }
 
-        private void UpdateTab(IFileState fileState, bool invokeUpdateForm = false, bool iterateParents = true)
+        private void UpdateTab(IFileState? fileState, bool invokeUpdateForm = false, bool iterateParents = true)
         {
-            if (fileState == null || !_stateDictionary.ContainsKey(fileState))
+            if (fileState == null || !_stateDictionary.TryGetValue(fileState, out OpenedFile? openedFile))
                 return;
 
             // Update this tab pages information
-            var stateEntry = _stateDictionary[fileState];
 
-            stateEntry.TabPage.HasChanges = fileState.StateChanged;
-            stateEntry.TabPage.Title = fileState.FilePath.GetName();
+            openedFile.TabPage.HasChanges = fileState.StateChanged;
+            openedFile.TabPage.Title = fileState.FilePath.GetName();
 
             // If the call was not made by the requesting state, propagate an update action to it
             if (invokeUpdateForm)
-                stateEntry.Form.UpdateForm();
+                openedFile.Form.UpdateForm();
 
             // Update the information of the states parents
             if (iterateParents)
@@ -865,7 +840,7 @@ namespace Kuriimu2.ImGui.Forms
 
         #region FormCommunicator methods
 
-        private IArchiveFormCommunicator CreateFormCommunicator(IFileState fileState)
+        private FormCommunicator CreateFormCommunicator(IFileState fileState)
         {
             var communicator = new FormCommunicator(fileState, this);
             return communicator;
@@ -875,7 +850,7 @@ namespace Kuriimu2.ImGui.Forms
 
         #region Support methods
 
-        private async Task DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
+        private static async Task DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
         {
             if (!errors.Any())
                 return;
@@ -892,6 +867,9 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task CheckForUpdate()
         {
+            if (Debugger.IsAttached)
+                return;
+
             if (_localManifest is null)
                 return;
 
@@ -907,16 +885,19 @@ namespace Kuriimu2.ImGui.Forms
                 return;
 
             var executablePath = await UpdateUtilities.DownloadUpdateExecutableAsync();
+            if (executablePath is null)
+                return;
+
             var process = new Process
             {
-                StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType_}{platform} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+                StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType_}{platform} {Path.GetFileName(Environment.ProcessPath)}")
             };
             process.Start();
 
             Close();
         }
 
-        private string GetCurrentPlatform()
+        private static string GetCurrentPlatform()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return "Mac";
@@ -930,7 +911,7 @@ namespace Kuriimu2.ImGui.Forms
             throw new InvalidOperationException(LocalizationResources.ErrorUnsupportedOperatingSystem(RuntimeInformation.OSDescription));
         }
 
-        private string GetBaseDirectory()
+        private static string GetBaseDirectory()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -938,17 +919,17 @@ namespace Kuriimu2.ImGui.Forms
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                var path = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
                 if (string.IsNullOrEmpty(path))
-                    path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+                    path = Path.GetDirectoryName(Environment.ProcessPath);
 
-                return path;
+                return path ?? string.Empty;
             }
 
             throw new InvalidOperationException(LocalizationResources.ErrorUnsupportedOperatingSystem(RuntimeInformation.OSDescription));
         }
 
-        private IEnumerable<IFileState> CollectChildrenStates(IFileState fileState)
+        private static IEnumerable<IFileState> CollectChildrenStates(IFileState fileState)
         {
             foreach (var child in fileState.ArchiveChildren)
             {
@@ -959,7 +940,7 @@ namespace Kuriimu2.ImGui.Forms
             }
         }
 
-        private async Task<string> SelectNewFile(string fileName)
+        private static async Task<string?> SelectNewFile(string? fileName)
         {
             var sfd = new WindowsSaveFileDialog
             {
@@ -968,7 +949,7 @@ namespace Kuriimu2.ImGui.Forms
             return await sfd.ShowAsync() == DialogResult.Ok ? sfd.Files[0] : null;
         }
 
-        private async Task<string> SelectFile()
+        private async Task<string?> SelectFile()
         {
             var ofd = new WindowsOpenFileDialog { InitialDirectory = SettingsResources.LastDirectory };
 
@@ -982,28 +963,28 @@ namespace Kuriimu2.ImGui.Forms
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
 
             return ofd.Files[0];
         }
 
-        private async Task<IFilePlugin> ChoosePlugin(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
+        private static async Task<IFilePlugin?> ChoosePlugin(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
             var pluginDialog = new ManualPluginSelectionDialog(allFilePlugins, filteredFilePlugins, status);
             return await pluginDialog.ShowAsync() == DialogResult.Ok ? pluginDialog.SelectedPlugin : null;
         }
 
-        private IList<FileFilter> GetFileFilters(IPluginManager pluginManager)
+        private static List<FileFilter> GetFileFilters(PluginManager pluginManager)
         {
             var filters = new List<FileFilter>
             {
-                new FileFilter(LocalizationResources.FilterAll, "*")
+                new(LocalizationResources.FilterAll, "*")
             };
 
-            foreach (var plugin in pluginManager.GetPlugins<IFilePlugin>().Where(x => x.FileExtensions?.Any() ?? false))
+            foreach (var plugin in pluginManager.GetPlugins<IFilePlugin>().Where(x => x.FileExtensions.Length > 0))
             {
-                var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
-                filters.Add(new FileFilter(pluginName, plugin.FileExtensions.Select(x => x.Replace("*.", "")).ToArray()));
+                var pluginName = plugin.Metadata.Name;
+                filters.Add(new FileFilter(pluginName, [.. plugin.FileExtensions.Select(x => x.Replace("*.", ""))]));
             }
 
             return filters;
@@ -1019,23 +1000,19 @@ namespace Kuriimu2.ImGui.Forms
                 switch (fileState.PluginState)
                 {
                     case ITextFilePluginState _:
-                        kuriimuForm = new TextForm(new FormInfo<ITextFilePluginState>(fileState, communicator, _progress, _logger), _pluginManager, _fileManager);
+                        kuriimuForm = new TextForm(new FormInfo<ITextFilePluginState>(fileState, communicator, _progress, _progressOutput, _logger), _pluginManager, _fileManager);
                         break;
 
                     case IImageFilePluginState _:
-                        kuriimuForm = new ImageForm(new FormInfo<IImageFilePluginState>(fileState, communicator, _progress, _logger));
+                        kuriimuForm = new ImageForm(new FormInfo<IImageFilePluginState>(fileState, communicator, _progress, _progressOutput, _logger));
                         break;
 
                     case IArchiveFilePluginState _:
-                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _pluginManager, _fileManager);
+                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _progressOutput, _logger), _pluginManager, _fileManager);
                         break;
 
                     case IFontFilePluginState _:
-                        kuriimuForm = new FontForm(new FormInfo<IFontFilePluginState>(fileState, communicator, _progress, _logger));
-                        break;
-
-                    case IHexFilePluginState _:
-                        kuriimuForm = new RawForm(new FormInfo<IHexFilePluginState>(fileState, communicator, _progress, _logger));
+                        kuriimuForm = new FontForm(new FormInfo<IFontFilePluginState>(fileState, communicator, _progress, _progressOutput, _logger));
                         break;
 
                     default:
@@ -1081,7 +1058,7 @@ namespace Kuriimu2.ImGui.Forms
         public async Task<bool> OpenFile(IFileState fileState, IArchiveFile file, Guid pluginId)
         {
             var absoluteFilePath = fileState.AbsoluteDirectory / fileState.FilePath.ToRelative() / file.FilePath.ToRelative();
-            var loadAction = new Func<IFilePlugin, Task<LoadResult>>(_ =>
+            var loadAction = new Func<IFilePlugin?, Task<LoadResult>>(_ =>
                 _fileManager.LoadFile(fileState, file, pluginId));
             var tabColor = _stateDictionary[fileState].TabColor;
 
@@ -1099,7 +1076,7 @@ namespace Kuriimu2.ImGui.Forms
             if (!_fileManager.IsLoaded(absolutePath))
                 return Task.FromResult(true);
 
-            var loadedFile = _fileManager.GetLoadedFile(absolutePath);
+            var loadedFile = _fileManager.GetLoadedFile(absolutePath)!;
             return CloseFile(loadedFile);
         }
 
@@ -1109,7 +1086,7 @@ namespace Kuriimu2.ImGui.Forms
             if (!_fileManager.IsLoaded(absolutePath))
                 return;
 
-            var loadedFile = _fileManager.GetLoadedFile(absolutePath);
+            var loadedFile = _fileManager.GetLoadedFile(absolutePath)!;
             loadedFile.RenameFilePath(newPath);
 
             UpdateTab(loadedFile, true, false);

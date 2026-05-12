@@ -1,4 +1,5 @@
-﻿using ImGui.Forms;
+﻿using System;
+using ImGui.Forms;
 using Kuriimu2.ImGui.Forms;
 using Kuriimu2.ImGui.Resources;
 

@@ -7,19 +7,17 @@ using ImGui.Forms.Models;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using ImGui.Forms.Models.IO;
 
 namespace Kuriimu2.ImGui.Forms
 {
-    partial class MainForm
+    internal partial class MainForm
     {
         private MenuBarButton _openButton;
         private MenuBarButton _openWithButton;
         private MenuBarButton _saveAllButton;
-
-        private MenuBarButton _batchExtractButton;
-        private MenuBarButton _batchInjectButton;
-        private MenuBarButton _hashesButton;
 
         private MenuBarButton _ciphersButton;
         private MenuBarButton _compressionsButton;
@@ -28,6 +26,8 @@ namespace Kuriimu2.ImGui.Forms
         private MenuBarButton _rawImageViewerButton;
 
         private MenuBarButton _textSequencerButton;
+
+        private MenuBarButton _batchButton;
 
         private MenuBarCheckBox _includeDevBuildsButton;
         private MenuBarRadio _changeLanguageMenu;
@@ -41,9 +41,16 @@ namespace Kuriimu2.ImGui.Forms
         private ProgressBar _progressBar;
         private StatusLabel _statusText;
 
-        private IDictionary<MenuBarCheckBox, string> _localeItems = new Dictionary<MenuBarCheckBox, string>();
-        private IDictionary<MenuBarCheckBox, Theme> _themes = new Dictionary<MenuBarCheckBox, Theme>();
+        private readonly Dictionary<MenuBarCheckBox, string> _localeItems = [];
+        private readonly Dictionary<MenuBarCheckBox, Theme> _themes = [];
 
+        [MemberNotNull(nameof(_openButton), nameof(_openWithButton), nameof(_saveAllButton))]
+        [MemberNotNull(nameof(_ciphersButton), nameof(_compressionsButton))]
+        [MemberNotNull(nameof(_imageTranscoderButton), nameof(_rawImageViewerButton))]
+        [MemberNotNull(nameof(_textSequencerButton), nameof(_batchButton))]
+        [MemberNotNull(nameof(_includeDevBuildsButton), nameof(_changeLanguageMenu), nameof(_changeThemeMenu))]
+        [MemberNotNull(nameof(_pluginsButton), nameof(_preferencesButton), nameof(_aboutButton))]
+        [MemberNotNull(nameof(_tabControl), nameof(_progressBar), nameof(_statusText))]
         private void InitializeComponent()
         {
             #region Controls
@@ -51,34 +58,25 @@ namespace Kuriimu2.ImGui.Forms
             _openButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpen,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.MenuFileOpenShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.O, LocalizationResources.MenuFileOpenShortcut)
             };
             _openWithButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileOpenWith,
-                KeyAction = new(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.O, LocalizationResources.MenuFileOpenWithShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.O, LocalizationResources.MenuFileOpenWithShortcut)
             };
             _saveAllButton = new MenuBarButton
             {
                 Text = LocalizationResources.MenuFileSaveAll,
                 Enabled = false,
-                KeyAction = new(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.S, LocalizationResources.MenuFileSaveAllShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl | ImGuiKey.ModShift, ImGuiKey.S, LocalizationResources.MenuFileSaveAllShortcut)
             };
 
-            _imageTranscoderButton = new MenuBarButton
-            {
-                Text = LocalizationResources.MenuToolsImageTranscoder
-            };
-            _rawImageViewerButton = new MenuBarButton
-            {
-                Text = LocalizationResources.MenuToolsRawImageViewer
-            };
+            _imageTranscoderButton = new MenuBarButton { Text = LocalizationResources.MenuToolsImageTranscoder };
+            _rawImageViewerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsRawImageViewer };
 
             _textSequencerButton = new MenuBarButton { Text = LocalizationResources.MenuToolsTextSequenceSearcher };
-
-            _batchExtractButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchExtractor };
-            _batchInjectButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatchInjector };
-            _hashesButton = new MenuBarButton { Text = LocalizationResources.MenuToolsHashes };
+            _batchButton = new MenuBarButton { Text = LocalizationResources.MenuToolsBatch };
 
             _ciphersButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCiphers };
             _compressionsButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCompressions };
@@ -126,15 +124,11 @@ namespace Kuriimu2.ImGui.Forms
                             _imageTranscoderButton,
                             _rawImageViewerButton,
                             new MenuBarSplitter(),
-                            _textSequencerButton
+                            _textSequencerButton,
+                            new MenuBarSplitter(),
+                            _batchButton
                         }
                     },
-                    //new MenuBarMenu{Text = LocalizationResources.MenuTools, Items =
-                    //{
-                    //    _batchExtractButton,
-                    //    _batchInjectButton,
-                    //    _hashesButton
-                    //}},
                     new MenuBarMenu
                     {
                         Text = LocalizationResources.MenuSettings, Items =

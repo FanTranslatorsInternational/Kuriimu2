@@ -9,17 +9,8 @@ using Kuriimu2.ImGui.Models;
 
 namespace Kuriimu2.ImGui.Forms
 {
-    class FormCommunicator : IArchiveFormCommunicator
+    internal class FormCommunicator(IFileState fileState, IMainForm mainForm) : IArchiveFormCommunicator
     {
-        private readonly IFileState _fileState;
-        private readonly IMainForm _mainForm;
-
-        public FormCommunicator(IFileState fileState, IMainForm mainForm)
-        {
-            _fileState = fileState;
-            _mainForm = mainForm;
-        }
-
         #region Non-blocking Methods
 
         // All methods here leave execution on the thread they are currently ran on
@@ -28,7 +19,7 @@ namespace Kuriimu2.ImGui.Forms
 
         public Task<bool> Save(bool saveAs)
         {
-            return _mainForm.SaveFile(_fileState, saveAs);
+            return mainForm.SaveFile(fileState, saveAs);
         }
 
         public async Task<bool> Open(IArchiveFile file)
@@ -38,12 +29,12 @@ namespace Kuriimu2.ImGui.Forms
 
         public async Task<bool> Open(IArchiveFile file, Guid pluginId)
         {
-            return await _mainForm.OpenFile(_fileState, file, pluginId);
+            return await mainForm.OpenFile(fileState, file, pluginId);
         }
 
         public async Task<bool> Close(IArchiveFile file)
         {
-            return await _mainForm.CloseFile(_fileState, file);
+            return await mainForm.CloseFile(fileState, file);
         }
 
         #endregion
@@ -55,17 +46,17 @@ namespace Kuriimu2.ImGui.Forms
 
         public void Update(bool updateParents, bool updateChildren)
         {
-            _mainForm.Update(_fileState, updateParents, updateChildren);
+            mainForm.Update(fileState, updateParents, updateChildren);
         }
 
         public void Rename(IArchiveFile file, UPath renamedPath)
         {
-            _mainForm.RenameFile(_fileState, file, renamedPath);
+            mainForm.RenameFile(fileState, file, renamedPath);
         }
 
         public void ReportStatus(StatusKind status, LocalizedString message)
         {
-            _mainForm.ReportStatus(status, message);
+            mainForm.ReportStatus(status, message);
         }
 
         #endregion

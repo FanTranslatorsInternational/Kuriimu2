@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Numerics;
 using Hexa.NET.ImGui;
@@ -9,6 +10,7 @@ using ImGui.Forms.Controls.Text;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Modals;
 using ImGui.Forms.Models;
+using ImGui.Forms.Models.IO;
 using Kryptography.Encryption;
 using Kryptography.Encryption.AES;
 using Kryptography.Encryption.Blowfish;
@@ -17,7 +19,7 @@ using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class CiphersDialog : Modal
+    internal partial class CiphersDialog : Modal
     {
         private StackLayout _mainLayout;
         private StackLayout _settingsLayout;
@@ -26,18 +28,25 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private TableLayout _parameterLayout;
 
         private RadioButtonGroup _operations;
-
         private ComboBox<CipherData> _ciphers;
+
         private TextBox _inputTextBox;
         private Button _fileBtn;
         private Button _folderBtn;
         private CheckBox _subDirCheckBox;
+
         private Button _executeBtn;
         private Button _cancelBtn;
         private TextEditor _logEditor;
 
         private ProgressBar _progress;
 
+        [MemberNotNull(nameof(_mainLayout),nameof(_settingsLayout))]
+        [MemberNotNull(nameof(_fullParameterLayout), nameof(_parameterLayout))]
+        [MemberNotNull(nameof(_operations), nameof(_ciphers))]
+        [MemberNotNull(nameof(_inputTextBox), nameof(_fileBtn), nameof(_folderBtn), nameof(_subDirCheckBox))]
+        [MemberNotNull(nameof(_executeBtn), nameof(_cancelBtn), nameof(_logEditor))]
+        [MemberNotNull(nameof(_progress))]
         private void InitializeComponent()
         {
             #region Components
@@ -57,7 +66,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _fileBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersInputFile };
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersInputFolder };
             _subDirCheckBox = new CheckBox { Text = LocalizationResources.DialogToolsCiphersInputSubDirectories };
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersExecute, KeyAction = new(ImGuiKey.Enter) };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersExecute, KeyAction = new KeyCommand(ImGuiKey.Enter) };
             _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsCiphersCancel, Enabled = false };
             _logEditor = new TextEditor { IsReadOnly = true };
 
@@ -212,7 +221,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void UpdateParameters()
         {
             if (_ciphers.SelectedItem is null || _ciphers.SelectedItem.Content.Parameters.Length <= 0)
+            {
                 _settingsLayout.Items[^3] = new Panel();
+                return;
+            }
 
             _parameterLayout.Rows.Clear();
 
@@ -233,9 +245,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private Component CreateParameterComponent(int index)
         {
-            CipherParameter parameter = _ciphers.SelectedItem.Content.Parameters[index];
+            CipherParameter? parameter = _ciphers.SelectedItem?.Content.Parameters[index];
 
-            switch (parameter.Value)
+            switch (parameter?.Value)
             {
                 case bool boolValue:
                     var checkBox = new CheckBox { Checked = boolValue };
@@ -274,42 +286,27 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private static byte[] GetData(TextBox textBox)
         {
-            if (string.IsNullOrEmpty(textBox.Text))
-                return [];
-
-            if (!textBox.Text.StartsWith("0x"))
-                return [];
-
-            if (textBox.Text.Length <= 2)
+            if (string.IsNullOrEmpty(textBox.Text) || !textBox.Text.StartsWith("0x", StringComparison.Ordinal) || textBox.Text.Length <= 2)
                 return [];
 
             try
             {
                 return Convert.FromHexString(textBox.Text[2..]);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return [];
             }
         }
     }
 
-    class CipherData
+    internal class CipherData(Func<Stream, CipherParameter[], Stream> cipherWrapper, params CipherParameter[] parameters)
     {
-        private readonly Func<Stream, CipherParameter[], Stream> _cipherWrapper;
-
-        public CipherParameter[] Parameters { get; }
-
-        public CipherData(Func<Stream, CipherParameter[], Stream> cipherWrapper, params CipherParameter[] parameters)
-        {
-            _cipherWrapper = cipherWrapper;
-
-            Parameters = parameters;
-        }
+        public CipherParameter[] Parameters { get; } = parameters;
 
         public void Decrypt(Stream input, Stream output)
         {
-            input = _cipherWrapper(input, Parameters);
+            input = cipherWrapper(input, Parameters);
             input.CopyTo(output);
 
             output.Flush();
@@ -317,14 +314,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         public void Encrypt(Stream input, Stream output)
         {
-            output = _cipherWrapper(output, Parameters);
+            output = cipherWrapper(output, Parameters);
             input.CopyTo(output);
 
             output.Flush();
         }
     }
 
-    class CipherParameter(string name, object value)
+    internal class CipherParameter(string name, object value)
     {
         public string Name { get; } = name;
 

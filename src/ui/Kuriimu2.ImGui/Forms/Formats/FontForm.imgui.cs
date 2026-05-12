@@ -11,19 +11,24 @@ using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGui.Forms.Support;
 using Size = ImGui.Forms.Models.Size;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class FontForm
+    internal partial class FontForm
     {
         private static readonly KeyCommand SelectMultipleGlyphsCommand = new(ImGuiKey.ModCtrl, ImGuiMouseButton.Left);
         private static readonly KeyCommand SelectGlyphRangeCommand = new(ImGuiKey.ModShift, ImGuiMouseButton.Left);
 
-        private readonly Dictionary<CharacterInfo, GlyphElement> _infoLookup = new();
-        private readonly Dictionary<char, GlyphElement> _charLookup = new();
+        private readonly Dictionary<CharacterInfo, GlyphElement> _infoLookup = [];
+        private readonly Dictionary<char, GlyphElement> _charLookup = [];
+        private readonly HashSet<CharacterInfo> _selectedCharacters = [];
+
+        private GlyphElement? _selectedElement;
+        private GlyphElement? _lastSelectedElement;
 
         private StackLayout _mainLayout;
 
@@ -46,10 +51,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private StackLayout _glyphLayout;
         private TextBox _searchCharBox;
         private UniformZLayout _glyphsLayout;
-        private readonly HashSet<CharacterInfo> _selectedCharacters = [];
-        private GlyphElement? _selectedElement;
-        private GlyphElement? _lastSelectedElement;
 
+        [MemberNotNull(nameof(_mainLayout))]
+        [MemberNotNull(nameof(_saveBtn), nameof(_saveAsBtn), nameof(_generateBtn), nameof(_editBtn), nameof(_removeBtn), nameof(_remapBtn), nameof(_changeBtn))]
+        [MemberNotNull(nameof(_previewTextEditor), nameof(_textPreview), nameof(_glyphBox))]
+        [MemberNotNull(nameof(_exportBtn), nameof(_settingsBtn))]
+        [MemberNotNull(nameof(_glyphLayout), nameof(_searchCharBox), nameof(_glyphsLayout))]
         private void InitializeComponent(IFontFilePluginState fontState)
         {
             #region Controls
@@ -135,7 +142,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.ModCtrl, ImGuiKey.S, LocalizationResources.MenuFileSaveShortcut)
             };
             _saveAsBtn = new ImageButton
             {
@@ -144,7 +151,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 ImageSize = new Vector2(16, 16),
                 Padding = new Vector2(5, 5),
                 Enabled = false,
-                KeyAction = new(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
+                KeyAction = new KeyCommand(ImGuiKey.F12, LocalizationResources.MenuFileSaveAsShortcut)
             };
 
             _exportBtn = new ImageButton

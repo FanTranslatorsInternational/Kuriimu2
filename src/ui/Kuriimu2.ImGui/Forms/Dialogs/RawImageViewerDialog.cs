@@ -20,7 +20,7 @@ using SixLabors.ImageSharp;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    partial class RawImageViewerDialog
+    internal partial class RawImageViewerDialog
     {
         private FileStream? _fileStream;
         private ImageFile? _imageFile;
@@ -29,27 +29,27 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             InitializeComponent();
 
-            _openBtn.Clicked += _openBtn_Clicked;
+            _openBtn.Clicked += OpenBtn_Clicked;
 
-            _renderSwizzleBox.CheckChanged += _renderSwizzleBox_CheckChanged;
-            _exportBtn.Clicked += _exportBtn_Clicked;
+            _renderSwizzleBox.CheckChanged += RenderSwizzleBox_CheckChanged;
+            _exportBtn.Clicked += ExportBtn_Clicked;
 
-            _imageBox.ContentMoved += _imageBox_ContentMoved;
-            _imageBox.ContentZoomed += _imageBox_ContentZoomed;
-            _imageEditorBox.ContentMoved += _imageEditorBox_ContentMoved;
-            _imageEditorBox.ContentZoomed += _imageEditorBox_ContentZoomed;
-            _imageEditorBox.CoordinatesChanged += _imageBox_CoordinatesChanged;
+            _imageBox.ContentMoved += ImageBox_ContentMoved;
+            _imageBox.ContentZoomed += ImageBox_ContentZoomed;
+            _imageEditorBox.ContentMoved += ImageEditorBox_ContentMoved;
+            _imageEditorBox.ContentZoomed += ImageEditorBox_ContentZoomed;
+            _imageEditorBox.CoordinatesChanged += ImageBox_CoordinatesChanged;
 
-            _widthTextBox.TextChanged += _widthTextBox_TextChanged;
-            _heightTextBox.TextChanged += _heightTextBox_TextChanged;
-            _offsetTextBox.TextChanged += _offsetTextBox_TextChanged;
-            _paletteOffsetTextBox.TextChanged += _paletteOffsetTextBox_TextChanged;
-            _formats.SelectedItemChanged += _formats_SelectedItemChanged;
-            _paletteFormats.SelectedItemChanged += _paletteFormats_SelectedItemChanged;
-            _componentsTextBox.TextChanged += _componentsTextBox_TextChanged;
-            _paletteComponentsTextBox.TextChanged += _paletteComponentsTextBox_TextChanged;
-            _swizzles.SelectedItemChanged += _swizzles_SelectedItemChanged;
-            _swizzleTextBox.TextChanged += _swizzleTextBox_TextChanged;
+            _widthTextBox.TextChanged += WidthTextBox_TextChanged;
+            _heightTextBox.TextChanged += HeightTextBox_TextChanged;
+            _offsetTextBox.TextChanged += OffsetTextBox_TextChanged;
+            _paletteOffsetTextBox.TextChanged += PaletteOffsetTextBox_TextChanged;
+            _formats.SelectedItemChanged += Formats_SelectedItemChanged;
+            _paletteFormats.SelectedItemChanged += PaletteFormats_SelectedItemChanged;
+            _componentsTextBox.TextChanged += ComponentsTextBox_TextChanged;
+            _paletteComponentsTextBox.TextChanged += PaletteComponentsTextBox_TextChanged;
+            _swizzles.SelectedItemChanged += Swizzles_SelectedItemChanged;
+            _swizzleTextBox.TextChanged += SwizzleTextBox_TextChanged;
 
             DragDrop += RawImageViewerDialog_DragDrop;
 
@@ -64,13 +64,14 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 await _fileStream.DisposeAsync();
         }
 
-        private async void _openBtn_Clicked(object? sender, EventArgs e)
+        private async void OpenBtn_Clicked(object? sender, EventArgs e)
         {
             string? selectedFile = await SelectFile();
             if (selectedFile is null)
                 return;
 
-            _fileStream?.Dispose();
+            if (_fileStream is not null)
+                await _fileStream.DisposeAsync();
 
             _fileStream = File.OpenRead(selectedFile);
 
@@ -78,27 +79,27 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _imageBox_ContentZoomed(object? sender, EventArgs e)
+        private void ImageBox_ContentZoomed(object? sender, EventArgs e)
         {
             _imageBox.CopyTransformTo(_imageEditorBox);
         }
 
-        private void _imageBox_ContentMoved(object? sender, EventArgs e)
+        private void ImageBox_ContentMoved(object? sender, EventArgs e)
         {
             _imageBox.CopyTransformTo(_imageEditorBox);
         }
 
-        private void _imageEditorBox_ContentZoomed(object? sender, EventArgs e)
+        private void ImageEditorBox_ContentZoomed(object? sender, EventArgs e)
         {
             _imageEditorBox.CopyTransformTo(_imageBox);
         }
 
-        private void _imageEditorBox_ContentMoved(object? sender, EventArgs e)
+        private void ImageEditorBox_ContentMoved(object? sender, EventArgs e)
         {
             _imageEditorBox.CopyTransformTo(_imageBox);
         }
 
-        private void _imageBox_CoordinatesChanged(object? sender, EventArgs e)
+        private void ImageBox_CoordinatesChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
         }
@@ -113,7 +114,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _renderSwizzleBox_CheckChanged(object? sender, EventArgs e)
+        private void RenderSwizzleBox_CheckChanged(object? sender, EventArgs e)
         {
             _imageBox.RenderSwizzle = _renderSwizzleBox.Checked;
             _imageEditorBox.RenderSwizzle = _renderSwizzleBox.Checked;
@@ -122,7 +123,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private async void _exportBtn_Clicked(object? sender, EventArgs e)
+        private async void ExportBtn_Clicked(object? sender, EventArgs e)
         {
             if (_fileStream is null || _imageFile is null)
                 return;
@@ -141,31 +142,31 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             await _imageFile.GetImage().SaveAsPngAsync(sfd.Files[0]);
         }
 
-        private void _widthTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void WidthTextBox_TextChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
             UpdateFormInternal();
         }
 
-        private void _heightTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void HeightTextBox_TextChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
             UpdateFormInternal();
         }
 
-        private void _offsetTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void OffsetTextBox_TextChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
             UpdateFormInternal();
         }
 
-        private void _paletteOffsetTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void PaletteOffsetTextBox_TextChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
             UpdateFormInternal();
         }
 
-        private void _formats_SelectedItemChanged(object? sender, System.EventArgs e)
+        private void Formats_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdateComponents();
             UpdatePreview();
@@ -173,7 +174,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _paletteFormats_SelectedItemChanged(object? sender, System.EventArgs e)
+        private void PaletteFormats_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdatePaletteComponents();
             UpdatePreview();
@@ -181,9 +182,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _componentsTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void ComponentsTextBox_TextChanged(object? sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(_componentsTextBox.Text))
+            if (string.IsNullOrEmpty(_componentsTextBox.Text) || _formats.SelectedItem is null)
                 return;
 
             _components[_formats.SelectedItem.Content] = _componentsTextBox.Text;
@@ -194,9 +195,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _paletteComponentsTextBox_TextChanged(object? sender, System.EventArgs e)
+        private void PaletteComponentsTextBox_TextChanged(object? sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(_paletteComponentsTextBox.Text))
+            if (string.IsNullOrEmpty(_paletteComponentsTextBox.Text) || _paletteFormats.SelectedItem is null)
                 return;
 
             _paletteComponents[_paletteFormats.SelectedItem.Content] = _paletteComponentsTextBox.Text;
@@ -207,7 +208,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _swizzles_SelectedItemChanged(object? sender, EventArgs e)
+        private void Swizzles_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdateSwizzle();
             UpdatePreview();
@@ -215,7 +216,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void _swizzleTextBox_TextChanged(object? sender, EventArgs e)
+        private void SwizzleTextBox_TextChanged(object? sender, EventArgs e)
         {
             UpdateSwizzle();
             UpdatePreview();
@@ -225,6 +226,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateSwizzle()
         {
+            if (_swizzles.SelectedItem is null)
+                return;
+
             if (IsCustomSwizzle())
                 return;
 
@@ -242,7 +246,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdatePreview(bool resetZoom = false)
         {
-            if (_fileStream is null)
+            if (_fileStream is null || _formats.SelectedItem is null)
                 return;
 
             int bitDepth = _encodingDefinition.ContainsColorEncoding(_formats.SelectedItem.Content)
@@ -252,7 +256,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             Size imageSize = GetImageSize();
 
             CreatePixelRemapperDelegate? swizzleDelegate = null;
-            if (_swizzles.SelectedItem.Content is not null)
+            if (_swizzles.SelectedItem?.Content is not null)
             {
                 swizzleDelegate = _swizzles.SelectedItem.Content;
             }
@@ -273,7 +277,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 RemapPixels = swizzleDelegate
             };
 
-            if (IsSelectedIndexEncoding())
+            if (IsSelectedIndexEncoding() && _paletteFormats.SelectedItem is not null)
             {
                 IIndexEncoding indexEncoding = _encodingDefinition.GetIndexEncoding(_formats.SelectedItem.Content)!.IndexEncoding;
                 int paletteBitDepth = _encodingDefinition.GetPaletteEncoding(_paletteFormats.SelectedItem.Content)!.BitDepth;
@@ -317,13 +321,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _paletteOffsetTextBox.Enabled = isIndexEncoding;
             _paletteFormats.Enabled = isIndexEncoding;
 
-            _componentsTextBox.Enabled = _components.ContainsKey(_formats.SelectedItem.Content);
-            _paletteComponentsTextBox.Enabled = isIndexEncoding && _paletteComponents.ContainsKey(_paletteFormats.SelectedItem.Content);
+            _componentsTextBox.Enabled = _formats.SelectedItem is not null && _components.ContainsKey(_formats.SelectedItem.Content);
+            _paletteComponentsTextBox.Enabled = isIndexEncoding && _paletteFormats.SelectedItem is not null && _paletteComponents.ContainsKey(_paletteFormats.SelectedItem.Content);
 
-            bool hasSwizzleParameter = _swizzleParameterItems.Contains(_swizzles.SelectedItem);
+            bool hasSwizzleParameter = _swizzles.SelectedItem is not null && _swizzleParameterItems.Contains(_swizzles.SelectedItem);
             bool isCustomSizzle = IsCustomSwizzle();
 
-            _renderSwizzleBox.Enabled = _swizzles.SelectedItem.Content is not null || isCustomSizzle;
+            _renderSwizzleBox.Enabled = _swizzles.SelectedItem?.Content is not null || isCustomSizzle;
 
             _swizzleTextBox.Enabled = hasSwizzleParameter;
             _mainLayout.Items[1] = isCustomSizzle ? _imageEditorBox : _imageBox;
@@ -331,6 +335,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateComponents()
         {
+            if (_formats.SelectedItem is null)
+                return;
+
             if (!_components.TryGetValue(_formats.SelectedItem.Content, out string? components))
                 return;
 
@@ -339,6 +346,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdatePaletteComponents()
         {
+            if (_paletteFormats.SelectedItem is null)
+                return;
+
             if (!_paletteComponents.TryGetValue(_paletteFormats.SelectedItem.Content, out string? components))
                 return;
 
@@ -347,7 +357,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private bool IsSelectedIndexEncoding()
         {
-            return _encodingDefinition.ContainsIndexEncoding(_formats.SelectedItem.Content);
+            return _formats.SelectedItem is not null && _encodingDefinition.ContainsIndexEncoding(_formats.SelectedItem.Content);
         }
 
         private bool IsCustomSwizzle()
@@ -357,7 +367,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private (int, int)[] GetCustomSwizzleCoordinates()
         {
-            return _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y)).ToArray();
+            return [.. _imageEditorBox.Coordinates.Select(x => ((int)x.X, (int)x.Y))];
         }
 
         private Size GetImageSize()
@@ -375,7 +385,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             int dimension;
 
-            if (!textBox.Text.StartsWith("0x"))
+            if (!textBox.Text.StartsWith("0x", StringComparison.Ordinal))
                 return int.TryParse(textBox.Text, out dimension) ? dimension : 0;
 
             if (textBox.Text.Length <= 2)
@@ -393,7 +403,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             IImageSwizzle? swizzle = CreateSwizzle(swizzleDelegate);
             if (swizzle is not null)
+            {
                 size = new Size(SizePadding.Multiple(size.Width, swizzle.MacroTileWidth), SizePadding.Multiple(size.Height, swizzle.MacroTileHeight));
+                dataLength = size.Width * size.Height * ((bitDepth + 7) & ~7) / 8;
+            }
 
             if (offset + dataLength > _fileStream.Length)
                 return new byte[dataLength];
@@ -424,6 +437,9 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private IImageSwizzle? CreateSwizzle(CreatePixelRemapperDelegate? swizzleDelegate)
         {
+            if (_formats.SelectedItem is null)
+                return null;
+
             IEncodingInfo encoding = _encodingDefinition.ContainsColorEncoding(_formats.SelectedItem.Content)
                 ? _encodingDefinition.GetColorEncoding(_formats.SelectedItem.Content)!
                 : _encodingDefinition.GetIndexEncoding(_formats.SelectedItem.Content)!.IndexEncoding;
@@ -431,7 +447,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             return swizzleDelegate?.Invoke(options);
         }
 
-        private async Task<string?> SelectFile()
+        private static async Task<string?> SelectFile()
         {
             var ofd = new WindowsOpenFileDialog { InitialDirectory = SettingsResources.LastDirectory };
 
@@ -441,40 +457,30 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 return null;
 
             // Set last visited directory
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
 
             return ofd.Files[0];
         }
     }
 
-    class CustomSwizzle : IImageSwizzle
+    internal class CustomSwizzle(SwizzleOptions options, MasterSwizzle swizzle) : IImageSwizzle
     {
-        private readonly MasterSwizzle _swizzle;
+        /// <inheritdoc />
+        public int Width { get; } = options.Size.Width;
 
         /// <inheritdoc />
-        public int Width { get; }
+        public int Height { get; } = options.Size.Height;
 
         /// <inheritdoc />
-        public int Height { get; }
+        public int MacroTileWidth => swizzle.MacroTileWidth;
 
         /// <inheritdoc />
-        public int MacroTileWidth => _swizzle.MacroTileWidth;
-
-        /// <inheritdoc />
-        public int MacroTileHeight => _swizzle.MacroTileHeight;
-
-        public CustomSwizzle(SwizzleOptions options, MasterSwizzle swizzle)
-        {
-            Width = options.Size.Width;
-            Height = options.Size.Height;
-
-            _swizzle = swizzle;
-        }
+        public int MacroTileHeight => swizzle.MacroTileHeight;
 
         /// <inheritdoc />
         public Point Transform(Point point) => Get(point.Y * Width + point.X);
 
         /// <inheritdoc />
-        public Point Get(int pointCount) => _swizzle.Get(pointCount);
+        public Point Get(int pointCount) => swizzle.Get(pointCount);
     }
 }

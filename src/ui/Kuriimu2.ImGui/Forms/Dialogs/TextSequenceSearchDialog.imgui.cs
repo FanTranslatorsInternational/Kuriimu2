@@ -1,4 +1,5 @@
-﻿using Hexa.NET.ImGui;
+﻿using System.Diagnostics.CodeAnalysis;
+using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Lists;
@@ -8,6 +9,7 @@ using ImGui.Forms.Models;
 using Kuriimu2.ImGui.Models.Forms.Dialogs;
 using Kuriimu2.ImGui.Resources;
 using System.Text;
+using ImGui.Forms.Models.IO;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -31,6 +33,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private ProgressBar _progress;
 
+        [MemberNotNull(nameof(_mainLayout), nameof(_settingsLayout))]
+        [MemberNotNull(nameof(_searchTextBox), nameof(_encodingBox))]
+        [MemberNotNull(nameof(_inputTextBox), nameof(_fileBtn), nameof(_folderBtn), nameof(_subDirCheckBox))]
+        [MemberNotNull(nameof(_executeBtn), nameof(_cancelBtn))]
+        [MemberNotNull(nameof(_resultTable), nameof(_progress))]
         private void InitializeComponent()
         {
             _searchTextBox = new TextBox { Placeholder = LocalizationResources.DialogToolsTextSequenceSearcherSearchPlaceholder };
@@ -41,7 +48,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _folderBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherInputFolder };
             _subDirCheckBox = new CheckBox { Checked = SettingsResources.SequenceSearchSubDirectories, Text = LocalizationResources.DialogToolsTextSequenceSearcherInputSubDirectories };
 
-            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherExecute, KeyAction = new(ImGuiKey.Enter) };
+            _executeBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherExecute, KeyAction = new KeyCommand(ImGuiKey.Enter) };
             _cancelBtn = new Button { Width = SizeValue.Parent, Text = LocalizationResources.DialogToolsTextSequenceSearcherCancel, Enabled = false };
 
             _resultTable = new DataTable<SequenceSearcherResult>

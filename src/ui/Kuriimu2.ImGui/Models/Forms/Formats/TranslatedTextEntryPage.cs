@@ -3,7 +3,7 @@ using Konnect.Contract.DataClasses.Plugin.File.Text;
 
 namespace Kuriimu2.ImGui.Models.Forms.Formats
 {
-    class TranslatedTextEntryPage
+    internal class TranslatedTextEntryPage
     {
         public required TextEntryPage Page { get; init; }
 

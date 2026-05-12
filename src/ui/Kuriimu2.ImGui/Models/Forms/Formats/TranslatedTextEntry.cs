@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.ImGui.Models.Forms.Formats
 {
-    class TranslatedTextEntry
+    internal class TranslatedTextEntry
     {
         public TranslatedTextEntryPage? Page { get; init; }
 

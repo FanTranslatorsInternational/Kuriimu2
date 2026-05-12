@@ -36,7 +36,7 @@ using Point = SixLabors.ImageSharp.Point;
 
 namespace Kuriimu2.ImGui.Forms.Formats
 {
-    partial class TextForm : IKuriimuForm
+    internal partial class TextForm : IKuriimuForm
     {
         private static readonly KeyCommand DeleteCommand = new(ImGuiKey.Delete);
 
@@ -60,23 +60,23 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             InitializeComponent();
 
-            _saveBtn.Clicked += _saveBtn_Clicked;
-            _saveAsBtn.Clicked += _saveAsBtn_Clicked;
-            _poExportBtn.Clicked += _poExportBtn_Clicked;
-            _poImportBtn.Clicked += _poImportBtn_Clicked;
-            _kupExportBtn.Clicked += _kupExportBtn_Clicked;
-            _kupImportBtn.Clicked += _kupImportBtn_Clicked;
+            _saveBtn.Clicked += SaveBtn_Clicked;
+            _saveAsBtn.Clicked += SaveAsBtn_Clicked;
+            _poExportBtn.Clicked += PoExportBtn_Clicked;
+            _poImportBtn.Clicked += PoImportBtn_Clicked;
+            _kupExportBtn.Clicked += KupExportBtn_Clicked;
+            _kupImportBtn.Clicked += KupImportBtn_Clicked;
 
-            _editTextEditor.TextChanged += _editTextEditor_TextChanged;
-            _fontFamilyBox.SelectedItemChanged += _fontFamilyBox_SelectedItemChanged;
-            _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
-            _treeView.SelectedNodeChanged += _treeView_SelectedNodeChanged;
-            _previousPageBtn.Clicked += _previousPageBtn_Clicked;
-            _nextPageBtn.Clicked += _nextPageBtn_Clicked;
+            _editTextEditor.TextChanged += EditTextEditor_TextChanged;
+            _fontFamilyBox.SelectedItemChanged += FontFamilyBox_SelectedItemChanged;
+            _previewBox.SelectedItemChanged += PreviewBox_SelectedItemChanged;
+            _treeView.SelectedNodeChanged += TreeView_SelectedNodeChanged;
+            _previousPageBtn.Clicked += PreviousPageBtn_Clicked;
+            _nextPageBtn.Clicked += NextPageBtn_Clicked;
 
-            _renameEntryButton.Clicked += _renameEntryButton_Clicked;
-            _addEntryButton.Clicked += _addEntryButton_Clicked;
-            _deleteEntryButton.Clicked += _deleteEntryButton_Clicked;
+            _renameEntryButton.Clicked += RenameEntryButton_Clicked;
+            _addEntryButton.Clicked += AddEntryButton_Clicked;
+            _deleteEntryButton.Clicked += DeleteEntryButton_Clicked;
 
             Task.Run(StartupForm);
         }
@@ -87,7 +87,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _renameEntryButton_Clicked(object? sender, EventArgs e)
+        private async void RenameEntryButton_Clicked(object? sender, EventArgs e)
         {
             if (!_state.PluginState.CanRenameEntry)
                 return;
@@ -97,7 +97,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task RenameSelectedEntry()
         {
-            TreeNode<object> node = _treeView.SelectedNode;
+            TreeNode<object>? node = _treeView.SelectedNode;
 
             if (node?.Data is not TranslatedTextEntry entry)
                 return;
@@ -108,7 +108,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private async Task RenameEntry(TranslatedTextEntry entry, TreeNode<object> node)
         {
             string? oldName = entry.Entry.Name;
-            string newName = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, oldName ?? string.Empty);
+            string? newName = await InputBox.ShowAsync(LocalizationResources.TextRenameCaption, LocalizationResources.TextRenameText, oldName ?? string.Empty);
 
             if (string.IsNullOrEmpty(newName))
             {
@@ -135,7 +135,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _addEntryButton_Clicked(object? sender, EventArgs e)
+        private async void AddEntryButton_Clicked(object? sender, EventArgs e)
         {
             if (!_state.PluginState.CanAddEntry)
                 return;
@@ -145,7 +145,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task AddSelectedEntry()
         {
-            TreeNode<object> node = _treeView.SelectedNode;
+            TreeNode<object>? node = _treeView.SelectedNode;
 
             switch (node?.Data)
             {
@@ -161,7 +161,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private async Task AddEntry(TranslatedTextEntry entry, TreeNode<object> node)
         {
-            IList<TreeNode<object>> nodes = entry.Page is null ? _treeView.Nodes : node.Parent.Nodes;
+            IList<TreeNode<object>> nodes = entry.Page is null ? _treeView.Nodes : node.Parent!.Nodes;
 
             TextEntry? newEntry = _state.PluginState.AttemptCreateEntry(entry.Page?.Page);
             if (newEntry is null)
@@ -265,7 +265,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _deleteEntryButton_Clicked(object? sender, EventArgs e)
+        private void DeleteEntryButton_Clicked(object? sender, EventArgs e)
         {
             if (!_state.PluginState.CanRemoveEntry)
                 return;
@@ -275,7 +275,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void DeleteSelectedEntry()
         {
-            TreeNode<object> node = _treeView.SelectedNode;
+            TreeNode<object>? node = _treeView.SelectedNode;
 
             switch (node?.Data)
             {
@@ -310,7 +310,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
             else
             {
-                TreeNode<object> pageNode = node.Parent;
+                TreeNode<object> pageNode = node.Parent!;
 
                 int nodeIndex = pageNode.Nodes.IndexOf(node);
                 int pageIndex = _treeView.Nodes.IndexOf(pageNode);
@@ -345,10 +345,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void DeleteEntry(TranslatedTextEntryPage entryPage, TreeNode<object> node)
         {
-            TreeNode<object>[] nodes = node.Nodes.ToArray();
+            TreeNode<object>[] nodes = [.. node.Nodes];
             foreach (TreeNode<object> entryNode in nodes)
             {
-                var entry = (TranslatedTextEntry)entryNode.Data;
+                var entry = (TranslatedTextEntry?)entryNode.Data;
+                if (entry is null)
+                    continue;
 
                 bool wasRemoved = _state.PluginState.AttemptRemoveEntry(entry.Entry, entryPage.Page);
                 if (!wasRemoved)
@@ -382,7 +384,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _treeView.SelectedNode = selectedNode;
         }
 
-        private async void _poExportBtn_Clicked(object? sender, EventArgs e)
+        private async void PoExportBtn_Clicked(object? sender, EventArgs e)
         {
             var sfd = new WindowsSaveFileDialog
             {
@@ -396,7 +398,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (result is not DialogResult.Ok)
                 return;
 
-            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]) ?? string.Empty;
 
             var fileEntries = CreateFileEntries();
             await using Stream output = File.Create(sfd.Files[0]);
@@ -406,7 +408,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
         }
 
-        private async void _poImportBtn_Clicked(object? sender, EventArgs e)
+        private async void PoImportBtn_Clicked(object? sender, EventArgs e)
         {
             var ofd = new WindowsOpenFileDialog
             {
@@ -421,14 +423,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (result is not DialogResult.Ok)
                 return;
 
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
             await using Stream input = File.OpenRead(ofd.Files[0]);
 
             var loadedEntries = PoManager.Load(input);
             await ImportFileEntries(loadedEntries);
         }
 
-        private async void _kupExportBtn_Clicked(object? sender, EventArgs e)
+        private async void KupExportBtn_Clicked(object? sender, EventArgs e)
         {
             var sfd = new WindowsSaveFileDialog
             {
@@ -442,7 +444,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (result is not DialogResult.Ok)
                 return;
 
-            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(sfd.Files[0]) ?? string.Empty;
 
             var fileEntries = CreateFileEntries();
             await using Stream output = File.Create(sfd.Files[0]);
@@ -452,7 +454,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _state.FormCommunicator.ReportStatus(StatusKind.Success, LocalizationResources.TextStatusExportSuccess);
         }
 
-        private async void _kupImportBtn_Clicked(object? sender, EventArgs e)
+        private async void KupImportBtn_Clicked(object? sender, EventArgs e)
         {
             var ofd = new WindowsOpenFileDialog
             {
@@ -467,7 +469,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (result is not DialogResult.Ok)
                 return;
 
-            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]);
+            SettingsResources.LastDirectory = Path.GetDirectoryName(ofd.Files[0]) ?? string.Empty;
             await using Stream input = File.OpenRead(ofd.Files[0]);
 
             var loadedEntries = KupManager.Load(input);
@@ -476,7 +478,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private TranslationFileEntry[] CreateFileEntries()
         {
-            IList<TranslationFileEntry> result = new List<TranslationFileEntry>();
+            var result = new List<TranslationFileEntry>();
 
             foreach (TreeNode<object> node in _treeView.Nodes)
             {
@@ -553,7 +555,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _previousPageBtn_Clicked(object? sender, EventArgs e)
+        private void PreviousPageBtn_Clicked(object? sender, EventArgs e)
         {
             _previewPageIndex = Math.Max(0, _previewPageIndex - 1);
 
@@ -561,7 +563,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _nextPageBtn_Clicked(object? sender, EventArgs e)
+        private void NextPageBtn_Clicked(object? sender, EventArgs e)
         {
             _previewPageIndex = Math.Min((_previewPages?.Count ?? 0) - 1, _previewPageIndex + 1);
 
@@ -569,7 +571,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _treeView_SelectedNodeChanged(object? sender, EventArgs e)
+        private async void TreeView_SelectedNodeChanged(object? sender, EventArgs e)
         {
             await UpdateTextAndPreview();
             UpdateFormInternal();
@@ -577,7 +579,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _textPreview.Reset();
         }
 
-        private async void _editTextEditor_TextChanged(object? sender, string e)
+        private async void EditTextEditor_TextChanged(object? sender, string e)
         {
             object? data = _treeView.SelectedNode?.Data;
             if (data is null)
@@ -623,12 +625,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void _fontFamilyBox_SelectedItemChanged(object? sender, EventArgs e)
+        private void FontFamilyBox_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdatePreview();
         }
 
-        private async void _previewBox_SelectedItemChanged(object? sender, EventArgs e)
+        private async void PreviewBox_SelectedItemChanged(object? sender, EventArgs e)
         {
             if (_state.FileState.StateChanged)
             {
@@ -647,7 +649,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
                     _selectedGamePlugin = _previewBox.SelectedItem?.Content;
 
-                    foreach (TranslatedTextEntry translatedEntry in _translatedTextEntries.Where(e => e.Entry.ContentChanged))
+                    foreach (TranslatedTextEntry translatedEntry in _translatedTextEntries.Where(entry => entry.Entry.ContentChanged))
                     {
                         translatedEntry.Entry.TextData = translatedEntry.OriginalTextData;
                         translatedEntry.Entry.ContentChanged = false;
@@ -661,9 +663,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 }
                 else
                 {
-                    _previewBox.SelectedItemChanged -= _previewBox_SelectedItemChanged;
+                    _previewBox.SelectedItemChanged -= PreviewBox_SelectedItemChanged;
                     _previewBox.SelectedItem = _previewBox.Items.FirstOrDefault(i => i.Content == _selectedGamePlugin);
-                    _previewBox.SelectedItemChanged += _previewBox_SelectedItemChanged;
+                    _previewBox.SelectedItemChanged += PreviewBox_SelectedItemChanged;
 
                     return;
                 }
@@ -686,17 +688,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void _saveBtn_Clicked(object sender, EventArgs e)
+        private async void SaveBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(false);
         }
 
-        private async void _saveAsBtn_Clicked(object sender, EventArgs e)
+        private async void SaveAsBtn_Clicked(object? sender, EventArgs e)
         {
             await Save(true);
         }
 
-        private void SetTreeState(IList<TreeNode<object>> nodes, bool isChanged)
+        private static void SetTreeState(IList<TreeNode<object>> nodes, bool isChanged)
         {
             foreach (TreeNode<object> node in nodes)
             {
@@ -777,7 +779,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
         }
 
-        private IList<IList<CharacterData>> GetParsedPageCharacters(TranslatedTextEntryPage page)
+        private List<IList<CharacterData>> GetParsedPageCharacters(TranslatedTextEntryPage page)
         {
             var result = new List<IList<CharacterData>>();
 
@@ -892,8 +894,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             foreach (IList<CharacterData> parsedText in parsedTexts)
                 layoutLines.Add(layouter.Create(parsedText));
 
-            float imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Count <= 0 ? 0 : t.Max(l => l.BoundingBox.Width));
-            float imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(l => l.BoundingBox.Height));
+            float imageWidth = layoutLines.Count <= 0 ? 0 : layoutLines.Max(t => t.Count <= 0 ? 0 : t.Max(float (l) => l.BoundingBox.Width));
+            float imageHeight = layoutLines.Count <= 0 ? 0 : layoutLines.Sum(t => t.Sum(float (l) => l.BoundingBox.Height));
             if (imageWidth <= 0 || imageHeight <= 0)
                 return null;
 
@@ -917,14 +919,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             IList<TextEntry> entries = [currentEntry.Entry];
             if (currentEntry.Page is not null)
-                entries = currentEntry.Page.Page.Entries;
+                entries = currentEntry.Page.Page.Entries ?? [];
 
             _selectedGameState = CreateGamePreviewState(entries);
         }
 
         private void SetGamePreviewState(TranslatedTextEntryPage currentPage)
         {
-            IList<TextEntry> entries = currentPage.Page.Entries;
+            IList<TextEntry> entries = currentPage.Page.Entries ?? [];
 
             _selectedGameState = CreateGamePreviewState(entries);
         }
