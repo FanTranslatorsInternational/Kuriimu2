@@ -57,13 +57,13 @@ namespace Kuriimu2.ImGui.Components
             }
 
             // Draw glyph
-            if (_glyph != null)
+            if (_glyph != null && _glyph.IsValid())
             {
                 var imageSize = new Vector2(Math.Min(GlyphMaxSize.X, _glyph.Width), Math.Min(GlyphMaxSize.Y, _glyph.Height));
                 var imgPosition = contentRect.Position + (GlyphMaxSize - imageSize) / 2;
 
                 Hexa.NET.ImGui.ImGui.SetCursorScreenPos(imgPosition);
-                Hexa.NET.ImGui.ImGui.Image(_glyph.GetTextureRef(), imageSize);
+                Hexa.NET.ImGui.ImGui.Image(_glyph.GetTextureRef()!.Value, imageSize);
             }
 
             // Draw character and code
