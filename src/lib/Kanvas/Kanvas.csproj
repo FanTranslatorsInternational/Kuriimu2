@@ -4,12 +4,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
+    <BuildNuget>true</BuildNuget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNuget)'=='true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -22,12 +26,19 @@
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.2.1" />
-    <PackageReference Include="Komponent" Version="2.1.9" />
     <PackageReference Include="PVRTexLib.NET" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='true'">
+    <PackageReference Include="Komponent" Version="2.1.9" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Kanvas.Contract\Kanvas.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='false'">
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,15 +7,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <BuildNuget>true</BuildNuget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNuget)'=='true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NuspecFile>Kompression.Debug.nuspec</NuspecFile>
@@ -28,12 +26,19 @@
   <ItemGroup>
     <PackageReference Include="EasyCompressor.LZMA" Version="2.1.0" />
     <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
-    <PackageReference Include="Komponent" Version="2.1.9" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='true'">
+    <PackageReference Include="Komponent" Version="2.1.9" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Kompression.Contract\Kompression.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='false'">
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
   </ItemGroup>
 
 </Project>

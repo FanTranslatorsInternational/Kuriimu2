@@ -8,23 +8,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <BuildNuget>true</BuildNuget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNuget)'=='true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Komponent" Version="2.1.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Kryptography.Contract\Kryptography.Contract.csproj" />
-  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NuspecFile>Kryptography.Debug.nuspec</NuspecFile>
@@ -33,5 +23,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NuspecFile>Kryptography.nuspec</NuspecFile>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='true'">
+    <PackageReference Include="Komponent" Version="2.1.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kryptography.Contract\Kryptography.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='false'">
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+  </ItemGroup>
 
 </Project>
