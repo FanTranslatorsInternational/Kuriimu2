@@ -6,11 +6,24 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <BuildNuget>true</BuildNuget>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='true'">
     <PackageReference Include="Kaligraphy" Version="2.1.28" />
     <PackageReference Include="Kanvas" Version="2.1.37" />
     <PackageReference Include="Kompression" Version="2.1.14" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildNuget)'=='false'">
+    <ProjectReference Include="..\Kaligraphy\Kaligraphy.csproj" />
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\Kompression\Kompression.csproj" />
   </ItemGroup>
 
 </Project>
