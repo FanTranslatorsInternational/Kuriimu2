@@ -1,6 +1,7 @@
 name: Kuriimu2 Kanvas
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - imgui
