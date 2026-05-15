@@ -32,7 +32,7 @@ jobs:
 
     - name: Setup NuGet sources
       run: |
-        dotnet nuget update source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --name Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
+        dotnet nuget update source Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Nuget
       run: dotnet build ./src/lib/Konnect/Konnect.csproj --configuration Release -p:BuildNuget=true
