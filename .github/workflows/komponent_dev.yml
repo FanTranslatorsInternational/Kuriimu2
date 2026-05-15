@@ -31,7 +31,7 @@ jobs:
         dotnet-version: 8.0
 
     - name: Build Nuget
-      run: dotnet build ./src/lib/Komponent/Komponent.csproj --configuration Release
+      run: dotnet build ./src/lib/Komponent/Komponent.csproj --configuration Release -p:BuildNuget=true
 
     - name: Publish Nuget
       run: |

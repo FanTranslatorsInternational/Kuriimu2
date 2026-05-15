@@ -46,23 +46,23 @@ jobs:
 
     - name: Setup NuGet sources
       run: |
-        dotnet nuget add source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --name Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
+        dotnet nuget update source https://nuget.pkg.github.com/FanTranslatorsInternational/index.json --name Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
         
     - name: Publish Kuriimu2 Mac
       run: |
-        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 /p:PublishSingleFile=true --runtime osx-x64 --output ./dist/final/Mac
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime osx-x64 --output ./dist/final/Mac
         mv ./dist/final/Mac/Kuriimu2.Cmd ./dist/final/Mac/Kuriimu2
         rm ./dist/final/Mac/*.pdb
 
     - name: Publish Kuriimu2 Windows
       run: |
-        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 /p:PublishSingleFile=true --runtime win-x64 --output ./dist/final/Windows
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime win-x64 --output ./dist/final/Windows
         mv ./dist/final/Windows/Kuriimu2.Cmd.exe ./dist/final/Windows/Kuriimu2.exe
         rm ./dist/final/Windows/*.pdb
 
     - name: Publish Kuriimu2 Linux
       run: |
-        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 /p:PublishSingleFile=true --runtime linux-x64 --output ./dist/final/Linux
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime linux-x64 --output ./dist/final/Linux
         mv ./dist/final/Linux/Kuriimu2.Cmd ./dist/final/Linux/Kuriimu2
         rm ./dist/final/Linux/*.pdb
         

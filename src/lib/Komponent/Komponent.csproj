@@ -7,19 +7,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <BuildNuget>true</BuildNuget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNuget)'=='true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\..\..\nuget</PackageOutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Komponent.Contract\Komponent.Contract.csproj" />
-  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NuspecFile>Komponent.Debug.nuspec</NuspecFile>
@@ -28,5 +22,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NuspecFile>Komponent.nuspec</NuspecFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent.Contract\Komponent.Contract.csproj" />
+  </ItemGroup>
 
 </Project>
