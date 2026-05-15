@@ -21,6 +21,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private MenuBarButton _ciphersButton;
         private MenuBarButton _compressionsButton;
+        private MenuBarButton _checksumsButton;
 
         private MenuBarButton _imageTranscoderButton;
         private MenuBarButton _rawImageViewerButton;
@@ -45,7 +46,7 @@ namespace Kuriimu2.ImGui.Forms
         private readonly Dictionary<MenuBarCheckBox, Theme> _themes = [];
 
         [MemberNotNull(nameof(_openButton), nameof(_openWithButton), nameof(_saveAllButton))]
-        [MemberNotNull(nameof(_ciphersButton), nameof(_compressionsButton))]
+        [MemberNotNull(nameof(_ciphersButton), nameof(_compressionsButton), nameof(_checksumsButton))]
         [MemberNotNull(nameof(_imageTranscoderButton), nameof(_rawImageViewerButton))]
         [MemberNotNull(nameof(_textSequencerButton), nameof(_batchButton))]
         [MemberNotNull(nameof(_includeDevBuildsButton), nameof(_changeLanguageMenu), nameof(_changeThemeMenu))]
@@ -80,6 +81,7 @@ namespace Kuriimu2.ImGui.Forms
 
             _ciphersButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCiphers };
             _compressionsButton = new MenuBarButton { Text = LocalizationResources.MenuToolsCompressions };
+            _checksumsButton = new MenuBarButton { Text = LocalizationResources.MenuToolsChecksums };
 
             _includeDevBuildsButton = new MenuBarCheckBox
             {
@@ -120,6 +122,7 @@ namespace Kuriimu2.ImGui.Forms
                         {
                             _ciphersButton,
                             _compressionsButton,
+                            _checksumsButton,
                             new MenuBarSplitter(),
                             _imageTranscoderButton,
                             _rawImageViewerButton,

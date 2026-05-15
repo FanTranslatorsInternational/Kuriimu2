@@ -11,19 +11,19 @@ using System.Threading.Tasks;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
-    internal partial class CiphersDialog
+    internal partial class ChecksumsDialog
     {
         private readonly ProgressContext _progressContext;
 
         private CancellationTokenSource? _source;
 
-        public CiphersDialog()
+        public ChecksumsDialog()
         {
             InitializeComponent();
 
-            _progressContext = new ProgressContext(new ProgressBarOutput(_progress, 20, LocalizationResources.DialogToolsCiphersProgressValue));
+            _progressContext = new ProgressContext(new ProgressBarOutput(_progress, 20, LocalizationResources.DialogToolsChecksumsProgressValue));
 
-            _ciphers.SelectedItemChanged += Ciphers_SelectedItemChanged;
+            _checksums.SelectedItemChanged += Checksums_SelectedItemChanged;
 
             _folderBtn.Clicked += FolderBtn_Clicked;
             _fileBtn.Clicked += FileBtn_Clicked;
@@ -31,12 +31,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _executeBtn.Clicked += ExecuteBtn_Clicked;
             _cancelBtn.Clicked += CancelBtn_Clicked;
 
-            DragDrop += CiphersDialog_DragDrop;
+            DragDrop += ChecksumsDialog_DragDrop;
 
             UpdateFormInternal();
         }
 
-        private void Ciphers_SelectedItemChanged(object? sender, EventArgs e)
+        private void Checksums_SelectedItemChanged(object? sender, EventArgs e)
         {
             UpdateParameters();
 
@@ -47,8 +47,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         {
             _source = new CancellationTokenSource();
 
-            _operations.Enabled = false;
-            _ciphers.Enabled = false;
+            _checksums.Enabled = false;
 
             _executeBtn.Enabled = false;
             _cancelBtn.Enabled = true;
@@ -83,7 +82,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             UpdateFormInternal();
         }
 
-        private void CiphersDialog_DragDrop(object? sender, string[] e)
+        private void ChecksumsDialog_DragDrop(object? sender, string[] e)
         {
             _inputTextBox.Text = e[0];
 
@@ -92,7 +91,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void UpdateFormInternal()
         {
-            _executeBtn.Enabled = _operations.SelectedItem is not null && _ciphers.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
+            _executeBtn.Enabled = _checksums.SelectedItem is not null && !string.IsNullOrEmpty(_inputTextBox.Text);
         }
 
         private static async Task<string?> SelectFile()
@@ -153,8 +152,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _progressContext.FinishProgress();
 
-            _operations.Enabled = true;
-            _ciphers.Enabled = true;
+            _checksums.Enabled = true;
 
             _executeBtn.Enabled = true;
             _cancelBtn.Enabled = false;
@@ -185,26 +183,20 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private void ProcessFile(string filePath)
         {
             string logText = _logEditor.GetText();
-            _logEditor.SetText(logText + LocalizationResources.DialogToolsCiphersLogProcess(filePath) + Environment.NewLine);
-
-            string outPath = filePath + ".out";
+            _logEditor.SetText(logText + LocalizationResources.DialogToolsChecksumsLogProcess(filePath) + Environment.NewLine);
 
             using var input = File.OpenRead(filePath);
-            using var output = File.Create(outPath);
 
             try
             {
-                if (_operations.SelectedItem == _operations.Items[0])
-                    _ciphers.SelectedItem?.Content.Encrypt(input, output);
-                else
-                    _ciphers.SelectedItem?.Content.Decrypt(input, output);
+                var checksum = _checksums.SelectedItem!.Content.Compute(input);
+                var result = Convert.ToHexString(checksum);
+
+                _logEditor.SetText(logText + LocalizationResources.DialogToolsChecksumsLogResult(filePath, result) + Environment.NewLine);
             }
             catch (Exception)
             {
-                _logEditor.SetText(logText + LocalizationResources.DialogToolsCiphersLogError(filePath) + Environment.NewLine);
-
-                output.Close();
-                File.Delete(outPath);
+                _logEditor.SetText(logText + LocalizationResources.DialogToolsChecksumsLogError(filePath) + Environment.NewLine);
             }
         }
     }

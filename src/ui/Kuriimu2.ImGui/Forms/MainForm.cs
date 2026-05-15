@@ -111,6 +111,7 @@ namespace Kuriimu2.ImGui.Forms
 
             _ciphersButton.Clicked += CiphersButton_Clicked;
             _compressionsButton.Clicked += CompressionsButton_Clicked;
+            _checksumsButton.Clicked += ChecksumsButton_Clicked;
             _imageTranscoderButton.Clicked += ImageTranscoderButton_Clicked;
             _rawImageViewerButton.Clicked += RawImageViewerButton_Clicked;
             _textSequencerButton.Clicked += TextSequencerButton_Clicked;
@@ -308,6 +309,11 @@ namespace Kuriimu2.ImGui.Forms
         private async void CompressionsButton_Clicked(object? sender, EventArgs e)
         {
             await ShowCompressionsDialog();
+        }
+
+        private async void ChecksumsButton_Clicked(object? sender, EventArgs e)
+        {
+            await ShowChecksumsDialog();
         }
 
         private async void ImageTranscoderButton_Clicked(object? sender, EventArgs e)
@@ -739,6 +745,12 @@ namespace Kuriimu2.ImGui.Forms
         {
             var compressionsDialog = new CompressionsDialog();
             await compressionsDialog.ShowAsync();
+        }
+
+        private static async Task ShowChecksumsDialog()
+        {
+            var checksumsDialog = new ChecksumsDialog();
+            await checksumsDialog.ShowAsync();
         }
 
         private static async Task ShowImageTranscoderDialog()

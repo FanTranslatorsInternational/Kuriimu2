@@ -44,11 +44,11 @@
   // Tools Menu
   "Menu.Tools.Ciphers": "Cifras",
   "Menu.Tools.Compressions": "Compressões",
+  "Menu.Tools.Checksums": "Hashes",
   "Menu.Tools.ImageTranscoder": "Transcodificador de Imagens",
   "Menu.Tools.RawImageViewer": "Visualizador de Imagem Bruta",
   "Menu.Tools.TextSequenceSearcher": "Buscador de Texto",
   // "Menu.Tools.Batch": "Batch Operations", // TODO
-  "Menu.Tools.Hashes": "Hashes",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Incluir versões de desenvolvedor",
@@ -347,6 +347,20 @@
   "Dialog.Tools.Compressions.Progress": "Processar",
   "Dialog.Tools.Compressions.Progress.Value": "Processar - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Cancelar",
+
+  // Checksums Dialog
+  "Dialog.Tools.Checksums.Caption": "Hashes",
+  "Dialog.Tools.Checksums.Execute": "Executar",
+  "Dialog.Tools.Checksums.Input.Folder": "Selecionar pasta",
+  "Dialog.Tools.Checksums.Input.File": "Selecionar arquivo",
+  "Dialog.Tools.Checksums.Input.SubDirectories": "Subdiretórios",
+  "Dialog.Tools.Checksums.Input.Parameters": "Parâmetros",
+  "Dialog.Tools.Checksums.Log.Process": "Processando arquivo {0}.",
+  // "Dialog.Tools.Checksums.Log.Result": "Checksum for file {0} is 0x{1}.", // TODO
+  "Dialog.Tools.Checksums.Log.Error": "Erro ao processar arquivo {0}.",
+  "Dialog.Tools.Checksums.Progress": "Processar",
+  "Dialog.Tools.Checksums.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Checksums.Cancel": "Cancelar",
 
   // Image Transcoder Dialog
   "Dialog.Tools.ImageTranscoder.Caption": "Transcodificador de Imagens",

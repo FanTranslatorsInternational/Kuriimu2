@@ -44,11 +44,11 @@
   // Tools Menu
   "Menu.Tools.Ciphers": "Ciphers",
   "Menu.Tools.Compressions": "Compressions",
+  "Menu.Tools.Checksums": "Checksums",
   "Menu.Tools.ImageTranscoder": "Image Transcoder",
   "Menu.Tools.RawImageViewer": "Raw Image Viewer",
   "Menu.Tools.TextSequenceSearcher": "Text Sequence Searcher",
   "Menu.Tools.Batch": "Batch Operations",
-  "Menu.Tools.Hashes": "Hashes",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Include Developer Builds",
@@ -347,6 +347,20 @@
   "Dialog.Tools.Compressions.Progress": "Process",
   "Dialog.Tools.Compressions.Progress.Value": "Process - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Cancel",
+
+  // Checksums Dialog
+  "Dialog.Tools.Checksums.Caption": "Checksums",
+  "Dialog.Tools.Checksums.Execute": "Execute",
+  "Dialog.Tools.Checksums.Input.Folder": "Select folder",
+  "Dialog.Tools.Checksums.Input.File": "Select file",
+  "Dialog.Tools.Checksums.Input.SubDirectories": "Subdirectories",
+  "Dialog.Tools.Checksums.Input.Parameters": "Parameters",
+  "Dialog.Tools.Checksums.Log.Process": "Process file {0}.",
+  "Dialog.Tools.Checksums.Log.Result": "Checksum for file {0} is 0x{1}.",
+  "Dialog.Tools.Checksums.Log.Error": "Error processing file {0}.",
+  "Dialog.Tools.Checksums.Progress": "Process",
+  "Dialog.Tools.Checksums.Progress.Value": "Process - {0:0.00}%",
+  "Dialog.Tools.Checksums.Cancel": "Cancel",
 
   // Image Transcoder Dialog
   "Dialog.Tools.ImageTranscoder.Caption": "Image Transcoder",

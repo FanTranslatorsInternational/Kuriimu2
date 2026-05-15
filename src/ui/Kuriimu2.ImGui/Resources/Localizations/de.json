@@ -44,11 +44,11 @@
   // Tools Menu
   "Menu.Tools.Ciphers": "Verschlüsselungen",
   "Menu.Tools.Compressions": "Komprimierungen",
+  "Menu.Tools.Checksums": "Prüfsummen",
   "Menu.Tools.ImageTranscoder": "Bild-Transcoder",
   "Menu.Tools.RawImageViewer": "Rohbildansicht",
   "Menu.Tools.TextSequenceSearcher": "Text-Sucher",
   "Menu.Tools.Batch": "Batch Operationen",
-  "Menu.Tools.Hashes": "Prüfsummen",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Entwicklerversionen einbeziehen",
@@ -347,6 +347,20 @@
   "Dialog.Tools.Compressions.Progress": "Verarbeitung",
   "Dialog.Tools.Compressions.Progress.Value": "Verarbeitung - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Abbrechen",
+
+  // Checksums Dialog
+  "Dialog.Tools.Checksums.Caption": "Prüfsummen",
+  "Dialog.Tools.Checksums.Execute": "Ausführen",
+  "Dialog.Tools.Checksums.Input.Folder": "Ordner auswählen",
+  "Dialog.Tools.Checksums.Input.File": "Datei auswählen",
+  "Dialog.Tools.Checksums.Input.SubDirectories": "Unterordner",
+  "Dialog.Tools.Checksums.Input.Parameters": "Parameter",
+  "Dialog.Tools.Checksums.Log.Process": "Datei {0} wird verarbeitet.",
+  "Dialog.Tools.Checksums.Log.Result": "Prüfsumme für Datei {0} ist 0x{1}.",
+  "Dialog.Tools.Checksums.Log.Error": "Fehler beim Verarbeiten der Datei {0}.",
+  "Dialog.Tools.Checksums.Progress": "Verarbeitung",
+  "Dialog.Tools.Checksums.Progress.Value": "Verarbeitung - {0:0.00}%",
+  "Dialog.Tools.Checksums.Cancel": "Abbrechen",
 
   // Image Transcoder Dialog
   "Dialog.Tools.ImageTranscoder.Caption": "Bild-Transcoder",

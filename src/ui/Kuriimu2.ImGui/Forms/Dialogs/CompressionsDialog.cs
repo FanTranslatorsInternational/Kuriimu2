@@ -137,7 +137,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
                 _progressContext.ReportProgress(1, 1);
             }
-            else
+            else if (Directory.Exists(_inputTextBox.Text))
             {
                 ProcessDirectory(_inputTextBox.Text!);
             }

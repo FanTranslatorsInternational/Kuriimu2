@@ -38,11 +38,11 @@ namespace Kuriimu2.ImGui.Resources
         // Tools Menu
         public static LocalizedString MenuToolsCiphers => LocalizedString.FromId("Menu.Tools.Ciphers");
         public static LocalizedString MenuToolsCompressions => LocalizedString.FromId("Menu.Tools.Compressions");
+        public static LocalizedString MenuToolsChecksums => LocalizedString.FromId("Menu.Tools.Checksums");
         public static LocalizedString MenuToolsImageTranscoder => LocalizedString.FromId("Menu.Tools.ImageTranscoder");
         public static LocalizedString MenuToolsRawImageViewer => LocalizedString.FromId("Menu.Tools.RawImageViewer");
         public static LocalizedString MenuToolsTextSequenceSearcher => LocalizedString.FromId("Menu.Tools.TextSequenceSearcher");
         public static LocalizedString MenuToolsBatch => LocalizedString.FromId("Menu.Tools.Batch");
-        public static LocalizedString MenuToolsHashes => LocalizedString.FromId("Menu.Tools.Hashes");
 
         // Settings Menu
         public static LocalizedString MenuSettingsIncludeDevBuilds => LocalizedString.FromId("Menu.Settings.IncludeDevBuilds");
@@ -347,6 +347,23 @@ namespace Kuriimu2.ImGui.Resources
         public static LocalizedString DialogToolsCompressionsProgress => LocalizedString.FromId("Dialog.Tools.Compressions.Progress");
         public static LocalizedString DialogToolsCompressionsProgressValue(double completion) => LocalizedString.FromId("Dialog.Tools.Compressions.Progress.Value", () => completion);
         public static LocalizedString DialogToolsCompressionsCancel => LocalizedString.FromId("Dialog.Tools.Compressions.Cancel");
+
+        // Ciphers Dialog
+        public static LocalizedString DialogToolsChecksumsCaption => LocalizedString.FromId("Dialog.Tools.Checksums.Caption");
+        public static LocalizedString DialogToolsChecksumsExecute => LocalizedString.FromId("Dialog.Tools.Checksums.Execute");
+        public static LocalizedString DialogToolsChecksumsInputFolder => LocalizedString.FromId("Dialog.Tools.Checksums.Input.Folder");
+        public static LocalizedString DialogToolsChecksumsInputFile => LocalizedString.FromId("Dialog.Tools.Checksums.Input.File");
+        public static LocalizedString DialogToolsChecksumsInputSubDirectories => LocalizedString.FromId("Dialog.Tools.Checksums.Input.SubDirectories");
+        public static LocalizedString DialogToolsChecksumsInputParameters => LocalizedString.FromId("Dialog.Tools.Checksums.Input.Parameters");
+        public static LocalizedString DialogToolsChecksumsLogProcess(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Checksums.Log.Process", () => filePath);
+        public static LocalizedString DialogToolsChecksumsLogResult(string filePath, string result)
+            => LocalizedString.FromId("Dialog.Tools.Checksums.Log.Result", () => filePath, () => result);
+        public static LocalizedString DialogToolsChecksumsLogError(string filePath)
+            => LocalizedString.FromId("Dialog.Tools.Checksums.Log.Error", () => filePath);
+        public static LocalizedString DialogToolsChecksumsProgress => LocalizedString.FromId("Dialog.Tools.Checksums.Progress");
+        public static LocalizedString DialogToolsChecksumsProgressValue(double completion) => LocalizedString.FromId("Dialog.Tools.Checksums.Progress.Value", () => completion);
+        public static LocalizedString DialogToolsChecksumsCancel => LocalizedString.FromId("Dialog.Tools.Checksums.Cancel");
 
         // Image Transcoder Dialog
         public static LocalizedString DialogToolsImageTranscoderCaption => LocalizedString.FromId("Dialog.Tools.ImageTranscoder.Caption");
