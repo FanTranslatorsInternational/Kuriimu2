@@ -19,7 +19,7 @@ public class LoadFileOptions
 
     public required IProgressContext Progress { get; set; }
 
-    public IDialogManager? DialogManager { get; set; }
+    public required IDialogManager DialogManager { get; set; }
 
     public bool AllowManualSelection { get; set; }
 

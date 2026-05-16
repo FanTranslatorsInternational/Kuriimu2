@@ -504,9 +504,9 @@ public class FileManager : IFileManager
         if (!isRunning) Progress.StartProgress();
 
         // 2. Load file
-        IDialogManager? dialogManager = DialogManager != null
+        IDialogManager dialogManager = DialogManager != null
             ? new PredefinedDialogManager(DialogManager, options)
-            : null;
+            : new PredefinedDialogManager(options);
         var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadFileOptions
         {
             ParentFileState = parentFileState,

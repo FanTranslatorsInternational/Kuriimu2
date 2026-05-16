@@ -55,7 +55,7 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
         // 5. Load data from state
         var loadContext = new LoadContext
         {
-            DialogManager = loadInfo.DialogManager ?? new PredefinedDialogManager([]),
+            DialogManager = loadInfo.DialogManager,
             TemporaryStreamManager = temporaryStreamProvider,
             ProgressContext = loadInfo.Progress
         };
@@ -68,8 +68,7 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
             return loadStateResult;
         }
 
-        if (loadInfo.DialogManager != null)
-            stateInfo.SetDialogOptions(loadInfo.DialogManager.DialogOptions);
+        stateInfo.SetDialogOptions(loadInfo.DialogManager.DialogOptions);
 
         return new LoadResult
         {
