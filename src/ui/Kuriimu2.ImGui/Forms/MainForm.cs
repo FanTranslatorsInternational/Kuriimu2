@@ -66,6 +66,18 @@ namespace Kuriimu2.ImGui.Forms
         private readonly IDictionary<IFileState, OpenedFile> _stateDictionary = new Dictionary<IFileState, OpenedFile>();
         private readonly IDictionary<TabPage, OpenedFile> _tabDictionary = new Dictionary<TabPage, OpenedFile>();
 
+        private CiphersDialog? _ciphersDialog;
+        private CompressionsDialog? _compressionsDialog;
+        private ChecksumsDialog? _checksumsDialog;
+        private ImageTranscoderDialog? _imageTranscoderDialog;
+        private RawImageViewerDialog? _rawImageViewerDialog;
+        private TextSequenceSearchDialog? _textSequenceSearchDialog;
+        private BatchDialog? _batchDialog;
+
+        private InstalledPluginsDialog? _installedPluginsDialog;
+        private FilePreferenceDialog? _filePreferenceDialog;
+        private AboutDialog? _aboutDialog;
+
         #region Constants
 
         private const string ManifestUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update/main/{0}/manifest.json";
@@ -301,6 +313,8 @@ namespace Kuriimu2.ImGui.Forms
 
         #endregion
 
+        #region Dialogs
+
         private async void CiphersButton_Clicked(object? sender, EventArgs e)
         {
             await ShowCiphersDialog();
@@ -338,18 +352,20 @@ namespace Kuriimu2.ImGui.Forms
 
         private async void PluginsButton_Clicked(object? sender, EventArgs e)
         {
-            await ShowPluginsDialog();
+            await ShowInstalledPluginsDialog();
         }
 
         private async void PreferencesButton_Clicked(object? sender, EventArgs e)
         {
-            await ShowPreferencesDialog();
+            await ShowFilePreferenceDialog();
         }
 
         private async void AboutButton_Clicked(object? sender, EventArgs e)
         {
             await ShowAboutDialog();
         }
+
+        #endregion
 
         #endregion
 
@@ -735,64 +751,68 @@ namespace Kuriimu2.ImGui.Forms
 
         #endregion
 
-        private static async Task ShowCiphersDialog()
+        #endregion
+
+        #region Dialogs
+
+        private async Task ShowCiphersDialog()
         {
-            var ciphersDialog = new CiphersDialog();
-            await ciphersDialog.ShowAsync();
+            _ciphersDialog ??= new CiphersDialog();
+            await _ciphersDialog.ShowAsync();
         }
 
-        private static async Task ShowCompressionsDialog()
+        private async Task ShowCompressionsDialog()
         {
-            var compressionsDialog = new CompressionsDialog();
-            await compressionsDialog.ShowAsync();
+            _compressionsDialog ??= new CompressionsDialog();
+            await _compressionsDialog.ShowAsync();
         }
 
-        private static async Task ShowChecksumsDialog()
+        private async Task ShowChecksumsDialog()
         {
-            var checksumsDialog = new ChecksumsDialog();
-            await checksumsDialog.ShowAsync();
+            _checksumsDialog ??= new ChecksumsDialog();
+            await _checksumsDialog.ShowAsync();
         }
 
-        private static async Task ShowImageTranscoderDialog()
+        private async Task ShowImageTranscoderDialog()
         {
-            var imageTranscoderDialog = new ImageTranscoderDialog();
-            await imageTranscoderDialog.ShowAsync();
+            _imageTranscoderDialog ??= new ImageTranscoderDialog();
+            await _imageTranscoderDialog.ShowAsync();
         }
 
-        private static async Task ShowRawImageViewerDialog()
+        private async Task ShowRawImageViewerDialog()
         {
-            var imageTranscoderDialog = new RawImageViewerDialog();
-            await imageTranscoderDialog.ShowAsync();
+            _rawImageViewerDialog ??= new RawImageViewerDialog();
+            await _rawImageViewerDialog.ShowAsync();
         }
 
-        private static async Task ShowTextSequenceSearcherDialog()
+        private async Task ShowTextSequenceSearcherDialog()
         {
-            var textSequenceSearcherDialog = new TextSequenceSearchDialog();
-            await textSequenceSearcherDialog.ShowAsync();
+            _textSequenceSearchDialog ??= new TextSequenceSearchDialog();
+            await _textSequenceSearchDialog.ShowAsync();
         }
 
         private async Task ShowBatchDialog()
         {
-            var batchDialog = new BatchDialog(_pluginManager);
-            await batchDialog.ShowAsync();
+            _batchDialog ??= new BatchDialog(_pluginManager);
+            await _batchDialog.ShowAsync();
         }
 
-        private async Task ShowPluginsDialog()
+        private async Task ShowInstalledPluginsDialog()
         {
-            var pluginsDialog = new InstalledPluginsDialog(_pluginManager);
-            await pluginsDialog.ShowAsync();
+            _installedPluginsDialog ??= new InstalledPluginsDialog(_pluginManager);
+            await _installedPluginsDialog.ShowAsync();
         }
 
-        private async Task ShowPreferencesDialog()
+        private async Task ShowFilePreferenceDialog()
         {
-            var preferencesDialog = new FilePreferenceDialog(_preferences, _pluginManager);
-            await preferencesDialog.ShowAsync();
+            _filePreferenceDialog ??= new FilePreferenceDialog(_preferences, _pluginManager);
+            await _filePreferenceDialog.ShowAsync();
         }
 
-        private static async Task ShowAboutDialog()
+        private async Task ShowAboutDialog()
         {
-            var aboutDialog = new AboutDialog();
-            await aboutDialog.ShowAsync();
+            _aboutDialog ??= new AboutDialog();
+            await _aboutDialog.ShowAsync();
         }
 
         #endregion

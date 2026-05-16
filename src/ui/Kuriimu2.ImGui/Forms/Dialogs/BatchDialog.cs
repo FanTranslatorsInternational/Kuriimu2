@@ -24,6 +24,8 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private readonly BatchExtractor _extractor;
         private readonly BatchInjector _injector;
 
+        private PluginSelectionDialog? _pluginSelectionDialog;
+
         private CancellationTokenSource? _source;
         private IFilePlugin? _selectedPlugin;
         private IGamePlugin? _selectedGamePlugin;
@@ -86,13 +88,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private async void SelectFilePluginBtn_Clicked(object? sender, EventArgs e)
         {
-            var selectPluginDialog = new PluginSelectionDialog(_pluginManager, SelectablePlugins.All & ~SelectablePlugins.Font);
-            DialogResult result = await selectPluginDialog.ShowAsync();
+            _pluginSelectionDialog ??= new PluginSelectionDialog(_pluginManager, SelectablePlugins.All & ~SelectablePlugins.Font);
+            DialogResult result = await _pluginSelectionDialog.ShowAsync();
 
             if (result is not DialogResult.Ok)
                 return;
 
-            var selectedPlugin = selectPluginDialog.SelectedPlugin;
+            var selectedPlugin = _pluginSelectionDialog.SelectedPlugin;
 
             if (selectedPlugin is null)
                 return;

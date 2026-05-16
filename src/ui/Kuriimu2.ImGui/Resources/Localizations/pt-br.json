@@ -48,7 +48,7 @@
   "Menu.Tools.ImageTranscoder": "Transcodificador de Imagens",
   "Menu.Tools.RawImageViewer": "Visualizador de Imagem Bruta",
   "Menu.Tools.TextSequenceSearcher": "Buscador de Texto",
-  // "Menu.Tools.Batch": "Batch Operations", // TODO
+  "Menu.Tools.Batch": "Operações em Massa",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Incluir versões de desenvolvedor",
@@ -59,13 +59,13 @@
 
   // Help Menu
   "Menu.Help.Plugins.Installed": "Plugins instalados",
-  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.Preferences": "Preferências de Arquivo",
   "Menu.Help.About": "Sobre o Kuriimu",
 
   // Status
   "Status.Plugin.Select.None": "Nenhum plugin selecionado.",
   "Status.Plugin.Select.Unknown": "Tipo de plugin desconhecido {0}.",
-  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
+  "Status.Plugin.Load.Deprecated": "Este plugin foi descontinuado.",
   "Status.Plugin.Load.None": "Nenhum plugin pôde abrir o arquivo.",
   "Status.Plugin.Load.NoArchive": "O plugin não representa um contêiner de dados.",
   "Status.Plugin.State.Init.Error": "O plugin não pôde ser inicializado.",
@@ -129,8 +129,8 @@
   "Archive.Directory.Delete": "Excluir",
   "Archive.Directory.Delete.Shortcut": "Del",
   "Archive.Directory.Add": "Adicionar",
-  // "Archive.Directory.Add.File": "File", // TODO
-  // "Archive.Directory.Add.Directory": "Directory", // TODO
+  "Archive.Directory.Add.File": "Arquivo",
+  "Archive.Directory.Add.Directory": "Diretório",
 
   // Status
   "Archive.Status.Extract.Cancel": "Extração de arquivo cancelada.",
@@ -198,11 +198,11 @@
   // Image Status
   "Image.Status.Export.Start": "Exportando imagem {0}.",
   "Image.Status.Export.Cancel": "Exportação de imagem cancelada.",
-  "Image.Status.Export.Success": "Imagem exportada com sucesso.", // TODO
+  "Image.Status.Export.Success": "Imagem exportada com sucesso.",
   "Image.Status.Export.Failure": "Falha na exportação da imagem.",
   "Image.Status.Import.Start": "Importando para a imagem {0}.",
   "Image.Status.Import.Cancel": "Importação de imagem cancelada.",
-  "Image.Status.Import.Success": "Imagem importada com sucesso.", // TODO
+  "Image.Status.Import.Success": "Imagem importada com sucesso.",
   "Image.Status.Import.Failure": "Falha na importação da imagem.",
 
   // Indexed PictureBox
@@ -231,12 +231,12 @@
 
   // Generate
   "Font.Generate.Caption": "Gerar Fonte",
-  // "Font.Generate.Edit.Caption": "Edit Characters", // TODO
-  // "Font.Generate.Remove.Caption": "Remove Characters", // TODO
-  // "Font.Generate.Remap.Caption": "Remap Characters", // TODO
-  // "Font.Generate.Change.Caption": "Change Character", // TODO
-  // "Font.Generate.Change.Placeholder": "¥, \\uFFE5", // TODO
-  // "Font.Generate.Change.Error": "Character {0} already exists in font.", // TODO
+  "Font.Generate.Edit.Caption": "Editar Caracteres",
+  "Font.Generate.Remove.Caption": "Remover Caracteres",
+  "Font.Generate.Remap.Caption": "Remapear Caracteres",
+  "Font.Generate.Change.Caption": "Alterar Caracteres",
+  "Font.Generate.Change.Placeholder": "¥, \\uFFE5",
+  "Font.Generate.Change.Error": "O caractere {0} já existe na fonte.",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -280,7 +280,7 @@
 
   // Update Available Dialog
   "Dialog.UpdateAvailable.Caption": "Atualização disponível",
-  "Dialog.UpdateAvailable.Text": "Deseja atualizar de {0}-{1} para {2}-{3}?",
+  "Dialog.UpdateAvailable.Text": "Deseja atualizar da versão {0}-{1} para a versão {2}-{3}?",
 
   // Exception Dialog
   "Dialog.ExceptionCatched.Caption": "Exceção encontrada",
@@ -299,22 +299,22 @@
   "Dialog.DependantFiles.Text": "Todos os arquivos abertos a partir deste também serão fechados. Continuar?",
 
   // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+  "Dialog.Deprecated.Caption": "Plugin Descontinuado",
+  "Dialog.Deprecated.Text.General": "O Kuriimu2 não oferece mais suporte a esse formato de arquivo com o plugin '{0}'.",
+  "Dialog.Deprecated.Text.Alternatives": "Considere usar uma das seguintes alternativas no lugar dele:",
 
   // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+  "Dialog.Font.Remove.Caption": "Remover Caracteres",
+  "Dialog.Font.Remove.Text": "Deseja remover da fonte os caracteres selecionados?",
 
   // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  "Dialog.Font.Remapping.Caption": "Remapear Caracteres",
+  "Dialog.Font.Remapping.Text": "Escolha um intervalo contínuo de caracteres a serem remapeados:",
+  "Dialog.Font.Remapping.Remap": "Remapear",
 
   // Batch Reuse Options Dialog
-  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
-  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+  "Dialog.Batch.ReuseOptions.Caption": "Reutilizar Opções",
+  "Dialog.Batch.ReuseOptions.Text": "Deseja reutilizar as mesmas opções para os arquivos seguintes?",
 
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
@@ -356,7 +356,7 @@
   "Dialog.Tools.Checksums.Input.SubDirectories": "Subdiretórios",
   "Dialog.Tools.Checksums.Input.Parameters": "Parâmetros",
   "Dialog.Tools.Checksums.Log.Process": "Processando arquivo {0}.",
-  // "Dialog.Tools.Checksums.Log.Result": "Checksum for file {0} is 0x{1}.", // TODO
+  "Dialog.Tools.Checksums.Log.Result": "O Checksum do arquivo {0} é 0x{1}.",
   "Dialog.Tools.Checksums.Log.Error": "Erro ao processar arquivo {0}.",
   "Dialog.Tools.Checksums.Progress": "Processar",
   "Dialog.Tools.Checksums.Progress.Value": "Processar - {0:0.00}%",
@@ -399,23 +399,23 @@
   "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Copiar: Alt + C",
 
   // Sequence Search Dialog
-  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Caption": "Buscador de Sequência de Texto",
   "Dialog.Tools.TextSequenceSearcher.Execute": "Executar",
   "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Selecionar pasta",
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Selecionar arquivo",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdiretórios",
   "Dialog.Tools.TextSequenceSearcher.Progress": "Processar",
-  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Cancelar",
-  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Path": "Caminho",
+  "Dialog.Tools.TextSequenceSearcher.Offset": "Posição",
+  "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Texto a ser buscado...",
 
   // Batch Dialog
-  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
-  // "Dialog.Tools.Batch.Export": "Export", // TODO
-  // "Dialog.Tools.Batch.Import": "Import", // TODO
-  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Caption": "Operações em Massa",
+  "Dialog.Tools.Batch.Export": "Exportar",
+  "Dialog.Tools.Batch.Import": "Importar",
+  "Dialog.Tools.Batch.SelectPlugin": "Selecionar plugin",
   "Dialog.Tools.Batch.Execute": "Executar",
   "Dialog.Tools.Batch.Input.Folder": "Selecionar pasta",
   "Dialog.Tools.Batch.Input.SubDirectories": "Subdiretórios",
@@ -424,10 +424,10 @@
   "Dialog.Tools.Batch.Progress": "Processar",
   "Dialog.Tools.Batch.Progress.Value": "Processar - {0:0.00}%",
   "Dialog.Tools.Batch.Cancel": "Cancelar",
-  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
-  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
-  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
-  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Text": "Parâmetros de Texto",
+  "Dialog.Tools.Batch.Text.Kup": "KUP",
+  "Dialog.Tools.Batch.Text.Po": "PO",
+  "Dialog.Tools.Batch.Text.SelectPlugin": "Selecionar plugin",
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Plugins instalados",
@@ -443,16 +443,16 @@
   "Dialog.Plugins.Installed.Type.Text": "Texto",
 
   // File Preferences Dialog
-  // "Dialog.Preferences.Caption": "File Preferences", // TODO
-  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Caption": "Preferências de Arquivo",
+  "Dialog.Preferences.Path": "Caminho",
   "Dialog.Preferences.Id": "ID",
   "Dialog.Preferences.Name": "Nome",
-  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+  "Dialog.Preferences.Type.Caption": "Tipo",
   "Dialog.Preferences.Type.Archive": "Contêiner de dados",
   "Dialog.Preferences.Type.Image": "Imagem",
   "Dialog.Preferences.Type.Font": "Fonte",
   "Dialog.Preferences.Type.Text": "Texto",
-  // "Dialog.Preferences.Options": "Options", // TODO
+  "Dialog.Preferences.Options": "Opções",
 
   // About Dialog
   "Dialog.About.Caption": "Sobre o Kuriimu",
@@ -474,7 +474,7 @@
   "Dialog.Plugins.ManualSelection.ShowAll": "Mostrar todos os plugins",
 
   // Plugin Selection Dialog
-  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Caption": "Selecionar plugin",
   "Dialog.Plugins.Selection.Id": "ID",
   "Dialog.Plugins.Selection.Name": "Nome",
   "Dialog.Plugins.Selection.Publisher": "Publicadora",
@@ -485,11 +485,11 @@
   "Dialog.Plugins.Selection.Type.Image": "Imagem",
   "Dialog.Plugins.Selection.Type.Font": "Fonte",
   "Dialog.Plugins.Selection.Type.Text": "Texto",
-  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
+  "Dialog.Plugins.Selection.Type.Game": "Jogo",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Geração de Fonte",
-  // "Dialog.Font.Edit.Caption": "Edit Characters", // TODO
+  "Dialog.Font.Edit.Caption": "Editar Caracteres",
   "Dialog.Font.Generate.Family": "Família da Fonte",
   "Dialog.Font.Generate.Style": "Estilo da Fonte",
   "Dialog.Font.Generate.Size": "Tamanho da Fonte",
@@ -497,7 +497,7 @@
   "Dialog.Font.Generate.GlyphHeight": "Altura do glifo",
   "Dialog.Font.Generate.SpaceWidth": "Largura do espaço",
   "Dialog.Font.Generate.Characters": "Caracteres",
-  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Characters.Replace": "Substituir caracteres ao carregar perfil",
   "Dialog.Font.Generate.Style.Bold": "Negrito",
   "Dialog.Font.Generate.Style.Italic": "Itálico",
   "Dialog.Font.Generate.Load": "Carregar",
@@ -506,7 +506,7 @@
   "Dialog.Font.Generate.Save.Caption": "Salvar perfil de fonte...",
   "Dialog.Font.Generate.Profile": "Perfil de Fonte",
   "Dialog.Font.Generate.Generate": "Gerar",
-  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Edit.Edit": "Editar",
   "Dialog.Font.Generate.Padding.Left": "Margem esquerda",
   "Dialog.Font.Generate.Padding.Right": "Margem direita"
 }
