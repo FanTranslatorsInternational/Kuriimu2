@@ -221,6 +221,7 @@ namespace plugin_level5.Common.Image
             result.AddColorEncoding(0x03, ImageFormats.Rgb888());
             result.AddColorEncoding(0x0E, ImageFormats.A8());
             result.AddColorEncoding(0x1D, ImageFormats.Dxt1());
+            result.AddColorEncoding(0x1F, ImageFormats.Dxt5());
 
             return result;
         }
