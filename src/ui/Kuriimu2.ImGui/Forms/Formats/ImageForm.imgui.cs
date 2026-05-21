@@ -64,7 +64,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
             _formatTextLbl = new Label(LocalizationResources.ImageLabelFormat);
             _paletteTextLbl = new Label(LocalizationResources.ImageLabelPalette);
-            _formatBox = new ComboBox<int> { MaxShowItems = 10, ShowBorder = true };
+            _formatBox = new ComboBox<int> { MaxShowItems = 10 };
             _paletteBox = new ComboBox<int> { MaxShowItems = 10 };
 
             _imageBox = new ZoomablePictureBox { ShowBorder = true };
