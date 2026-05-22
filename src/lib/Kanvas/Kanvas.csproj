@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <BuildNuget>true</BuildNuget>
+    <BuildNuget>false</BuildNuget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BuildNuget)'=='true'">
