@@ -1,9 +1,7 @@
 name: Kuriimu2 Release
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,27 +10,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: nuget/setup-nuget@v1
+    - uses: nuget/setup-nuget@v2
 
-   # Setup the build
     - name: Wait for other release builds
       uses: softprops/turnstyle@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 3.1.302
+        dotnet-version: 8.0
 
-    - name: Setup NuGet sources
-      run: |
-        nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
-        nuget sources add -name EtoFeed -source https://www.myget.org/F/eto/api/v3/index.json -verbosity detailed
-
-    # Setup release version manifests
     - name: Get manifest version
-      id: set_version
+      id: version
       uses: notiz-dev/github-action-json-property@release
       with: 
         path: './version.json'
@@ -40,248 +31,146 @@ jobs:
 
     - name: Create manifests
       run: |
-        mkdir ./update/Eto/Wpf
-        mkdir ./update/Eto/Gtk
-        mkdir ./update/Eto/Mac
-        mkdir ./update/Cmd/Windows
-        mkdir ./update/Cmd/Linux
-        mkdir ./update/Cmd/Mac
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Eto/Wpf/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Eto/Gtk/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.app" }' > ./update/Eto/Mac/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Cmd/Windows/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Cmd/Linux/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Cmd/Mac/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}" }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}" }' > ./src/Kuriimu2.Cmd/Resources/version.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}" }' > ./src/ui/Kuriimu2.ImGui/Resources/version.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}" }' > ./src/ui/Kuriimu2.Cmd/Resources/version.json
 
-    # Publish applications
-    - name: Publish EtoForms for Windows
+    - name: Setup NuGet sources
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Eto/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
-        mv ./dist/final/Eto/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Eto/Wpf/Kuriimu2.exe
-        rm ./dist/final/Eto/Wpf/*.pdb
+        dotnet nuget update source Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish EtoForms for Linux
+    - name: Publish Kuriimu2.ImGui Mac
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Eto/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
-        mv ./dist/final/Eto/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Eto/Gtk/Kuriimu2
-        rm ./dist/final/Eto/Gtk/*.pdb
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime osx-x64 --output ./dist/imgui/final/Mac
+        mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
+        rm ./dist/final/Mac/*.pdb
 
-    - name: Publish EtoForms for Mac
+    - name: Publish Kuriimu2.Cmd Mac
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
-        mkdir ./dist/final/Eto/Mac
-        mv ./dist/Release/netcoreapp31/Kuriimu2.EtoForms.Mac.app ./dist/final/Eto/Mac/Kuriimu2.app
-        mv ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime osx-x64 --output ./dist/cmd/final/Mac
+        mv ./dist/final/Mac/Kuriimu2.Cmd ./dist/final/Mac/Kuriimu2
+        rm ./dist/final/Mac/*.pdb
 
-    - name: Publish CommandLine for Windows
+    - name: Publish Kuriimu2.ImGui Windows
       run: |
-        dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd/Windows --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
-        mv ./dist/final/Cmd/Windows/Kuriimu2.Cmd.exe ./dist/final/Cmd/Windows/Kuriimu2.exe
-        rm ./dist/final/Cmd/Windows/*.pdb
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime win-x64 --output ./dist/imgui/final/Windows
+        mv ./dist/final/Windows/Kuriimu2.ImGui.exe ./dist/final/Windows/Kuriimu2.exe
+        rm ./dist/final/Windows/*.pdb
 
-    - name: Publish CommandLine for Linux
+    - name: Publish Kuriimu2.Cmd Windows
       run: |
-        dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd/Linux --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
-        mv ./dist/final/Cmd/Linux/Kuriimu2.Cmd ./dist/final/Cmd/Linux/Kuriimu2
-        rm ./dist/final/Cmd/Linux/*.pdb
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime win-x64 --output ./dist/cmd/final/Windows
+        mv ./dist/final/Windows/Kuriimu2.Cmd.exe ./dist/final/Windows/Kuriimu2.exe
+        rm ./dist/final/Windows/*.pdb
 
-    - name: Publish CommandLine for Mac
+    - name: Publish Kuriimu2.ImGui Linux
       run: |
-        dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd/Mac --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
-        mv ./dist/final/Cmd/Mac/Kuriimu2.Cmd ./dist/final/Cmd/Mac/Kuriimu2
-        rm ./dist/final/Cmd/Mac/*.pdb
+        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime linux-x64 --output ./dist/imgui/final/Linux
+        mv ./dist/final/Linux/Kuriimu2.ImGui ./dist/final/Linux/Kuriimu2
+        rm ./dist/final/Linux/*.pdb
 
-    # Publish libraries as nuget packages
-    - name: Pack libraries
+    - name: Publish Kuriimu2.Cmd Linux
       run: |
-        dotnet build ./src/Kontract/Kontract.csproj --configuration Release
-        dotnet build ./src/Komponent/Komponent.csproj --configuration Release
-        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
-        dotnet build ./src/Kompression/Kompression.csproj --configuration Release
-        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
-        dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
-        dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
-        dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
-        dotnet pack ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
-        dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+        dotnet publish ./src/ui/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime linux-x64 --output ./dist/cmd/final/Linux
+        mv ./dist/final/Linux/Kuriimu2.Cmd ./dist/final/Linux/Kuriimu2
+        rm ./dist/final/Linux/*.pdb
 
-    # Publish plugins
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Capcom/Capcom.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/DreamCatcher/DreamCatcher.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/HuneX/HuneX.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Kadokawa/Kadokawa.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KhronosGroup/KhronosGroup.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/MercurySteam/MercurySteam.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Primula/Primula.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sega/Sega.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Shade/Shade.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sony/Sony.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SpikeChunsoft/SpikeChunsoft.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/StingEntertainment/StingEntertainment.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/SuperflatGames/SuperflatGames.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/ArcSystemWorks/ArcSystemWorks.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Atlus/Atlus.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/BandaiNamco/BandaiNamco.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Beeworks/Beeworks.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Capcom/Capcom.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Circus/Circus.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Criware/Criware.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/DotEmu/DotEmu.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/DreamCatcher/DreamCatcher.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Enterbrain/Enterbrain.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Felistella/Felistella.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/FurYu/FurYu.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Gust/Gust.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/HeadstrongGames/HeadstrongGames.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/HuneX/HuneX.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/IntiCreates/IntiCreates.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Kadokawa/Kadokawa.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/KhronosGroup/KhronosGroup.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/KoeiTecmo/KoeiTecmo.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Konami/Konami.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Level5/Level5.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/MercurySteam/MercurySteam.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Nintendo/Nintendo.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/PowerVR/PowerVR.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Primula/Primula.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Sega/Sega.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Shade/Shade.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Sony/Sony.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SpikeChunsoft/SpikeChunsoft.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SquareEnix/SquareEnix.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/StingEntertainment/StingEntertainment.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SuperflatGames/SuperflatGames.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/TamSoft/TamSoft.sln 
+        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/VBlankEntertainment/VBlankEntertainment.sln 
         rm ./dist/final/plugins/*.pdb
         rm ./dist/final/plugins/*.deps.json
 
-    - name: Copy plugins to applications
+    - name: Copy plugins to Kuriimu2 folder
       run: |
-        xcopy /I .\dist\final\plugins .\dist\final\Eto\Wpf\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Eto\Gtk\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Eto\Mac\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Cmd\Windows\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Cmd\Linux\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Cmd\Mac\plugins
+        xcopy /I .\dist\final\plugins .\dist\imgui\final\Windows\plugins
+        xcopy /I .\dist\final\plugins .\dist\imgui\final\Linux\plugins
+        xcopy /I .\dist\final\plugins .\dist\imgui\final\Mac\plugins
+        xcopy /I .\dist\final\plugins .\dist\cmd\final\Windows\plugins
+        xcopy /I .\dist\final\plugins .\dist\cmd\final\Linux\plugins
+        xcopy /I .\dist\final\plugins .\dist\cmd\final\Mac\plugins
       shell: cmd
 
-    # Prepare release archives
-    - name: Zip EtoForms Windows release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.ImGui Windows release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Eto/Wpf
-        dest: ./update/Eto/Wpf/latest.zip
+        files: ./dist/imgui/final/Windows
+        dest: ./release/imgui/Windows/latest.zip
 
-    - name: Zip EtoForms Linux release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.ImGui Linux release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Eto/Gtk
-        dest: ./update/Eto/Gtk/latest.zip
+        files: ./dist/imgui/final/Linux
+        dest: ./release/imgui/Linux/latest.zip
 
-    - name: Zip EtoForms Mac release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.ImGui Mac release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Eto/Mac
-        dest: ./update/Eto/Mac/latest.zip
+        files: ./dist/imgui/final/Mac
+        dest: ./release/imgui/Mac/latest.zip
 
-    - name: Zip Cmd Windows release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.Cmd Windows release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Cmd/Windows
-        dest: ./update/Cmd/Windows/latest.zip
+        files: ./dist/cmd/final/Windows
+        dest: ./release/cmd/Windows/latest.zip
 
-    - name: Zip Cmd Linux release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.Cmd Linux release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Cmd/Linux
-        dest: ./update/Cmd/Linux/latest.zip
+        files: ./dist/cmd/final/Linux
+        dest: ./release/cmd/Linux/latest.zip
 
-    - name: Zip Cmd Mac release
-      uses: vimtor/action-zip@v1
+    - name: Zip Kuriimu2.Cmd Mac release
+      uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final/Cmd/Mac
-        dest: ./update/Cmd/Mac/latest.zip
+        files: ./dist/cmd/final/Mac
+        dest: ./release/cmd/Mac/latest.zip
 
-    # Sign release packages
-    - name: Install openSSL
-      uses: crazy-max/ghaction-chocolatey@v1
-      with:
-        args: install openssl.light
-      
-    - name: Sign releases
+    - name: Rename builds
       run: |
-        echo "$PRIVATE_KEY_CMD" > cmd.pem
-        echo "$PRIVATE_KEY_ETOFORMS" > etoforms.pem
-        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Wpf/latest.sig ./update/Eto/Wpf/latest.zip
-        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Gtk/latest.sig ./update/Eto/Gtk/latest.zip
-        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Mac/latest.sig ./update/Eto/Mac/latest.zip
-        openssl dgst -sha512 -sign cmd.pem -out ./update/Cmd/Windows/latest.sig ./update/Cmd/Windows/latest.zip
-        openssl dgst -sha512 -sign cmd.pem -out ./update/Cmd/Linux/latest.sig ./update/Cmd/Linux/latest.zip
-        openssl dgst -sha512 -sign cmd.pem -out ./update/Cmd/Mac/latest.sig ./update/Cmd/Mac/latest.zip
-      shell: bash
-      env:
-        PRIVATE_KEY_CMD: ${{secrets.PRIVATE_KEY_CMD}}
-        PRIVATE_KEY_ETOFORMS: ${{secrets.PRIVATE_KEY_ETOFORMS}}
-      
-    # Upload releases to update repositories
-    - name: Clone update repositories
-      run: |
-        git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_eto_repo
-        git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update_cmd_repo
-        
-    - name: Move update files to update repos
-      run: |
-        mv -Force ./update/Eto/Wpf/* ./update_eto_repo/Wpf
-        mv -Force ./update/Eto/Gtk/* ./update_eto_repo/Gtk
-        mv -Force ./update/Eto/Mac/* ./update_eto_repo/Mac
-        mv -Force ./update/Cmd/Windows/* ./update_cmd_repo/Windows
-        mv -Force ./update/Cmd/Linux/* ./update_cmd_repo/Linux
-        mv -Force ./update/Cmd/Mac/* ./update_cmd_repo/Mac
-        
-    - name: Commit releases to EtoForms update repository
-      run: |
-        cd ./update_eto_repo
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add *
-        git commit -m "Update binaries" -a
+        mv ./release/imgui/Windows/latest.zip ./Kuriimu2.ImGui_Win_${{ steps.version.outputs.prop }}.zip
+        mv ./release/imgui/Linux/latest.zip ./Kuriimu2.ImGui_Linux_${{ steps.version.outputs.prop }}.zip
+        mv ./release/imgui/Mac/latest.zip ./Kuriimu2.ImGui_Mac_${{ steps.version.outputs.prop }}.zip
+        mv ./release/cmd/Windows/latest.zip ./Kuriimu2.Cmd_Win_${{ steps.version.outputs.prop }}.zip
+        mv ./release/cmd/Linux/latest.zip ./Kuriimu2.Cmd_Linux_${{ steps.version.outputs.prop }}.zip
+        mv ./release/cmd/Mac/latest.zip ./Kuriimu2.Cmd_Mac_${{ steps.version.outputs.prop }}.zip
 
-    - name: Commit release to CommandLine update repository
-      run: |
-        cd ./update_cmd_repo
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add *
-        git commit -m "Update binaries" -a
-        
-    - name: Push releases to EtoForms update repo
-      uses: ad-m/github-push-action@master
+    - uses: ncipollo/release-action@v1
       with:
-        directory: ./update_eto_repo
-        repository: FanTranslatorsInternational/Kuriimu2-EtoForms-Update
-        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
-
-    - name: Push release to CommandLine update repo
-      uses: ad-m/github-push-action@master
-      with:
-        directory: ./update_cmd_repo
-        repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
-        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
-    
-    # Create github release for EtoForms
-    - name: Rename releases
-      run: |
-        mv ./update_eto_repo/Wpf/latest.zip ./update_eto_repo/Wpf/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_win.zip
-        mv ./update_eto_repo/Gtk/latest.zip ./update_eto_repo/Gtk/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_linux.zip
-        mv ./update_eto_repo/Mac/latest.zip ./update_eto_repo/Mac/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_mac.zip
-        mv ./update_cmd_repo/Windows/latest.zip ./update_cmd_repo/Windows/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_win.zip
-        mv ./update_cmd_repo/Linux/latest.zip ./update_cmd_repo/Linux/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_linux.zip
-        mv ./update_cmd_repo/Mac/latest.zip ./update_cmd_repo/Mac/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_mac.zip
-
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        name: Release ${{ steps.set_version.outputs.prop }}
-        draft: false
-        prerelease: false
-        body_path: changelog.txt
-        tag_name: ${{ steps.set_version.outputs.prop }}
-        files: |
-          update_eto_repo/Wpf/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_win.zip
-          update_eto_repo/Gtk/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_linux.zip
-          update_eto_repo/Mac/Kuriimu2_v${{ steps.set_version.outputs.prop }}_gui_mac.zip
-          update_cmd_repo/Windows/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_win.zip
-          update_cmd_repo/Linux/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_linux.zip
-          update_cmd_repo/Mac/Kuriimu2_v${{ steps.set_version.outputs.prop }}_cmd_mac.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "./Kuriimu2.ImGui_Win_${{ steps.version.outputs.prop }}.zip,./Kuriimu2.ImGui_Linux_${{ steps.version.outputs.prop }}.zip,./Kuriimu2.ImGui_Mac_${{ steps.version.outputs.prop }}.zip,./Kuriimu2.Cmd_Win_${{ steps.version.outputs.prop }}.zip,./Kuriimu2.Cmd_Linux_${{ steps.version.outputs.prop }}.zip,./Kuriimu2.Cmd_Mac_${{ steps.version.outputs.prop }}.zip"
+        tag: ${{ steps.version.outputs.prop }}
