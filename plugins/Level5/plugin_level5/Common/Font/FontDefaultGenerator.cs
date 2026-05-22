@@ -4,6 +4,7 @@ using Kaligraphy.Contract.DataClasses;
 using Kaligraphy.Generation;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using plugin_level5.Common.Font.Models;
+using plugin_level5.Common.Image.Models;
 using SixLabors.ImageSharp;
 
 namespace plugin_level5.Common.Font
@@ -29,9 +30,30 @@ namespace plugin_level5.Common.Font
                     }
                 })
                 .ToArray();
-            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphData, fontImageData.Images.Length);
+            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphData);
 
-            // Set image
+            // Resize image list
+            var images = new ImageData[glyphImages.Count];
+            for (var i = 0; i < glyphImages.Count; i++)
+            {
+                if (i < fontImageData.Images.Length)
+                {
+                    images[i] = fontImageData.Images[i];
+                    continue;
+                }
+
+                images[i] = new ImageData
+                {
+                    Version = fontImageData.Images[0].Version,
+                    LegacyData = fontImageData.Images[0].LegacyData,
+                    Image = fontImageData.Images[0].Image.Clone(),
+                    KtxState = null
+                };
+            }
+
+            fontImageData.Images = images;
+
+            // Set images
             var characterLookup = characters.ToDictionary(x => x.CodePoint);
 
             var largeGlyphs = new Dictionary<char, FontGlyphData>();
@@ -68,7 +90,7 @@ namespace plugin_level5.Common.Font
                 Glyphs = new Dictionary<char, FontGlyphData>()
             };
 
-            //  Set glyphs without representation on channel 0
+            //  Set glyphs without representation on image 0
             foreach (CharacterInfo character in characters.Where(c => c.Glyph is null))
                 largeGlyphs[character.CodePoint] = new FontGlyphData
                 {
