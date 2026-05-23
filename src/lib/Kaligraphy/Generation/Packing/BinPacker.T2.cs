@@ -1,22 +1,13 @@
 ﻿using Kaligraphy.Contract.DataClasses.Generation.Packing;
 using Kaligraphy.Contract.Generation.Packing;
-using Kaligraphy.DataClasses.Generation.Packing;
 using SixLabors.ImageSharp;
 
 namespace Kaligraphy.Generation.Packing;
 
-public abstract class BinPacker<TElement, TPacked>(Size canvasSize, Size margin) : IBinPacker<TElement, TPacked>
+public abstract class BinPacker<TElement, TPacked> : IBinPacker<TElement, TPacked>
     where TPacked : PackedElement<TElement>
 {
-    /// <summary>
-    /// Gets the total size of the canvas.
-    /// </summary>
-    protected Size CanvasSize { get; } = canvasSize;
-
-    /// <summary>
-    /// The margin between all elements.
-    /// </summary>
-    protected Size Margin { get; } = new(margin);
+    public abstract Size CanvasSize { get; }
 
     /// <summary>
     /// Pack an enumeration of white space adjusted glyphs into the given canvas.
@@ -25,11 +16,7 @@ public abstract class BinPacker<TElement, TPacked>(Size canvasSize, Size margin)
     /// <returns>Position information to a glyph.</returns>
     public IEnumerable<TPacked> Pack(IEnumerable<TElement> elements)
     {
-        var rootNode = new BinPackerNode
-        {
-            Position = Point.Empty,
-            Size = CanvasSize - Margin
-        };
+        Reset();
 
         foreach (TElement element in elements.OrderByDescending(CalculateVolume))
         {
@@ -41,14 +28,25 @@ public abstract class BinPacker<TElement, TPacked>(Size canvasSize, Size margin)
                 continue;
             }
 
-            BinPackerNode? foundNode = FindNode(rootNode, elementSize);
-            if (foundNode == null)
+            if (!TryInsert(elementSize, out Point position))
                 continue;
 
-            SplitNode(foundNode, elementSize);
-            yield return CreatePackedElement(element, foundNode.Position);
+            yield return CreatePackedElement(element, position);
         }
     }
+
+    /// <summary>
+    /// Resets the instance to receive a new set of elements.
+    /// </summary>
+    protected abstract void Reset();
+
+    /// <summary>
+    /// Tries to insert a given element with <param name="size" />.
+    /// </summary>
+    /// <param name="size">The size of the element.</param>
+    /// <param name="position">The position at which the element was inserted.</param>
+    /// <returns>If the element was inserted.</returns>
+    protected abstract bool TryInsert(Size size, out Point position);
 
     /// <summary>
     /// Calculates the volume of an element.
@@ -71,57 +69,4 @@ public abstract class BinPacker<TElement, TPacked>(Size canvasSize, Size margin)
     /// <param name="position">The position of the element.</param>
     /// <returns>The packed element.</returns>
     protected abstract TPacked CreatePackedElement(TElement element, Point position);
-
-    /// <summary>
-    /// Find a node to fit the box in.
-    /// </summary>
-    /// <param name="node">The current node to search through.</param>
-    /// <param name="boxSize">The size of the box.</param>
-    /// <returns>The found node.</returns>
-    private static BinPackerNode? FindNode(BinPackerNode node, Size boxSize)
-    {
-        if (node.IsOccupied)
-        {
-            BinPackerNode? nextNode = null;
-            if (node.BottomNode is not null)
-            {
-                nextNode = FindNode(node.BottomNode, boxSize);
-                if (nextNode is null && node.RightNode is not null)
-                    nextNode = FindNode(node.RightNode, boxSize);
-            }
-            else
-            {
-                if (node.RightNode is not null)
-                    nextNode = FindNode(node.RightNode, boxSize);
-            }
-
-            return nextNode;
-        }
-
-        if (boxSize.Width <= node.Size.Width && boxSize.Height <= node.Size.Height)
-            return node;
-
-        return null;
-    }
-
-    /// <summary>
-    /// Splits a node to fit the box.
-    /// </summary>
-    /// <param name="node">The node to split.</param>
-    /// <param name="boxSize">The size of the box.</param>
-    private static void SplitNode(BinPackerNode node, Size boxSize)
-    {
-        node.IsOccupied = true;
-
-        node.RightNode = new BinPackerNode
-        {
-            Position = new Point(node.Position.X + boxSize.Width, node.Position.Y),
-            Size = new Size(node.Size.Width - boxSize.Width, node.Size.Height)
-        };
-        node.BottomNode = new BinPackerNode
-        {
-            Position = new Point(node.Position.X, node.Position.Y + boxSize.Height),
-            Size = new Size(boxSize.Width, node.Size.Height - boxSize.Height)
-        };
-    }
 }

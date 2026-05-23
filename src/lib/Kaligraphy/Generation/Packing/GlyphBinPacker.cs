@@ -4,16 +4,16 @@ using SixLabors.ImageSharp;
 
 namespace Kaligraphy.Generation.Packing;
 
-public class FontBinPacker(Size canvasSize, int margin)
-    : BinPacker<GlyphData, PackedGlyphData>(canvasSize, new Size(margin))
+public abstract class GlyphBinPacker(int margin)
+    : BinPacker<GlyphData, PackedGlyphData>
 {
     protected override int CalculateVolume(GlyphData element)
     {
         if (element.Description.Size == Size.Empty)
             return 0;
 
-        return (element.Description.Size.Width + Margin.Width) *
-               (element.Description.Size.Height + Margin.Height);
+        return (element.Description.Size.Width + margin) *
+               (element.Description.Size.Height + margin);
     }
 
     protected override Size CalculateSize(GlyphData element)
@@ -21,8 +21,9 @@ public class FontBinPacker(Size canvasSize, int margin)
         if (element.Description.Size == Size.Empty)
             return Size.Empty;
 
-        return new Size(element.Description.Size.Width + Margin.Width,
-            element.Description.Size.Height + Margin.Height);
+        return new Size(
+            element.Description.Size.Width + margin,
+            element.Description.Size.Height + margin);
     }
 
     protected override PackedGlyphData CreatePackedElement(GlyphData element, Point position)
@@ -30,9 +31,9 @@ public class FontBinPacker(Size canvasSize, int margin)
         return new PackedGlyphData
         {
             Element = element,
-            Position = element.Description.Size == Size.Empty 
-                ? Point.Empty 
-                : position + Margin
+            Position = element.Description.Size == Size.Empty
+                ? Point.Empty
+                : position + new Size(margin)
         };
     }
 }

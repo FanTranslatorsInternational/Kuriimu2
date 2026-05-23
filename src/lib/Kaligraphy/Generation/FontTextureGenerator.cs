@@ -1,9 +1,8 @@
 ﻿using Kaligraphy.Contract.DataClasses;
 using Kaligraphy.Contract.DataClasses.Generation;
 using Kaligraphy.Contract.DataClasses.Generation.Packing;
-using Kaligraphy.Generation.Packing;
+using Kaligraphy.Contract.Generation.Packing;
 using SixLabors.ImageSharp;
-
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -12,11 +11,9 @@ namespace Kaligraphy.Generation;
 /// <summary>
 /// Generates textures out of a given list of glyphs.
 /// </summary>
-public class FontTextureGenerator(Size canvasSize, int margin)
+public class FontTextureGenerator(IBinPacker<GlyphData, PackedGlyphData> packer)
 {
     private static readonly GraphicsOptions Options = new();
-
-    private readonly FontBinPacker _fontPacker = new(canvasSize, margin);
 
     /// <summary>
     /// Generate font textures for the given glyphs.
@@ -36,11 +33,11 @@ public class FontTextureGenerator(Size canvasSize, int margin)
                 break;
 
             // Create new font texture to draw on.
-            var fontCanvas = new Image<Rgba32>(canvasSize.Width, canvasSize.Height);
+            var fontCanvas = new Image<Rgba32>(packer.CanvasSize.Width, packer.CanvasSize.Height);
 
             // Draw each positioned glyph on the font texture
             var packedGlyphs = new List<PackedGlyphData>(remainingGlyphs.Count);
-            foreach (PackedGlyphData packedGlyph in _fontPacker.Pack(remainingGlyphs))
+            foreach (PackedGlyphData packedGlyph in packer.Pack(remainingGlyphs))
             {
                 // Ignore drawing empty, packed glyphs
                 if (packedGlyph.Element.Description.Size != Size.Empty)
