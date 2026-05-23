@@ -1,6 +1,7 @@
-﻿using Kaligraphy.Contract.DataClasses.Generation;
-using Kaligraphy.Contract.DataClasses;
+﻿using Kaligraphy.Contract.DataClasses;
+using Kaligraphy.Contract.DataClasses.Generation;
 using Kaligraphy.Contract.DataClasses.Generation.Packing;
+using Kaligraphy.Generation.Packing;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
@@ -11,6 +12,7 @@ using Konnect.Contract.Plugin.File.Image;
 using Konnect.Extensions;
 using Konnect.Plugin.File.Image;
 using plugin_mt_framework.Images;
+using RectangleBinPacking;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -125,7 +127,8 @@ namespace plugin_mt_framework.Fonts
             images = new List<Image<Rgba32>>();
 
             // Create font textures
-            var generator = new Kaligraphy.Generation.FontTextureGenerator(_imageFiles[0].ImageInfo.ImageSize, 1);
+            var packer = new GuillotineGlyphFontBinPacker(_imageFiles[0].ImageInfo.ImageSize, 1, false, GuillotineBinPack.FreeRectChoiceHeuristic.RectBestAreaFit);
+            var generator = new Kaligraphy.Generation.FontTextureGenerator(packer);
 
             GlyphData[] glyphData = characterInfos
                 .Where(c => c.Glyph is not null)
@@ -145,7 +148,7 @@ namespace plugin_mt_framework.Fonts
             // Create entries
             var entries = new List<GfdEntryv1>(characterInfos.Count);
 
-            IDictionary<char,CharacterInfo> characterLookup = characterInfos.ToDictionary(c => c.CodePoint);
+            IDictionary<char, CharacterInfo> characterLookup = characterInfos.ToDictionary(c => c.CodePoint);
             for (var i = 0; i < glyphImages.Count; i++)
             {
                 images.Add(glyphImages[i].Image);

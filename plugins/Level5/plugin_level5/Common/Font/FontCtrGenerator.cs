@@ -2,8 +2,10 @@
 using Kaligraphy.Contract.DataClasses.Generation;
 using Kaligraphy.Contract.DataClasses.Generation.Packing;
 using Kaligraphy.Generation;
+using Kaligraphy.Generation.Packing;
 using Konnect.Contract.DataClasses.Plugin.File.Font;
 using plugin_level5.Common.Font.Models;
+using RectangleBinPacking;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -57,7 +59,8 @@ namespace plugin_level5.Common.Font
         {
             // Pack glyphs
             Size canvasSize = fontImageData.Images[0].Image.ImageInfo.ImageSize;
-            var textureGenerator = new FontTextureGenerator(canvasSize, 1);
+            var packer = new GuillotineGlyphFontBinPacker(canvasSize, 1, false, GuillotineBinPack.FreeRectChoiceHeuristic.RectBestAreaFit);
+            var textureGenerator = new FontTextureGenerator(packer);
 
             GlyphData[] glyphData = characters
                 .Where(c => c.Glyph is not null)
