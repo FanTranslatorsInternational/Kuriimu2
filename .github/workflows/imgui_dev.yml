@@ -19,7 +19,7 @@ jobs:
     - uses: nuget/setup-nuget@v2
 
     - name: Wait for other dev builds
-      uses: softprops/turnstyle@v2
+      uses: softprops/turnstyle@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
