@@ -6,6 +6,11 @@
 public class FontSet
 {
     /// <summary>
+    /// The name of the font set. Optional.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
     /// The list of characters provided by the state.
     /// </summary>
     public required IReadOnlyList<CharacterInfo> Characters { get; init; }
