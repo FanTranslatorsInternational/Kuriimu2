@@ -17,7 +17,8 @@ public interface IAddCharacters : IFontFilePluginState
     /// <summary>
     /// Adds a newly created character to the file and allows the plugin to perform any required adding steps.
     /// </summary>
+    /// <param name="set">The font set to add the character to.</param>
     /// <param name="characterInfo">The characterInfo to add.</param>
     /// <returns>True if the character was added, False otherwise.</returns>
-    bool AddCharacter(CharacterInfo characterInfo);
+    bool AddCharacter(FontSet set, CharacterInfo characterInfo);
 }

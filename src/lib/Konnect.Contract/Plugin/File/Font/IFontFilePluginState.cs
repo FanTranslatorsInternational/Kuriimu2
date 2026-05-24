@@ -4,10 +4,7 @@ namespace Konnect.Contract.Plugin.File.Font;
 
 public interface IFontFilePluginState : IFilePluginState
 {
-    /// <summary>
-    /// The list of characters provided by the state.
-    /// </summary>
-    IReadOnlyList<CharacterInfo> Characters { get; }
+    IReadOnlyList<FontSet> Sets { get; }
 
     #region Optional feature support checks
 
@@ -19,9 +16,9 @@ public interface IFontFilePluginState : IFilePluginState
     #region Optional feature casting defaults
 
     CharacterInfo? AttemptCreateCharacterInfo(char codePoint) => (this as IAddCharacters)?.CreateCharacterInfo(codePoint);
-    bool AttemptAddCharacter(CharacterInfo characterInfo) => (this as IAddCharacters)?.AddCharacter(characterInfo) ?? false;
-    bool AttemptRemoveCharacter(CharacterInfo characterInfo) => (this as IRemoveCharacters)?.RemoveCharacter(characterInfo) ?? false;
-    void AttemptRemoveAll() => (this as IRemoveCharacters)?.RemoveAll();
+    bool AttemptAddCharacter(FontSet set, CharacterInfo characterInfo) => (this as IAddCharacters)?.AddCharacter(set, characterInfo) ?? false;
+    bool AttemptRemoveCharacter(FontSet set, CharacterInfo characterInfo) => (this as IRemoveCharacters)?.RemoveCharacter(set, characterInfo) ?? false;
+    void AttemptRemoveAll(FontSet set) => (this as IRemoveCharacters)?.RemoveAll(set);
 
     #endregion
 }
