@@ -1,4 +1,4 @@
-﻿using Kaligraphy.DataClasses.Parsing;
+﻿using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Parsing;
 using plugin_level5_preview.Preview.CharacterData;
 
@@ -88,7 +88,7 @@ namespace plugin_level5_preview.Preview
                 return true;
             }
 
-            textCharacter = new FontCharacterData { IsVisible = !context.IsFuriganaTop, IsPersistent = !context.IsFuriganaTop, Character = context.Text[position] };
+            textCharacter = new FontCharacterData { IsVisible = true, IsPersistent = true, Character = context.Text[position] };
             return true;
         }
 

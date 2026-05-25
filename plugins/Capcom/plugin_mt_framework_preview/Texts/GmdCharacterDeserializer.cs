@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.Parsing;
 using plugin_mt_framework_preview.Characters;

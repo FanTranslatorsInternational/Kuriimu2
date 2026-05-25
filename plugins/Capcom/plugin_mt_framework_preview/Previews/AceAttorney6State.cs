@@ -2,7 +2,6 @@
 using Kaligraphy.Contract.DataClasses.Layout;
 using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Layout;
-using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Rendering;
 using Kaligraphy.Layout;
 using Kaligraphy.Rendering;
@@ -32,15 +31,15 @@ namespace plugin_mt_framework_preview.Previews
 
         public async Task<IList<Image<Rgba32>>?> RenderPreviews(IList<IList<CharacterData>> characters)
         {
-            IReadOnlyList<CharacterInfo>? font = await GetFont();
-            if (font is null)
+            IReadOnlyList<FontSet>? sets = await GetFontSets();
+            if (sets is null)
                 return null;
 
             Image<Rgba32>? dialogueBox = GetDialogueBox();
             if (dialogueBox is null)
                 return null;
 
-            var glyphProvider = new FontPluginGlyphProvider(font);
+            var glyphProvider = new FontPluginGlyphProvider(sets[0].Characters);
             var layouter = new TextLayouter(new LayoutOptions { LineHeight = 24 }, glyphProvider);
             var renderer = new TextRenderer(new RenderOptions(), glyphProvider);
 
@@ -93,7 +92,7 @@ namespace plugin_mt_framework_preview.Previews
             return result;
         }
 
-        private async Task<IReadOnlyList<CharacterInfo>?> GetFont()
+        private async Task<IReadOnlyList<FontSet>?> GetFontSets()
         {
             string resourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "ace_attorney_6");
             if (!Directory.Exists(resourcePath))
@@ -103,13 +102,13 @@ namespace plugin_mt_framework_preview.Previews
             LoadResult loadResult = await _pluginManager.LoadFile(fileSystem, "font00_eng.gfd", Guid.Parse("e95928dd-31b9-445c-afbd-d692c694abae"));
 
             var fontState = loadResult.LoadedFileState?.PluginState as IFontFilePluginState;
-            IReadOnlyList<CharacterInfo>? characters = fontState?.Characters;
-            if (characters is null)
+            IReadOnlyList<FontSet>? sets = fontState?.Sets;
+            if (sets is null)
                 return null;
 
             _pluginManager.Close(loadResult.LoadedFileState!);
 
-            return characters;
+            return sets;
         }
 
         private Image<Rgba32>? GetDialogueBox()

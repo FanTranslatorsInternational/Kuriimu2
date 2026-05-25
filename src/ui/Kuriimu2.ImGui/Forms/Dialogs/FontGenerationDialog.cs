@@ -44,15 +44,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
         private const int DefaultPaddingRight_ = 0;
 
         private readonly IFontFilePluginState _fontState;
+        private readonly FontSet _set;
         private readonly FontGenerationType _type;
         private readonly FontProfileManager _profileManager = new();
 
         private bool _isProfile;
         private FontProfile _profile;
 
-        public FontGenerationDialog(IFontFilePluginState fontState, FontGenerationType type, string? selectedCharacters)
+        public FontGenerationDialog(IFontFilePluginState fontState, FontSet set, FontGenerationType type, string? selectedCharacters)
         {
             _fontState = fontState;
+            _set = set;
             _type = type;
 
             InitializeComponent(type, selectedCharacters);
@@ -197,7 +199,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void GenerateFont()
         {
-            _fontState.AttemptRemoveAll();
+            _fontState.AttemptRemoveAll(_set);
 
             Font font = GetFont();
             foreach (char character in _characterEditor.GetText().Distinct().Order())
@@ -229,7 +231,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
                 characterInfo.ContentChanged = true;
 
-                _fontState.AttemptAddCharacter(characterInfo);
+                _fontState.AttemptAddCharacter(_set, characterInfo);
             }
 
             Close(DialogResult.Ok);
@@ -243,7 +245,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 if (char.IsWhiteSpace(character) && _profile.SpaceWidth <= 0)
                     continue;
 
-                CharacterInfo? characterInfo = _fontState.Characters.FirstOrDefault(c => c.CodePoint == character);
+                CharacterInfo? characterInfo = _set.Characters.FirstOrDefault(c => c.CodePoint == character);
                 bool isNew = characterInfo is null;
 
                 if (characterInfo is null)
@@ -277,7 +279,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 characterInfo.ContentChanged = true;
 
                 if (isNew)
-                    _fontState.AttemptAddCharacter(characterInfo);
+                    _fontState.AttemptAddCharacter(_set, characterInfo);
             }
 
             Close(DialogResult.Ok);

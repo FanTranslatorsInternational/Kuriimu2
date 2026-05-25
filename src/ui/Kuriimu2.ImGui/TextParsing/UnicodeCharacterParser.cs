@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.Parsing;
 

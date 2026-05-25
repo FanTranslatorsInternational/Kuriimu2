@@ -18,13 +18,10 @@ namespace plugin_level5.Common.Plugins
         private bool _isChanged;
 
         private FontImageData? _fontImageData;
-        private List<CharacterInfo> _characters;
+        private List<FontSet> _sets;
+        private List<List<CharacterInfo>> _characters;
 
-        public IReadOnlyList<CharacterInfo> Characters => _characters;
-
-        public float Baseline { get; set; }
-
-        public float DescentLine { get => 0; set { } }
+        public IReadOnlyList<FontSet> Sets => _sets;
 
         public bool ContentChanged => IsContentChanged();
 
@@ -37,13 +34,14 @@ namespace plugin_level5.Common.Plugins
         {
             Stream filestream = await fileSystem.OpenFileAsync(filePath);
 
-            var fontParser = new FontParser(loadContext.DialogManager!, _fileManager);
+            var fontParser = new FontParser(loadContext.DialogManager, _fileManager);
             _fontImageData = await fontParser.Parse(filestream);
 
             if (_fontImageData is null)
                 throw new InvalidOperationException("No font data loaded.");
 
             _isChanged = false;
+            _sets = [];
             _characters = [];
 
             // Create character infos
@@ -52,9 +50,13 @@ namespace plugin_level5.Common.Plugins
                 : new GlyphDefaultProvider();
 
             FontGlyphsData largeFont = _fontImageData.Font.LargeFont;
+
+            var largeCharacters = new List<CharacterInfo>();
+            var largeSet = new FontSet { Characters = largeCharacters, Name = "Default" };
+
             foreach (char codePoint in largeFont.Glyphs.Keys)
             {
-                _characters.Add(new CharacterInfo
+                largeCharacters.Add(new CharacterInfo
                 {
                     CodePoint = codePoint,
                     BoundingBox = new Size(largeFont.Glyphs[codePoint].Width, largeFont.MaxHeight),
@@ -63,6 +65,26 @@ namespace plugin_level5.Common.Plugins
                     ContentChanged = false
                 });
             }
+
+            FontGlyphsData smallFont = _fontImageData.Font.SmallFont;
+
+            var smallCharacters = new List<CharacterInfo>();
+            var smallSet = new FontSet { Characters = smallCharacters, Name = "Furigana" };
+
+            foreach (char codePoint in smallFont.Glyphs.Keys)
+            {
+                smallCharacters.Add(new CharacterInfo
+                {
+                    CodePoint = codePoint,
+                    BoundingBox = new Size(smallFont.Glyphs[codePoint].Width, smallFont.MaxHeight),
+                    GlyphPosition = new Point(smallFont.Glyphs[codePoint].Description.X, smallFont.Glyphs[codePoint].Description.Y),
+                    Glyph = glyphProvider.GetGlyph(_fontImageData, smallFont.Glyphs[codePoint]),
+                    ContentChanged = false
+                });
+            }
+
+            _sets = [largeSet, smallSet];
+            _characters = [largeCharacters, smallCharacters];
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -79,7 +101,7 @@ namespace plugin_level5.Common.Plugins
 
             var fontComposer = new FontComposer(_fileManager);
 
-            _fontImageData = fontGenerator.Generate(_fontImageData, _characters);
+            _fontImageData = fontGenerator.Generate(_fontImageData, _characters[0], _characters[1]);
             await fontComposer.Compose(_fontImageData, fileStream);
 
             _isChanged = false;
@@ -95,37 +117,43 @@ namespace plugin_level5.Common.Plugins
             };
         }
 
-        public bool AddCharacter(CharacterInfo characterInfo)
+        public bool AddCharacter(FontSet set, CharacterInfo characterInfo)
         {
-            if (_characters.Contains(characterInfo))
+            var setIndex = _sets.IndexOf(set);
+
+            if (_characters[setIndex].Contains(characterInfo))
                 return false;
 
-            _characters.Add(characterInfo);
+            _characters[setIndex].Add(characterInfo);
             _isChanged = true;
 
             return true;
         }
 
-        public bool RemoveCharacter(CharacterInfo characterInfo)
+        public bool RemoveCharacter(FontSet set, CharacterInfo characterInfo)
         {
-            if (!_characters.Contains(characterInfo))
+            var setIndex = _sets.IndexOf(set);
+
+            if (!_characters[setIndex].Contains(characterInfo))
                 return false;
 
-            _characters.Remove(characterInfo);
+            _characters[setIndex].Remove(characterInfo);
             _isChanged = true;
 
             return true;
         }
 
-        public void RemoveAll()
+        public void RemoveAll(FontSet set)
         {
-            _characters.Clear();
+            var setIndex = _sets.IndexOf(set);
+
+            _characters[setIndex].Clear();
             _isChanged = true;
         }
 
         private bool IsContentChanged()
         {
-            return _characters.Any(x => x.ContentChanged) || _isChanged;
+            return _characters.Any(x => x.Any(y => y.ContentChanged)) || _isChanged;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Kaligraphy.DataClasses.Parsing;
+﻿using Kaligraphy.Contract.DataClasses.Parsing;
+using plugin_level5_preview.Preview.CharacterData;
 
 namespace plugin_level5_preview.Preview.Narration
 {
@@ -11,17 +12,16 @@ namespace plugin_level5_preview.Preview.Narration
             if (!isValid)
                 return false;
 
-            if (textCharacter is FontCharacterData fontCharacter)
-            {
-                textCharacter = new FontCharacterData
-                {
-                    IsVisible = fontCharacter.Character is not '＊' && fontCharacter.IsVisible,
-                    IsPersistent = fontCharacter.Character is not '＊' && fontCharacter.IsPersistent,
-                    Character = fontCharacter.Character
-                };
-            }
+            if (textCharacter is FuriganaCharacterData)
+                return true;
 
-            return isValid;
+            if (textCharacter is not FontCharacterData fontCharacter)
+                return true;
+
+            textCharacter.IsVisible &= fontCharacter.Character is not '＊';
+            textCharacter.IsPersistent &= fontCharacter.Character is not '＊';
+
+            return true;
         }
     }
 }

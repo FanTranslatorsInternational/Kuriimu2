@@ -8,20 +8,20 @@ using SixLabors.ImageSharp;
 
 namespace plugin_grezzo.Fonts
 {
-    class QbfState : ILoadFiles, ISaveFiles, IFontFilePluginState, IAddCharacters, IRemoveCharacters
+    class QbfState : ILoadFiles, ISaveFiles, IAddCharacters, IRemoveCharacters
     {
         private readonly Qbf _qbf = new();
         private List<CharacterInfo> _characters;
+        private FontSet _set;
 
-        public IReadOnlyList<CharacterInfo> Characters => _characters;
-        public float Baseline { get; set; }
-        public float DescentLine { get; set; }
+        public IReadOnlyList<FontSet> Sets => [_set];
         public bool ContentChanged => IsContentChanged();
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             _characters = _qbf.Load(fileStream);
+            _set = new FontSet { Characters = _characters };
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -45,19 +45,28 @@ namespace plugin_grezzo.Fonts
             };
         }
 
-        public bool AddCharacter(CharacterInfo characterInfo)
+        public bool AddCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             _characters.Add(characterInfo);
             return true;
         }
 
-        public bool RemoveCharacter(CharacterInfo characterInfo)
+        public bool RemoveCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             return _characters.Remove(characterInfo);
         }
 
-        public void RemoveAll()
+        public void RemoveAll(FontSet set)
         {
+            if (_set != set)
+                return;
+
             _characters.Clear();
         }
     }

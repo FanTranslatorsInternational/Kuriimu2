@@ -208,6 +208,7 @@ namespace Kuriimu2.ImGui.Resources
 
         // Labels
         public static LocalizedString FontSearchPlaceholder => LocalizedString.FromId("Font.Search.Placeholder");
+        public static LocalizedString FontSetText(int number) => LocalizedString.FromId("Font.Set.Text", () => number);
 
         // Preview
         public static LocalizedString FontPreviewPlaceholder => LocalizedString.FromId("Font.Preview.Placeholder");

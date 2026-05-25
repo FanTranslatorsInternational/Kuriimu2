@@ -15,7 +15,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private readonly List<GlyphElement> _selectedGlyphs = [];
 
-        public FontRemappingDialog(IFontFilePluginState fontState, IReadOnlyList<CharacterInfo> remapCharacters)
+        public FontRemappingDialog(FontSet set, IReadOnlyList<CharacterInfo> remapCharacters)
         {
             InitializeComponent();
 
@@ -23,7 +23,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             _remapButton.Clicked += RemapButton_Clicked;
 
-            SetGlyphs(fontState.Characters);
+            SetGlyphs(set.Characters);
         }
 
         private void RemapButton_Clicked(object? sender, EventArgs e)

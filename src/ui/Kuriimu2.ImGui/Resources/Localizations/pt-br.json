@@ -213,6 +213,7 @@
 
   // Labels
   "Font.Search.Placeholder": "Pesquisar: ¥, \\uFFE5",
+  // "Font.Set.Text": "Set {0}", // TODO
 
   // Preview
   "Font.Preview.Placeholder": "Pré-visualização",

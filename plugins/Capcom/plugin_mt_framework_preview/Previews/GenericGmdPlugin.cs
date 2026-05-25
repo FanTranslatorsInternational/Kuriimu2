@@ -1,6 +1,5 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin;
-using Konnect.Contract.DataClasses.Plugin.File.Text;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Plugin.Game;
 
@@ -21,7 +20,7 @@ namespace plugin_mt_framework_preview.Previews
             LongDescription = "Preview plugin for Ace Attorney 5."
         };
 
-        public IGamePluginState CreatePluginState(UPath filePath, IReadOnlyList<TextEntry> entries, IPluginFileManager pluginFileManager)
+        public IGamePluginState CreatePluginState(UPath filePath, IPluginFileManager pluginFileManager)
         {
             return _state ??= new GenericGmdState();
         }

@@ -22,7 +22,7 @@ namespace plugin_level5.Common.Plugins
         private bool _hasRemovedEntries;
 
         public IReadOnlyList<TextEntry> Texts => _texts;
-        public IReadOnlyList<Guid>? PreviewGuids { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47")];
+        public IReadOnlyList<Guid>? PreviewGuids { get; } = [Guid.Parse("a21a4442-ead0-4707-9b3d-caf7806e3a47"), Guid.Parse("06e459a5-cf80-4410-8070-c8c80a094e11")];
         public ITextEntryPager? Pager { get; } = new EventPager();
 
         public bool CanSetNewEntryName => false;

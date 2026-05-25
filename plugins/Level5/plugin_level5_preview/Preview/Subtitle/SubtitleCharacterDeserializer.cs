@@ -1,4 +1,5 @@
-﻿using Kaligraphy.DataClasses.Parsing;
+﻿using Kaligraphy.Contract.DataClasses.Parsing;
+using plugin_level5_preview.Preview.CharacterData;
 
 namespace plugin_level5_preview.Preview.Subtitle
 {
@@ -12,37 +13,28 @@ namespace plugin_level5_preview.Preview.Subtitle
             if (!isValid)
                 return false;
 
+            if (textCharacter is FuriganaCharacterData)
+                return true;
+
             if (textCharacter is not FontCharacterData fontCharacter)
                 return true;
 
-            if (fontCharacter.Character is '「')
+            switch (fontCharacter.Character)
             {
-                textCharacter = new FontCharacterData
-                {
-                    IsVisible = false,
-                    Character = fontCharacter.Character
-                };
+                case '「':
+                    textCharacter.IsVisible = false;
+                    context.IsSubtitle = true;
+                    break;
 
-                context.IsSubtitle = true;
-            }
-            else if (fontCharacter.Character is '」')
-            {
-                textCharacter = new FontCharacterData
-                {
-                    IsVisible = false,
-                    Character = fontCharacter.Character
-                };
+                case '」':
+                    textCharacter.IsVisible = false;
+                    context.IsSubtitle = false;
+                    break;
 
-                context.IsSubtitle = false;
-            }
-            else
-            {
-                textCharacter = new FontCharacterData
-                {
-                    IsVisible = fontCharacter.IsVisible && context.IsSubtitle,
-                    IsPersistent = fontCharacter.IsPersistent && context.IsSubtitle,
-                    Character = fontCharacter.Character
-                };
+                default:
+                    textCharacter.IsVisible &= context.IsSubtitle;
+                    textCharacter.IsPersistent &= context.IsSubtitle;
+                    break;
             }
 
             return true;

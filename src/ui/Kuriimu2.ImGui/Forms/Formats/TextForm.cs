@@ -588,7 +588,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (data is not TranslatedTextEntry entry)
                 return;
 
-            SetGamePreviewState(entry);
+            SetGamePreviewState();
 
             string translatedText = _editTextEditor.GetText();
 
@@ -742,10 +742,10 @@ namespace Kuriimu2.ImGui.Forms.Formats
             if (entry is null)
                 return;
 
+            SetGamePreviewState();
+
             if (entry is TranslatedTextEntryPage page)
             {
-                SetGamePreviewState(page);
-
                 PreprocessPage(page);
 
                 _origTextEditor.SetText(string.Empty);
@@ -759,8 +759,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
             else if (entry is TranslatedTextEntry translatedEntry)
             {
-                SetGamePreviewState(translatedEntry);
-
                 PreprocessEntry(translatedEntry, out string serializedOriginalText, out string serializedTranslatedText,
                     out string serializedControlText, out IList<CharacterData> parsedTranslatedText);
 
@@ -915,25 +913,14 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return [image];
         }
 
-        private void SetGamePreviewState(TranslatedTextEntry currentEntry)
+        private void SetGamePreviewState()
         {
-            IList<TextEntry> entries = [currentEntry.Entry];
-            if (currentEntry.Page is not null)
-                entries = currentEntry.Page.Page.Entries ?? [];
-
-            _selectedGameState = CreateGamePreviewState(entries);
+            _selectedGameState = CreateGamePreviewState();
         }
 
-        private void SetGamePreviewState(TranslatedTextEntryPage currentPage)
+        private IGamePluginState? CreateGamePreviewState()
         {
-            IList<TextEntry> entries = currentPage.Page.Entries ?? [];
-
-            _selectedGameState = CreateGamePreviewState(entries);
-        }
-
-        private IGamePluginState? CreateGamePreviewState(IList<TextEntry> entries)
-        {
-            return _selectedGamePlugin?.CreatePluginState(_state.FileState.FilePath, entries.AsReadOnly(), _fileManager);
+            return _selectedGamePlugin?.CreatePluginState(_state.FileState.FilePath, _fileManager);
         }
 
         private ICharacterParser GetCharacterParser()

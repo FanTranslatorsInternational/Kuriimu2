@@ -1,4 +1,4 @@
-﻿using Kaligraphy.DataClasses.Parsing;
+﻿using Kaligraphy.Contract.DataClasses.Parsing;
 
 namespace plugin_mt_framework_preview.Characters
 {

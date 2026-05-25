@@ -5,6 +5,6 @@ namespace plugin_level5.Common.Font
 {
     interface IFontGenerator
     {
-        FontImageData Generate(FontImageData fontImageData, IList<CharacterInfo> characters);
+        FontImageData Generate(FontImageData fontImageData, IList<CharacterInfo> largeCharacters, IList<CharacterInfo> smallCharacters);
     }
 }

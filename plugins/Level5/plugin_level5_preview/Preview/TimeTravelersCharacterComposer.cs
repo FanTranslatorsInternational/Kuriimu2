@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Kaligraphy.DataClasses.Parsing;
+using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Parsing;
 using plugin_level5_preview.Preview.CharacterData;
 

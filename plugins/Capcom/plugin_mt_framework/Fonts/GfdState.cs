@@ -16,10 +16,9 @@ namespace plugin_mt_framework.Fonts
 
         private FontVersion _version;
         private List<CharacterInfo> _characters;
+        private FontSet _set;
 
-        public IReadOnlyList<CharacterInfo> Characters => _characters;
-        public float Baseline { get; set; }
-        public float DescentLine { get; set; }
+        public IReadOnlyList<FontSet> Sets => [_set];
         public bool ContentChanged => IsContentChanged();
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
@@ -33,6 +32,7 @@ namespace plugin_mt_framework.Fonts
                 FontVersion.V2 => await _fontv2.Load(fileStream, fileSystem, filePath.GetDirectory(), loadContext.DialogManager!),
                 _ => throw new InvalidOperationException($"Invalid font version {_version}.")
             };
+            _set = new FontSet { Characters = _characters };
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -42,11 +42,11 @@ namespace plugin_mt_framework.Fonts
             switch (_version)
             {
                 case FontVersion.V1:
-                    _fontv1.Save(_characters, fileStream, fileSystem, savePath.GetDirectory());
+                    await _fontv1.Save(_characters, fileStream, fileSystem, savePath.GetDirectory());
                     break;
 
                 case FontVersion.V2:
-                    _fontv2.Save(_characters, fileStream, fileSystem, savePath.GetDirectory());
+                    await _fontv2.Save(_characters, fileStream, fileSystem, savePath.GetDirectory());
                     break;
 
                 default:
@@ -69,19 +69,28 @@ namespace plugin_mt_framework.Fonts
             };
         }
 
-        public bool AddCharacter(CharacterInfo characterInfo)
+        public bool AddCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             _characters.Add(characterInfo);
             return true;
         }
 
-        public bool RemoveCharacter(CharacterInfo characterInfo)
+        public bool RemoveCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             return _characters.Remove(characterInfo);
         }
 
-        public void RemoveAll()
+        public void RemoveAll(FontSet set)
         {
+            if (_set != set)
+                return;
+
             _characters.Clear();
         }
     }

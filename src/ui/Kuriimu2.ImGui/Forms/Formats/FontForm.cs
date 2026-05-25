@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ImGui.Forms.Controls.Base;
 using ImGui.Forms.Modals;
-using ImGui.Forms.Modals.IO;
 using ImGui.Forms.Modals.IO.Windows;
 using ImGui.Forms.Resources;
 using Kaligraphy.Contract.DataClasses.Layout;
@@ -33,9 +30,6 @@ namespace Kuriimu2.ImGui.Forms.Formats
 {
     internal partial class FontForm : Component, IKuriimuForm
     {
-        [GeneratedRegex(@"^\\u([a-fA-F0-9]{4})$", RegexOptions.Compiled)]
-        private static partial Regex UnicodeRegex();
-
         private readonly UnicodeCharacterParser _parser = new();
         private readonly FormInfo<IFontFilePluginState> _state;
         private readonly FontPreviewSettingsDialog _previewSettingsDialog = new();
@@ -46,17 +40,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             _state = state;
 
-            InitializeComponent(state.PluginState);
+            InitializeComponent(state);
 
             _saveBtn.Clicked += SaveBtn_Clicked;
             _saveAsBtn.Clicked += SaveAsBtn_Clicked;
 
-            _searchCharBox.TextChanged += SearchCharBox_TextChanged;
             _generateBtn.Clicked += GenerateBtn_Clicked;
-            _editBtn.Clicked += EditBtn_Clicked;
-            _removeBtn.Clicked += RemoveBtn_Clicked;
-            _remapBtn.Clicked += RemapBtn_Clicked;
-            _changeBtn.Clicked += ChangeBtn_Clicked;
 
             _previewTextEditor.TextChanged += PreviewTextEditor_TextChanged;
 
@@ -114,25 +103,13 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private void SearchCharBox_TextChanged(object? sender, EventArgs e)
-        {
-            if (_searchCharBox.Text is null)
-                return;
-
-            char? searchChar = GetCharacter(_searchCharBox.Text);
-            if (!searchChar.HasValue)
-                return;
-
-            if (!_charLookup.TryGetValue(searchChar.Value, out GlyphElement? glyph))
-                return;
-
-            _glyphsLayout.ScrollToItem(glyph);
-            SetSelectedGlyph(glyph);
-        }
-
         private async void GenerateBtn_Clicked(object? sender, EventArgs e)
         {
-            var generationDialog = new FontGenerationDialog(_state.PluginState, FontGenerationType.Create, null);
+            var set = GetSelectedSet();
+            if (set is null)
+                return;
+
+            var generationDialog = new FontGenerationDialog(_state.PluginState, set, FontGenerationType.Create, null);
 
             DialogResult result = await generationDialog.ShowAsync();
             if (result is not DialogResult.Ok)
@@ -144,135 +121,9 @@ namespace Kuriimu2.ImGui.Forms.Formats
             UpdateFormInternal();
         }
 
-        private async void EditBtn_Clicked(object? sender, EventArgs e)
-        {
-            string selectedCharacters = string.Concat(_selectedCharacters.Select(c => c.CodePoint));
-
-            var generationDialog = new FontGenerationDialog(_state.PluginState, FontGenerationType.Edit, selectedCharacters);
-
-            DialogResult result = await generationDialog.ShowAsync();
-            if (result is not DialogResult.Ok)
-                return;
-
-            _state.FormCommunicator.Update(true, false);
-
-            UpdateState();
-            UpdateFormInternal();
-        }
-
-        private async void RemoveBtn_Clicked(object? sender, EventArgs e)
-        {
-            if (_selectedCharacters.Count <= 0)
-                return;
-
-            DialogResult result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogFontRemoveCaption, LocalizationResources.DialogFontRemoveText);
-            if (result is not DialogResult.Yes)
-                return;
-
-            if (_selectedCharacters.Count >= _state.PluginState.Characters.Count)
-            {
-                ClearCharacters();
-            }
-            else
-            {
-                foreach (CharacterInfo character in _selectedCharacters)
-                    RemoveCharacter(character);
-            }
-
-            _lastSelectedElement = null;
-
-            _state.FormCommunicator.Update(true, false);
-
-            UpdateState();
-            UpdateFormInternal();
-        }
-
-        private async void RemapBtn_Clicked(object? sender, EventArgs e)
-        {
-            var selectedCharacters = _selectedCharacters.OrderBy(c => c.CodePoint).ToArray();
-
-            var remapDialog = new FontRemappingDialog(_state.PluginState, selectedCharacters);
-            var result = await remapDialog.ShowAsync();
-
-            if (result is not DialogResult.Ok)
-                return;
-
-            _state.FormCommunicator.Update(true, false);
-
-            UpdateState();
-            UpdateFormInternal();
-        }
-
-        private async void ChangeBtn_Clicked(object? sender, EventArgs e)
-        {
-            if (_selectedElement is null)
-                return;
-
-            var result = await InputBox.ShowAsync(LocalizationResources.FontGenerateChangeCaption, string.Empty,
-                $"{_selectedElement.CharacterInfo.CodePoint}", LocalizationResources.FontGenerateChangePlaceholder);
-            if (result is null)
-                return;
-
-            var code = GetCharacter(result);
-
-            if (!code.HasValue)
-                return;
-
-            if (_state.PluginState.Characters.Any(x => x.CodePoint == code))
-            {
-                await MessageBox.ShowErrorAsync(LocalizationResources.FontGenerateChangeCaption,
-                    LocalizationResources.FontGenerateChangeError(code.Value));
-                return;
-            }
-
-            CharacterInfo? newCharacter = _state.PluginState.AttemptCreateCharacterInfo(code.Value);
-            if (newCharacter is not null)
-            {
-                newCharacter.Glyph = _selectedElement.CharacterInfo.Glyph;
-                newCharacter.GlyphPosition = _selectedElement.CharacterInfo.GlyphPosition;
-                newCharacter.BoundingBox = _selectedElement.CharacterInfo.BoundingBox;
-                newCharacter.ContentChanged = true;
-
-                _state.PluginState.AttemptAddCharacter(newCharacter);
-            }
-
-            RemoveCharacter(_selectedElement.CharacterInfo);
-
-            _state.FormCommunicator.Update(true, false);
-
-            UpdateState();
-            UpdateFormInternal();
-        }
-
         private void PreviewTextEditor_TextChanged(object? sender, string e)
         {
             UpdateTextPreview();
-        }
-
-        private void RemoveCharacter(CharacterInfo character)
-        {
-            if (!_state.PluginState.AttemptRemoveCharacter(character))
-                return;
-
-            if (_infoLookup.TryGetValue(character, out GlyphElement? element))
-                _glyphsLayout.Items.Remove(element);
-
-            _charLookup.Remove(character.CodePoint);
-            _infoLookup.Remove(character);
-
-            _selectedCharacters.Remove(character);
-        }
-
-        private void ClearCharacters()
-        {
-            _state.PluginState.AttemptRemoveAll();
-
-            _charLookup.Clear();
-            _infoLookup.Clear();
-
-            _selectedCharacters.Clear();
-
-            _glyphsLayout.Items.Clear();
         }
 
         private void UpdateTextPreview()
@@ -284,11 +135,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private Image<Rgba32>? GeneratePreview()
         {
+            var set = GetSelectedSet();
+            if (set is null)
+                return null;
+
             string text = _previewTextEditor.GetText();
 
             IList<CharacterData> parsedText = _parser.Parse(Encoding.UTF8.GetBytes(text), Encoding.UTF8);
 
-            var glyphProvider = new FontPluginGlyphProvider(_state.PluginState.Characters);
+            var glyphProvider = new FontPluginGlyphProvider(set.Characters);
 
             var layoutOptions = new LayoutOptions
             {
@@ -323,22 +178,16 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         private void ResetState()
         {
-            SetGlyphs(_state.PluginState.Characters);
-
-            if (_state.PluginState.Characters.Count > 0)
-                SetSelectedGlyph(_state.PluginState.Characters[0]);
+            var view = GetSelectedSetView();
+            view?.Reset();
 
             UpdateTextPreview();
         }
 
         private void UpdateState()
         {
-            UpdateGlyphs(_state.PluginState.Characters);
-
-            if (_selectedElement is not null)
-                _glyphBox.SetCharacterInfo(_selectedElement.CharacterInfo);
-
             UpdateTextPreview();
+            UpdateFormInternal();
         }
 
         private void UpdateFormInternal()
@@ -372,17 +221,17 @@ namespace Kuriimu2.ImGui.Forms.Formats
 
         #region Support
 
-        private static char? GetCharacter(string searchText)
+        private FontSetView? GetSelectedSetView()
         {
-            Match match = UnicodeRegex().Match(searchText);
+            if (_setViews is null)
+                return null;
 
-            if (match.Groups.Count > 1)
-                return (char)BinaryPrimitives.ReadInt16BigEndian(Convert.FromHexString(match.Groups[1].Value));
+            return _setViews.Length <= 0 ? null : _setViews[_selectedSetIndex];
+        }
 
-            if (searchText.Length is 1)
-                return searchText[0];
-
-            return null;
+        private FontSet? GetSelectedSet()
+        {
+            return _state.PluginState.Sets.Count <= 0 ? null : _state.PluginState.Sets[_selectedSetIndex];
         }
 
         private static string GetLastDirectory()

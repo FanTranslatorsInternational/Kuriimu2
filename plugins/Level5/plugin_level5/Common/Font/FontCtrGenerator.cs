@@ -55,56 +55,39 @@ namespace plugin_level5.Common.Font
                 0f, 0f, 0f, 1f)
         ];
 
-        public FontImageData Generate(FontImageData fontImageData, IList<CharacterInfo> characters)
+        public FontImageData Generate(FontImageData fontImageData, IList<CharacterInfo> largeCharacters, IList<CharacterInfo> smallCharacters)
         {
             // Pack glyphs
             Size canvasSize = fontImageData.Images[0].Image.ImageInfo.ImageSize;
             var packer = new GuillotineGlyphFontBinPacker(canvasSize, 1, false, GuillotineBinPack.FreeRectChoiceHeuristic.RectBestAreaFit);
             var textureGenerator = new FontTextureGenerator(packer);
 
-            GlyphData[] glyphData = characters
-                .Where(c => c.Glyph is not null)
-                .Select(c => new GlyphData
-                {
-                    Character = c.CodePoint,
-                    Glyph = c.Glyph!,
-                    Description = new BorderSpaceData
-                    {
-                        Position = Point.Empty,
-                        Size = c.Glyph!.Size
-                    }
-                })
-                .ToArray();
-            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphData, 3);
+            IList<GlyphData> glyphs = CreateGlyphData(largeCharacters, smallCharacters);
+            IList<PackedGlyphsData> glyphImages = textureGenerator.Generate(glyphs, 3);
 
             // Set image
-            var characterLookup = characters.ToDictionary(x => x.CodePoint);
-
             var finalImage = new Image<Rgba32>(canvasSize.Width, canvasSize.Height);
+
+            var largeCharacterLookup = largeCharacters.ToDictionary(x => x.CodePoint);
+            var smallCharacterLookup = smallCharacters.ToDictionary(x => x.CodePoint);
+
             var largeGlyphs = new Dictionary<char, FontGlyphData>();
+            var smallGlyphs = new Dictionary<char, FontGlyphData>();
 
             var imageIndex = 0;
             foreach (PackedGlyphsData glyphImage in glyphImages)
             {
                 foreach (PackedGlyphData glyph in glyphImage.Glyphs)
-                    largeGlyphs[glyph.Element.Character] = new FontGlyphData
-                    {
-                        CodePoint = glyph.Element.Character,
-                        Width = characterLookup[glyph.Element.Character].BoundingBox.Width,
-                        Location = new FontGlyphLocationData
-                        {
-                            Index = imageIndex,
-                            X = glyph.Position.X,
-                            Y = glyph.Position.Y
-                        },
-                        Description = new FontGlyphDescriptionData
-                        {
-                            X = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.X,
-                            Y = (sbyte)characterLookup[glyph.Element.Character].GlyphPosition.Y,
-                            Width = (byte)glyph.Element.Glyph.Width,
-                            Height = (byte)glyph.Element.Glyph.Height
-                        }
-                    };
+                {
+                    var isFurigana = ((Level5GlyphData)glyph.Element).IsFurigana;
+                    var fontCharacters = isFurigana ? smallCharacterLookup : largeCharacterLookup;
+
+                    var character = fontCharacters[glyph.Element.Character];
+                    var fontGlyph = CreateFontGlyph(character, glyph, imageIndex);
+
+                    var fontGlyphs = isFurigana ? smallGlyphs : largeGlyphs;
+                    fontGlyphs[glyph.Element.Character] = fontGlyph;
+                }
 
                 switch (fontImageData.Font.Version.Version)
                 {
@@ -125,41 +108,98 @@ namespace plugin_level5.Common.Font
 
             fontImageData.Images[0].Image.SetImage(finalImage);
 
-            // Set glyph data
-            fontImageData.Font.SmallFont = new FontGlyphsData
-            {
-                Glyphs = new Dictionary<char, FontGlyphData>()
-            };
+            // Set empty glyphs on channel 0
+            foreach (CharacterInfo character in largeCharacters.Where(c => c.Glyph is null))
+                largeGlyphs[character.CodePoint] = CreateEmptyFontGlyph(character);
 
-            //  Set glyphs without representation on channel 0
-            foreach (CharacterInfo character in characters.Where(c => c.Glyph is null))
-                largeGlyphs[character.CodePoint] = new FontGlyphData
-                {
-                    CodePoint = character.CodePoint,
-                    Width = character.BoundingBox.Width,
-                    Location = new FontGlyphLocationData
-                    {
-                        Index = imageIndex,
-                        X = 0,
-                        Y = 0
-                    },
-                    Description = new FontGlyphDescriptionData
-                    {
-                        X = 0,
-                        Y = 0,
-                        Width = 0,
-                        Height = 0
-                    }
-                };
+            foreach (CharacterInfo character in smallCharacters.Where(c => c.Glyph is null))
+                smallGlyphs[character.CodePoint] = CreateEmptyFontGlyph(character);
 
             fontImageData.Font.LargeFont = new FontGlyphsData
             {
                 Glyphs = largeGlyphs,
-                MaxHeight = characters.Max(c => c.BoundingBox.Height),
+                MaxHeight = largeCharacters.Max(c => c.BoundingBox.Height),
+                FallbackCharacter = '?'
+            };
+
+            fontImageData.Font.SmallFont = new FontGlyphsData
+            {
+                Glyphs = smallGlyphs,
+                MaxHeight = smallCharacters.Max(c => c.BoundingBox.Height),
                 FallbackCharacter = '?'
             };
 
             return fontImageData;
+        }
+
+        private IList<GlyphData> CreateGlyphData(IList<CharacterInfo> largeCharacters, IList<CharacterInfo> smallCharacters)
+        {
+            return largeCharacters
+                .Where(c => c.Glyph is not null)
+                .Select(c => CreateGlyphData(c, false))
+                .Concat(smallCharacters
+                    .Where(c => c.Glyph is not null)
+                    .Select(c => CreateGlyphData(c, true)))
+                .ToArray<GlyphData>();
+        }
+
+        private Level5GlyphData CreateGlyphData(CharacterInfo character, bool isFurigana)
+        {
+            return new Level5GlyphData
+            {
+                IsFurigana = isFurigana,
+                Character = character.CodePoint,
+                Glyph = character.Glyph!,
+                Description = new BorderSpaceData
+                {
+                    Position = Point.Empty,
+                    Size = character.Glyph!.Size
+                }
+            };
+        }
+
+        private FontGlyphData CreateFontGlyph(CharacterInfo character, PackedGlyphData glyph, int imageIndex)
+        {
+            return new FontGlyphData
+            {
+                CodePoint = glyph.Element.Character,
+                Width = character.BoundingBox.Width,
+                Location = new FontGlyphLocationData
+                {
+                    Index = imageIndex,
+                    X = glyph.Position.X,
+                    Y = glyph.Position.Y
+                },
+                Description = new FontGlyphDescriptionData
+                {
+                    X = (sbyte)character.GlyphPosition.X,
+                    Y = (sbyte)character.GlyphPosition.Y,
+                    Width = (byte)glyph.Element.Glyph.Width,
+                    Height = (byte)glyph.Element.Glyph.Height
+                }
+            };
+        }
+
+        private FontGlyphData CreateEmptyFontGlyph(CharacterInfo character)
+        {
+            return new FontGlyphData
+            {
+                CodePoint = character.CodePoint,
+                Width = character.BoundingBox.Width,
+                Location = new FontGlyphLocationData
+                {
+                    Index = 0,
+                    X = 0,
+                    Y = 0
+                },
+                Description = new FontGlyphDescriptionData
+                {
+                    X = 0,
+                    Y = 0,
+                    Width = 0,
+                    Height = 0
+                }
+            };
         }
     }
 }

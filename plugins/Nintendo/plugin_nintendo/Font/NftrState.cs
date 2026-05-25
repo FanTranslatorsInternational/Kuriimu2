@@ -15,10 +15,9 @@ namespace plugin_nintendo.Font
         private readonly NftrWriter _writer = new();
 
         private NftrData _fontData;
+        private FontSet _set;
 
-        public IReadOnlyList<CharacterInfo> Characters => _fontData.Characters;
-        public float Baseline { get; set; }
-        public float DescentLine { get; set; }
+        public IReadOnlyList<FontSet> Sets => [_set];
 
         public bool ContentChanged => IsContentChanged();
 
@@ -26,6 +25,7 @@ namespace plugin_nintendo.Font
         {
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
             _fontData = _reader.Read(fileStream);
+            _set = new FontSet { Characters = _fontData.Characters };
         }
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -49,19 +49,28 @@ namespace plugin_nintendo.Font
             };
         }
 
-        public bool AddCharacter(CharacterInfo characterInfo)
+        public bool AddCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             _fontData.Characters.Add(characterInfo);
             return true;
         }
 
-        public bool RemoveCharacter(CharacterInfo characterInfo)
+        public bool RemoveCharacter(FontSet set, CharacterInfo characterInfo)
         {
+            if (_set != set)
+                return false;
+
             return _fontData.Characters.Remove(characterInfo);
         }
 
-        public void RemoveAll()
+        public void RemoveAll(FontSet set)
         {
+            if (_set != set)
+                return;
+
             _fontData.Characters.Clear();
         }
     }

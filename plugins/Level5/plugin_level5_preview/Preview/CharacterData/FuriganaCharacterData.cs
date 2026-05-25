@@ -2,5 +2,5 @@
 
 namespace plugin_level5_preview.Preview.CharacterData
 {
-    class TipEndControlCodeCharacterData : ControlCodeCharacterData;
+    abstract class FuriganaCharacterData : FontCharacterData;
 }
