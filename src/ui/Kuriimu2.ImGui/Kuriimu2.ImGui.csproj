@@ -118,6 +118,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\fr.json</TargetPath>
     </None>
+    <None Update="Resources\Localizations\es.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>resources\langs\es.json</TargetPath>
+    </None>
     <None Update="Resources\Localizations\pl.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>resources\langs\pl.json</TargetPath>
