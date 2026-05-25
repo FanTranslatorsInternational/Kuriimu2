@@ -107,7 +107,7 @@ internal class FileState : IFileState
         StreamManager.ReleaseAll();
 
         // Dispose content of state
-        if (PluginState.IsArchive)
+        if (PluginState is { IsArchive: true, Archive.Files: not null })
         {
             if (PluginState.Archive!.Files.Count > 0)
                 foreach (IArchiveFile file in PluginState.Archive!.Files)
