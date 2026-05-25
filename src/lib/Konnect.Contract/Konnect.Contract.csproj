@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildNuget)'=='true'">
-    <PackageReference Include="Kaligraphy" Version="2.1.29" />
+    <PackageReference Include="Kaligraphy" Version="2.1.30" />
     <PackageReference Include="Kanvas" Version="2.1.37" />
     <PackageReference Include="Kompression" Version="2.1.14" />
   </ItemGroup>
