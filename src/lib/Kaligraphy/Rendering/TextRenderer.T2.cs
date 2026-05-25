@@ -1,7 +1,7 @@
 ﻿using Kaligraphy.Contract.DataClasses.Layout;
+using Kaligraphy.Contract.DataClasses.Parsing;
 using Kaligraphy.Contract.DataClasses.Rendering;
 using Kaligraphy.Contract.Rendering;
-using Kaligraphy.DataClasses.Parsing;
 using Kaligraphy.DataClasses.Rendering;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.PixelFormats;

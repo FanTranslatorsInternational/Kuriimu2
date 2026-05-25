@@ -2,6 +2,6 @@
 
 public abstract class CharacterData
 {
-    public bool IsVisible { get; init; } = true;
-    public bool IsPersistent { get; init; } = true;
+    public bool IsVisible { get; set; } = true;
+    public bool IsPersistent { get; set; } = true;
 }
