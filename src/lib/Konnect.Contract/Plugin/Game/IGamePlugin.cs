@@ -13,8 +13,7 @@ public interface IGamePlugin : IPlugin
     /// Creates an <see cref="IGamePluginState"/> to further work with the file.
     /// </summary>
     /// <param name="filePath">The relative path of the text file to identify the type of preview.</param>
-    /// <param name="entries">The text entries to identify the type of preview.</param>
     /// <param name="pluginFileManager">The plugin manager to load files with the Kuriimu runtime.</param>
     /// <returns>Newly created <see cref="IGamePluginState"/>.</returns>
-    IGamePluginState CreatePluginState(UPath filePath, IReadOnlyList<TextEntry> entries, IPluginFileManager pluginFileManager);
+    IGamePluginState CreatePluginState(UPath filePath, IPluginFileManager pluginFileManager);
 }
