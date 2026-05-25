@@ -115,7 +115,7 @@ namespace Konnect.Management.Batch
             string outputFolder = Path.GetDirectoryName(filePath) ?? string.Empty;
             var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
 
-            var previewState = options?.Preview?.CreatePluginState(file.FilePath, state.Texts, fileManager);
+            var previewState = options?.Preview?.CreatePluginState(file.FilePath, fileManager);
             var entries = CreateEntries(state, previewState);
 
             filePath = Path.GetFileName(filePath).Replace('.', '_');

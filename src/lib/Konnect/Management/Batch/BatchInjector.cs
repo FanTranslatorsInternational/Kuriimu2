@@ -165,7 +165,7 @@ namespace Konnect.Management.Batch
                     return;
             }
 
-            var previewState = options.Preview?.CreatePluginState(file.FilePath, state.Texts, fileManager);
+            var previewState = options.Preview?.CreatePluginState(file.FilePath, fileManager);
 
             ImportFileEntries(entries, state, previewState);
         }
