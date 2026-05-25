@@ -39,7 +39,7 @@ public class FontPluginGlyphProvider(IReadOnlyList<CharacterInfo> characters) : 
         return characterInfo;
     }
 
-    public int GetMaxHeight() => characters.Count <= 0 ? 0 : characters.Max(c => c.GlyphPosition.Y + c.BoundingBox.Height);
+    public int GetMaxHeight() => characters.Count <= 0 ? 0 : characters.Max(c => c.BoundingBox.Height);
 
     private static ColorMatrix CreateColorMatrix(Color targetColor)
     {
