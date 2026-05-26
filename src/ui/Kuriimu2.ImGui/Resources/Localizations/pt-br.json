@@ -37,7 +37,7 @@
   "Menu.File.Save.Shortcut": "Ctrl+S",
   "Menu.File.SaveAs": "Salvar como...",
   "Menu.File.SaveAs.Shortcut": "F12",
-  "Menu.File.SaveAll": "Salvar todos",
+  "Menu.File.SaveAll": "Salvar tudo",
   "Menu.File.SaveAll.Shortcut": "Ctrl+Shift+S",
   "Menu.File.Close": "Fechar",
 
@@ -51,7 +51,7 @@
   "Menu.Tools.Batch": "Operações em Massa",
 
   // Settings Menu
-  "Menu.Settings.IncludeDevBuilds": "Incluir versões de desenvolvedor",
+  "Menu.Settings.IncludeDevBuilds": "Incluir versões do desenvolvedor",
   "Menu.Settings.ChangeLanguage": "Alterar idioma",
   "Menu.Settings.ChangeTheme": "Alterar tema",
   "Menu.Settings.ChangeTheme.Dark": "Escuro",
@@ -213,7 +213,7 @@
 
   // Labels
   "Font.Search.Placeholder": "Pesquisar: ¥, \\uFFE5",
-  // "Font.Set.Text": "Set {0}", // TODO
+  "Font.Set.Text": "Página {0}",
 
   // Preview
   "Font.Preview.Placeholder": "Pré-visualização",
@@ -226,9 +226,9 @@
   "Font.Preview.Settings.Spacing": "Espaçamento",
   "Font.Preview.Settings.LineHeight": "Altura da linha",
   "Font.Preview.Settings.Alignment": "Alinhamento",
-  "Font.Preview.Settings.Alignment.Left": "Esquerda",
-  "Font.Preview.Settings.Alignment.Center": "Centralizar",
-  "Font.Preview.Settings.Alignment.Right": "Direita",
+  "Font.Preview.Settings.Alignment.Left": "À esquerda",
+  "Font.Preview.Settings.Alignment.Center": "Centralizado",
+  "Font.Preview.Settings.Alignment.Right": "À direita",
 
   // Generate
   "Font.Generate.Caption": "Gerar Fonte",
@@ -331,8 +331,8 @@
   "Dialog.Tools.Ciphers.Input.Parameters": "Parâmetros",
   "Dialog.Tools.Ciphers.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Ciphers.Log.Error": "Erro ao processar arquivo {0}.",
-  "Dialog.Tools.Ciphers.Progress": "Processar",
-  "Dialog.Tools.Ciphers.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Ciphers.Progress": "Ocioso",
+  "Dialog.Tools.Ciphers.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.Ciphers.Cancel": "Cancelar",
 
   // Compressions Dialog
@@ -345,8 +345,8 @@
   "Dialog.Tools.Compressions.Input.SubDirectories": "Subdiretórios",
   "Dialog.Tools.Compressions.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Compressions.Log.Error": "Erro ao processar arquivo {0}.",
-  "Dialog.Tools.Compressions.Progress": "Processar",
-  "Dialog.Tools.Compressions.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Compressions.Progress": "Ocioso",
+  "Dialog.Tools.Compressions.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.Compressions.Cancel": "Cancelar",
 
   // Checksums Dialog
@@ -359,8 +359,8 @@
   "Dialog.Tools.Checksums.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Checksums.Log.Result": "O Checksum do arquivo {0} é 0x{1}.",
   "Dialog.Tools.Checksums.Log.Error": "Erro ao processar arquivo {0}.",
-  "Dialog.Tools.Checksums.Progress": "Processar",
-  "Dialog.Tools.Checksums.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Checksums.Progress": "Ocioso",
+  "Dialog.Tools.Checksums.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.Checksums.Cancel": "Cancelar",
 
   // Image Transcoder Dialog
@@ -405,7 +405,7 @@
   "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Selecionar pasta",
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Selecionar arquivo",
   "Dialog.Tools.TextSequenceSearcher.Input.SubDirectories": "Subdiretórios",
-  "Dialog.Tools.TextSequenceSearcher.Progress": "Processar",
+  "Dialog.Tools.TextSequenceSearcher.Progress": "Ocioso",
   "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Cancelar",
   "Dialog.Tools.TextSequenceSearcher.Path": "Caminho",
@@ -422,8 +422,8 @@
   "Dialog.Tools.Batch.Input.SubDirectories": "Subdiretórios",
   "Dialog.Tools.Batch.Log.Process": "Processando arquivo {0}.",
   "Dialog.Tools.Batch.Log.Error": "Erro ao processar arquivo {0}.",
-  "Dialog.Tools.Batch.Progress": "Processar",
-  "Dialog.Tools.Batch.Progress.Value": "Processar - {0:0.00}%",
+  "Dialog.Tools.Batch.Progress": "Ocioso",
+  "Dialog.Tools.Batch.Progress.Value": "Processando - {0:0.00}%",
   "Dialog.Tools.Batch.Cancel": "Cancelar",
   "Dialog.Tools.Batch.Text": "Parâmetros de Texto",
   "Dialog.Tools.Batch.Text.Kup": "KUP",
