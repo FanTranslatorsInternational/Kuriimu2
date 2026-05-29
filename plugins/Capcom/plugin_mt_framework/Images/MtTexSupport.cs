@@ -19,10 +19,6 @@ namespace plugin_mt_framework.Images
         public string magic;
 
         public MtTexHeaderImageData imageData;
-
-        public byte imgCount;
-        public byte format;
-        public ushort unk3;
     }
 
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
@@ -43,6 +39,13 @@ namespace plugin_mt_framework.Images
         public short width;
         [BitField(13)]
         public short height;
+
+        [BitField(8)]
+        public byte imgCount;
+        [BitField(8)]
+        public byte format;
+        [BitField(16)]
+        public ushort unk3;
     }
 
     #endregion
@@ -53,10 +56,6 @@ namespace plugin_mt_framework.Images
     {
         public string magic;
 
-        public byte version;
-        public byte useDxt10;
-        public short reserved1;
-
         public MtTexHeader87ImageData imageData;
 
         public int format;
@@ -65,6 +64,13 @@ namespace plugin_mt_framework.Images
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
     class MtTexHeader87ImageData
     {
+        [BitField(8)]
+        public byte version;
+        [BitField(8)]
+        public byte useDxt10;
+        [BitField(16)]
+        public short reserved1;
+
         [BitField(4)]
         public byte reserved2;
         [BitField(4)]
@@ -90,16 +96,19 @@ namespace plugin_mt_framework.Images
     {
         public string magic;
 
-        public ushort version;
-        public byte format;
-        public byte unk1;
-
         public MobileMtTexHeaderImageData imageData;
     }
 
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
     class MobileMtTexHeaderImageData
     {
+        [BitField(16)]
+        public ushort version;
+        [BitField(8)]
+        public byte format;
+        [BitField(8)]
+        public byte unk1;
+
         [BitField(4)]
         public byte unk2;
         [BitField(28)]
@@ -169,7 +178,7 @@ namespace plugin_mt_framework.Images
 
             [0x21] = ImageFormats.Dxt5(),
 
-            [0x27] = ImageFormats.Dxt5(),
+            [0x27] = ImageFormats.Rgba8888(),
 
             [0x2A] = ImageFormats.Dxt5()
         };
@@ -252,8 +261,6 @@ namespace plugin_mt_framework.Images
 
         private static readonly IDictionary<int, IColorShader> ShadersPs3 = new Dictionary<int, IColorShader>
         {
-            [0x21] = new MtTex_NoAlphaShader(),
-
             [0x2A] = new MtTex_YCbCrColorShader()
         };
 
