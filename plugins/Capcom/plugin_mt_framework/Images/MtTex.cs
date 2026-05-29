@@ -107,7 +107,7 @@ namespace plugin_mt_framework.Images
         private IList<ImageFileInfo> Load3ds(BinaryReaderX br)
         {
             var dataOffset = HeaderSize_;
-            var bitDepth = MtTexSupport.CtrFormats[_header.format].BitDepth;
+            var bitDepth = MtTexSupport.CtrFormats[_header.imageData.format].BitDepth;
 
             // Skip unknown region (assume region to be 0x6C)
             if (_header.imageData.swizzle == 0x40)
@@ -120,13 +120,13 @@ namespace plugin_mt_framework.Images
             IList<int> mipOffsets = Array.Empty<int>();
             if (_header.imageData.version != 0xA4)
             {
-                mipOffsets = ReadIntegers(br, _header.imageData.mipCount * _header.imgCount);
-                dataOffset += _header.imageData.mipCount * _header.imgCount * 4;
+                mipOffsets = ReadIntegers(br, _header.imageData.mipCount * _header.imageData.imgCount);
+                dataOffset += _header.imageData.mipCount * _header.imageData.imgCount * 4;
             }
 
             // Read images
             var imageInfos = new List<ImageFileInfo>();
-            for (var i = 0; i < _header.imgCount; i++)
+            for (var i = 0; i < _header.imageData.imgCount; i++)
             {
                 // Read mips
                 var mipData = new List<byte[]>();
@@ -143,9 +143,9 @@ namespace plugin_mt_framework.Images
                 // Create image info
                 var imageInfo = new ImageFileInfo
                 {
-                    BitDepth = MtTexSupport.GetBitDepth(_platform, _header.format),
+                    BitDepth = MtTexSupport.GetBitDepth(_platform, _header.imageData.format),
                     ImageData = mipData[0],
-                    ImageFormat = _header.format,
+                    ImageFormat = _header.imageData.format,
                     ImageSize = new Size(_header.imageData.width, _header.imageData.height),
                     RemapPixels = context => new CtrSwizzle(context)
                 };
@@ -161,15 +161,15 @@ namespace plugin_mt_framework.Images
 
         private IList<ImageFileInfo> LoadPs3(BinaryReaderX br)
         {
-            var bitDepth = MtTexSupport.Ps3Formats[_header.format].BitDepth;
-            var colorsPerValue = MtTexSupport.Ps3Formats[_header.format].ColorsPerValue;
+            var bitDepth = MtTexSupport.Ps3Formats[_header.imageData.format].BitDepth;
+            var colorsPerValue = MtTexSupport.Ps3Formats[_header.imageData.format].ColorsPerValue;
 
             // Skip mip offsets
             var mipOffsets = ReadIntegers(br, _header.imageData.mipCount);
 
             // Read images
             var imageInfos = new List<ImageFileInfo>();
-            for (var i = 0; i < _header.imgCount; i++)
+            for (var i = 0; i < _header.imageData.imgCount; i++)
             {
                 // Read mips
                 var mipData = new List<byte[]>();
@@ -184,9 +184,9 @@ namespace plugin_mt_framework.Images
                 // Create image info
                 var imageInfo = new ImageFileInfo
                 {
-                    BitDepth = MtTexSupport.GetBitDepth(_platform, _header.format),
+                    BitDepth = bitDepth,
                     ImageData = mipData[0],
-                    ImageFormat = _header.format,
+                    ImageFormat = _header.imageData.format,
                     ImageSize = new Size(_header.imageData.width, _header.imageData.height)
                 };
 
@@ -196,6 +196,8 @@ namespace plugin_mt_framework.Images
                 // TODO: Remove block swizzle with pre-swizzle implementation in Kanvas
                 if (colorsPerValue > 1)
                     imageInfo.RemapPixels = context => new BcSwizzle(context);
+                else
+                    imageInfo.RemapPixels = context => new VitaSwizzle(context); // Implements the same logic on PS3 as on Vita
 
                 imageInfos.Add(imageInfo);
             }
@@ -227,9 +229,9 @@ namespace plugin_mt_framework.Images
             // Create image info
             var imageInfo = new ImageFileInfo
             {
-                BitDepth = MtTexSupport.GetBitDepth(_platform, _header.format),
+                BitDepth = MtTexSupport.GetBitDepth(_platform, _header.imageData.format),
                 ImageData = imageData,
-                ImageFormat = _header.format,
+                ImageFormat = _header.imageData.format,
                 ImageSize = new Size(_header.imageData.width, _header.imageData.height),
                 RemapPixels = context => new NxSwizzle(context)
             };
@@ -248,16 +250,32 @@ namespace plugin_mt_framework.Images
 
             br.BaseStream.Position = headerSize;
 
-            // Skip unknown data between header and mipOffsets
-            if (version != 0x87)
-                br.ReadUInt32();    // texOffset?
+            int mipCount;
+            switch (version)
+            {
+                case 0x87:
+                    mipCount = _header87.imageData.mipCount;
+                    ReadIntegers(br, mipCount);
+                    break;
 
-            // Skip mip offsets
-            var mipCount = version == 0x87 ? _header87.imageData.mipCount : _header.imageData.mipCount;
-            ReadIntegers(br, mipCount - 1);
+                case 0x9d:
+                    mipCount = _header.imageData.mipCount;
+                    br.ReadUInt32(); // texOffset?
+                    ReadIntegers(br, _header.imageData.mipCount - 1);
+                    break;
+
+                case 0xa3:
+                    mipCount = _header.imageData.mipCount;
+                    br.ReadUInt32(); // texOffset?
+                    ReadIntegers(br, _header.imageData.mipCount);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported PC version {version}.");
+            }
 
             // Collect values
-            var format = version == 0x87 ? _header87 is { format: 0x19, useDxt10: 0 } ? 0xFF : _header87.format : _header.format;
+            var format = version == 0x87 ? _header87 is { format: 0x19, imageData.useDxt10: 0 } ? 0xFF : _header87.format : _header.imageData.format;
             var width = version == 0x87 ? _header87.imageData.width : _header.imageData.width;
             var height = version == 0x87 ? _header87.imageData.height : _header.imageData.height;
             var encodings = version == 0x87 ? MtTexSupport.Pc87Formats : MtTexSupport.PcFormats;
@@ -300,12 +318,12 @@ namespace plugin_mt_framework.Images
             var infos = new List<ImageFileInfo>();
 
             // Determine GPU independent mobile format specification
-            _isGpuDependent = _mobileHeader.format == 0xC;
+            _isGpuDependent = _mobileHeader.imageData.format == 0xC;
 
             // HINT: For GPU dependent
-            if (_mobileHeader.format != 0xC)
+            if (_mobileHeader.imageData.format != 0xC)
             {
-                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
+                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.imageData.format].BitDepth;
                 var expectedLength = HeaderSize_;
                 for (var i = 0; i < _mobileHeader.imageData.mipCount; i++)
                     expectedLength += (_mobileHeader.imageData.width >> i) * (_mobileHeader.imageData.height >> i) * bitDepth / 8;
@@ -319,9 +337,9 @@ namespace plugin_mt_framework.Images
                 var texOffsets = ReadIntegers(br, 3);
                 var texSizes = ReadIntegers(br, 3);
 
-                var formats = _mobileHeader.format == 0xC
+                var formats = _mobileHeader.imageData.format == 0xC
                     ? new byte[] { 0xFD, 0xFE, 0xFF }
-                    : new[] { _mobileHeader.format, _mobileHeader.format, _mobileHeader.format };
+                    : new[] { _mobileHeader.imageData.format, _mobileHeader.imageData.format, _mobileHeader.imageData.format };
 
                 for (var i = 0; i < 3; i++)
                 {
@@ -366,8 +384,8 @@ namespace plugin_mt_framework.Images
             else
             {
                 // Read image data
-                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
-                var colorsPerValue = MtTexSupport.MobileFormats[_mobileHeader.format].ColorsPerValue;
+                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.imageData.format].BitDepth;
+                var colorsPerValue = MtTexSupport.MobileFormats[_mobileHeader.imageData.format].ColorsPerValue;
                 var dataSize = _mobileHeader.imageData.width * _mobileHeader.imageData.height * bitDepth / 8;
                 var imageData = br.ReadBytes(dataSize);
 
@@ -382,9 +400,9 @@ namespace plugin_mt_framework.Images
                 // Add image info
                 var imageInfo = new ImageFileInfo
                 {
-                    BitDepth = MtTexSupport.GetBitDepth(_platform, _mobileHeader.format),
+                    BitDepth = MtTexSupport.GetBitDepth(_platform, _mobileHeader.imageData.format),
                     ImageData = imageData,
-                    ImageFormat = _mobileHeader.format,
+                    ImageFormat = _mobileHeader.imageData.format,
                     ImageSize = new Size(_mobileHeader.imageData.width, _mobileHeader.imageData.height)
                 };
 
@@ -406,10 +424,7 @@ namespace plugin_mt_framework.Images
             return new MtTexHeader
             {
                 magic = reader.ReadString(4),
-                imageData = BinaryTypeReader.Read<MtTexHeaderImageData>(reader)!,
-                imgCount = reader.ReadByte(),
-                format = reader.ReadByte(),
-                unk3 = reader.ReadUInt16()
+                imageData = BinaryTypeReader.Read<MtTexHeaderImageData>(reader)!
             };
         }
 
@@ -418,9 +433,6 @@ namespace plugin_mt_framework.Images
             return new MtTexHeader87
             {
                 magic = reader.ReadString(4),
-                version = reader.ReadByte(),
-                useDxt10 = reader.ReadByte(),
-                reserved1 = reader.ReadInt16(),
                 imageData = BinaryTypeReader.Read<MtTexHeader87ImageData>(reader)!,
                 format = reader.ReadInt32()
             };
@@ -431,9 +443,6 @@ namespace plugin_mt_framework.Images
             return new MobileMtTexHeader
             {
                 magic = reader.ReadString(4),
-                version = reader.ReadUInt16(),
-                format = reader.ReadByte(),
-                unk1 = reader.ReadByte(),
                 imageData = BinaryTypeReader.Read<MobileMtTexHeaderImageData>(reader)!
             };
         }
@@ -497,7 +506,7 @@ namespace plugin_mt_framework.Images
             }
 
             // Update header
-            _header.format = (byte)imageInfos[0].ImageFormat;
+            _header.imageData.format = (byte)imageInfos[0].ImageFormat;
             _header.imageData.width = (short)imageInfos[0].ImageSize.Width;
             _header.imageData.height = (short)imageInfos[0].ImageSize.Height;
             _header.imageData.mipCount = (byte)((imageInfos[0].MipMapData?.Count ?? 0) + 1);
@@ -545,7 +554,7 @@ namespace plugin_mt_framework.Images
             }
 
             // Update header
-            _header.format = (byte)imageInfos[0].ImageFormat;
+            _header.imageData.format = (byte)imageInfos[0].ImageFormat;
             _header.imageData.width = (short)imageInfos[0].ImageSize.Width;
             _header.imageData.height = (short)imageInfos[0].ImageSize.Height;
             _header.imageData.mipCount = (byte)((imageInfos[0].MipMapData?.Count ?? 0) + 1);
@@ -585,7 +594,7 @@ namespace plugin_mt_framework.Images
                     bw.Write(mipData);
 
             // Update header
-            _header.format = (byte)imageInfo.ImageFormat;
+            _header.imageData.format = (byte)imageInfo.ImageFormat;
             _header.imageData.width = (short)imageInfo.ImageSize.Width;
             _header.imageData.height = (short)imageInfo.ImageSize.Height;
             _header.imageData.mipCount = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1);
@@ -658,7 +667,7 @@ namespace plugin_mt_framework.Images
             }
             else
             {
-                _header.format = (byte)imageInfo.ImageFormat;
+                _header.imageData.format = (byte)imageInfo.ImageFormat;
                 _header.imageData.width = (short)imageInfo.ImageSize.Width;
                 _header.imageData.height = (short)imageInfo.ImageSize.Height;
                 _header.imageData.mipCount = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1);
@@ -712,7 +721,7 @@ namespace plugin_mt_framework.Images
                 WriteIntegers(texSizes, bw);
 
                 // Update header format
-                _mobileHeader.format = imageInfos[0].ImageFormat == 0xFD ? (byte)0x0C : (byte)imageInfos[0].ImageFormat;
+                _mobileHeader.imageData.format = imageInfos[0].ImageFormat == 0xFD ? (byte)0x0C : (byte)imageInfos[0].ImageFormat;
             }
             else
             {
@@ -726,7 +735,7 @@ namespace plugin_mt_framework.Images
                         bw.Write(mipData);
 
                 // Update header format
-                _mobileHeader.format = (byte)imageInfos[0].ImageFormat;
+                _mobileHeader.imageData.format = (byte)imageInfos[0].ImageFormat;
             }
 
             // Update header
@@ -743,17 +752,17 @@ namespace plugin_mt_framework.Images
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
             BinaryTypeWriter.Write(header.imageData, writer);
-            writer.Write(header.imgCount);
-            writer.Write(header.format);
-            writer.Write(header.unk3);
+            writer.Write(header.imageData.imgCount);
+            writer.Write(header.imageData.format);
+            writer.Write(header.imageData.unk3);
         }
 
         private void WriteHeader87(MtTexHeader87 header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
-            writer.Write(header.version);
-            writer.Write(header.useDxt10);
-            writer.Write(header.reserved1);
+            writer.Write(header.imageData.version);
+            writer.Write(header.imageData.useDxt10);
+            writer.Write(header.imageData.reserved1);
             BinaryTypeWriter.Write(header.imageData, writer);
             writer.Write(header.format);
         }
@@ -761,9 +770,9 @@ namespace plugin_mt_framework.Images
         private void WriteMobileHeader(MobileMtTexHeader header, BinaryWriterX writer)
         {
             writer.WriteString(header.magic, writeNullTerminator: false);
-            writer.Write(header.version);
-            writer.Write(header.format);
-            writer.Write(header.unk1);
+            writer.Write(header.imageData.version);
+            writer.Write(header.imageData.format);
+            writer.Write(header.imageData.unk1);
             BinaryTypeWriter.Write(header.imageData, writer);
         }
 
