@@ -21,7 +21,7 @@ namespace plugin_nintendo.Images
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream fileStream = await fileSystem.OpenFileAsync(filePath);
-            _imageInfo = _bxlim.Load(fileStream);
+            _imageInfo = await _bxlim.Load(fileStream, loadContext.DialogManager);
 
             var encodingDefinition = _bxlim.IsCtr ? BxlimSupport.GetCtrDefinition() : BxlimSupport.GetCafeDefinition();
 

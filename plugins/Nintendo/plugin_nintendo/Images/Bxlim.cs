@@ -1,10 +1,12 @@
 ﻿using Kanvas.Contract.Enums.Swizzle;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Konnect.Contract.DataClasses.Management.Dialog;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
+using Konnect.Contract.Enums.Management.Dialog;
+using Konnect.Contract.Management.Dialog;
 using plugin_nintendo.NW4C;
 using SixLabors.ImageSharp;
-using static System.Collections.Specialized.BitVector32;
 using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_nintendo.Images
@@ -23,7 +25,7 @@ namespace plugin_nintendo.Images
 
         public bool IsCtr { get; private set; }
 
-        public ImageFileInfo Load(Stream input)
+        public async Task<ImageFileInfo> Load(Stream input, IDialogManager dialogs)
         {
             using var br = new BinaryReaderX(input, ByteOrder.BigEndian);
 
@@ -43,7 +45,19 @@ namespace plugin_nintendo.Images
                     return LoadBclim(br);
 
                 case "FLIM":
-                    IsCtr = _byteOrder == ByteOrder.LittleEndian;
+                    if (_byteOrder == ByteOrder.LittleEndian)
+                    {
+                        IsCtr = true;
+                    }
+                    else
+                    {
+                        var field = new DialogField { Text = "Platform", Type = DialogFieldType.DropDown, Options = ["3DS", "WiiU"], DefaultValue = "WiiU" };
+                        if (!await dialogs.ShowDialog([field]))
+                            throw new InvalidOperationException("No platform selected.");
+
+                        IsCtr = field.Result == "3DS";
+                    }
+
                     return LoadBflim(br);
 
                 default:
