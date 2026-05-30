@@ -189,12 +189,12 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             if (_operations.SelectedItem == _operations.Items[0])
             {
                 _extractor.ReuseDialogOptions = false;
-                await _extractor.Extract(_inputTextBox.Text!, _selectedPlugin!, options);
+                await _extractor.Extract(_inputTextBox.Text!, null, _selectedPlugin!, options);
             }
             else
             {
                 _injector.ReuseDialogOptions = false;
-                await _injector.Inject(_inputTextBox.Text!, _selectedPlugin!, options);
+                await _injector.Inject(_inputTextBox.Text!, null, _selectedPlugin!, options);
             }
 
             _operations.Enabled = true;
