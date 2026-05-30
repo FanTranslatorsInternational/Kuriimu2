@@ -9,6 +9,7 @@ namespace Konnect.DataClasses.Management.Batch
     public enum BatchFileStatus
     {
         Success,
+        NoOptions,
         Error
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Konnect.Contract.DataClasses.FileSystem;
+﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Management.Files;
 using Konnect.Contract.DataClasses.Management.Files.Events;
 using Konnect.Contract.DataClasses.Plugin.File;
@@ -18,6 +17,7 @@ using Konnect.Management.Dialog;
 using Konnect.Management.Streams;
 using Konnect.Progress;
 using Serilog;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Konnect.Management.Files;
 
@@ -137,12 +137,37 @@ public class FileManager : IFileManager
 
     #region Identfy File
 
-    public async Task<bool> CanIdentify(string file, Guid pluginId)
+    public async Task<Guid?> Identify(string file)
+    {
+        var identifiablePlugins = _pluginManager.GetPlugins<IFilePlugin>().Where(p => p.CanIdentifyFiles).Cast<IIdentifyFiles>();
+
+        var matchedPlugins = new List<IFilePlugin>();
+        foreach (IIdentifyFiles identifiablePlugin in identifiablePlugins)
+        {
+            var canIdentify = await Identify(file, identifiablePlugin);
+            if (!canIdentify)
+                continue;
+
+            if (matchedPlugins.Count >= 1)
+                return null;
+
+            matchedPlugins.Add(identifiablePlugin);
+        }
+
+        return matchedPlugins.Count > 0 ? matchedPlugins[0].PluginId : null;
+    }
+
+    public async Task<bool> Identify(string file, Guid pluginId)
     {
         // 1. Check if identification is even supported
         if (!SupportsIdentify(pluginId, out IIdentifyFiles? identifiablePlugin))
             return false;
 
+        return await Identify(file, identifiablePlugin);
+    }
+
+    public async Task<bool> Identify(string file, IIdentifyFiles plugin)
+    {
         // 2. Create file system
         var streamManager = CreateStreamManager();
         var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(streamManager);
@@ -152,10 +177,10 @@ public class FileManager : IFileManager
         fileSystem = FileSystemFactory.CreateSubFileSystem(fileSystem, root);
 
         // 3. Identify file
-        return await CanIdentify(fileSystem, filePath.GetSubDirectory(root), streamManager, identifiablePlugin);
+        return await Identify(fileSystem, filePath.GetSubDirectory(root), streamManager, plugin);
     }
 
-    public async Task<bool> CanIdentify(IFileState fileState, IArchiveFile afi, Guid pluginId)
+    public async Task<bool> Identify(IFileState fileState, IArchiveFile afi, Guid pluginId)
     {
         // 1. Check if identification is even supported
         if (!SupportsIdentify(pluginId, out IIdentifyFiles? identifiablePlugin))
@@ -166,10 +191,10 @@ public class FileManager : IFileManager
         var fileSystem = FileSystemFactory.CreateArchivePluginFileSystem(fileState, UPath.Root, streamManager);
 
         // 3. Identify file
-        return await CanIdentify(fileSystem, afi.FilePath, streamManager, identifiablePlugin);
+        return await Identify(fileSystem, afi.FilePath, streamManager, identifiablePlugin);
     }
 
-    public async Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId)
+    public async Task<bool> Identify(StreamFile streamFile, Guid pluginId)
     {
         // 1. Check if identification is even supported
         if (!SupportsIdentify(pluginId, out IIdentifyFiles? identifiablePlugin))
@@ -180,10 +205,10 @@ public class FileManager : IFileManager
         var fileSystem = FileSystemFactory.CreateMemoryFileSystem(streamFile, streamManager);
 
         // 3. Identify file
-        return await CanIdentify(fileSystem, streamFile.Path.ToAbsolute(), streamManager, identifiablePlugin);
+        return await Identify(fileSystem, streamFile.Path.ToAbsolute(), streamManager, identifiablePlugin);
     }
 
-    public async Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId)
+    public async Task<bool> Identify(IFileSystem fileSystem, UPath path, Guid pluginId)
     {
         // 1. Check if identification is even supported
         if (!SupportsIdentify(pluginId, out IIdentifyFiles? identifiablePlugin))
@@ -194,7 +219,7 @@ public class FileManager : IFileManager
         var clonedFileSystem = fileSystem.Clone(streamManager);
 
         // 3. Identify file
-        return await CanIdentify(clonedFileSystem, path, streamManager, identifiablePlugin);
+        return await Identify(clonedFileSystem, path, streamManager, identifiablePlugin);
     }
 
     private bool SupportsIdentify(Guid pluginId, [NotNullWhen(true)] out IIdentifyFiles? identifiablePlugin)
@@ -207,19 +232,24 @@ public class FileManager : IFileManager
         return supportsIdentify;
     }
 
-    private static async Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IIdentifyFiles plugin)
+    private static async Task<bool> Identify(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IIdentifyFiles plugin)
     {
-        // 1. Identify file by plugin
-        var identifyContext = new IdentifyContext
+        try
         {
-            TemporaryStreamManager = streamManager.CreateTemporaryStreamProvider()
-        };
-        var result = await plugin.IdentifyAsync(fileSystem, path, identifyContext);
-
-        // 2. Clean up
-        streamManager.ReleaseAll();
-
-        return result;
+            var identifyContext = new IdentifyContext
+            {
+                TemporaryStreamManager = streamManager.CreateTemporaryStreamProvider()
+            };
+            return await plugin.IdentifyAsync(fileSystem, path, identifyContext);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            streamManager.ReleaseAll();
+        }
     }
 
     #endregion

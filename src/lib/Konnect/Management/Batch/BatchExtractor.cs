@@ -27,28 +27,50 @@ namespace Konnect.Management.Batch
 
         public event Func<BatchFileResult, Task>? FileProcessed;
 
-        public async Task Extract(string folderPath, IFilePlugin plugin, BatchOptions options)
+        public async Task<BatchFileResult[]> Extract(string inputFolder, string? outputFolder, IFilePlugin plugin, BatchOptions options)
         {
+            string[] inputFiles = await CollectFiles(inputFolder, plugin, options);
+            string[] outputPaths = GetOutputPaths(inputFiles, outputFolder, plugin, options);
+
+            return await Extract(inputFiles, outputPaths, plugin, options);
+        }
+
+        public async Task<BatchFileResult[]> Extract(string[] inputFiles, string? outputFolder, IFilePlugin plugin, BatchOptions options)
+        {
+            string[] outputPaths = GetOutputPaths(inputFiles, outputFolder, plugin, options);
+
+            return await Extract(inputFiles, outputPaths, plugin, options);
+        }
+
+        public async Task<BatchFileResult[]> Extract(string[] inputFiles, string[] outputPaths, IFilePlugin plugin, BatchOptions options)
+        {
+            _options = options.DialogOptions;
+
             // Fonts currently have no extracted representation
             if (plugin.PluginType is PluginType.Font)
-                return;
+                return [];
 
-            string[] files = await CollectFiles(folderPath, plugin, options);
+            var result = new List<BatchFileResult>();
 
             progress.StartProgress();
 
-            var index = 0;
-            foreach (string filePath in files)
+            for (var i = 0; i < inputFiles.Length; i++)
             {
-                var fileProgress = progress.CreateScope(index / (double)files.Length * 100, (index + 1) / (double)files.Length * 100);
-                progress.ReportProgress(index++, files.Length);
+                if (i >= outputPaths.Length)
+                    break;
 
-                await ExtractFile(filePath, plugin, fileProgress, options);
+                var fileProgress = progress.CreateScope(i / (double)inputFiles.Length * 100, (i + 1) / (double)inputFiles.Length * 100);
+                progress.ReportProgress(i, inputFiles.Length);
+
+                var fileResult = await ExtractFile(inputFiles[i], outputPaths[i], plugin, fileProgress, options);
+                result.Add(fileResult);
             }
 
-            progress.ReportProgress(files.Length, files.Length);
+            progress.ReportProgress(inputFiles.Length, inputFiles.Length);
 
             progress.FinishProgress();
+
+            return [.. result];
         }
 
         private async Task<string[]> CollectFiles(string folderPath, IFilePlugin plugin, BatchOptions options)
@@ -63,7 +85,7 @@ namespace Konnect.Management.Batch
 
             foreach (string filePath in files)
             {
-                var canIdentify = await fileManager.CanIdentify(filePath, plugin.PluginId);
+                var canIdentify = await fileManager.Identify(filePath, plugin.PluginId);
                 if (!canIdentify)
                     continue;
 
@@ -73,59 +95,115 @@ namespace Konnect.Management.Batch
             return [.. result];
         }
 
-        private async Task ExtractFile(string filePath, IFilePlugin plugin, IProgressContext fileProgress, BatchOptions options)
+        private static string[] GetOutputPaths(string[] inputFiles, string? outputFolder, IFilePlugin plugin, BatchOptions options)
         {
+            var result = new List<string>(inputFiles.Length);
+
+            foreach (var inputFile in inputFiles)
+            {
+                switch (plugin.PluginType)
+                {
+                    case PluginType.Text:
+                        result.Add(GetTextOutputPath(inputFile, outputFolder, options.TextOptions));
+                        break;
+
+                    case PluginType.Image:
+                        result.Add(GetImageOutputPath(inputFile, outputFolder));
+                        break;
+
+                    case PluginType.Archive:
+                        result.Add(GetArchiveOutputPath(inputFile, outputFolder));
+                        break;
+                }
+            }
+
+            return [.. result];
+        }
+
+        private static string GetTextOutputPath(string inputFile, string? outputFolder, BatchTextOptions? options)
+        {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+
+            string fileName = Path.GetFileName(inputFile).Replace('.', '_');
+            fileName = options?.Format switch
+            {
+                TextFormat.Kup => fileName + ".kup",
+                TextFormat.Po => fileName + ".po",
+                _ => fileName
+            };
+
+            return Path.Combine(outputFolder, fileName);
+        }
+
+        private static string GetImageOutputPath(string inputFile, string? outputFolder)
+        {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+            string imageFolder = Path.GetFileName(inputFile).Replace('.', '_');
+
+            return Path.Combine(outputFolder, imageFolder);
+        }
+
+        private static string GetArchiveOutputPath(string inputFile, string? outputFolder)
+        {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+            string imageFolder = Path.GetFileName(inputFile).Replace('.', '_');
+
+            return Path.Combine(outputFolder, imageFolder);
+        }
+
+        private async Task<BatchFileResult> ExtractFile(string inputFile, string outputPath, IFilePlugin plugin, IProgressContext fileProgress, BatchOptions options)
+        {
+            BatchFileResult result;
+
             var loadContext = new LoadFileContext { PluginId = plugin.PluginId };
 
             if (ReuseDialogOptions && _options is not null)
                 loadContext.Options.AddRange(_options);
 
-            var loadResult = await fileManager.LoadFile(filePath, loadContext);
+            var loadResult = await fileManager.LoadFile(inputFile, loadContext);
             if (loadResult.Status is not LoadStatus.Successful || loadResult.LoadedFileState is null)
             {
-                await OnFileProcessed(filePath, [], BatchFileStatus.Error);
-                return;
+                result = new BatchFileResult(inputFile, [], loadResult.Reason is LoadErrorReason.NoOptions ? BatchFileStatus.NoOptions : BatchFileStatus.Error);
+                await OnFileProcessed(result);
+
+                return result;
             }
 
             switch (loadResult.LoadedFileState.PluginState)
             {
                 case ITextFilePluginState text:
-                    await ExtractText(loadResult.LoadedFileState, text, filePath, options.TextOptions);
+                    await ExtractText(loadResult.LoadedFileState, text, outputPath, options.TextOptions);
                     break;
 
                 case IImageFilePluginState image:
-                    await ExtractImage(loadResult.LoadedFileState, image, filePath, fileProgress);
+                    await ExtractImage(loadResult.LoadedFileState, image, outputPath, fileProgress);
                     break;
 
                 case IArchiveFilePluginState archive:
-                    await ExtractArchive(loadResult.LoadedFileState, archive, filePath, fileProgress);
+                    await ExtractArchive(loadResult.LoadedFileState, archive, outputPath, fileProgress);
                     break;
             }
 
-            await OnFileProcessed(filePath, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
+            result = new BatchFileResult(inputFile, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
+            await OnFileProcessed(result);
 
             if (ReuseDialogOptions)
                 _options = [.. loadResult.LoadedFileState.DialogOptions];
 
             _ = fileManager.Close(loadResult.LoadedFileState);
+
+            return result;
         }
 
-        private async Task ExtractText(IFileState file, ITextFilePluginState state, string filePath, BatchTextOptions? options)
+        private async Task ExtractText(IFileState file, ITextFilePluginState state, string outputFile, BatchTextOptions? options)
         {
-            string outputFolder = Path.GetDirectoryName(filePath) ?? string.Empty;
-            var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
+            var outputDirectory = Path.GetDirectoryName(outputFile);
+            Directory.CreateDirectory(outputDirectory!);
 
             var previewState = options?.Preview?.CreatePluginState(file.FilePath, fileManager);
             var entries = CreateEntries(state, previewState);
 
-            filePath = Path.GetFileName(filePath).Replace('.', '_');
-            filePath = options?.Format switch
-            {
-                TextFormat.Kup => filePath + ".kup",
-                TextFormat.Po => filePath + ".po",
-                _ => filePath
-            };
-            await using var outputFileStream = await outputFileSystem.OpenFileAsync(filePath, FileMode.Create, FileAccess.Write, FileShare.Write);
+            await using var outputFileStream = File.Create(outputFile);
 
             switch (options?.Format)
             {
@@ -238,9 +316,8 @@ namespace Konnect.Management.Batch
             return entryName;
         }
 
-        private static async Task ExtractImage(IFileState file, IImageFilePluginState state, string filePath, IProgressContext fileProgress)
+        private static async Task ExtractImage(IFileState file, IImageFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            string outputFolder = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
             Directory.CreateDirectory(outputFolder);
 
             var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
@@ -264,9 +341,8 @@ namespace Konnect.Management.Batch
             fileProgress.FinishProgress();
         }
 
-        private static async Task ExtractArchive(IFileState file, IArchiveFilePluginState state, string filePath, IProgressContext fileProgress)
+        private static async Task ExtractArchive(IFileState file, IArchiveFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            string outputFolder = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
             Directory.CreateDirectory(outputFolder);
 
             var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
@@ -287,12 +363,12 @@ namespace Konnect.Management.Batch
             fileProgress.FinishProgress();
         }
 
-        private async Task OnFileProcessed(string filePath, IList<string> dialogOptions, BatchFileStatus status)
+        private async Task OnFileProcessed(BatchFileResult result)
         {
             if (FileProcessed is null)
                 return;
 
-            await FileProcessed.Invoke(new BatchFileResult(filePath, dialogOptions, status));
+            await FileProcessed.Invoke(result);
         }
     }
 }

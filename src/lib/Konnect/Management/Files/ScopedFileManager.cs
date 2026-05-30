@@ -52,19 +52,19 @@ class ScopedFileManager(IFileManager parentFileManager) : IPluginFileManager
 
     #region Identify file
 
-    public Task<bool> CanIdentify(IFileState fileState, IArchiveFile afi, Guid pluginId)
+    public Task<bool> Identify(IFileState fileState, IArchiveFile afi, Guid pluginId)
     {
-        return parentFileManager.CanIdentify(fileState, afi, pluginId);
+        return parentFileManager.Identify(fileState, afi, pluginId);
     }
 
-    public Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId)
+    public Task<bool> Identify(StreamFile streamFile, Guid pluginId)
     {
-        return parentFileManager.CanIdentify(streamFile, pluginId);
+        return parentFileManager.Identify(streamFile, pluginId);
     }
 
-    public Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId)
+    public Task<bool> Identify(IFileSystem fileSystem, UPath path, Guid pluginId)
     {
-        return parentFileManager.CanIdentify(fileSystem, path, pluginId);
+        return parentFileManager.Identify(fileSystem, path, pluginId);
     }
 
     #endregion

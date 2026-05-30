@@ -10,8 +10,10 @@ namespace Kuriimu2.Cmd.Update
 {
     internal static class UpdateUtilities
     {
-        private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
-        private const string ExecutableName_ = "update.exe";
+        private const string UpdateUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
+        private const string ExecutableName = "update.exe";
+
+        private static readonly HttpClient Client = new();
 
         public static async Task<Manifest?> GetRemoteManifestAsync(string manifestUrl)
         {
@@ -45,13 +47,13 @@ namespace Kuriimu2.Cmd.Update
         {
             string platform = GetCurrentPlatform();
 
-            var updateUrl = $"{UpdateUrl_}/{platform}/{ExecutableName_}";
+            var updateUrl = $"{UpdateUrl}/{platform}/{ExecutableName}";
             Stream? resourceStream = await GetResourceStreamAsync(updateUrl);
             if (resourceStream is null)
                 return null;
 
             string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string executablePath = Path.Combine(currentDirectory, ExecutableName_);
+            string executablePath = Path.Combine(currentDirectory, ExecutableName);
 
             await using Stream executableFileStream = File.Open(executablePath, FileMode.Create);
 
@@ -79,10 +81,9 @@ namespace Kuriimu2.Cmd.Update
 
         private static async Task<Stream?> GetResourceStreamAsync(string resourceUrl)
         {
-            var client = new HttpClient();
             var request = new HttpRequestMessage(HttpMethod.Get, resourceUrl);
 
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadAsStreamAsync();
 
