@@ -10,6 +10,8 @@ namespace Konnect.DataClasses.Management.Batch
     {
         public required bool SubDirectories { get; init; }
 
+        public IList<string>? DialogOptions { get; set; }
+
         public BatchTextOptions? TextOptions { get; set; }
     }
 }

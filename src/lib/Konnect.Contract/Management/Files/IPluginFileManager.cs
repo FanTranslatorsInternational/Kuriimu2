@@ -51,7 +51,7 @@ public interface IPluginFileManager
     /// <param name="afi">The AFI to identify from the file state.</param>
     /// <param name="pluginId">The plugin ID to identify with.</param>
     /// <returns>If the file could be identified by the denoted plugin.</returns>
-    Task<bool> CanIdentify(IFileState fileState, IArchiveFile afi, Guid pluginId);
+    Task<bool> Identify(IFileState fileState, IArchiveFile afi, Guid pluginId);
 
     /// <summary>
     /// Identifies a stream against a given plugin.
@@ -59,7 +59,7 @@ public interface IPluginFileManager
     /// <param name="streamFile">The stream file to identify.</param>
     /// <param name="pluginId">The plugin ID to identify with.</param>
     /// <returns>If the file could be identified by the denoted plugin.</returns>
-    Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId);
+    Task<bool> Identify(StreamFile streamFile, Guid pluginId);
 
     /// <summary>
     /// Identifies a file from a file system against a given plugin.
@@ -68,7 +68,7 @@ public interface IPluginFileManager
     /// <param name="path">The file to identify from the file system.</param>
     /// <param name="pluginId">The plugin ID to identify with.</param>
     /// <returns>If the file could be identified by the denoted plugin.</returns>
-    Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId);
+    Task<bool> Identify(IFileSystem fileSystem, UPath path, Guid pluginId);
 
     #endregion
 

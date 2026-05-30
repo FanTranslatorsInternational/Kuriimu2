@@ -33,12 +33,19 @@ public interface IFileManager : IPluginFileManager
     IFileState? GetLoadedFile(UPath filePath);
 
     /// <summary>
+    /// Identifies a file path against all plugins.
+    /// </summary>
+    /// <param name="file">The physical file to identify.</param>
+    /// <returns>The plugin that could identify the file. <see langword="null"/> if none or more than one plugin could identify the file.</returns>
+    Task<Guid?> Identify(string file);
+
+    /// <summary>
     /// Identifies a file path against a given plugin.
     /// </summary>
     /// <param name="file">The physical file to identify.</param>
     /// <param name="pluginId">The plugin ID to identify with.</param>
     /// <returns>If the file could be identified by the denoted plugin.</returns>
-    Task<bool> CanIdentify(string file, Guid pluginId);
+    Task<bool> Identify(string file, Guid pluginId);
 
     /// <summary>
     /// Loads a physical path into the Kuriimu runtime.

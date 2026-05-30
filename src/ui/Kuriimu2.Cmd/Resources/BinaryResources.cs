@@ -7,13 +7,13 @@ namespace Kuriimu2.Cmd.Resources
     {
         #region Resource Names
 
-        private const string ManifestResourceName_ = "Kuriimu2.Cmd.Resources.version.json";
+        private const string ManifestResourceName = "Kuriimu2.Cmd.Resources.version.json";
 
         #endregion
 
         #region Resource Instances
 
-        public static string? VersionManifest => FromResource(ManifestResourceName_);
+        public static string? VersionManifest => FromResource(ManifestResourceName);
 
         #endregion
 

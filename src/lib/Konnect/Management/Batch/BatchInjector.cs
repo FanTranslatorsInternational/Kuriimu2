@@ -29,126 +29,181 @@ namespace Konnect.Management.Batch
 
         public event Func<BatchFileResult, Task>? FileProcessed;
 
-        public async Task Inject(string folderPath, IFilePlugin plugin, BatchOptions options)
+        public async Task<BatchFileResult[]> Inject(string inputFolder, string? outputFolder, IFilePlugin plugin, BatchOptions options)
         {
+            (string, string)[] filePaths = await CollectFiles(inputFolder, outputFolder, plugin, options);
+
+            return await Inject(filePaths, plugin, options);
+        }
+
+        public async Task<BatchFileResult[]> Inject(string[] inputFiles, string? outputFolder, IFilePlugin plugin, BatchOptions options)
+        {
+            (string, string)[] filePaths = await CollectFiles(inputFiles, outputFolder, plugin, options);
+
+            return await Inject(filePaths, plugin, options);
+        }
+
+        private async Task<BatchFileResult[]> Inject((string, string)[] filePaths, IFilePlugin plugin, BatchOptions options)
+        {
+            _options = options.DialogOptions;
+
             // Fonts currently have no extracted representation
             if (plugin.PluginType is PluginType.Font)
-                return;
+                return [];
 
-            string[] files = await CollectFiles(folderPath, plugin, options);
+            var result = new List<BatchFileResult>();
 
             progress.StartProgress();
 
             var index = 0;
-            foreach (string filePath in files)
+            foreach ((string inputFile, string outputPath) in filePaths)
             {
-                var fileProgress = progress.CreateScope(index / (double)files.Length * 100, (index + 1) / (double)files.Length * 100);
-                progress.ReportProgress(index++, files.Length);
+                var fileProgress = progress.CreateScope(index / (double)filePaths.Length * 100, (index + 1) / (double)filePaths.Length * 100);
+                progress.ReportProgress(index++, filePaths.Length);
 
-                await InjectFile(filePath, plugin, fileProgress, options);
+                var fileResult = await InjectFile(inputFile, outputPath, plugin, fileProgress, options);
+                result.Add(fileResult);
             }
 
-            progress.ReportProgress(files.Length, files.Length);
+            progress.ReportProgress(filePaths.Length, filePaths.Length);
 
             progress.FinishProgress();
+
+            return [.. result];
         }
 
-        private async Task<string[]> CollectFiles(string folderPath, IFilePlugin plugin, BatchOptions options)
+        private async Task<(string, string)[]> CollectFiles(string inputFolder, string? outputFolder, IFilePlugin plugin, BatchOptions options)
         {
             SearchOption searchDepth = options.SubDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            string[] files = Directory.GetFiles(folderPath, "*", searchDepth);
+            string[] inputFiles = Directory.GetFiles(inputFolder, "*", searchDepth);
 
-            var result = new List<string>();
+            return await CollectFiles(inputFiles, outputFolder, plugin, options);
+        }
 
-            foreach (string filePath in files)
+        private async Task<(string, string)[]> CollectFiles(string[] inputFiles, string? outputFolder, IFilePlugin plugin, BatchOptions options)
+        {
+            var result = new List<(string, string)>();
+
+            foreach (string inputFile in inputFiles)
             {
+                string outputPath;
                 switch (plugin.PluginType)
                 {
                     case PluginType.Archive:
+                        outputPath = GetArchiveOutputPath(inputFile, outputFolder);
+                        if (!Directory.Exists(outputPath))
+                            continue;
+                        break;
+
                     case PluginType.Image:
-                        string inputFolder = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
-                        if (!Directory.Exists(inputFolder))
+                        outputPath = GetImageOutputPath(inputFile, outputFolder);
+                        if (!Directory.Exists(outputPath))
                             continue;
                         break;
 
                     case PluginType.Text:
-                        string inputFile = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
-                        inputFile = options.TextOptions?.Format switch
-                        {
-                            TextFormat.Kup => inputFile + ".kup",
-                            TextFormat.Po => inputFile + ".po",
-                            _ => filePath
-                        };
-                        if (!File.Exists(inputFile))
+                        outputPath = GetTextOutputPath(inputFile, outputFolder, options.TextOptions);
+                        if (!File.Exists(outputPath))
                             continue;
                         break;
+
+                    default:
+                        continue;
                 }
 
                 if (plugin.CanIdentifyFiles)
                 {
-                    var canIdentify = await fileManager.CanIdentify(filePath, plugin.PluginId);
+                    var canIdentify = await fileManager.Identify(inputFile, plugin.PluginId);
                     if (!canIdentify)
                         continue;
                 }
 
-                result.Add(filePath);
+                result.Add((inputFile, outputPath));
             }
 
             return [.. result];
         }
 
-        private async Task InjectFile(string filePath, IFilePlugin plugin, IProgressContext fileProgress, BatchOptions options)
+        private static string GetTextOutputPath(string inputFile, string? outputFolder, BatchTextOptions? options)
         {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+
+            string fileName = Path.GetFileName(inputFile).Replace('.', '_');
+            fileName = options?.Format switch
+            {
+                TextFormat.Kup => fileName + ".kup",
+                TextFormat.Po => fileName + ".po",
+                _ => fileName
+            };
+
+            return Path.Combine(outputFolder, fileName);
+        }
+
+        private static string GetImageOutputPath(string inputFile, string? outputFolder)
+        {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+            string imageFolder = Path.GetFileName(inputFile).Replace('.', '_');
+
+            return Path.Combine(outputFolder, imageFolder);
+        }
+
+        private static string GetArchiveOutputPath(string inputFile, string? outputFolder)
+        {
+            outputFolder ??= Path.GetDirectoryName(Path.GetFullPath(inputFile))!;
+            string imageFolder = Path.GetFileName(inputFile).Replace('.', '_');
+
+            return Path.Combine(outputFolder, imageFolder);
+        }
+
+        private async Task<BatchFileResult> InjectFile(string inputFile, string outputPath, IFilePlugin plugin, IProgressContext fileProgress, BatchOptions options)
+        {
+            BatchFileResult result;
+
             var loadContext = new LoadFileContext { PluginId = plugin.PluginId };
 
             if (ReuseDialogOptions && _options is not null)
                 loadContext.Options.AddRange(_options);
 
-            var loadResult = await fileManager.LoadFile(filePath, loadContext);
+            var loadResult = await fileManager.LoadFile(inputFile, loadContext);
             if (loadResult.Status is not LoadStatus.Successful || loadResult.LoadedFileState is null)
             {
-                await OnFileProcessed(filePath, [], BatchFileStatus.Error);
-                return;
+                result = new BatchFileResult(inputFile, [], loadResult.Reason is LoadErrorReason.NoOptions ? BatchFileStatus.NoOptions : BatchFileStatus.Error);
+                await OnFileProcessed(result);
+
+                return result;
             }
 
             switch (loadResult.LoadedFileState.PluginState)
             {
                 case ITextFilePluginState text:
-                    await InjectText(loadResult.LoadedFileState, text, filePath, options.TextOptions);
+                    await InjectText(loadResult.LoadedFileState, text, outputPath, options.TextOptions);
                     break;
 
                 case IImageFilePluginState image:
-                    await InjectImage(loadResult.LoadedFileState, image, filePath, fileProgress);
+                    await InjectImage(loadResult.LoadedFileState, image, outputPath, fileProgress);
                     break;
 
                 case IArchiveFilePluginState archive:
-                    await InjectArchive(loadResult.LoadedFileState, archive, filePath, fileProgress);
+                    await InjectArchive(loadResult.LoadedFileState, archive, outputPath, fileProgress);
                     break;
             }
 
             _ = await fileManager.SaveFile(loadResult.LoadedFileState);
 
-            await OnFileProcessed(filePath, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
+            result = new BatchFileResult(inputFile, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
+            await OnFileProcessed(result);
 
             if (ReuseDialogOptions)
                 _options = [.. loadResult.LoadedFileState.DialogOptions];
 
             _ = fileManager.Close(loadResult.LoadedFileState);
+
+            return result;
         }
 
-        private async Task InjectText(IFileState file, ITextFilePluginState state, string filePath, BatchTextOptions? options)
+        private async Task InjectText(IFileState file, ITextFilePluginState state, string outputFile, BatchTextOptions? options)
         {
-            string inputFolder = Path.GetDirectoryName(filePath) ?? string.Empty;
-            var inputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(inputFolder, file.StreamManager);
-
-            filePath = Path.GetFileName(filePath).Replace('.', '_');
-            filePath = options?.Format switch
-            {
-                TextFormat.Kup => filePath + ".kup",
-                TextFormat.Po => filePath + ".po",
-                _ => filePath
-            };
-            await using var outputFileStream = await inputFileSystem.OpenFileAsync(filePath);
+            await using var outputFileStream = File.OpenRead(outputFile);
 
             TranslationFileEntry[] entries;
             switch (options?.Format)
@@ -258,10 +313,9 @@ namespace Konnect.Management.Batch
             return entryName;
         }
 
-        private static async Task InjectImage(IFileState file, IImageFilePluginState state, string filePath, IProgressContext fileProgress)
+        private static async Task InjectImage(IFileState file, IImageFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            string inputFolder = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
-            var inputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(inputFolder, file.StreamManager);
+            var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
 
             fileProgress.StartProgress();
 
@@ -275,49 +329,48 @@ namespace Konnect.Management.Batch
                     image.ImageInfo.Name;
                 imageName += ".png";
 
-                if (!inputFileSystem.FileExists(imageName))
+                if (!outputFileSystem.FileExists(imageName))
                     continue;
 
-                await using var inputFileStream = await inputFileSystem.OpenFileAsync(imageName);
-                image.SetImage(Image.Load<Rgba32>(inputFileStream));
+                await using var outputFileStream = await outputFileSystem.OpenFileAsync(imageName);
+                image.SetImage(Image.Load<Rgba32>(outputFileStream));
             }
 
             fileProgress.FinishProgress();
         }
 
-        private static async Task InjectArchive(IFileState file, IArchiveFilePluginState state, string filePath, IProgressContext fileProgress)
+        private static async Task InjectArchive(IFileState file, IArchiveFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            string inputFolder = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileName(filePath).Replace('.', '_'));
-            var inputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(inputFolder, file.StreamManager);
-            var outputFileSystem = (ArchivePluginFileSystem)FileSystemFactory.CreateArchivePluginFileSystem(file);
+            var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
+            var inputFileSystem = (ArchivePluginFileSystem)FileSystemFactory.CreateArchivePluginFileSystem(file);
 
             fileProgress.StartProgress();
 
             var index = 0;
-            foreach (var inputFilePath in inputFileSystem.EnumerateAllFiles(UPath.Root))
+            foreach (var filePath in outputFileSystem.EnumerateAllFiles(UPath.Root))
             {
                 fileProgress.ReportProgress(index++, state.Files.Count);
 
-                var fileExists = outputFileSystem.FileExists(inputFilePath);
+                var fileExists = inputFileSystem.FileExists(filePath);
 
                 if (!fileExists && !state.CanAddFiles)
                     continue;
 
-                var inputFileStream = await inputFileSystem.OpenFileAsync(inputFilePath);
-                var entry = (AfiFileEntry)outputFileSystem.GetFileEntry(inputFilePath);
+                var outputFileStream = await outputFileSystem.OpenFileAsync(filePath);
+                var entry = (AfiFileEntry)inputFileSystem.GetFileEntry(filePath);
 
-                entry.ArchiveFile.SetFileData(inputFileStream);
+                entry.ArchiveFile.SetFileData(outputFileStream);
             }
 
             fileProgress.FinishProgress();
         }
 
-        private async Task OnFileProcessed(string filePath, IList<string> dialogOptions, BatchFileStatus status)
+        private async Task OnFileProcessed(BatchFileResult result)
         {
             if (FileProcessed is null)
                 return;
 
-            await FileProcessed.Invoke(new BatchFileResult(filePath, dialogOptions, status));
+            await FileProcessed.Invoke(result);
         }
     }
 }
