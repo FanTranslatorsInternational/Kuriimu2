@@ -48,7 +48,7 @@
   "Menu.Tools.ImageTranscoder": "Transkoder Obrazów",
   "Menu.Tools.RawImageViewer": "Przeglądarka Obrazów",
   "Menu.Tools.TextSequenceSearcher": "Wyszukiwarka Tekstu",
-  // "Menu.Tools.Batch": "Batch Operations", // TODO
+  "Menu.Tools.Batch": "Operacje Wsadowe",
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Uwzględnij Wersje Deweloperskie",
@@ -59,13 +59,13 @@
 
   // Help Menu
   "Menu.Help.Plugins.Installed": "Zainstalowane Wtyczki",
-  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.Preferences": "Preferencje Plików",
   "Menu.Help.About": "O Programie",
 
   // Status
   "Status.Plugin.Select.None": "Nie wybrano żadnej wtyczki.",
   "Status.Plugin.Select.Unknown": "Nieznany typ wtyczki {0}.",
-  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
+  "Status.Plugin.Load.Deprecated": "Wtyczka jest przestarzała.",
   "Status.Plugin.Load.None": "Żadna wtyczka nie mogła otworzyć pliku.",
   "Status.Plugin.Load.NoArchive": "Wtyczka nie reprezentuje archiwum.",
   "Status.Plugin.State.Init.Error": "Nie udało się zainicjować wtyczki.",
@@ -129,8 +129,8 @@
   "Archive.Directory.Delete": "Usuń",
   "Archive.Directory.Delete.Shortcut": "Usuń",
   "Archive.Directory.Add": "Dodaj",
-  // "Archive.Directory.Add.File": "File", // TODO
-  // "Archive.Directory.Add.Directory": "Directory", // TODO
+  "Archive.Directory.Add.File": "Plik",
+  "Archive.Directory.Add.Directory": "Folder",
 
   // Status
   "Archive.Status.Extract.Cancel": "Anulowano wypakowanie pliku.",
@@ -198,11 +198,11 @@
   // Image Status
   "Image.Status.Export.Start": "Teraz eksportuję obraz {0}.",
   "Image.Status.Export.Cancel": "Eksport obrazu został anulowany.",
-  "Image.Status.Export.Success": "Obraz został pomyślnie wyeksportowany.", // TODO
+  "Image.Status.Export.Success": "Obraz został pomyślnie wyeksportowany.",
   "Image.Status.Export.Failure": "Eksport obrazu nie powiódł się.",
   "Image.Status.Import.Start": "Teraz importuję do obrazu {0}.",
   "Image.Status.Import.Cancel": "Importowanie obrazu zostało anulowane.",
-  "Image.Status.Import.Success": "Obraz został pomyślnie zaimportowany.", // TODO
+  "Image.Status.Import.Success": "Obraz został pomyślnie zaimportowany.",
   "Image.Status.Import.Failure": "Import obrazu nie powiódł się.",
 
   // Indexed PictureBox
@@ -231,12 +231,12 @@
 
   // Generate
   "Font.Generate.Caption": "Generuj Czcionkę",
-  // "Font.Generate.Edit.Caption": "Edit Characters", // TODO
-  // "Font.Generate.Remove.Caption": "Remove Characters", // TODO
-  // "Font.Generate.Remap.Caption": "Remap Characters", // TODO
-  // "Font.Generate.Change.Caption": "Change Character", // TODO
-  // "Font.Generate.Change.Placeholder": "¥, \\uFFE5", // TODO
-  // "Font.Generate.Change.Error": "Character {0} already exists in font.", // TODO
+  "Font.Generate.Edit.Caption": "Edytuj Znaki",
+  "Font.Generate.Remove.Caption": "Usuń Znaki",
+  "Font.Generate.Remap.Caption": "Przemapuj Znaki",
+  "Font.Generate.Change.Caption": "Zmień Znak",
+  "Font.Generate.Change.Placeholder": "¥, \\uFFE5",
+  "Font.Generate.Change.Error": "Znak {0} już istnieje w czcionce.",
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -299,22 +299,22 @@
   "Dialog.DependantFiles.Text": "Każdy plik otwarty z tego i niższych zostanie również zamknięty. Kontynuować?",
 
   // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+  "Dialog.Deprecated.Caption": "Przestarzała wtyczka",
+  "Dialog.Deprecated.Text.General": "Kuriimu2 już nie wspiera tego formatu pliku za pomocą wtyczki '{0}'.",
+  "Dialog.Deprecated.Text.Alternatives": "Rozważ użycie jednej z poniższych alternatyw:",
 
   // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+  "Dialog.Font.Remove.Caption": "Usuń Znaki",
+  "Dialog.Font.Remove.Text": "Czy chcesz usunąć zaznaczone znaki?",
 
   // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  "Dialog.Font.Remapping.Caption": "Przemapuj Znaki",
+  "Dialog.Font.Remapping.Text": "Wybierz zakres znaków, który chcesz przemapować:",
+  "Dialog.Font.Remapping.Remap": "Przemapuj",
 
   // Batch Reuse Options Dialog
-  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
-  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+  "Dialog.Batch.ReuseOptions.Caption": "Reużyj Opcji",
+  "Dialog.Batch.ReuseOptions.Text": "Czy chcesz ponownie użyć opcji dla następujących plików?",
 
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "Ok",
@@ -356,7 +356,7 @@
   "Dialog.Tools.Checksums.Input.SubDirectories": "Podkatalogi",
   "Dialog.Tools.Checksums.Input.Parameters": "Parametry",
   "Dialog.Tools.Checksums.Log.Process": "Przetwórz plik {0}.",
-  // "Dialog.Tools.Checksums.Log.Result": "Checksum for file {0} is 0x{1}.", // TODO
+  "Dialog.Tools.Checksums.Log.Result": "Suma kontrolna dla pliku {0} to 0x{1}.",
   "Dialog.Tools.Checksums.Log.Error": "Błąd podczas procesowania pliku {0}.",
   "Dialog.Tools.Checksums.Progress": "Procesuj",
   "Dialog.Tools.Checksums.Progress.Value": "Procesuj - {0:0.00}%",
@@ -399,7 +399,7 @@
   "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Kopiuj: Alt + C",
 
   // Sequence Search Dialog
-  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Caption": "Wyszukiwanie Tekstu",
   "Dialog.Tools.TextSequenceSearcher.Execute": "Wykonaj",
   "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Wybierz folder",
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Wybierz plik",
@@ -407,15 +407,15 @@
   "Dialog.Tools.TextSequenceSearcher.Progress": "Procesuj",
   "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Procesuj - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Anuluj",
-  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+  "Dialog.Tools.TextSequenceSearcher.Path": "Ścieżka",
+  "Dialog.Tools.TextSequenceSearcher.Offset": "Pozycja",
+  "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Tekst do wyszukania...",
 
   // Batch Dialog
-  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
-  // "Dialog.Tools.Batch.Export": "Export", // TODO
-  // "Dialog.Tools.Batch.Import": "Import", // TODO
-  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Caption": "Operacje Wsadowe",
+  "Dialog.Tools.Batch.Export": "Eksport",
+  "Dialog.Tools.Batch.Import": "Import",
+  "Dialog.Tools.Batch.SelectPlugin": "Wybierz wtyczkę",
   "Dialog.Tools.Batch.Execute": "Wykonaj",
   "Dialog.Tools.Batch.Input.Folder": "Wybierz folder",
   "Dialog.Tools.Batch.Input.SubDirectories": "Podkatalogi",
@@ -424,10 +424,10 @@
   "Dialog.Tools.Batch.Progress": "Procesuj",
   "Dialog.Tools.Batch.Progress.Value": "Procesuj - {0:0.00}%",
   "Dialog.Tools.Batch.Cancel": "Anuluj",
-  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
-  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
-  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
-  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
+  "Dialog.Tools.Batch.Text": "Parametry Tekstu",
+  "Dialog.Tools.Batch.Text.Kup": "KUP",
+  "Dialog.Tools.Batch.Text.Po": "PO",
+  "Dialog.Tools.Batch.Text.SelectPlugin": "Wybierz wtyczkę",
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Zainstalowane Wtyczki",
@@ -443,16 +443,16 @@
   "Dialog.Plugins.Installed.Type.Text": "Tekst",
 
   // File Preferences Dialog
-  // "Dialog.Preferences.Caption": "File Preferences", // TODO
-  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Caption": "Preferencje Pliku",
+  "Dialog.Preferences.Path": "Ścieżka",
   "Dialog.Preferences.Id": "ID",
   "Dialog.Preferences.Name": "Nazwa",
-  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+  "Dialog.Preferences.Type.Caption": "Typ",
   "Dialog.Preferences.Type.Archive": "Archiwum",
   "Dialog.Preferences.Type.Image": "Obraz",
   "Dialog.Preferences.Type.Font": "Czcionka",
   "Dialog.Preferences.Type.Text": "Tekst",
-  // "Dialog.Preferences.Options": "Options", // TODO
+  "Dialog.Preferences.Options": "Opcje",
 
   // About Dialog
   "Dialog.About.Caption": "O Programie",
@@ -474,7 +474,7 @@
   "Dialog.Plugins.ManualSelection.ShowAll": "Pokaż wszystkie wtyczki",
 
   // Plugin Selection Dialog
-  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+  "Dialog.Plugins.Selection.Caption": "Wybierz wtyczkę",
   "Dialog.Plugins.Selection.Id": "ID",
   "Dialog.Plugins.Selection.Name": "Nazwa",
   "Dialog.Plugins.Selection.Publisher": "Wydawca",
@@ -485,11 +485,11 @@
   "Dialog.Plugins.Selection.Type.Image": "Obraz",
   "Dialog.Plugins.Selection.Type.Font": "Czcionka",
   "Dialog.Plugins.Selection.Type.Text": "Tekst",
-  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
+  "Dialog.Plugins.Selection.Type.Game": "Gra",
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Generowanie Czcionki",
-  // "Dialog.Font.Edit.Caption": "Edit Characters", // TODO
+  "Dialog.Font.Edit.Caption": "Edytuj Znaki",
   "Dialog.Font.Generate.Family": "Rodzina Czcionki",
   "Dialog.Font.Generate.Style": "Styl Czcionki",
   "Dialog.Font.Generate.Size": "Rozmiar Czcionki",
@@ -497,7 +497,7 @@
   "Dialog.Font.Generate.GlyphHeight": "Wysokość Glifów",
   "Dialog.Font.Generate.SpaceWidth": "Rozstaw",
   "Dialog.Font.Generate.Characters": "Znaki",
-  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Characters.Replace": "Zastap znaki podczas wczytywania profilu",
   "Dialog.Font.Generate.Style.Bold": "Pogrubione",
   "Dialog.Font.Generate.Style.Italic": "Kursywa",
   "Dialog.Font.Generate.Load": "Wczytaj",
@@ -506,7 +506,7 @@
   "Dialog.Font.Generate.Save.Caption": "Zapisz profil czcionki...",
   "Dialog.Font.Generate.Profile": "Profil Czcionki",
   "Dialog.Font.Generate.Generate": "Generuj",
-  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Edit.Edit": "Edytuj",
   "Dialog.Font.Generate.Padding.Left": "Wypełnienie z Lewej",
   "Dialog.Font.Generate.Padding.Right": "Wypełnienie z Prawej"
 }
