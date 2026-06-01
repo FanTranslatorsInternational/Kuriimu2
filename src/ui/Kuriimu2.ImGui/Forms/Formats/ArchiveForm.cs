@@ -467,7 +467,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             }
 
             // Select folder or file
-            var selectedPath = await (files.Length > 1 ? SelectFolder() : SaveFile(files[0].FilePath.GetName()));
+            var selectedPath = await (files.Length > 1 ? SelectFolder() : SelectFile(files[0].FilePath.GetName()));
             if (selectedPath.IsNull || selectedPath.IsEmpty)
             {
                 _formInfo.FormCommunicator.ReportStatus(StatusKind.Failure, LocalizationResources.ArchiveStatusSelectNone);
@@ -477,11 +477,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Use containing directory as root if a file was selected
             var extractRoot = files.Length > 1 ? selectedPath : selectedPath.GetDirectory();
 
+            var outputPath = extractRoot.FullName ?? string.Empty;
+            if (File.Exists(outputPath))
+                outputPath = outputPath.Replace('.', '_');
+
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(StatusKind.Info, string.Empty);
 
             var sm = new StreamManager();
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(extractRoot.FullName ?? string.Empty, sm);
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputPath, sm);
 
             _formInfo.ProgressOutput.SetMessage(LocalizationResources.ArchiveProgressExtract);
             _formInfo.Progress.StartProgress();
@@ -552,8 +556,12 @@ namespace Kuriimu2.ImGui.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(StatusKind.Info, string.Empty);
 
+            var outputPath = (extractPath / (string)node.Text).FullName ?? string.Empty;
+            if (File.Exists(outputPath))
+                outputPath = (extractPath / ((string)node.Text).Replace('.', '_')).FullName ?? string.Empty;
+
             var sm = new StreamManager();
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem((extractPath / (string)node.Text).FullName ?? string.Empty, sm);
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputPath, sm);
 
             _formInfo.ProgressOutput.SetMessage(LocalizationResources.ArchiveProgressExtract);
             _formInfo.Progress.StartProgress();
@@ -571,22 +579,21 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     if (IsFileLocked(fileEntry.ArchiveFile, false))
                         continue;
 
-                    Stream newFileStream;
                     try
                     {
                         destinationFileSystem.CreateDirectory(fileEntry.Path.GetSubDirectory(nodePath).GetDirectory());
-                        newFileStream = await destinationFileSystem.OpenFileAsync(fileEntry.Path.GetSubDirectory(nodePath), FileMode.Create, FileAccess.Write);
+                        var newFileStream = await destinationFileSystem.OpenFileAsync(fileEntry.Path.GetSubDirectory(nodePath), FileMode.Create, FileAccess.Write);
+
+                        var currentFileStream = await fileEntry.ArchiveFile.GetFileData();
+
+                        await currentFileStream.CopyToAsync(newFileStream, cts.Token);
+
+                        newFileStream.Close();
                     }
-                    catch (IOException)
+                    catch (Exception)
                     {
-                        continue;
+                        // ignored
                     }
-
-                    var currentFileStream = fileEntry.ArchiveFile.GetFileData().Result;
-
-                    await currentFileStream.CopyToAsync(newFileStream, cts.Token);
-
-                    newFileStream.Close();
                 }
             });
             sm.ReleaseAll();
@@ -1350,7 +1357,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             return result;
         }
 
-        private static async Task<UPath> SaveFile(string? fileName)
+        private static async Task<UPath> SelectFile(string? fileName)
         {
             var dir = string.IsNullOrEmpty(SettingsResources.LastDirectory) ? Path.GetFullPath(".") : SettingsResources.LastDirectory;
             var ofd = new WindowsSaveFileDialog

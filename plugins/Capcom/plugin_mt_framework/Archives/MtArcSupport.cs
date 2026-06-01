@@ -1,11 +1,11 @@
-﻿using System.Buffers.Binary;
-using Komponent.Contract.Aspects;
+﻿using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Plugin.File.Archive;
 using Kryptography.Checksum.Crc;
 using Kryptography.Encryption.Blowfish;
+using System.Buffers.Binary;
 
 namespace plugin_mt_framework.Archives
 {
@@ -262,15 +262,23 @@ namespace plugin_mt_framework.Archives
 
         public static MtArcPlatform DeterminePlatform(Stream input)
         {
-            using var br = new BinaryReaderX(input, true);
+            using var reader = new BinaryReaderX(input, true);
 
             // Peek header
-            var header = ReadHeader(br);
+            var header = ReadHeader(reader);
             input.Position = 0;
 
             // Version 9 was only encountered in Nintendo Switch games
-            if (header.version == 9)
-                return MtArcPlatform.Switch;
+            if (header is { version: 9 })
+            {
+                var switchEntry = ReadSwitchEntry(reader);
+                reader.BaseStream.Position -= 0x54;
+
+                var fileOffset = DetermineFileOffset(ByteOrder.LittleEndian, 9, header.entryCount, 0x8, false);
+
+                if (switchEntry.offset == fileOffset)
+                    return MtArcPlatform.Switch;
+            }
 
             // PS and XBox system use BigEndian
             if (header.magic == "\0CRA")
@@ -289,6 +297,16 @@ namespace plugin_mt_framework.Archives
                 version = reader.ReadInt16(),
                 entryCount = reader.ReadInt16()
             };
+        }
+
+        public static bool HasEntryExtendedName(BinaryReaderX reader)
+        {
+            var firstEntry = ReadEntry(reader);
+            reader.BaseStream.Position -= 0x50;
+
+            return firstEntry.extensionHash == 0 ||
+                   firstEntry.decompSize == 0 ||
+                   firstEntry.offset == 0;
         }
 
         public static IMtEntry[] ReadEntries<TEntry>(BinaryReaderX reader, int count)
@@ -473,28 +491,28 @@ namespace plugin_mt_framework.Archives
             [GetHash("rFaceEdit")] = ".fed",
             [GetHash("rFacialAnimation")] = ".fca",
 
-            [0x22FA09] = ".hpe",
-            [0x26E7FF] = ".ccl",
-            [0x86B80F] = ".plexp",
-            [0xFDA99B] = ".ntr",
-            [0x2358E1A] = ".spkg",
-            [0x2373BA7] = ".spn",
-            [0x2833703] = ".efs",
-            [0x315E81F] = ".sds",
-            [0x437BCF2] = ".grw",
-            [0x4B4BE62] = ".tmd",
-            [0x525AEE2] = ".wfp",
-            [0x5A36D08] = ".qif",
-            [0x69A1911] = ".olp",
-            [0x737E28B] = ".rst",
-            [0x7437CCE] = ".base",
-            [0x79B5F3E] = ".pci",
-            [0x7F768AF] = ".gii",
-            [0x89BEF2C] = ".sap",
-            [0xA74682F] = ".rnp",
-            [0xC4FCAE4] = ".PlDefendParam",
-            [0xD06BE6B] = ".tmn",
-            [0xECD7DF4] = ".scs",
+            [0x0022FA09] = ".hpe",
+            [0x0026E7FF] = ".ccl",
+            [0x0086B80F] = ".plexp",
+            [0x00FDA99B] = ".ntr",
+            [0x02358E1A] = ".spkg",
+            [0x02373BA7] = ".spn",
+            [0x02833703] = ".efs",
+            [0x0315E81F] = ".sds",
+            [0x0437BCF2] = ".grw",
+            [0x04B4BE62] = ".tmd",
+            [0x0525AEE2] = ".wfp",
+            [0x05A36D08] = ".qif",
+            [0x069A1911] = ".olp",
+            [0x0737E28B] = ".rst",
+            [0x07437CCE] = ".base",
+            [0x079B5F3E] = ".pci",
+            [0x07F768AF] = ".gii",
+            [0x089BEF2C] = ".sap",
+            [0x0A74682F] = ".rnp",
+            [0x0C4FCAE4] = ".PlDefendParam",
+            [0x0D06BE6B] = ".tmn",
+            [0x0ECD7DF4] = ".scs",
             [0x11C35522] = ".gr2",
             [0x12191BA1] = ".epv",
             [0x12688D38] = ".pjp",
@@ -608,10 +626,10 @@ namespace plugin_mt_framework.Archives
             [0x7E1C8D43] = ".pcs",
             [0x7E33A16C] = ".spc",
             [0x7E4152FF] = ".stg",
-            [0x17A550D] = ".lom",
-            [0x253F147] = ".hit",
-            [0x39D71F2] = ".rvt",
-            [0xDADAB62] = ".oba",
+            [0x017A550D] = ".lom",
+            [0x0253F147] = ".hit",
+            [0x039D71F2] = ".rvt",
+            [0x0DADAB62] = ".oba",
             [0x10C460E6] = ".msg",
             [0x176C3F95] = ".los",
             [0x19A59A91] = ".lnk",

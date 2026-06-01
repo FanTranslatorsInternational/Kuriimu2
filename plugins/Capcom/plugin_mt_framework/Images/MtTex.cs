@@ -3,6 +3,7 @@ using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using SixLabors.ImageSharp;
+using System;
 using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_mt_framework.Images
@@ -11,11 +12,15 @@ namespace plugin_mt_framework.Images
     class MtTex
     {
         private const int HeaderSize_ = 0x10;
+        private const int HeaderSize66_ = 0x24;
+        private const int HeaderSize70_ = 0x28;
         private const int HeaderSize87_ = 0x14;
 
         private MtTexPlatform _platform;
         private MtTexHeader _header;
         private MtTexHeader87 _header87;
+        private MtTexHeader70 _header70;
+        private MtTexHeader66 _header66;
         private MobileMtTexHeader _mobileHeader;
 
         private byte[] _unkRegion;
@@ -34,6 +39,12 @@ namespace plugin_mt_framework.Images
             _header = ReadHeader(br);
 
             input.Position = 0;
+            _header66 = ReadHeader66(br);
+
+            input.Position = 0;
+            _header70 = ReadHeader70(br);
+
+            input.Position = 0;
             _header87 = ReadHeader87(br);
 
             input.Position = 0;
@@ -47,13 +58,18 @@ namespace plugin_mt_framework.Images
                 case MtTexPlatform.N3DS:
                     return Load3ds(br);
 
+                case MtTexPlatform.PS366:
                 case MtTexPlatform.PS3:
                     return LoadPs3(br);
+
+                case MtTexPlatform.PS4:
+                    return LoadPs4(br);
 
                 case MtTexPlatform.Switch:
                     return [LoadSwitch(br)];
 
                 case MtTexPlatform.Pc:
+                case MtTexPlatform.Pc70:
                 case MtTexPlatform.Pc87:
                     return [LoadPc(br)];
 
@@ -76,8 +92,13 @@ namespace plugin_mt_framework.Images
                     Save3ds(bw, imageInfos);
                     break;
 
+                case MtTexPlatform.PS366:
                 case MtTexPlatform.PS3:
                     SavePs3(bw, imageInfos);
+                    break;
+
+                case MtTexPlatform.PS4:
+                    SavePs4(bw, imageInfos);
                     break;
 
                 case MtTexPlatform.Switch:
@@ -85,6 +106,7 @@ namespace plugin_mt_framework.Images
                     break;
 
                 case MtTexPlatform.Pc:
+                case MtTexPlatform.Pc70:
                 case MtTexPlatform.Pc87:
                     SavePc(bw, imageInfos[0]);
                     break;
@@ -118,7 +140,7 @@ namespace plugin_mt_framework.Images
 
             // Skip mip offsets
             IList<int> mipOffsets = Array.Empty<int>();
-            if (_header.imageData.version != 0xA4)
+            if (_header.imageData.version is not 0xa3 and not 0xa4)
             {
                 mipOffsets = ReadIntegers(br, _header.imageData.mipCount * _header.imageData.imgCount);
                 dataOffset += _header.imageData.mipCount * _header.imageData.imgCount * 4;
@@ -134,7 +156,7 @@ namespace plugin_mt_framework.Images
                 {
                     var mipSize = (_header.imageData.width >> m) * (_header.imageData.height >> m) * bitDepth / 8;
 
-                    if (_header.imageData.version != 0xA4)
+                    if (_header.imageData.version is not 0xa3 and not 0xa4)
                         br.BaseStream.Position = dataOffset + mipOffsets[i * _header.imageData.mipCount + m];
 
                     mipData.Add(br.ReadBytes(mipSize));
@@ -161,11 +183,77 @@ namespace plugin_mt_framework.Images
 
         private IList<ImageFileInfo> LoadPs3(BinaryReaderX br)
         {
-            var bitDepth = MtTexSupport.Ps3Formats[_header.imageData.format].BitDepth;
-            var colorsPerValue = MtTexSupport.Ps3Formats[_header.imageData.format].ColorsPerValue;
+            int mipOffset = _platform is MtTexPlatform.PS366 ? HeaderSize66_ : HeaderSize_;
+            int format = _platform is MtTexPlatform.PS366 ? _header66.format2 : _header.imageData.format;
+            int imgCount = _platform is MtTexPlatform.PS366 ? _header66.imgCount : _header.imageData.imgCount;
+            int mipCount = _platform is MtTexPlatform.PS366 ? _header66.mipCount : _header.imageData.mipCount;
+            int width = _platform is MtTexPlatform.PS366 ? _header66.width : _header.imageData.width;
+            int height = _platform is MtTexPlatform.PS366 ? _header66.height : _header.imageData.height;
+            var encodings = _platform is MtTexPlatform.PS366 ? MtTexSupport.Ps366Formats : MtTexSupport.Ps3Formats;
+
+            var bitDepth = encodings[format].BitDepth;
+            var colorsPerValue = encodings[format].ColorsPerValue;
+
+            // Skip unknown region (assume region to be 0x6C)
+            if (_platform is MtTexPlatform.PS366 && _header66.format1 == 0x31)
+            {
+                _unkRegion = br.ReadBytes(0x6C);
+                mipOffset += 0x6C;
+            }
 
             // Skip mip offsets
+            br.BaseStream.Position = mipOffset;
+            var mipOffsets = ReadIntegers(br, mipCount * imgCount);
+
+            // Read images
+            var imageInfos = new List<ImageFileInfo>();
+            for (var i = 0; i < imgCount; i++)
+            {
+                // Read mips
+                var mipData = new List<byte[]>();
+                for (var m = 0; m < mipCount; m++)
+                {
+                    var mipSize = (width >> m) * (height >> m) * bitDepth / 8;
+
+                    br.BaseStream.Position = mipOffsets[i * mipCount + m];
+                    mipData.Add(br.ReadBytes(mipSize));
+                }
+
+                // Create image info
+                var imageInfo = new ImageFileInfo
+                {
+                    BitDepth = bitDepth,
+                    ImageData = mipData[0],
+                    ImageFormat = format,
+                    ImageSize = new Size(width, height)
+                };
+
+                if (mipCount > 1)
+                    imageInfo.MipMapData = mipData.Skip(1).ToArray();
+
+                // TODO: Remove block swizzle with pre-swizzle implementation in Kanvas
+                if (colorsPerValue > 1)
+                    imageInfo.RemapPixels = context => new BcSwizzle(context);
+                else if (_platform is not MtTexPlatform.PS366)
+                    imageInfo.RemapPixels = context => new VitaSwizzle(context); // Implements the same logic on PS3 as on Vita
+
+                imageInfos.Add(imageInfo);
+            }
+
+            return imageInfos;
+        }
+
+        private IList<ImageFileInfo> LoadPs4(BinaryReaderX br)
+        {
+            var bitDepth = MtTexSupport.Ps4Formats[_header.imageData.format].BitDepth;
+
+            var mipOffset = HeaderSize_;
+
+            // Skip mip offsets
+            br.BaseStream.Position = mipOffset;
             var mipOffsets = ReadIntegers(br, _header.imageData.mipCount);
+
+            br.ReadInt32();
 
             // Read images
             var imageInfos = new List<ImageFileInfo>();
@@ -187,17 +275,12 @@ namespace plugin_mt_framework.Images
                     BitDepth = bitDepth,
                     ImageData = mipData[0],
                     ImageFormat = _header.imageData.format,
-                    ImageSize = new Size(_header.imageData.width, _header.imageData.height)
+                    ImageSize = new Size(_header.imageData.width, _header.imageData.height),
+                    RemapPixels = context => new Ps4Swizzle(context)
                 };
 
                 if (_header.imageData.mipCount > 1)
                     imageInfo.MipMapData = mipData.Skip(1).ToArray();
-
-                // TODO: Remove block swizzle with pre-swizzle implementation in Kanvas
-                if (colorsPerValue > 1)
-                    imageInfo.RemapPixels = context => new BcSwizzle(context);
-                else
-                    imageInfo.RemapPixels = context => new VitaSwizzle(context); // Implements the same logic on PS3 as on Vita
 
                 imageInfos.Add(imageInfo);
             }
@@ -233,7 +316,7 @@ namespace plugin_mt_framework.Images
                 ImageData = imageData,
                 ImageFormat = _header.imageData.format,
                 ImageSize = new Size(_header.imageData.width, _header.imageData.height),
-                RemapPixels = context => new NxSwizzle(context)
+                RemapPixels = context => new NxSwizzle(context, 4)
             };
 
             if (_header.imageData.mipCount > 1)
@@ -246,27 +329,35 @@ namespace plugin_mt_framework.Images
         {
             // We can use the version of the normal header here, since the version of both normal and 87 header overlap
             var version = _header.imageData.version;
-            var headerSize = version == 0x87 ? HeaderSize87_ : HeaderSize_;
+            var headerSize = version is 0x70 ? HeaderSize70_ : version is 0x87 ? HeaderSize87_ : HeaderSize_;
 
             br.BaseStream.Position = headerSize;
 
             int mipCount;
+            int dataOffset;
             switch (version)
             {
+                case 0x70:
+                    mipCount = _header70.mipCount;
+                    ReadIntegers(br, mipCount);
+                    dataOffset = (int)br.BaseStream.Position;
+                    break;
+
                 case 0x87:
                     mipCount = _header87.imageData.mipCount;
                     ReadIntegers(br, mipCount);
+                    dataOffset = (int)br.BaseStream.Position;
                     break;
 
                 case 0x9d:
                     mipCount = _header.imageData.mipCount;
-                    br.ReadUInt32(); // texOffset?
+                    dataOffset = br.ReadInt32(); // texOffset?
                     ReadIntegers(br, _header.imageData.mipCount - 1);
                     break;
 
                 case 0xa3:
                     mipCount = _header.imageData.mipCount;
-                    br.ReadUInt32(); // texOffset?
+                    dataOffset = br.ReadInt32(); // texOffset?
                     ReadIntegers(br, _header.imageData.mipCount);
                     break;
 
@@ -275,16 +366,18 @@ namespace plugin_mt_framework.Images
             }
 
             // Collect values
-            var format = version == 0x87 ? _header87 is { format: 0x19, imageData.useDxt10: 0 } ? 0xFF : _header87.format : _header.imageData.format;
-            var width = version == 0x87 ? _header87.imageData.width : _header.imageData.width;
-            var height = version == 0x87 ? _header87.imageData.height : _header.imageData.height;
-            var encodings = version == 0x87 ? MtTexSupport.Pc87Formats : MtTexSupport.PcFormats;
+            int format = version == 0x70 ? _header70.format2 : version == 0x87 ? _header87 is { format: 0x19, imageData.useDxt10: 0 } ? 0xFF : _header87.format : _header.imageData.format;
+            var width = version == 0x70 ? _header70.width : version == 0x87 ? _header87.imageData.width : _header.imageData.width;
+            var height = version == 0x70 ? _header70.height : version == 0x87 ? _header87.imageData.height : _header.imageData.height;
+            var encodings = version == 0x70 ? MtTexSupport.Pc70Formats : version == 0x87 ? MtTexSupport.Pc87Formats : MtTexSupport.PcFormats;
 
             // Read image data
             // HINT: Calculating dataSize by bitsPerValue and colorsPerValue, since bitDepth can be 0 or some float due to ASTC
             var bitsPerValue = encodings[format].BitsPerValue;
             var colorsPerValue = encodings[format].ColorsPerValue;
             var dataSize = width * height / colorsPerValue * bitsPerValue / 8;
+
+            br.BaseStream.Position = dataOffset;
             var imageData = br.ReadBytes(dataSize);
 
             // Read mips
@@ -428,6 +521,49 @@ namespace plugin_mt_framework.Images
             };
         }
 
+        private MtTexHeader70 ReadHeader70(BinaryReaderX reader)
+        {
+            return new MtTexHeader70
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadUInt16(),
+                format1 = reader.ReadByte(),
+                unk0 = reader.ReadByte(),
+                mipCount = reader.ReadByte(),
+                imgCount = reader.ReadByte(),
+                unk1 = reader.ReadInt16(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unk2 = reader.ReadInt32(),
+                format2 = reader.ReadInt32(),
+                unk3 = reader.ReadSingle(),
+                unk4 = reader.ReadSingle(),
+                unk5 = reader.ReadSingle(),
+                unk6 = reader.ReadSingle()
+            };
+        }
+
+        private MtTexHeader66 ReadHeader66(BinaryReaderX reader)
+        {
+            return new MtTexHeader66
+            {
+                magic = reader.ReadString(4),
+                version = reader.ReadUInt16(),
+                format1 = reader.ReadByte(),
+                unk0 = reader.ReadByte(),
+                mipCount = reader.ReadByte(),
+                imgCount = reader.ReadByte(),
+                width = reader.ReadInt16(),
+                height = reader.ReadInt16(),
+                unk1 = reader.ReadInt16(),
+                format2 = reader.ReadInt32(),
+                unk3 = reader.ReadSingle(),
+                unk4 = reader.ReadSingle(),
+                unk5 = reader.ReadSingle(),
+                unk6 = reader.ReadSingle()
+            };
+        }
+
         private MtTexHeader87 ReadHeader87(BinaryReaderX reader)
         {
             return new MtTexHeader87
@@ -476,7 +612,7 @@ namespace plugin_mt_framework.Images
                 bw.Write(_unkRegion);
 
             // Write mip offsets
-            if (_header.imageData.version != 0xA4)
+            if (_header.imageData.version is not 0xa3 and not 0xa4)
             {
                 var mipPosition = 0;
                 foreach (var imageInfo in imageInfos)
@@ -524,10 +660,81 @@ namespace plugin_mt_framework.Images
             if (imageInfos.Select(x => x.ImageSize).Distinct().Count() > 1)
                 throw new InvalidOperationException("All images have to have the same dimensions.");
 
-            bw.BaseStream.Position = HeaderSize_;
+            var mipOffset = _platform is MtTexPlatform.PS366 ? HeaderSize66_ : HeaderSize_;
+            bw.BaseStream.Position = mipOffset;
+
+            // Write unknown region
+            if (_unkRegion != null)
+            {
+                bw.Write(_unkRegion);
+                mipOffset += _unkRegion.Length;
+            }
 
             // Write mip offsets
-            var mipPosition = HeaderSize_ + (imageInfos.Count + imageInfos.Sum(x => x.MipMapData?.Count ?? 0)) * 4;
+            var mipPosition = mipOffset + (imageInfos.Count + imageInfos.Sum(x => x.MipMapData?.Count ?? 0)) * 4;
+            foreach (var imageInfo in imageInfos)
+            {
+                bw.Write(mipPosition);
+                mipPosition += imageInfo.ImageData.Length;
+
+                if ((imageInfo.MipMapData?.Count ?? 0) <= 0)
+                    continue;
+
+                foreach (var mipData in imageInfo.MipMapData!)
+                {
+                    bw.Write(mipPosition);
+                    mipPosition += mipData.Length;
+                }
+            }
+
+            // Write image data
+            foreach (var imageInfo in imageInfos)
+            {
+                bw.Write(imageInfo.ImageData);
+
+                if (imageInfo.MipMapData is not null)
+                    foreach (var mipData in imageInfo.MipMapData)
+                        bw.Write(mipData);
+            }
+
+            // Update header
+            if (_platform is MtTexPlatform.PS366)
+            {
+                _header66.format1 = (byte)(imageInfos[0].ImageFormat == 0x15 ? 0x20 : 0x22);
+                _header66.format2 = (byte)imageInfos[0].ImageFormat;
+                _header66.width = (short)imageInfos[0].ImageSize.Width;
+                _header66.height = (short)imageInfos[0].ImageSize.Height;
+                _header66.mipCount = (byte)((imageInfos[0].MipMapData?.Count ?? 0) + 1);
+            }
+            else
+            {
+                _header.imageData.format = (byte)imageInfos[0].ImageFormat;
+                _header.imageData.width = (short)imageInfos[0].ImageSize.Width;
+                _header.imageData.height = (short)imageInfos[0].ImageSize.Height;
+                _header.imageData.mipCount = (byte)((imageInfos[0].MipMapData?.Count ?? 0) + 1);
+            }
+
+            // Write header
+            bw.BaseStream.Position = 0;
+            if (_platform is MtTexPlatform.PS366)
+                WriteHeader66(_header66, bw);
+            else
+                WriteHeader(_header, bw);
+        }
+
+        private void SavePs4(BinaryWriterX bw, IList<ImageFileInfo> imageInfos)
+        {
+            // Check for image information being equal
+            if (imageInfos.Select(x => x.ImageFormat).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to be in the same image encoding.");
+            if (imageInfos.Select(x => x.ImageSize).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to have the same dimensions.");
+
+            var mipOffset = HeaderSize_;
+            bw.BaseStream.Position = mipOffset;
+
+            // Write mip offsets
+            var mipPosition = mipOffset + 4 + (imageInfos.Count + imageInfos.Sum(x => x.MipMapData?.Count ?? 0)) * 4;
             foreach (var imageInfo in imageInfos)
             {
                 bw.Write(mipPosition);
@@ -613,6 +820,11 @@ namespace plugin_mt_framework.Images
             long offsetPosition;
             switch (version)
             {
+                case 0x70:
+                    dataOffset = HeaderSize70_ + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
+                    offsetPosition = HeaderSize70_;
+                    break;
+
                 case 0x87:
                     dataOffset = HeaderSize87_ + ((imageInfo.MipMapData?.Count ?? 0) + 1) * 4;
                     offsetPosition = HeaderSize87_;
@@ -658,7 +870,15 @@ namespace plugin_mt_framework.Images
                     bw.Write(mipData);
 
             // Update header
-            if (version == 0x87)
+            if (version is 0x70)
+            {
+                _header70.format1 = (byte)(imageInfo.ImageFormat == 0x15 ? 0x2 : 0x22);
+                _header70.format2 = (byte)imageInfo.ImageFormat;
+                _header70.width = (short)imageInfo.ImageSize.Width;
+                _header70.height = (short)imageInfo.ImageSize.Height;
+                _header70.mipCount = (byte)((imageInfo.MipMapData?.Count ?? 0) + 1);
+            }
+            else if (version is 0x87)
             {
                 _header87.format = (byte)(imageInfo.ImageFormat == 0xFF ? 0x19 : imageInfo.ImageFormat);
                 _header87.imageData.width = (short)imageInfo.ImageSize.Width;
@@ -675,7 +895,9 @@ namespace plugin_mt_framework.Images
 
             // Write header
             bw.BaseStream.Position = 0;
-            if (version == 0x87)
+            if (version is 0x70)
+                WriteHeader70(_header70, bw);
+            else if (version is 0x87)
                 WriteHeader87(_header87, bw);
             else
                 WriteHeader(_header, bw);
@@ -755,6 +977,43 @@ namespace plugin_mt_framework.Images
             writer.Write(header.imageData.imgCount);
             writer.Write(header.imageData.format);
             writer.Write(header.imageData.unk3);
+        }
+
+        private void WriteHeader66(MtTexHeader66 header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.format1);
+            writer.Write(header.unk0);
+            writer.Write(header.mipCount);
+            writer.Write(header.imgCount);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk1);
+            writer.Write(header.format2);
+            writer.Write(header.unk3);
+            writer.Write(header.unk4);
+            writer.Write(header.unk5);
+            writer.Write(header.unk6);
+        }
+
+        private void WriteHeader70(MtTexHeader70 header, BinaryWriterX writer)
+        {
+            writer.WriteString(header.magic, writeNullTerminator: false);
+            writer.Write(header.version);
+            writer.Write(header.format1);
+            writer.Write(header.unk0);
+            writer.Write(header.mipCount);
+            writer.Write(header.imgCount);
+            writer.Write(header.unk1);
+            writer.Write(header.width);
+            writer.Write(header.height);
+            writer.Write(header.unk2);
+            writer.Write(header.format2);
+            writer.Write(header.unk3);
+            writer.Write(header.unk4);
+            writer.Write(header.unk5);
+            writer.Write(header.unk6);
         }
 
         private void WriteHeader87(MtTexHeader87 header, BinaryWriterX writer)

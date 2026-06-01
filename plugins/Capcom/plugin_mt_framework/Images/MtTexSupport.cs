@@ -1,6 +1,7 @@
 ﻿using Kanvas;
 using Kanvas.Contract;
 using Kanvas.Contract.Encoding;
+using Kanvas.Encoding;
 using Komponent.Contract.Aspects;
 using Komponent.Contract.Enums;
 using Komponent.IO;
@@ -90,6 +91,51 @@ namespace plugin_mt_framework.Images
 
     #endregion
 
+    #region Header Version 70
+
+    class MtTexHeader70
+    {
+        public string magic;
+        public ushort version;
+        public byte format1;
+        public byte unk0;
+        public byte mipCount;
+        public byte imgCount;
+        public short unk1;
+        public short width;
+        public short height;
+        public int unk2;
+        public int format2;
+        public float unk3;
+        public float unk4;
+        public float unk5;
+        public float unk6;
+    }
+
+    #endregion
+
+    #region Header Version 66
+
+    class MtTexHeader66
+    {
+        public string magic;
+        public ushort version;
+        public byte format1;
+        public byte unk0;
+        public byte mipCount;
+        public byte imgCount;
+        public short width;
+        public short height;
+        public short unk1;
+        public int format2;
+        public float unk3;
+        public float unk4;
+        public float unk5;
+        public float unk6;
+    }
+
+    #endregion
+
     #region Header Mobile
 
     class MobileMtTexHeader
@@ -168,7 +214,7 @@ namespace plugin_mt_framework.Images
             [0x11] = ImageFormats.Rgb888(),
 
             [0x13] = ImageFormats.Dxt1(),
-            [0x14] = ImageFormats.Dxt3(),
+            [0x14] = ImageFormats.Dxt1(),
 
             [0x17] = ImageFormats.Dxt5(),
             [0x18] = ImageFormats.Dxt5(),
@@ -180,11 +226,30 @@ namespace plugin_mt_framework.Images
 
             [0x27] = ImageFormats.Rgba8888(),
 
-            [0x2A] = ImageFormats.Dxt5()
+            [0x2A] = ImageFormats.Dxt5(),
+            [0x2B] = ImageFormats.Dxt5()
+        };
+
+        public static readonly IDictionary<int, IColorEncoding> Ps366Formats = new Dictionary<int, IColorEncoding>
+        {
+            [0x15] = new Rgba(8, 8, 8, 8, "BGRA"),
+            [0x31545844] = ImageFormats.Dxt1(),
+            [0x35545844] = ImageFormats.Dxt5()
+        };
+
+        public static readonly IDictionary<int, IColorEncoding> Ps4Formats = new Dictionary<int, IColorEncoding>
+        {
+            [0x14] = ImageFormats.Dxt1(),
+
+            [0x18] = ImageFormats.Dxt5(),
+
+            [0x2B] = ImageFormats.Dxt5()
         };
 
         public static readonly IDictionary<int, IColorEncoding> SwitchFormats = new Dictionary<int, IColorEncoding>
         {
+            [0x04] = ImageFormats.Bc7(),
+
             [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
 
             [0x13] = ImageFormats.Dxt1(),
@@ -199,6 +264,7 @@ namespace plugin_mt_framework.Images
             [0x2A] = ImageFormats.Bc7(),
             [0x2B] = ImageFormats.Dxt5(),
 
+            [0x30] = ImageFormats.Bc7(),
             [0x31] = ImageFormats.Bc7()
         };
 
@@ -222,6 +288,13 @@ namespace plugin_mt_framework.Images
             [0x2B] = ImageFormats.Dxt5(),
 
             [0x36] = ImageFormats.Bc7()
+        };
+
+        public static readonly IDictionary<int, IColorEncoding> Pc70Formats = new Dictionary<int, IColorEncoding>
+        {
+            [0x15] = new Rgba(8, 8, 8, 8, "ARGB"),
+            [0x31545844] = ImageFormats.Dxt1(),
+            [0x35545844] = ImageFormats.Dxt5()
         };
 
         public static readonly IDictionary<int, IColorEncoding> Pc87Formats = new Dictionary<int, IColorEncoding>
@@ -261,7 +334,13 @@ namespace plugin_mt_framework.Images
 
         private static readonly IDictionary<int, IColorShader> ShadersPs3 = new Dictionary<int, IColorShader>
         {
-            [0x2A] = new MtTex_YCbCrColorShader()
+            [0x2A] = new MtTex_YCbCrColorShader(),
+            [0x2B] = new MtTex_YCbCrColorShader()
+        };
+
+        private static readonly IDictionary<int, IColorShader> ShadersPs4 = new Dictionary<int, IColorShader>
+        {
+            [0x2B] = new MtTex_YCbCrColorShader()
         };
 
         private static readonly IDictionary<int, IColorShader> ShadersSwitch = new Dictionary<int, IColorShader>
@@ -285,8 +364,11 @@ namespace plugin_mt_framework.Images
                 MtTexPlatform.N3DS => CtrFormats[format].BitDepth,
                 MtTexPlatform.Switch => SwitchFormats[format].BitDepth,
                 MtTexPlatform.PS3 => Ps3Formats[format].BitDepth,
+                MtTexPlatform.PS366 => Ps366Formats[format].BitDepth,
+                MtTexPlatform.PS4 => Ps4Formats[format].BitDepth,
                 MtTexPlatform.Mobile => MobileFormats[format].BitDepth,
                 MtTexPlatform.Pc => PcFormats[format].BitDepth,
+                MtTexPlatform.Pc70 => Pc70Formats[format].BitDepth,
                 MtTexPlatform.Pc87 => Pc87Formats[format].BitDepth,
                 MtTexPlatform.Wii => throw new InvalidOperationException("Cannot obtain bit depth for Wii MT Tex."),
                 _ => throw new InvalidOperationException($"Unsupported platform {platform}.")
@@ -304,6 +386,8 @@ namespace plugin_mt_framework.Images
             // Read version
             file.Position = 4;
             var block = br.ReadUInt32();
+            file.Position = 4;
+            var oldVersion = br.ReadInt16();
             file.Position = 0;
 
             var version = block & 0xFFF;
@@ -313,6 +397,15 @@ namespace plugin_mt_framework.Images
             if (magic == "TEX " && mobileVersion == 0x09)
                 return MtTexPlatform.Mobile;
 
+            switch (oldVersion)
+            {
+                case 0x66:
+                    return MtTexPlatform.PS366;
+
+                case 0x70:
+                    return MtTexPlatform.Pc70;
+            }
+
             MtTexPlatform[] options;
             switch (version)
             {
@@ -320,6 +413,9 @@ namespace plugin_mt_framework.Images
                 case 0xa5:
                 case 0xa6:
                     return MtTexPlatform.N3DS;
+
+                case 0x70:
+                    return MtTexPlatform.Pc70;
 
                 case 0x87:
                     file.Position = 0x20;
@@ -333,7 +429,7 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.PS3;
 
                 case 0x9d:
-                    options = [MtTexPlatform.Pc, MtTexPlatform.PS3];
+                    options = [MtTexPlatform.Pc, MtTexPlatform.PS3, MtTexPlatform.PS4];
                     break;
 
                 case 0xa0:
@@ -341,7 +437,7 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.Switch;
 
                 case 0xa3:
-                    options = [MtTexPlatform.Pc, MtTexPlatform.Switch];
+                    options = [MtTexPlatform.N3DS, MtTexPlatform.Pc, MtTexPlatform.Switch];
                     break;
 
                 default:
@@ -375,10 +471,20 @@ namespace plugin_mt_framework.Images
                     definition.AddColorShaders(ShadersSwitch);
                     break;
 
+                case MtTexPlatform.PS366:
+                    definition.AddColorEncodings(Ps366Formats);
+                    break;
+
                 case MtTexPlatform.PS3:
                     definition.AddColorEncodings(Ps3Formats);
                     definition.AddColorShaders(ShadersPs3);
                     break;
+
+                case MtTexPlatform.PS4:
+                    definition.AddColorEncodings(Ps4Formats);
+                    definition.AddColorShaders(ShadersPs4);
+                    break;
+
 
                 case MtTexPlatform.Mobile:
                     definition.AddColorEncodings(MobileFormats);
@@ -387,6 +493,10 @@ namespace plugin_mt_framework.Images
                 case MtTexPlatform.Pc:
                     definition.AddColorEncodings(PcFormats);
                     definition.AddColorShaders(ShadersPc);
+                    break;
+
+                case MtTexPlatform.Pc70:
+                    definition.AddColorEncodings(Pc70Formats);
                     break;
 
                 case MtTexPlatform.Pc87:
@@ -407,8 +517,11 @@ namespace plugin_mt_framework.Images
         N3DS,
         Switch,
         PS3,
+        PS366,
+        PS4,
         Mobile,
         Pc,
+        Pc70,
         Pc87
     }
 

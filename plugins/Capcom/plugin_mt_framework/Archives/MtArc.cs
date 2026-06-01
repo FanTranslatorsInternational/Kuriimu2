@@ -117,12 +117,7 @@ namespace plugin_mt_framework.Archives
                 br.ReadInt32();
 
             // Determine if entries have extended file name section
-            var firstEntry = MtArcSupport.ReadEntry(br);
-            var hasExtendedName = firstEntry.extensionHash == 0 ||
-                                  firstEntry.decompSize == 0 ||
-                                  firstEntry.offset == 0;
-
-            input.Position -= 0x50;
+            var hasExtendedName = MtArcSupport.HasEntryExtendedName(br);
 
             // Read entries
             var entries = hasExtendedName ?
