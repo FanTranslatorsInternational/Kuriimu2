@@ -164,7 +164,7 @@ public class ArchiveFile : IArchiveFile
     /// <returns>The decompressed stream of this instance.</returns>
     protected Stream GetDecompressedStream()
     {
-        if (UsesCompression)
+        if (!UsesCompression)
             throw new InvalidOperationException("ArchiveFile is not compressed.");
 
         var decompressedStream = _decompressedStream!.Value;
@@ -179,7 +179,7 @@ public class ArchiveFile : IArchiveFile
     /// <returns>The compressed stream of this instance.</returns>
     protected Stream GetCompressedStream()
     {
-        if (UsesCompression)
+        if (!UsesCompression)
             throw new InvalidOperationException("ArchiveFile is not compressed.");
 
         var compressedStream = _compressedStream!.Value;

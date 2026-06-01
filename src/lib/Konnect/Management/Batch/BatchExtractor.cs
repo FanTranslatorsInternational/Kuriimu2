@@ -318,8 +318,6 @@ namespace Konnect.Management.Batch
 
         private static async Task ExtractImage(IFileState file, IImageFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            Directory.CreateDirectory(outputFolder);
-
             var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
 
             fileProgress.StartProgress();
@@ -343,8 +341,6 @@ namespace Konnect.Management.Batch
 
         private static async Task ExtractArchive(IFileState file, IArchiveFilePluginState state, string outputFolder, IProgressContext fileProgress)
         {
-            Directory.CreateDirectory(outputFolder);
-
             var outputFileSystem = FileSystemFactory.CreatePhysicalSubFileSystem(outputFolder, file.StreamManager);
 
             fileProgress.StartProgress();
