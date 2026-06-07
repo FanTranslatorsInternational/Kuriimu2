@@ -172,21 +172,3 @@ jobs:
         git branch -M main
         git remote set-url origin https://oauth2:${{ secrets.PRIVATE_ACCESS_TOKEN }}@github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update.git
         git push --force origin main
-      
-    - name: Upload Windows artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Kuriimu2 Windows
-        path: ./dist/final/Windows
-        
-    - name: Upload Linux artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Kuriimu2 Linux
-        path: ./dist/final/Linux
-        
-    - name: Upload Mac artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Kuriimu2 Mac
-        path: ./dist/final/Mac

@@ -79,14 +79,14 @@ namespace plugin_level5.Common.Font
             fontImageData.Font.LargeFont = new FontGlyphsData
             {
                 Glyphs = largeGlyphs,
-                MaxHeight = largeCharacters.Max(c => c.BoundingBox.Height),
+                MaxHeight = largeCharacters.DefaultIfEmpty(null).Max(c => c?.BoundingBox.Height ?? 0),
                 FallbackCharacter = '?'
             };
 
             fontImageData.Font.SmallFont = new FontGlyphsData
             {
                 Glyphs = smallGlyphs,
-                MaxHeight = smallCharacters.Max(c => c.BoundingBox.Height),
+                MaxHeight = smallCharacters.DefaultIfEmpty(null).Max(c => c?.BoundingBox.Height ?? 0),
                 FallbackCharacter = '?'
             };
 
