@@ -614,11 +614,11 @@ public class FileManager : IFileManager
         if (result.LoadedFileState is null)
             return;
 
-        if (!result.LoadedFileState.WasPluginManuallySelected && result.LoadedFileState.DialogOptions.Count <= 0)
+        if (!result.LoadedFileState.WasPluginManuallySelected && result.LoadedFileState.DialogFields.Count <= 0)
             return;
 
         var options = new List<string>();
-        options.AddRange(result.LoadedFileState.DialogOptions);
+        options.AddRange(result.LoadedFileState.DialogFields.Select(x => x.Result!));
 
         var element = new FilePreferenceEntry(result.LoadedFileState.FilePlugin.PluginId, options);
 

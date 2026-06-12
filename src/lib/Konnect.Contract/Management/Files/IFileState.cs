@@ -1,4 +1,5 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Management.Dialog;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Streams;
 using Konnect.Contract.Plugin.File;
@@ -59,9 +60,9 @@ public interface IFileState : IDisposable
     IFileState? ParentFileState { get; }
 
     /// <summary>
-    /// The values retrieved by dialogs in the initial load process.
+    /// The fields retrieved by dialogs in the initial load process.
     /// </summary>
-    IList<string> DialogOptions { get; }
+    IList<DialogField> DialogFields { get; }
 
     /// <summary>
     /// Determines if <see cref="FilePlugin"/> was manually selected.
@@ -91,10 +92,10 @@ public interface IFileState : IDisposable
     void SetNewFileInput(IFileSystem fileSystem, UPath filePath);
 
     /// <summary>
-    /// Sets dialog options for this state.
+    /// Sets dialog fields for this state.
     /// </summary>
-    /// <param name="options"></param>
-    void SetDialogOptions(IList<string> options);
+    /// <param name="fields"></param>
+    void SetDialogOptions(IList<DialogField> fields);
 
     /// <summary>
     /// Renames the <see cref="FilePath"/> of the opened file.

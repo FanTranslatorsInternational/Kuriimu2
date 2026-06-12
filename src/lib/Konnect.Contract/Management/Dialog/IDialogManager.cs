@@ -8,9 +8,9 @@ namespace Konnect.Contract.Management.Dialog;
 public interface IDialogManager
 {
     /// <summary>
-    /// The options selected by <see cref="ShowDialog"/>.
+    /// The fields shown and processed by <see cref="ShowDialog"/>.
     /// </summary>
-    public IList<string> DialogOptions { get; }
+    public IList<DialogField> DialogFields { get; }
 
     /// <summary>
     /// Shows a dialog on which the user can interact with the plugin.

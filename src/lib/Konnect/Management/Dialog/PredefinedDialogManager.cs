@@ -11,7 +11,7 @@ public class PredefinedDialogManager : IDialogManager
     private int _optionIndex;
 
     /// <inheritdoc />
-    public IList<string> DialogOptions { get; } = [];
+    public IList<DialogField> DialogFields { get; } = [];
 
     public PredefinedDialogManager(IList<string> options)
     {
@@ -27,6 +27,11 @@ public class PredefinedDialogManager : IDialogManager
     /// <inheritdoc />
     public async Task<bool> ShowDialog(params DialogField[] fields)
     {
+        DialogFields.Clear();
+
+        foreach (DialogField field in fields)
+            DialogFields.Add(field);
+
         // If no dialog Manager is given and not enough predefined options are available.
         if (_dialogManager == null && _options.Count - _optionIndex < fields.Length)
             throw new NotEnoughDialogOptionsProvidedException(fields.Length, _options.Count - _optionIndex);
@@ -38,7 +43,6 @@ public class PredefinedDialogManager : IDialogManager
             string option = _options[_optionIndex++];
 
             fields[fieldIndex++].Result = option;
-            DialogOptions.Add(option);
         }
 
         // If all fields were already processed by predefined options
@@ -51,12 +55,6 @@ public class PredefinedDialogManager : IDialogManager
         {
             var result = await _dialogManager.ShowDialog(subFields);
             if (!result) return false;
-        }
-
-        foreach (DialogField subField in subFields)
-        {
-            if (subField.Result != null)
-                DialogOptions.Add(subField.Result);
         }
 
         return true;

@@ -10,7 +10,6 @@ using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Plugin;
 using Konnect.Contract.Management.Streams;
 using Konnect.Contract.Plugin.File;
-using Konnect.Management.Dialog;
 
 namespace Konnect.Management.Files;
 
@@ -68,7 +67,7 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
             return loadStateResult;
         }
 
-        stateInfo.SetDialogOptions(loadInfo.DialogManager.DialogOptions);
+        stateInfo.SetDialogOptions(loadInfo.DialogManager.DialogFields);
 
         return new LoadResult
         {
@@ -241,7 +240,8 @@ internal class FileLoader(IPluginManager pluginManager) : IFileLoader
             {
                 Status = LoadStatus.Errored,
                 Exception = e,
-                Reason = LoadErrorReason.NoOptions
+                Reason = LoadErrorReason.NoOptions,
+                DialogFields = loadContext.DialogManager.DialogFields
             };
         }
         catch (Exception e)

@@ -163,7 +163,8 @@ namespace Konnect.Management.Batch
             var loadResult = await fileManager.LoadFile(inputFile, loadContext);
             if (loadResult.Status is not LoadStatus.Successful || loadResult.LoadedFileState is null)
             {
-                result = new BatchFileResult(inputFile, [], loadResult.Reason is LoadErrorReason.NoOptions ? BatchFileStatus.NoOptions : BatchFileStatus.Error);
+                var status = loadResult.Reason is LoadErrorReason.NoOptions ? BatchFileStatus.NoOptions : BatchFileStatus.Error;
+                result = new BatchFileResult(inputFile, status, loadResult.DialogFields ?? []);
                 await OnFileProcessed(result);
 
                 return result;
@@ -184,11 +185,11 @@ namespace Konnect.Management.Batch
                     break;
             }
 
-            result = new BatchFileResult(inputFile, loadResult.LoadedFileState.DialogOptions, BatchFileStatus.Success);
+            result = new BatchFileResult(inputFile, BatchFileStatus.Success, loadResult.LoadedFileState.DialogFields);
             await OnFileProcessed(result);
 
             if (ReuseDialogOptions)
-                _options = [.. loadResult.LoadedFileState.DialogOptions];
+                _options = [.. loadResult.LoadedFileState.DialogFields.Select(x => x.Result!)];
 
             _ = fileManager.Close(loadResult.LoadedFileState);
 

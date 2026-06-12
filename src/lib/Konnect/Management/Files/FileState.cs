@@ -1,4 +1,5 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
+using Konnect.Contract.DataClasses.Management.Dialog;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Management.Files;
 using Konnect.Contract.Management.Streams;
@@ -37,7 +38,7 @@ internal class FileState : IFileState
     public IFileState? ParentFileState { get; private set; }
 
     /// <inheritdoc />
-    public IList<string> DialogOptions { get; private set; } = [];
+    public IList<DialogField> DialogFields { get; private set; } = [];
 
     /// <inheritdoc />
     public bool WasPluginManuallySelected { get; init; }
@@ -87,9 +88,9 @@ internal class FileState : IFileState
     }
 
     /// <inheritdoc />
-    public void SetDialogOptions(IList<string> options)
+    public void SetDialogOptions(IList<DialogField> fields)
     {
-        DialogOptions = options;
+        DialogFields = fields;
     }
 
     /// <inheritdoc />
@@ -102,7 +103,7 @@ internal class FileState : IFileState
     public virtual void Dispose()
     {
         ArchiveChildren.Clear();
-        DialogOptions.Clear();
+        DialogFields.Clear();
         FileManager.CloseAll();
         StreamManager.ReleaseAll();
 

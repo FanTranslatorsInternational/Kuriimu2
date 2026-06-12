@@ -1,4 +1,5 @@
-﻿using Konnect.Contract.Enums.Management.Files;
+﻿using Konnect.Contract.DataClasses.Management.Dialog;
+using Konnect.Contract.Enums.Management.Files;
 using Konnect.Contract.Management.Files;
 
 namespace Konnect.Contract.DataClasses.Management.Files;
@@ -16,7 +17,12 @@ public class LoadResult
     public required LoadErrorReason Reason { get; init; }
 
     /// <summary>
-    /// Contains the result if the load process was successful.
+    /// The fields requested by the plugin in the load process. Is only provided when <see cref="Reason"/> is <see cref="LoadErrorReason.NoOptions"/>.
+    /// </summary>
+    public IList<DialogField>? DialogFields { get; init; }
+
+    /// <summary>
+    /// Contains the result if the load process was successful. Is only provided when <see cref="Status"/> is <see cref="LoadStatus.Successful"/>.
     /// </summary>
     public IFileState? LoadedFileState { get; init; }
 
