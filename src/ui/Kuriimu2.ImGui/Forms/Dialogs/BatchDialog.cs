@@ -61,7 +61,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private async Task Extractor_FileProcessed(BatchFileResult arg)
         {
-            if (_extractor.ReuseDialogOptions || arg.DialogOptions.Count <= 0)
+            if (_extractor.ReuseDialogOptions || arg.DialogFields.Count <= 0)
                 return;
 
             var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogBatchReuseOptionsCaption, LocalizationResources.DialogBatchReuseOptionsText);
@@ -72,7 +72,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private async Task Injector_FileProcessed(BatchFileResult arg)
         {
-            if (_injector.ReuseDialogOptions || arg.DialogOptions.Count <= 0)
+            if (_injector.ReuseDialogOptions || arg.DialogFields.Count <= 0)
                 return;
 
             var result = await MessageBox.ShowYesNoAsync(LocalizationResources.DialogBatchReuseOptionsCaption, LocalizationResources.DialogBatchReuseOptionsText);

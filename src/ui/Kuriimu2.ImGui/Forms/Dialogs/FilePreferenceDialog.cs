@@ -6,12 +6,19 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
     internal partial class FilePreferenceDialog
     {
         private readonly IFilePreferences _preferences;
+        private readonly IPluginManager _pluginManager;
 
         public FilePreferenceDialog(IFilePreferences preferences, IPluginManager pluginManager)
         {
             _preferences = preferences;
+            _pluginManager = pluginManager;
 
             InitializeComponent(preferences, pluginManager);
+        }
+
+        protected override void ShowInternal()
+        {
+            InitializePreferences(_preferences, _pluginManager);
         }
 
         private void RemoveSelectedRows()

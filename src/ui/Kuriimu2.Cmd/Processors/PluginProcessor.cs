@@ -13,7 +13,7 @@ namespace Kuriimu2.Cmd.Processors
 {
     internal abstract class PluginProcessor
     {
-        protected IPluginManager? CreatePluginManager()
+        protected static IPluginManager? CreatePluginManager()
         {
             string? baseDirectory = GetBaseDirectory();
             if (baseDirectory is null)

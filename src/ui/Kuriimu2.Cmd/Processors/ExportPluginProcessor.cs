@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Konnect.Contract.Enums.Management.Dialog;
 
 namespace Kuriimu2.Cmd.Processors
 {
@@ -46,6 +47,21 @@ namespace Kuriimu2.Cmd.Processors
                         {
                             case BatchFileStatus.NoOptions:
                                 Console.WriteLine("Requires dialog options.");
+                                for (var i = 0; i < fileResult.DialogFields.Count; i++)
+                                {
+                                    var field = fileResult.DialogFields[i];
+                                    Console.Write($"- Option {i + 1} ('{field.Text}'): ");
+                                    switch (field.Type)
+                                    {
+                                        case DialogFieldType.DropDown:
+                                            Console.WriteLine($"Selection -> {string.Join(", ", field.Options.Select(x => $"'{x}'"))}");
+                                            break;
+
+                                        case DialogFieldType.TextBox:
+                                            Console.WriteLine("Text");
+                                            break;
+                                    }
+                                }
                                 break;
 
                             case BatchFileStatus.Error:

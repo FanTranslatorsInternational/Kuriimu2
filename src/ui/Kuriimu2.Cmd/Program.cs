@@ -31,8 +31,7 @@ switch (argumentGetter.ReadArgument())
         break;
 
     case "list":
-        var listProcessor = new ListPluginProcessor();
-        listProcessor.List();
+        ListPluginProcessor.List();
         break;
 }
 

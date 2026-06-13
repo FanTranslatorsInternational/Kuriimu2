@@ -7,7 +7,7 @@ namespace Kuriimu2.Cmd.Processors
 {
     internal class ListPluginProcessor : PluginProcessor
     {
-        public void List()
+        public static void List()
         {
             var pluginManager = CreatePluginManager();
             if (pluginManager is null)

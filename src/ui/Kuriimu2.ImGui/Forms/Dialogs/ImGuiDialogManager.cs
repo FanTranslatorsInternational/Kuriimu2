@@ -16,19 +16,17 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 {
     internal class ImGuiDialogManager : IDialogManager
     {
-        public IList<string> DialogOptions { get; } = [];
+        public IList<DialogField> DialogFields { get; } = [];
 
         public async Task<bool> ShowDialog(DialogField[] fields)
         {
+            DialogFields.Clear();
+
+            foreach (DialogField field in fields)
+                DialogFields.Add(field);
+
             var modal = CreateDialog(fields);
             var result = await modal.ShowAsync();
-
-            DialogOptions.Clear();
-            foreach (DialogField field in fields)
-            {
-                if (field.Result != null)
-                    DialogOptions.Add(field.Result);
-            }
 
             return result == DialogResult.Ok;
         }

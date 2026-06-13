@@ -48,8 +48,6 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             Content = _preferenceTable;
             Size = new Size(SizeValue.Relative(.7f), SizeValue.Relative(.8f));
-
-            InitializePreferences(preferences,pluginManager);
         }
 
         private void InitializePreferences(IFilePreferences preferences, IPluginManager pluginManager)
