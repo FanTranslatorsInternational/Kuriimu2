@@ -250,7 +250,7 @@ namespace Kanvas.Encoding.Base
                 input[index] |= (byte)(value << shift);
                 shift += bitDepth;
 
-                if (shift >= 7)
+                if (shift <= 7)
                     continue;
 
                 index++;
