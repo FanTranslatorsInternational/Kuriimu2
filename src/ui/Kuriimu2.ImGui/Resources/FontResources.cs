@@ -15,13 +15,14 @@ namespace Kuriimu2.ImGui.Resources
             FontFactory.RegisterFromResource("NotoJp", assembly, "notojp.ttf");
             FontFactory.RegisterFromResource("NotoKr", assembly, "notokr.ttf");
             FontFactory.RegisterFromResource("NotoZhTc", assembly, "notozhtc.ttf");
+            FontFactory.RegisterFromResource("NotoArab", assembly, "notoar.ttf");
         }
 
         public static FontResource GetFont(FontType type, int size)
         {
             return type switch
             {
-                FontType.Application => FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size)))),
+                FontType.Application => FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size, FontFactory.Get("NotoArab", size))))),
                 FontType.Hexadecimal => FontFactory.GetDefault(size),
                 _ => throw new InvalidOperationException($"Invalid font type {type}.")
             };

@@ -65,6 +65,9 @@
     <EmbeddedResource Include="Resources\Fonts\notozhtc.ttf">
       <LogicalName>notozhtc.ttf</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Fonts\notoar.ttf">
+      <LogicalName>notoar.ttf</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\Fonts\roboto.ttf">
       <LogicalName>roboto.ttf</LogicalName>
     </EmbeddedResource>
