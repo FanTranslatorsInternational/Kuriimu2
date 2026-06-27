@@ -1,9 +1,7 @@
-﻿using Kanvas;
-using Kanvas.Swizzle;
+﻿using Kanvas.Swizzle;
 using Komponent.IO;
 using Konnect.Contract.DataClasses.Plugin.File.Image;
 using SixLabors.ImageSharp;
-using System;
 using ByteOrder = Komponent.Contract.Enums.ByteOrder;
 
 namespace plugin_mt_framework.Images

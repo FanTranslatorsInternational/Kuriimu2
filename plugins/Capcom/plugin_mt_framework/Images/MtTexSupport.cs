@@ -265,7 +265,9 @@ namespace plugin_mt_framework.Images
             [0x2B] = ImageFormats.Dxt5(),
 
             [0x30] = ImageFormats.Bc7(),
-            [0x31] = ImageFormats.Bc7()
+            [0x31] = ImageFormats.Bc7(),
+
+            [0x36] = ImageFormats.Bc7()
         };
 
         public static readonly IDictionary<int, IColorEncoding> PcFormats = new Dictionary<int, IColorEncoding>
@@ -318,13 +320,13 @@ namespace plugin_mt_framework.Images
 
         public static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
         {
-            [0x1] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
+            [0x01] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
 
-            [0x7] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
+            [0x07] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
 
-            [0xA] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
-            [0xB] = ImageFormats.Pvrtc_4bpp(),
-            [0xD] = ImageFormats.PvrtcA_4bpp(),
+            [0x0A] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
+            [0x0B] = ImageFormats.Pvrtc_4bpp(),
+            [0x0D] = ImageFormats.PvrtcA_4bpp(),
 
             // Used as placeholders for format 0x0C, which defines 3 images of different encodings for different mobile platforms
             [0xFD] = ImageFormats.Dxt5(),
