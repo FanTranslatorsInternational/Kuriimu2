@@ -22,7 +22,7 @@ namespace Kuriimu2.ImGui.Resources
         {
             return type switch
             {
-                FontType.Application => FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size, FontFactory.Get("NotoArab", size))))),
+                FontType.Application => FontFactory.Get("Roboto", size, FontFactory.Get("NotoJp", size, FontFactory.Get("NotoKr", size, FontFactory.Get("NotoZhTc", size, FontFactory.Get("NotoArab", size + 10))))),
                 FontType.Hexadecimal => FontFactory.GetDefault(size),
                 _ => throw new InvalidOperationException($"Invalid font type {type}.")
             };

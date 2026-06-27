@@ -7,7 +7,6 @@ using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Models;
 using ImGui.Forms.Models.IO;
 using ImGui.Forms.Support;
-using Konnect.Contract.DataClasses.Plugin.File.Font;
 using Konnect.Contract.Plugin.File.Font;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Models;
@@ -181,6 +180,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
                             : LocalizedString.FromText(set.Name);
 
                         setViews.AddPage(new TabPage(setView1) { Title = title });
+
+                        _setViews[i] = setView1;
                     }
 
                     setViews.SelectedPageChanged += (_, _) =>

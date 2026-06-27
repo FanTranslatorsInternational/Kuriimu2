@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ImGui.Forms;
+﻿using ImGui.Forms;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Text.Editor;
 using ImGui.Forms.Extensions;
@@ -26,6 +17,15 @@ using Kuriimu2.ImGui.Resources;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Drawing.Text;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using Point = SixLabors.ImageSharp.Point;
 using PointF = System.Drawing.PointF;
@@ -73,6 +73,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             _glyphHeightBox.TextChanged += GlyphHeightBox_TextChanged;
             _spaceWidthBox.TextChanged += SpaceWidthBox_TextChanged;
             _characterEditor.CursorPositionChanged += CharacterEditor_CursorPositionChanged;
+            _characterEditor.TextChanged += CharacterEditor_TextChanged;
             _replaceCharactersCheck.CheckChanged += ReplaceCharactersCheck_CheckChanged;
 
             SetFontFamilies();
@@ -178,7 +179,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             DialogResult result = await sfd.ShowAsync();
             if (result == DialogResult.Ok)
-                _profileManager.Save(sfd.Files[0], _profile);
+            {
+                var saveName = sfd.Files[0];
+                if (!saveName.EndsWith(".bfgp"))
+                    saveName += ".bfgp";
+
+                _profileManager.Save(saveName, _profile);
+            }
 
             ToggleForm(true);
         }
@@ -328,6 +335,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             var character = text[0];
             SetCurrentCharacter(character);
+        }
+
+        private void CharacterEditor_TextChanged(object? sender, string e)
+        {
+            _profile.Characters = _characterEditor.GetText();
         }
 
         private void FontFamilyBox_SelectedItemChanged(object? sender, EventArgs e)
