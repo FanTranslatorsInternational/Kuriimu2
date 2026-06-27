@@ -1,4 +1,4 @@
-﻿using System.Xml;
+﻿using System.Xml.Serialization;
 using Konnect.Contract.DataClasses.Management.Font;
 using Konnect.Contract.Management.Font;
 using Konnect.DataClasses.Management.Font;
@@ -9,9 +9,9 @@ public class FontProfileManager : IFontProfileManager
 {
     public FontProfile? Load(string filePath)
     {
-        using var reader = XmlReader.Create(File.OpenRead(filePath));
+        var serializer = new XmlSerializer(typeof(SerializedFontProfile));
+        var serializedProfile = (SerializedFontProfile?)serializer.Deserialize(File.OpenRead(filePath));
 
-        SerializedFontProfile? serializedProfile = SerializedFontProfileXmlProvider.Read(reader);
         if (serializedProfile is null)
             return null;
 
@@ -58,8 +58,7 @@ public class FontProfileManager : IFontProfileManager
             }
         };
 
-        using var writer = XmlWriter.Create(File.Create(filePath));
-
-        SerializedFontProfileXmlProvider.Write(serializedProfile, writer);
+        var serializer = new XmlSerializer(typeof(SerializedFontProfile));
+        serializer.Serialize(File.Create(filePath), serializedProfile);
     }
 }
