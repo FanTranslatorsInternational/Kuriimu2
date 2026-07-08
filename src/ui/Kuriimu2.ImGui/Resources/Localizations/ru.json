@@ -495,7 +495,7 @@
   "Dialog.Font.Generate.GlyphHeight": "Высота глифа",
   "Dialog.Font.Generate.SpaceWidth": "Ширина пробела",
   "Dialog.Font.Generate.Characters": "Символы",
-  "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Characters.Replace": "Заменить символы при загрузке профиля", // TODO
   "Dialog.Font.Generate.Style.Bold": "Полужирный",
   "Dialog.Font.Generate.Style.Italic": "Курсивный",
   "Dialog.Font.Generate.Load": "Загрузить",
