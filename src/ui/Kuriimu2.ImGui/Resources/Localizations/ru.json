@@ -48,7 +48,7 @@
   "Menu.Tools.ImageTranscoder": "Транскодер изображений",
   "Menu.Tools.RawImageViewer": "Просмотрщик RAW-изображений",
   "Menu.Tools.TextSequenceSearcher": "Поиск текста",
-  // "Menu.Tools.Batch": "Batch Operations", // TODO
+  "Menu.Tools.Batch": "Пакетные действия", // TODO
 
   // Settings Menu
   "Menu.Settings.IncludeDevBuilds": "Включить сборки для разработчиков",
@@ -59,13 +59,13 @@
 
   // Help Menu
   "Menu.Help.Plugins.Installed": "Установленные плагины",
-  // "Menu.Help.Preferences": "File Preferences", // TODO
+  "Menu.Help.Preferences": "Файловые предпочтения", // TODO
   "Menu.Help.About": "О Kuriimu2",
 
   // Status
   "Status.Plugin.Select.None": "Плагин не выбран.",
   "Status.Plugin.Select.Unknown": "Неизвестный тип плагина {0}.",
-  // "Status.Plugin.Load.Deprecated": "The plugin is deprecated.", // TODO
+   "Status.Plugin.Load.Deprecated": "Плагин устарел и больше не поддерживается.", // TODO
   "Status.Plugin.Load.None": "Ни один плагин не смог открыть файл.",
   "Status.Plugin.Load.NoArchive": "Плагин не представляет собой архив.",
   "Status.Plugin.State.Init.Error": "Не удалось инициализировать плагин.",
@@ -129,8 +129,8 @@
   "Archive.Directory.Delete": "Удалить",
   "Archive.Directory.Delete.Shortcut": "Del",
   "Archive.Directory.Add": "Добавить",
-  // "Archive.Directory.Add.File": "File", // TODO
-  // "Archive.Directory.Add.Directory": "Directory", // TODO
+   "Archive.Directory.Add.File": "Файл", // TODO
+   "Archive.Directory.Add.Directory": "Директория", // TODO
 
   // Status
   "Archive.Status.Extract.Cancel": "Извлечение файла отменено.",
@@ -213,7 +213,6 @@
 
   // Labels
   "Font.Search.Placeholder": "Поиск: ¥, \\uFFE5",
-  // "Font.Set.Text": "Set {0}", // TODO
 
   // Preview
   "Font.Preview.Placeholder": "Предпросмотр",
@@ -227,17 +226,15 @@
   "Font.Preview.Settings.LineHeight": "Высота линии",
   "Font.Preview.Settings.Alignment": "Расположение",
   "Font.Preview.Settings.Alignment.Left": "Слева",
-  "Font.Preview.Settings.Alignment.Center": "По центру",
-  "Font.Preview.Settings.Alignment.Right": "Справа",
 
   // Generate
   "Font.Generate.Caption": "Сгенерировать шрифт",
-  // "Font.Generate.Edit.Caption": "Edit Characters", // TODO
-  // "Font.Generate.Remove.Caption": "Remove Characters", // TODO
-  // "Font.Generate.Remap.Caption": "Remap Characters", // TODO
-  // "Font.Generate.Change.Caption": "Change Character", // TODO
-  // "Font.Generate.Change.Placeholder": "¥, \\uFFE5", // TODO
-  // "Font.Generate.Change.Error": "Character {0} already exists in font.", // TODO
+   "Font.Generate.Edit.Caption": "Редактировать символы", // TODO
+   "Font.Generate.Remove.Caption": "Удалить символы", // TODO
+   "Font.Generate.Remap.Caption": "Скопировать символы в другие глифы", // TODO
+   "Font.Generate.Change.Caption": "Изменить символ", // TODO
+   "Font.Generate.Change.Placeholder": "¥, \\uFFE5", // TODO
+   "Font.Generate.Change.Error": "Символ {0} уже существует в шрифте.", // TODO
   "Font.Generate.DefaultCharacters": "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789",
 
   // Text Form
@@ -251,7 +248,7 @@
   // Labels
   "Text.Content.Original": "Оригинал:",
   "Text.Content.Edited": "Изменённый текст:",
-  "Text.Content.NoCodes": "Нет контрольных кодов:",
+  "Text.Content.NoCodes": "Без контрольных кодов:",
 
   // Previews
   "Text.Preview.Default": "По умолчанию",
@@ -300,22 +297,22 @@
   "Dialog.DependantFiles.Text": "Все файлы, открытые из этого файла и его подфайлов, будут закрыты. Продолжить?",
 
   // Deprecated Info Dialog
-  // "Dialog.Deprecated.Caption": "Deprecated plugin", // TODO
-  // "Dialog.Deprecated.Text.General": "Kuriimu2 no longer supports this file format with plugin '{0}'.", // TODO
-  // "Dialog.Deprecated.Text.Alternatives": "Consider using one of the following alternative(s) instead:", // TODO
+   "Dialog.Deprecated.Caption": "Устаревший плагин", // TODO
+   "Dialog.Deprecated.Text.General": "Kuriimu2 больше не поддерживает плагин «{0}» для данного формата.", // TODO
+   "Dialog.Deprecated.Text.Alternatives": "Список альтернативных плагинов:", // TODO
 
   // Remove Font Characters Dialog
-  // "Dialog.Font.Remove.Caption": "Remove Characters", // TODO
-  // "Dialog.Font.Remove.Text": "Do you want to remove the selected font characters?", // TODO
+   "Dialog.Font.Remove.Caption": "Удалить символы", // TODO
+   "Dialog.Font.Remove.Text": "Вы уверены, что хотите удалить выбранные символы из шрифта?", // TODO
 
   // Remap Font Characters Dialog
-  // "Dialog.Font.Remapping.Caption": "Remap Characters", // TODO
-  // "Dialog.Font.Remapping.Text": "Choose a continuous range of characters to remap with:", // TODO
-  // "Dialog.Font.Remapping.Remap": "Remap", // TODO
+  "Dialog.Font.Remapping.Caption": "Скопировать символы в другие глифы", // TODO
+   "Dialog.Font.Remapping.Text": "Выберите промежуток глифов, куда хотите скопировать символы:", // TODO
+  "Dialog.Font.Remapping.Remap": "Выполнить", // TODO
 
   // Batch Reuse Options Dialog
-  // "Dialog.Batch.ReuseOptions.Caption": "Reuse Options", // TODO
-  // "Dialog.Batch.ReuseOptions.Text": "Do you want to reuse the same options for the following files?", // TODO
+   "Dialog.Batch.ReuseOptions.Caption": "Использовать настройки заново", // TODO
+   "Dialog.Batch.ReuseOptions.Text": "Вы уверены, что хотите использовать настройки из данных файлов?", // TODO
 
   // Dialog Manager
   "Dialog.Manager.Button.Ok": "ОК",
@@ -350,14 +347,14 @@
   "Dialog.Tools.Compressions.Cancel": "Отмена",
 
   // Checksums Dialog
-  "Dialog.Tools.Checksums.Caption": "Хеши",
+  "Dialog.Tools.Checksums.Caption": "Хеш-суммы",
   "Dialog.Tools.Checksums.Execute": "Исполнить",
   "Dialog.Tools.Checksums.Input.Folder": "Выберите папку",
   "Dialog.Tools.Checksums.Input.File": "Выберите файл",
   "Dialog.Tools.Checksums.Input.SubDirectories": "Подпапки",
   "Dialog.Tools.Checksums.Input.Parameters": "Параметры",
   "Dialog.Tools.Checksums.Log.Process": "Обработка файла {0}.",
-  // "Dialog.Tools.Checksums.Log.Result": "Checksum for file {0} is 0x{1}.", // TODO
+   "Dialog.Tools.Checksums.Log.Result": "Хеш-сумма для файла {0}: 0x{1}.", // TODO
   "Dialog.Tools.Checksums.Log.Error": "Ошибка при обработке файла {0}.",
   "Dialog.Tools.Checksums.Progress": "Процесс",
   "Dialog.Tools.Checksums.Progress.Value": "Процесс - {0:0.00}%",
@@ -400,7 +397,7 @@
   "Dialog.Tools.RawImageViewer.SwizzleEditor.CopyControl": "Скопировать: Alt + C",
 
   // Sequence Search Dialog
-  // "Dialog.Tools.TextSequenceSearcher.Caption": "Text Sequence Searcher", // TODO
+   "Dialog.Tools.TextSequenceSearcher.Caption": "Поиск текста", // TODO
   "Dialog.Tools.TextSequenceSearcher.Execute": "Исполнить",
   "Dialog.Tools.TextSequenceSearcher.Input.Folder": "Выберите папку",
   "Dialog.Tools.TextSequenceSearcher.Input.File": "Выберите файл",
@@ -408,15 +405,15 @@
   "Dialog.Tools.TextSequenceSearcher.Progress": "Процесс",
   "Dialog.Tools.TextSequenceSearcher.Progress.Value": "Процесс - {0:0.00}%",
   "Dialog.Tools.TextSequenceSearcher.Cancel": "Отмена",
-  // "Dialog.Tools.TextSequenceSearcher.Path": "Path", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Offset": "Position", // TODO
-  // "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Text to search...", // TODO
+   "Dialog.Tools.TextSequenceSearcher.Path": "Путь", // TODO
+   "Dialog.Tools.TextSequenceSearcher.Offset": "Позиция", // TODO
+   "Dialog.Tools.TextSequenceSearcher.Search.Placeholder": "Текст для поиска...", // TODO
 
   // Batch Dialog
-  // "Dialog.Tools.Batch.Caption": "Batch Operations", // TODO
-  // "Dialog.Tools.Batch.Export": "Export", // TODO
-  // "Dialog.Tools.Batch.Import": "Import", // TODO
-  // "Dialog.Tools.Batch.SelectPlugin": "Select plugin", // TODO
+   "Dialog.Tools.Batch.Caption": "Пакетные действия", // TODO
+   "Dialog.Tools.Batch.Export": "Экспорт", // TODO
+   "Dialog.Tools.Batch.Import": "Импорт", // TODO
+   "Dialog.Tools.Batch.SelectPlugin": "Выбрать плагин", // TODO
   "Dialog.Tools.Batch.Execute": "Исполнить",
   "Dialog.Tools.Batch.Input.Folder": "Выберите папку",
   "Dialog.Tools.Batch.Input.SubDirectories": "Подпапки",
@@ -425,10 +422,10 @@
   "Dialog.Tools.Batch.Progress": "Процесс",
   "Dialog.Tools.Batch.Progress.Value": "Процесс - {0:0.00}%",
   "Dialog.Tools.Batch.Cancel": "Отмена",
-  // "Dialog.Tools.Batch.Text": "Text Parameters", // TODO
-  // "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
-  // "Dialog.Tools.Batch.Text.Po": "PO", // TODO
-  // "Dialog.Tools.Batch.Text.SelectPlugin": "Select plugin", // TODO
+   "Dialog.Tools.Batch.Text": "Текстовые параметры", // TODO
+   "Dialog.Tools.Batch.Text.Kup": "KUP", // TODO
+   "Dialog.Tools.Batch.Text.Po": "PO", // TODO
+   "Dialog.Tools.Batch.Text.SelectPlugin": "Выбрать плагин", // TODO
 
   // Installed Plugins Dialog
   "Dialog.Plugins.Installed.Caption": "Установленные плагины",
@@ -444,16 +441,16 @@
   "Dialog.Plugins.Installed.Type.Text": "Текст",
 
   // File Preferences Dialog
-  // "Dialog.Preferences.Caption": "File Preferences", // TODO
-  // "Dialog.Preferences.Path": "Path", // TODO
+  "Dialog.Preferences.Caption": "Файловые настройки", // TODO
+  "Dialog.Preferences.Path": "Путь", // TODO
   "Dialog.Preferences.Id": "ID",
   "Dialog.Preferences.Name": "Название",
-  // "Dialog.Preferences.Type.Caption": "Type", // TODO
+   "Dialog.Preferences.Type.Caption": "Типа", // TODO
   "Dialog.Preferences.Type.Archive": "Архив",
   "Dialog.Preferences.Type.Image": "Изображение",
   "Dialog.Preferences.Type.Font": "Шрифт",
   "Dialog.Preferences.Type.Text": "Текст",
-  // "Dialog.Preferences.Options": "Options", // TODO
+   "Dialog.Preferences.Options": "Настройки", // TODO
 
   // About Dialog
   "Dialog.About.Caption": "О Kuriimu2",
@@ -475,7 +472,7 @@
   "Dialog.Plugins.ManualSelection.ShowAll": "Показать все плагины",
 
   // Plugin Selection Dialog
-  // "Dialog.Plugins.Selection.Caption": "Select plugin", // TODO
+   "Dialog.Plugins.Selection.Caption": "Выберите плагин", // TODO
   "Dialog.Plugins.Selection.Id": "ID",
   "Dialog.Plugins.Selection.Name": "Название",
   "Dialog.Plugins.Selection.Publisher": "Издатель",
@@ -486,11 +483,11 @@
   "Dialog.Plugins.Selection.Type.Image": "Изображение",
   "Dialog.Plugins.Selection.Type.Font": "Шрифт",
   "Dialog.Plugins.Selection.Type.Text": "Текст",
-  // "Dialog.Plugins.Selection.Type.Game": "Game", // TODO
+   "Dialog.Plugins.Selection.Type.Game": "Игра", // TODO
 
   // Font Generation Dialog
   "Dialog.Font.Generate.Caption": "Генерация шрифта",
-  // "Dialog.Font.Edit.Caption": "Edit Characters", // TODO
+   "Dialog.Font.Edit.Caption": "Редактировать символы", // TODO
   "Dialog.Font.Generate.Family": "Семейство шрифтов",
   "Dialog.Font.Generate.Style": "Стиль шрифта",
   "Dialog.Font.Generate.Size": "Размер шрифта",
@@ -498,7 +495,7 @@
   "Dialog.Font.Generate.GlyphHeight": "Высота глифа",
   "Dialog.Font.Generate.SpaceWidth": "Ширина пробела",
   "Dialog.Font.Generate.Characters": "Символы",
-  // "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
+  "Dialog.Font.Generate.Characters.Replace": "Replace characters when loading profile", // TODO
   "Dialog.Font.Generate.Style.Bold": "Полужирный",
   "Dialog.Font.Generate.Style.Italic": "Курсивный",
   "Dialog.Font.Generate.Load": "Загрузить",
@@ -507,7 +504,7 @@
   "Dialog.Font.Generate.Save.Caption": "Сохранение шаблона шрифта...",
   "Dialog.Font.Generate.Profile": "Шаблон шрифта",
   "Dialog.Font.Generate.Generate": "Сгенерировать",
-  // "Dialog.Font.Edit.Edit": "Edit", // TODO
+  "Dialog.Font.Edit.Edit": "Редактировать", // TODO
   "Dialog.Font.Generate.Padding.Left": "Отступ слева",
   "Dialog.Font.Generate.Padding.Right": "Отступ справа"
 }
