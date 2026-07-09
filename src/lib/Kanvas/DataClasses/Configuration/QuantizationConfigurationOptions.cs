@@ -7,13 +7,16 @@ namespace Kanvas.DataClasses.Configuration
 {
     internal class QuantizationConfigurationOptions
     {
+        public static readonly CreateColorQuantizerDelegate DefaultColorQuantizerDelegate =
+            (colorCount, _, colorChannelBitDepths) => new WuColorQuantizer(colorChannelBitDepths, colorCount);
+
         public int TaskCount { get; set; } = Environment.ProcessorCount;
         public int ColorCount { get; set; } = -1;
         public ColorChannelBitDepths ColorChannelBitDepths { get; set; } = ColorChannelBitDepths.Unknown;
         public CreatePaletteDelegate? PaletteDelegate { get; set; }
         public CreateInitialPaletteDelegate? InitialPaletteDelegate { get; set; }
         public OrderPaletteDelegate? OrderPaletteDelegate { get; set; }
-        public CreateColorQuantizerDelegate ColorQuantizerDelegate { get; set; } = (colorCount, _, colorChannelBitDepths) => new WuColorQuantizer(colorChannelBitDepths, colorCount);
+        public CreateColorQuantizerDelegate? ColorQuantizerDelegate { get; set; }
         public CreateColorCacheDelegate ColorCacheDelegate { get; set; } = palette => new EuclideanDistanceColorCache(palette);
         public CreateColorDithererDelegate? ColorDithererDelegate { get; set; }
     }

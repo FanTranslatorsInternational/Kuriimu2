@@ -65,6 +65,7 @@ namespace Kanvas.Configuration
                 ColorChannelBitDepths = options.ColorChannelBitDepths,
                 PaletteDelegate = options.PaletteDelegate,
                 InitialPaletteDelegate = options.InitialPaletteDelegate,
+                OrderPaletteDelegate = options.OrderPaletteDelegate,
                 ColorCacheDelegate = options.ColorCacheDelegate,
                 ColorDithererDelegate = options.ColorDithererDelegate,
                 ColorQuantizerDelegate = options.ColorQuantizerDelegate

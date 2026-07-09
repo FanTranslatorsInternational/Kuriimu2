@@ -16,15 +16,15 @@ namespace Kanvas.Quantization.ColorQuantizer
         public bool UsesVariableColorCount => true;
 
         /// <inheritdoc />
-        public bool SupportsAlpha => false;
+        public bool SupportsAlpha => true;
 
         /// <inheritdoc />
-        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors)
+        public IList<Rgba32> CreatePalette(IList<Rgba32> colors)
         {
             return CreatePalette(colors, []);
         }
 
-        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
+        public IList<Rgba32> CreatePalette(IList<Rgba32> colors, IList<Rgba32> initialPalette)
         {
             var fixedPalette = NormalizeInitialPalette(initialPalette, colorCount);
 
@@ -33,7 +33,7 @@ namespace Kanvas.Quantization.ColorQuantizer
                 return fixedPalette;
 
             // Step 1: Filter out distinct colors
-            var distinctColors = FillDistinctColors([.. colors], fixedPalette);
+            var distinctColors = FillDistinctColors(colors, fixedPalette);
 
             // Step 2: Filter colors by hue, saturation and brightness
             // Step 2.1: If color count not reached, take top(n) colors
@@ -68,8 +68,9 @@ namespace Kanvas.Quantization.ColorQuantizer
             if (initialPaletteSet.Contains(color.PackedValue))
                 return;
 
-            distinctColors.AddOrUpdate(color.PackedValue,
-                _ => new DistinctColorInfo(color),
+            var normalizedColor = NormalizeTransparentColor(color);
+            distinctColors.AddOrUpdate(normalizedColor.PackedValue,
+                _ => new DistinctColorInfo(normalizedColor),
                 (_, info) => info.IncreaseCount());
         }
 
@@ -91,6 +92,7 @@ namespace Kanvas.Quantization.ColorQuantizer
             // Filter by hue, saturation and brightness
             var comparers = new List<IEqualityComparer<DistinctColorInfo>>
             {
+                new ColorAlphaComparer(),
                 new ColorHueComparer(),
                 new ColorSaturationComparer(),
                 new ColorBrightnessComparer()
@@ -126,6 +128,11 @@ namespace Kanvas.Quantization.ColorQuantizer
             return [.. initialPalette.DistinctBy(color => color.PackedValue).Take(maxColorCount)];
         }
 
+        private static Rgba32 NormalizeTransparentColor(Rgba32 color)
+        {
+            return color.A == 0 ? default : color;
+        }
+
         private static bool ProcessList(int colorCount, List<DistinctColorInfo> list, List<IEqualityComparer<DistinctColorInfo>> comparers, out List<DistinctColorInfo> outputList)
         {
             IEqualityComparer<DistinctColorInfo>? bestComparer = null;
@@ -156,6 +163,32 @@ namespace Kanvas.Quantization.ColorQuantizer
         }
 
         #region Equality Comparers
+
+        /// <summary>
+        /// Compares alpha components of a color info.
+        /// </summary>
+        private class ColorAlphaComparer : IEqualityComparer<DistinctColorInfo>
+        {
+            private const int AlphaBucketShift = 0;
+
+            public bool Equals(DistinctColorInfo? x, DistinctColorInfo? y)
+            {
+                return GetAlphaBucket(x) == GetAlphaBucket(y);
+            }
+
+            public int GetHashCode(DistinctColorInfo colorInfo)
+            {
+                return GetAlphaBucket(colorInfo);
+            }
+
+            private static int GetAlphaBucket(DistinctColorInfo? colorInfo)
+            {
+                if (colorInfo is null)
+                    return 0;
+
+                return colorInfo.Alpha >> AlphaBucketShift;
+            }
+        }
 
         /// <summary>
         /// Compares a hue components of a color info.

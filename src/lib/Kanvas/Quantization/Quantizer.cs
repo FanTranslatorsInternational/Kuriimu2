@@ -1,3 +1,4 @@
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.Quantization;
 using Kanvas.Contract.Quantization.ColorCache;
 using Kanvas.Contract.Quantization.ColorDitherer;
@@ -31,7 +32,7 @@ namespace Kanvas.Quantization
             return (indices, colorCache.Palette);
         }
 
-        private IColorCache GetColorCache(IEnumerable<Rgba32> colors)
+        private IColorCache GetColorCache(Rgba32[] colors)
         {
             IList<Rgba32> palette;
 
@@ -42,7 +43,7 @@ namespace Kanvas.Quantization
                 return options.ColorCacheDelegate(palette);
             }
 
-            IColorQuantizer quantizer = options.ColorQuantizerDelegate(options.ColorCount, options.TaskCount, options.ColorChannelBitDepths);
+            IColorQuantizer quantizer = CreateColorQuantizer(colors);
 
             var fixedColorCount = 0;
             if (options.InitialPaletteDelegate != null)
@@ -66,6 +67,28 @@ namespace Kanvas.Quantization
             return quantizer.IsColorCacheFixed ?
                 quantizer.GetFixedColorCache(palette) :
                 options.ColorCacheDelegate(palette);
+        }
+
+        private IColorQuantizer CreateColorQuantizer(IEnumerable<Rgba32> colors)
+        {
+            CreateColorQuantizerDelegate quantizerDelegate = options.ColorQuantizerDelegate ??
+                                                             ResolveDynamicDefaultColorQuantizerDelegate(colors);
+
+            return quantizerDelegate(options.ColorCount, options.TaskCount, options.ColorChannelBitDepths);
+        }
+
+        private static CreateColorQuantizerDelegate ResolveDynamicDefaultColorQuantizerDelegate(IEnumerable<Rgba32> colors)
+        {
+            // TODO: Dynamic default selection conditions (no switching implemented yet):
+            // 1) If source alpha diversity is high (many distinct alpha levels), prefer Distinct Selection.
+            // 2) If source contains mostly opaque pixels with low alpha variance, prefer Wu.
+            // 3) If target palette encoding has very limited alpha depth (e.g. 1-2 bits), prefer Wu.
+            // 4) If target palette encoding stores full alpha (e.g. 8-bit), prefer Distinct Selection.
+            // 5) If source appears gradient-heavy in RGB channels, prefer Wu for smoother gradients.
+            // 6) If source is mostly flat-color / UI-like art, prefer Distinct Selection.
+            // 7) If quantization runtime is constrained and image is very large, prefer Wu.
+            // 8) If deterministic color retention for sparse colors is prioritized, prefer Distinct Selection.
+            return QuantizationConfigurationOptions.DefaultColorQuantizerDelegate;
         }
     }
 }

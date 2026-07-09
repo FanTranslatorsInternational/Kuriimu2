@@ -49,12 +49,12 @@ namespace Kanvas.Quantization.ColorQuantizer
         }
 
         /// <inheritdoc />
-        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors)
+        public IList<Rgba32> CreatePalette(IList<Rgba32> colors)
         {
             return CreatePalette(colors, []);
         }
 
-        public IList<Rgba32> CreatePalette(IEnumerable<Rgba32> colors, IList<Rgba32> initialPalette)
+        public IList<Rgba32> CreatePalette(IList<Rgba32> colors, IList<Rgba32> initialPalette)
         {
             var fixedPalette = NormalizeInitialPalette(initialPalette, _colorCount);
 
@@ -69,7 +69,7 @@ namespace Kanvas.Quantization.ColorQuantizer
 
             // Step 1: Build a 3-dimensional histogram of all non-fixed colors and calculate moments.
             //         Apply a small synthetic bias around the initial palette to guide cube cuts.
-            _histogram.Create([.. colors], fixedPalette);
+            _histogram.Create(colors, fixedPalette);
 
             // Step 2: Create color cube
             var cube = Wu.WuColorCube.Create(_histogram, remainingColorCount);

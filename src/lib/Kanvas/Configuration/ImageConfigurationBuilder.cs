@@ -113,6 +113,7 @@ namespace Kanvas.Configuration
                     ColorChannelBitDepths = _options.QuantizationOptions.ColorChannelBitDepths,
                     PaletteDelegate = _options.QuantizationOptions.PaletteDelegate,
                     InitialPaletteDelegate = _options.QuantizationOptions.InitialPaletteDelegate,
+                    OrderPaletteDelegate = _options.QuantizationOptions.OrderPaletteDelegate,
                     ColorCacheDelegate = _options.QuantizationOptions.ColorCacheDelegate,
                     ColorDithererDelegate = _options.QuantizationOptions.ColorDithererDelegate,
                     ColorQuantizerDelegate = _options.QuantizationOptions.ColorQuantizerDelegate
