@@ -42,7 +42,8 @@ namespace plugin_atlus.N3DS.Archive
             var result = new List<IArchiveFile>();
             foreach (HpiFileEntry entry in entries)
             {
-                var subStream = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize);
+                var offset = entry.compSize == 0 || entry.offset < 0 || entry.offset >= hpbStream.Length ? 0 : entry.offset;
+                var subStream = new SubStream(hpbStream, offset, entry.compSize);
 
                 stringStream.Position = entry.stringOffset;
                 string name = stringBr.ReadNullTerminatedString();
