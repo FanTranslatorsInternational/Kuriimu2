@@ -1,15 +1,11 @@
-﻿using Kanvas.Contract.Configuration;
+using Kanvas.Contract.Configuration;
 using Kanvas.Contract.DataClasses;
 using Kanvas.Quantization.ColorCache;
-using Kanvas.Quantization.ColorQuantizer;
 
 namespace Kanvas.DataClasses.Configuration
 {
     internal class QuantizationConfigurationOptions
     {
-        public static readonly CreateColorQuantizerDelegate DefaultColorQuantizerDelegate =
-            (colorCount, _, colorChannelBitDepths) => new WuColorQuantizer(colorChannelBitDepths, colorCount);
-
         public int TaskCount { get; set; } = Environment.ProcessorCount;
         public int ColorCount { get; set; } = -1;
         public ColorChannelBitDepths ColorChannelBitDepths { get; set; } = ColorChannelBitDepths.Unknown;
