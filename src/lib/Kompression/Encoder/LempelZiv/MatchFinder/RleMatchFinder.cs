@@ -27,8 +27,8 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
             int maxLength = Options.Limitations.MaxLength <= 0 ? input.Length : Options.Limitations.MaxLength;
             var unitSize = (int)Options.UnitSize;
 
-            int cappedLength = Math.Min(maxLength, input.Length - unitSize - position);
-            for (var currentLength = 1; currentLength < cappedLength; currentLength += unitSize)
+            int cappedLength = Math.Min(maxLength, input.Length - position);
+            for (var currentLength = unitSize; currentLength < cappedLength; currentLength += unitSize)
             {
                 switch (Options.UnitSize)
                 {
