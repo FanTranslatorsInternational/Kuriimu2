@@ -23,15 +23,15 @@ namespace Kompression.Encoder.LempelZiv.MatchFinder
             var unitSize = (int)Options.UnitSize;
 
             int cappedLength = Math.Min(maxLength, input.Length - unitSize - position);
-            for (var repetitions = 0; repetitions < cappedLength; repetitions += unitSize)
+            for (var currentLength = 0; currentLength < cappedLength; currentLength += unitSize)
             {
                 switch (Options.UnitSize)
                 {
                     case UnitSize.Byte:
-                        if (input[position + repetitions] != value)
+                        if (input[position + currentLength] != value)
                         {
-                            if (repetitions > 0 && repetitions >= Options.Limitations.MinLength)
-                                return new LempelZivAggregateMatch(0, repetitions);
+                            if (currentLength >= Options.Limitations.MinLength)
+                                return new LempelZivAggregateMatch(0, currentLength);
 
                             return null;
                         }
