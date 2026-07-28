@@ -6,7 +6,7 @@
     <description>A library containing all common tools like generic binary reading and writing.</description>
 
     <dependencies>
-      <group targetFramework="net8.0" />
+      <group targetFramework="net10.0" />
     </dependencies>
 
     <authors>onepiecefreak;IcySon55</authors>
@@ -22,7 +22,7 @@
   </metadata>
   
   <files>
-    <file src="bin\Debug\net8.0\*.dll" target="lib\net8.0\"/>
+    <file src="bin\Debug\net10.0\*.dll" target="lib\net10.0\"/>
     <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>
   </files>
 </package>

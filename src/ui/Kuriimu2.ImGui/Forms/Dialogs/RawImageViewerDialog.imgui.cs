@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Numerics;
-using Hexa.NET.ImGui;
+﻿using Hexa.NET.ImGui;
 using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
@@ -19,6 +15,10 @@ using Kanvas.Swizzle;
 using Konnect.Plugin.File.Image;
 using Kuriimu2.ImGui.Components;
 using Kuriimu2.ImGui.Resources;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Numerics;
 
 namespace Kuriimu2.ImGui.Forms.Dialogs
 {
@@ -285,116 +285,128 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
         private void InitializePaletteEncodings(EncodingDefinition encodingDefinition, bool isUpdate = false)
         {
-            string components = isUpdate ? _paletteComponents[00] : "RGBA";
-            AddPaletteEncoding(encodingDefinition, 00, new Rgba(8, 8, 8, 8, components), components);
+            var index = 0;
 
-            components = isUpdate ? _paletteComponents[01] : "RGBA";
-            AddPaletteEncoding(encodingDefinition, 01, new Rgba(10, 10, 10, 2, components), components);
+            string components = isUpdate ? _paletteComponents[index] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(8, 8, 8, 8, components), components);
 
-            components = isUpdate ? _paletteComponents[02] : "RGB";
-            AddPaletteEncoding(encodingDefinition, 02, new Rgba(8, 8, 8, 0, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(10, 10, 10, 2, components), components);
 
-            components = isUpdate ? _paletteComponents[03] : "RGBA";
-            AddPaletteEncoding(encodingDefinition, 03, new Rgba(5, 5, 5, 1, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGB";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(8, 8, 8, 0, components), components);
 
-            components = isUpdate ? _paletteComponents[04] : "RGBA";
-            AddPaletteEncoding(encodingDefinition, 04, new Rgba(4, 4, 4, 4, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(5, 5, 5, 1, components), components);
 
-            components = isUpdate ? _paletteComponents[05] : "RGB";
-            AddPaletteEncoding(encodingDefinition, 05, new Rgba(5, 6, 5, 0, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGBA";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(4, 4, 4, 4, components), components);
 
-            components = isUpdate ? _paletteComponents[06] : "RGB";
-            AddPaletteEncoding(encodingDefinition, 06, new Rgba(5, 5, 5, 0, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGB";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(5, 6, 5, 0, components), components);
 
-            components = isUpdate ? _paletteComponents[07] : "RG";
-            AddPaletteEncoding(encodingDefinition, 07, new Rgba(8, 8, 0, 0, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RGB";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(5, 5, 5, 0, components), components);
 
-            components = isUpdate ? _paletteComponents[08] : "LA";
-            AddPaletteEncoding(encodingDefinition, 08, new La(8, 8, components), components);
+            components = isUpdate ? _paletteComponents[index] : "RG";
+            AddPaletteEncoding(encodingDefinition, index++, new Rgba(8, 8, 0, 0, components), components);
 
-            components = isUpdate ? _paletteComponents[09] : "LA";
-            AddPaletteEncoding(encodingDefinition, 09, new La(4, 4, components), components);
+            components = isUpdate ? _paletteComponents[index] : "LA";
+            AddPaletteEncoding(encodingDefinition, index++, new La(8, 8, components), components);
 
-            AddPaletteEncoding(encodingDefinition, 10, ImageFormats.L8());
-            AddPaletteEncoding(encodingDefinition, 11, ImageFormats.A8());
-            AddPaletteEncoding(encodingDefinition, 12, ImageFormats.L4());
-            AddPaletteEncoding(encodingDefinition, 13, ImageFormats.A4());
+            components = isUpdate ? _paletteComponents[index] : "LA";
+            AddPaletteEncoding(encodingDefinition, index++, new La(4, 4, components), components);
+
+            AddPaletteEncoding(encodingDefinition, index++, ImageFormats.L8());
+            AddPaletteEncoding(encodingDefinition, index++, ImageFormats.A8());
+            AddPaletteEncoding(encodingDefinition, index++, ImageFormats.L4());
+            AddPaletteEncoding(encodingDefinition, index++, ImageFormats.A4());
+            AddPaletteEncoding(encodingDefinition, index++, new La(2, 0));
+            AddPaletteEncoding(encodingDefinition, index++, new La(0, 2));
+            AddPaletteEncoding(encodingDefinition, index++, new La(1, 0));
+            AddPaletteEncoding(encodingDefinition, index, new La(0, 1));
         }
 
         private void InitializeEncodings(EncodingDefinition encodingDefinition, bool isUpdate = false)
         {
-            string components = isUpdate ? _components[00] : "RGBA";
-            AddEncoding(encodingDefinition, 00, new Rgba(8, 8, 8, 8, components), components);
+            var index = 0;
 
-            components = isUpdate ? _components[01] : "RGBA";
-            AddEncoding(encodingDefinition, 01, new Rgba(10, 10, 10, 2, components), components);
+            string components = isUpdate ? _components[index] : "RGBA";
+            AddEncoding(encodingDefinition, index++, new Rgba(8, 8, 8, 8, components), components);
 
-            components = isUpdate ? _components[02] : "RGB";
-            AddEncoding(encodingDefinition, 02, new Rgba(8, 8, 8, 0, components), components);
+            components = isUpdate ? _components[index] : "RGBA";
+            AddEncoding(encodingDefinition, index++, new Rgba(10, 10, 10, 2, components), components);
 
-            components = isUpdate ? _components[03] : "RGBA";
-            AddEncoding(encodingDefinition, 03, new Rgba(5, 5, 5, 1, components), components);
+            components = isUpdate ? _components[index] : "RGB";
+            AddEncoding(encodingDefinition, index++, new Rgba(8, 8, 8, 0, components), components);
 
-            components = isUpdate ? _components[04] : "RGBA";
-            AddEncoding(encodingDefinition, 04, new Rgba(4, 4, 4, 4, components), components);
+            components = isUpdate ? _components[index] : "RGBA";
+            AddEncoding(encodingDefinition, index++, new Rgba(5, 5, 5, 1, components), components);
 
-            components = isUpdate ? _components[05] : "RGB";
-            AddEncoding(encodingDefinition, 05, new Rgba(5, 6, 5, 0, components), components);
+            components = isUpdate ? _components[index] : "RGBA";
+            AddEncoding(encodingDefinition, index++, new Rgba(4, 4, 4, 4, components), components);
 
-            components = isUpdate ? _components[06] : "RGB";
-            AddEncoding(encodingDefinition, 06, new Rgba(5, 5, 5, 0, components), components);
+            components = isUpdate ? _components[index] : "RGB";
+            AddEncoding(encodingDefinition, index++, new Rgba(5, 6, 5, 0, components), components);
 
-            components = isUpdate ? _components[07] : "RG";
-            AddEncoding(encodingDefinition, 07, new Rgba(8, 8, 0, 0, components), components);
+            components = isUpdate ? _components[index] : "RGB";
+            AddEncoding(encodingDefinition, index++, new Rgba(5, 5, 5, 0, components), components);
 
-            components = isUpdate ? _components[08] : "LA";
-            AddEncoding(encodingDefinition, 08, new La(8, 8, components), components);
+            components = isUpdate ? _components[index] : "RG";
+            AddEncoding(encodingDefinition, index++, new Rgba(8, 8, 0, 0, components), components);
 
-            components = isUpdate ? _components[09] : "LA";
-            AddEncoding(encodingDefinition, 09, new La(4, 4, components), components);
+            components = isUpdate ? _components[index] : "LA";
+            AddEncoding(encodingDefinition, index++, new La(8, 8, components), components);
 
-            AddEncoding(encodingDefinition, 10, ImageFormats.L8());
-            AddEncoding(encodingDefinition, 11, ImageFormats.A8());
-            AddEncoding(encodingDefinition, 12, ImageFormats.L4());
-            AddEncoding(encodingDefinition, 13, ImageFormats.A4());
-            AddIndexEncoding(encodingDefinition, 14, ImageFormats.I8());
-            AddIndexEncoding(encodingDefinition, 15, ImageFormats.I4());
-            AddIndexEncoding(encodingDefinition, 16, ImageFormats.I2());
+            components = isUpdate ? _components[index] : "LA";
+            AddEncoding(encodingDefinition, index++, new La(4, 4, components), components);
 
-            components = isUpdate ? _components[17] : "IA";
-            AddIndexEncoding(encodingDefinition, 17, new Index(5, 3, components), components);
+            AddEncoding(encodingDefinition, index++, ImageFormats.L8());
+            AddEncoding(encodingDefinition, index++, ImageFormats.A8());
+            AddEncoding(encodingDefinition, index++, ImageFormats.L4());
+            AddEncoding(encodingDefinition, index++, ImageFormats.A4());
+            AddEncoding(encodingDefinition, index++, new La(2, 0));
+            AddEncoding(encodingDefinition, index++, new La(0, 2));
+            AddEncoding(encodingDefinition, index++, new La(1, 0));
+            AddEncoding(encodingDefinition, index++, new La(0, 1));
+            AddIndexEncoding(encodingDefinition, index++, ImageFormats.I8());
+            AddIndexEncoding(encodingDefinition, index++, ImageFormats.I4());
+            AddIndexEncoding(encodingDefinition, index++, ImageFormats.I2());
 
-            components = isUpdate ? _components[18] : "IA";
-            AddIndexEncoding(encodingDefinition, 18, new Index(3, 5, components), components);
+            components = isUpdate ? _components[index] : "IA";
+            AddIndexEncoding(encodingDefinition, index++, new Index(5, 3, components), components);
 
-            AddEncoding(encodingDefinition, 19, ImageFormats.Dxt1());
-            AddEncoding(encodingDefinition, 20, ImageFormats.Dxt3());
-            AddEncoding(encodingDefinition, 21, ImageFormats.Dxt5());
-            AddEncoding(encodingDefinition, 22, ImageFormats.Ati1());
-            AddEncoding(encodingDefinition, 23, ImageFormats.Ati2());
-            AddEncoding(encodingDefinition, 24, ImageFormats.Ati1A());
-            AddEncoding(encodingDefinition, 25, ImageFormats.Ati1L());
-            AddEncoding(encodingDefinition, 26, ImageFormats.Ati2AL());
-            AddEncoding(encodingDefinition, 27, ImageFormats.Bc6H());
-            AddEncoding(encodingDefinition, 28, ImageFormats.Bc7());
-            AddEncoding(encodingDefinition, 29, ImageFormats.Atc());
-            AddEncoding(encodingDefinition, 30, ImageFormats.AtcExplicit());
-            AddEncoding(encodingDefinition, 31, ImageFormats.AtcInterpolated());
-            AddEncoding(encodingDefinition, 32, ImageFormats.Etc1(false));
-            AddEncoding(encodingDefinition, 33, ImageFormats.Etc1A4(false));
-            AddEncoding(encodingDefinition, 34, ImageFormats.Etc1(true));
-            AddEncoding(encodingDefinition, 35, ImageFormats.Etc1A4(true));
-            AddEncoding(encodingDefinition, 36, ImageFormats.Etc2());
-            AddEncoding(encodingDefinition, 37, ImageFormats.Etc2A());
-            AddEncoding(encodingDefinition, 38, ImageFormats.Etc2A1());
-            AddEncoding(encodingDefinition, 39, ImageFormats.EacR11());
-            AddEncoding(encodingDefinition, 40, ImageFormats.EacRG11());
-            AddEncoding(encodingDefinition, 41, ImageFormats.Pvrtc_4bpp());
-            AddEncoding(encodingDefinition, 42, ImageFormats.Pvrtc_2bpp());
-            AddEncoding(encodingDefinition, 43, ImageFormats.PvrtcA_4bpp());
-            AddEncoding(encodingDefinition, 44, ImageFormats.PvrtcA_2bpp());
-            AddEncoding(encodingDefinition, 45, ImageFormats.Pvrtc2_4bpp());
-            AddEncoding(encodingDefinition, 46, ImageFormats.Pvrtc2_2bpp());
+            components = isUpdate ? _components[index] : "IA";
+            AddIndexEncoding(encodingDefinition, index++, new Index(3, 5, components), components);
+
+            AddEncoding(encodingDefinition, index++, ImageFormats.Dxt1());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Dxt3());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Dxt5());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Ati1());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Ati2());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Ati1A());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Ati1L());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Ati2AL());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Bc6H());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Bc7());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Atc());
+            AddEncoding(encodingDefinition, index++, ImageFormats.AtcExplicit());
+            AddEncoding(encodingDefinition, index++, ImageFormats.AtcInterpolated());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc1(false));
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc1A4(false));
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc1(true));
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc1A4(true));
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc2());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc2A());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Etc2A1());
+            AddEncoding(encodingDefinition, index++, ImageFormats.EacR11());
+            AddEncoding(encodingDefinition, index++, ImageFormats.EacRG11());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Pvrtc_4bpp());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Pvrtc_2bpp());
+            AddEncoding(encodingDefinition, index++, ImageFormats.PvrtcA_4bpp());
+            AddEncoding(encodingDefinition, index++, ImageFormats.PvrtcA_2bpp());
+            AddEncoding(encodingDefinition, index++, ImageFormats.Pvrtc2_4bpp());
+            AddEncoding(encodingDefinition, index, ImageFormats.Pvrtc2_2bpp());
         }
 
         private void AddPaletteEncoding(EncodingDefinition encodingDefinition, int format, IColorEncoding encoding, string? components = null)

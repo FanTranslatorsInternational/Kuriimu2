@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174
+# Visual Studio Version 18
+VisualStudioVersion = 18.8.12021.73
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.ImGui", "src\ui\Kuriimu2.ImGui\Kuriimu2.ImGui.csproj", "{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}"
 EndProject

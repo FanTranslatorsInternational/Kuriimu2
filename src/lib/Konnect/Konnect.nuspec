@@ -17,7 +17,7 @@
     <license type="expression">GPL-3.0-only</license>
 
     <dependencies>
-      <group targetFramework="net8.0">
+      <group targetFramework="net10.0">
         <dependency id="Kaligraphy" version="2.1.30" />
         <dependency id="Kanvas" version="2.1.40" />
         <dependency id="Kompression" version="2.1.16" />
@@ -27,7 +27,7 @@
   </metadata>
 
   <files>
-    <file src="bin\Release\net8.0\*.dll" target="lib\net8.0\"/>
+    <file src="bin\Release\net10.0\*.dll" target="lib\net10.0\"/>
     <file src="..\..\..\kuriimu2icon.png" target="kuriimu2icon.png"/>
   </files>
 </package>

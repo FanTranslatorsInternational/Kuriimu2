@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <OutputType>WinExe</OutputType>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -144,7 +144,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Imgui.Forms" Version="2.3.6" />
+    <PackageReference Include="Imgui.Forms" Version="2.3.11" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
