@@ -6,169 +6,250 @@ on:
     branches:
       - imgui
     paths:
-      - 'src/ui/Kuriimu2.ImGui/**'
-      - 'plugins/**'
+      - "src/ui/Kuriimu2.ImGui/**"
+      - "plugins/**"
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: kuriimu2-dev-builds
+  cancel-in-progress: false
+
+env:
+  CONFIGURATION: Release
+  FRAMEWORK: net10.0
+  PROJECT: ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj
+  ARTIFACT_PREFIX: Kuriimu2-ImGui
 
 jobs:
-  build:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.prop }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    runs-on: windows-latest
+      - name: Get manifest version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: "./version.json"
+          prop_path: "version"
+
+  plugins:
+    name: Build plugins
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0
+
+      - name: Setup NuGet sources
+        run: >
+          dotnet nuget update source Kuriimu2 --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}" --store-password-in-clear-text
+
+      - name: Publish plugins
+        shell: bash
+        run: |
+          plugins=(
+            ArcSystemWorks
+            Atlus
+            BandaiNamco
+            Beeworks
+            Capcom
+            Circus
+            Criware
+            DotEmu
+            DreamCatcher
+            Enterbrain
+            Felistella
+            FurYu
+            Gust
+            HeadstrongGames
+            HuneX
+            IntiCreates
+            Kadokawa
+            KhronosGroup
+            KoeiTecmo
+            Konami
+            Level5
+            MercurySteam
+            MostWantedEntertainment
+            Nintendo
+            NipponIchiSoftware
+            PowerVR
+            Primula
+            Sega
+            Shade
+            Sony
+            SpikeChunsoft
+            SquareEnix
+            StingEntertainment
+            SuperflatGames
+            TamSoft
+            VBlankEntertainment
+          )
+          mkdir -p ./dist/plugins
+          for plugin in "${plugins[@]}"; do
+            dotnet build "./plugins/${plugin}/${plugin}.sln" --output ./dist/plugins --configuration "$CONFIGURATION" --framework "$FRAMEWORK"
+          done
+          find ./dist/plugins -type f \( -name '*.pdb' -o -name '*.deps.json' \) -delete
+
+      - name: Upload plugins artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_PREFIX }}-plugins
+          path: ./dist/plugins
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish ${{ matrix.platform }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            platform: Windows
+            published_name: Kuriimu2.ImGui.exe
+            final_name: Kuriimu2.exe
+          - os: ubuntu-latest
+            rid: linux-x64
+            platform: Linux
+            published_name: Kuriimu2.ImGui
+            final_name: Kuriimu2
+          - os: macos-latest
+            rid: osx-arm64
+            platform: Mac
+            published_name: Kuriimu2.ImGui
+            final_name: Kuriimu2
+
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}/dist/final/${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v6
-    - uses: nuget/setup-nuget@v2
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Wait for other dev builds
-      uses: softprops/turnstyle@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 8.0
+      - name: Setup NuGet sources
+        run: >
+          dotnet nuget update source Kuriimu2 --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}" --store-password-in-clear-text
 
-    - name: Get manifest version
-      id: version
-      uses: notiz-dev/github-action-json-property@release
-      with: 
-        path: './version.json'
-        prop_path: 'version'
+      - name: Write embedded version resource
+        shell: bash
+        run: |
+          mkdir -p ./src/ui/Kuriimu2.ImGui/Resources
+          echo "{\"source_type\": \"Github Action\", \"version\": \"${{ needs.prepare.outputs.version }}\", \"build_number\": \"${{ github.run_id }}\" }" > ./src/ui/Kuriimu2.ImGui/Resources/version.json
 
-    - name: Create manifests
-      run: |
-        mkdir ./update/Windows
-        mkdir ./update/Linux
-        mkdir ./update/Mac
-        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Windows/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Linux/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Mac/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ steps.version.outputs.prop }}", "build_number": "${{ github.run_id }}" }' > ./src/ui/Kuriimu2.ImGui/Resources/version.json
+      - name: Publish
+        shell: bash
+        run: |
+          dotnet publish "$PROJECT" --configuration "$CONFIGURATION" --framework "$FRAMEWORK" --runtime "${{ matrix.rid }}" --output "$PUBLISH_DIR" -p:PublishSingleFile=true
+          mv "$PUBLISH_DIR/${{ matrix.published_name }}" "$PUBLISH_DIR/${{ matrix.final_name }}"
+          if [[ "${{ runner.os }}" != "Windows" ]]; then
+            chmod +x "$PUBLISH_DIR/${{ matrix.final_name }}"
+          fi
+          find "$PUBLISH_DIR" -type f -name '*.pdb' -delete
+          echo "### ${{ matrix.platform }} (${{ matrix.rid }})" >> "$GITHUB_STEP_SUMMARY"
+          ls -lah "$PUBLISH_DIR" | tee -a "$GITHUB_STEP_SUMMARY"
 
-    - name: Setup NuGet sources
-      run: |
-        dotnet nuget update source Kuriimu2 --username ${{ secrets.GITHUB_TOKEN }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload platform artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.platform }}
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
+          retention-days: 14
 
-    - name: Publish Kuriimu2 Mac
-      run: |
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime osx-x64 --output ./dist/final/Mac
-        mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
-        rm ./dist/final/Mac/*.pdb
+  release:
+    name: Sign and publish update
+    needs: [prepare, plugins, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: ${{ env.ARTIFACT_PREFIX }}-*
+          path: ./artifacts
 
-    - name: Publish Kuriimu2 Windows
-      run: |
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime win-x64 --output ./dist/final/Windows
-        mv ./dist/final/Windows/Kuriimu2.ImGui.exe ./dist/final/Windows/Kuriimu2.exe
-        rm ./dist/final/Windows/*.pdb
+      - name: Assemble release layout
+        shell: bash
+        run: |
+          version='${{ needs.prepare.outputs.version }}'
+          build='${{ github.run_id }}'
+          mkdir -p ./dist/final ./update/Windows ./update/Linux ./update/Mac
+          
+          for platform in Windows Linux Mac; do
+            mkdir -p "./dist/final/${platform}"
+            cp -a "./artifacts/${ARTIFACT_PREFIX}-${platform}/." "./dist/final/${platform}/"
+            cp -a "./artifacts/${ARTIFACT_PREFIX}-plugins/." "./dist/final/${platform}/plugins/"
+          done
+          
+          echo "{\"source_type\": \"Github Action\", \"version\": \"${version}\", \"build_number\": \"${build}\", \"application_name\": \"Kuriimu2.exe\" }" > ./update/Windows/manifest.json
+          echo "{\"source_type\": \"Github Action\", \"version\": \"${version}\", \"build_number\": \"${build}\", \"application_name\": \"Kuriimu2\" }" > ./update/Linux/manifest.json
+          echo "{\"source_type\": \"Github Action\", \"version\": \"${version}\", \"build_number\": \"${build}\", \"application_name\": \"Kuriimu2\" }" > ./update/Mac/manifest.json
 
-    - name: Publish Kuriimu2 Linux
-      run: |
-        dotnet publish ./src/ui/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --configuration Release --framework net8.0 -p:PublishSingleFile=true --runtime linux-x64 --output ./dist/final/Linux
-        mv ./dist/final/Linux/Kuriimu2.ImGui ./dist/final/Linux/Kuriimu2
-        rm ./dist/final/Linux/*.pdb
+      - name: Zip releases
+        shell: bash
+        run: |
+          (cd ./dist/final/Windows && zip -r -9 "${GITHUB_WORKSPACE}/update/Windows/latest.zip" .)
+          (cd ./dist/final/Linux && zip -r -9 "${GITHUB_WORKSPACE}/update/Linux/latest.zip" .)
+          (cd ./dist/final/Mac && zip -r -9 "${GITHUB_WORKSPACE}/update/Mac/latest.zip" .)
+          ls -lah ./update/Windows ./update/Linux ./update/Mac | tee -a "$GITHUB_STEP_SUMMARY"
 
-    - name: Publish plugins
-      run: |
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/ArcSystemWorks/ArcSystemWorks.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Atlus/Atlus.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/BandaiNamco/BandaiNamco.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Beeworks/Beeworks.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Capcom/Capcom.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Circus/Circus.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Criware/Criware.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/DotEmu/DotEmu.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/DreamCatcher/DreamCatcher.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Enterbrain/Enterbrain.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Felistella/Felistella.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/FurYu/FurYu.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Gust/Gust.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/HeadstrongGames/HeadstrongGames.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/HuneX/HuneX.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/IntiCreates/IntiCreates.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Kadokawa/Kadokawa.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/KhronosGroup/KhronosGroup.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/KoeiTecmo/KoeiTecmo.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Konami/Konami.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Level5/Level5.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/MercurySteam/MercurySteam.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Nintendo/Nintendo.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/PowerVR/PowerVR.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Primula/Primula.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Sega/Sega.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Shade/Shade.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/Sony/Sony.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SpikeChunsoft/SpikeChunsoft.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SquareEnix/SquareEnix.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/StingEntertainment/StingEntertainment.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/SuperflatGames/SuperflatGames.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/TamSoft/TamSoft.sln 
-        dotnet build --output ./dist/final/plugins --configuration Release --framework net8.0 ./plugins/VBlankEntertainment/VBlankEntertainment.sln 
-        rm ./dist/final/plugins/*.pdb
-        rm ./dist/final/plugins/*.deps.json
+      - name: Sign release
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY_IMGUI }}
+        run: |
+          echo "$PRIVATE_KEY" > privatekey.pem
+          openssl dgst -sha512 -sign privatekey.pem -out ./update/Windows/latest.sig ./update/Windows/latest.zip
+          openssl dgst -sha512 -sign privatekey.pem -out ./update/Linux/latest.sig ./update/Linux/latest.zip
+          openssl dgst -sha512 -sign privatekey.pem -out ./update/Mac/latest.sig ./update/Mac/latest.zip
 
-    - name: Copy plugins to Kuriimu2 folder
-      run: |
-        xcopy /I .\dist\final\plugins .\dist\final\Windows\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Linux\plugins
-        xcopy /I .\dist\final\plugins .\dist\final\Mac\plugins
-      shell: cmd
-      
-    - name: Zip Windows release
-      uses: papeloto/action-zip@v1
-      with:
-        files: ./dist/final/Windows
-        dest: ./update/Windows/latest.zip
-      
-    - name: Zip Linux release
-      uses: papeloto/action-zip@v1
-      with:
-        files: ./dist/final/Linux
-        dest: ./update/Linux/latest.zip
-        
-    - name: Zip Mac release
-      uses: papeloto/action-zip@v1
-      with:
-        files: ./dist/final/Mac
-        dest: ./update/Mac/latest.zip
-      
-    - name: Install openSSL
-      uses: crazy-max/ghaction-chocolatey@v3
-      with:
-        args: install openssl.light
-      
-    - name: Sign release
-      run: |
-        echo "$PRIVATE_KEY" > privatekey.pem
-        openssl dgst -sha512 -sign privatekey.pem -out ./update/Windows/latest.sig ./update/Windows/latest.zip
-        openssl dgst -sha512 -sign privatekey.pem -out ./update/Linux/latest.sig ./update/Linux/latest.zip
-        openssl dgst -sha512 -sign privatekey.pem -out ./update/Mac/latest.sig ./update/Mac/latest.zip
-      shell: bash
-      env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY_IMGUI }}
-      
-    - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update ./update_repo
-        
-    - name: Move update files to update repo
-      run: |
-        mv -Force ./update/Windows/* ./update_repo/Windows
-        mv -Force ./update/Linux/* ./update_repo/Linux
-        mv -Force ./update/Mac/* ./update_repo/Mac
-        
-    - name: Commit changes to update repo
-      run: |
-        cd ./update_repo
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git checkout --orphan squash HEAD
-        git add *
-        git commit -m "Update binaries" -a
-        
-    - name: Push changes to update repo
-      run: |
-        cd ./update_repo
-        git branch -M main
-        git remote set-url origin https://oauth2:${{ secrets.PRIVATE_ACCESS_TOKEN }}@github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update.git
-        git push --force origin main
+      - name: Clone update repository
+        shell: bash
+        run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update ./update_repo
+
+      - name: Move update files to update repo
+        shell: bash
+        run: |
+          mkdir -p ./update_repo/Windows ./update_repo/Linux ./update_repo/Mac
+          mv -f ./update/Windows/* ./update_repo/Windows/
+          mv -f ./update/Linux/* ./update_repo/Linux/
+          mv -f ./update/Mac/* ./update_repo/Mac/
+
+      - name: Commit changes to update repo
+        shell: bash
+        run: |
+          cd ./update_repo
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout --orphan squash HEAD
+          git add -A
+          git commit -m "Update binaries"
+
+      - name: Push changes to update repo
+        shell: bash
+        run: |
+          cd ./update_repo
+          git branch -M main
+          git remote set-url origin "https://oauth2:${{ secrets.PRIVATE_ACCESS_TOKEN }}@github.com/FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update.git"
+          git push --force origin main
