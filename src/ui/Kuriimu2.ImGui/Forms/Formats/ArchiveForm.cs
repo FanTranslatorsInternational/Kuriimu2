@@ -260,6 +260,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _replaceDirectoryButton.Enabled = canReplaceDirectories;
             _renameDirectoryButton.Enabled = canRenameDirectories;
             _deleteDirectoryButton.Enabled = canDeleteDirectories;
+            _addMenu.Enabled = canAddDirectories;
             _addDirectoryButton.Enabled = canAddDirectories;
             _addFileButton.Enabled = canAddDirectories;
         }

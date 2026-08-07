@@ -38,6 +38,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
         private MenuBarButton _extractDirectoryButton;
         private MenuBarButton _replaceDirectoryButton;
         private MenuBarButton _renameDirectoryButton;
+        private MenuBarMenu _addMenu;
         private MenuBarButton _addFileButton;
         private MenuBarButton _addDirectoryButton;
         private MenuBarButton _deleteDirectoryButton;
@@ -74,6 +75,15 @@ namespace Kuriimu2.ImGui.Forms.Formats
                 KeyAction = new KeyCommand(ImGuiKey.Delete, LocalizationResources.ArchiveDirectoryDeleteShortcut)
             };
 
+            _addMenu = new MenuBarMenu(LocalizationResources.ArchiveDirectoryAdd)
+            {
+                Items =
+                {
+                    _addFileButton,
+                    _addDirectoryButton
+                }
+            };
+
             _openFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileOpen };
             _openWithFileMenu = new MenuBarMenu { Text = LocalizationResources.ArchiveFileOpenWith };
             _extractFileButton = new MenuBarButton { Text = LocalizationResources.ArchiveFileExtract };
@@ -92,14 +102,7 @@ namespace Kuriimu2.ImGui.Forms.Formats
                     _extractDirectoryButton,
                     _replaceDirectoryButton,
                     _renameDirectoryButton,
-                    new MenuBarMenu(LocalizationResources.ArchiveDirectoryAdd)
-                    {
-                        Items =
-                        {
-                            _addFileButton,
-                            _addDirectoryButton
-                        }
-                    },
+                    _addMenu,
                     _deleteDirectoryButton
                 }
             };
