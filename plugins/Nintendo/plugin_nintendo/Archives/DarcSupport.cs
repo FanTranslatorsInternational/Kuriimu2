@@ -39,7 +39,7 @@ namespace plugin_nintendo.Archives
 
     class DarcArchiveFile : ArchiveFile
     {
-        public string UnescapedPath { get; }
+        public string UnescapedPath { get; set; }
 
         public DarcArchiveFile(ArchiveFileInfo fileInfo, string unescapedPath) : base(fileInfo)
         {
@@ -158,32 +158,32 @@ namespace plugin_nintendo.Archives
 
         private string GetDirectory(string path)
         {
-            if (path.EndsWith(Path.DirectorySeparatorChar))
+            if (path.EndsWith('\\'))
                 path = path.Substring(0, path.Length - 1);
 
-            var splitted = path.Split(Path.DirectorySeparatorChar);
-            return string.Join(Path.DirectorySeparatorChar, splitted.Take(splitted.Length - 1));
+            var splitted = path.Split('\\');
+            return string.Join('\\', splitted.Take(splitted.Length - 1));
         }
 
         private string GetName(string path)
         {
-            if (path.EndsWith(Path.DirectorySeparatorChar))
+            if (path.EndsWith('\\'))
                 return string.Empty;
 
-            return path.Split(Path.DirectorySeparatorChar).Last();
+            return path.Split('\\').Last();
         }
 
         private string[] SplitPath(string path)
         {
-            if (path.EndsWith(Path.DirectorySeparatorChar))
+            if (path.EndsWith('\\'))
                 path = path.Substring(0, path.Length - 1);
 
-            return path.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+            return path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
         }
 
         private string Combine(IEnumerable<string> parts)
         {
-            return string.Join(Path.DirectorySeparatorChar, parts);
+            return string.Join('\\', parts);
         }
     }
 }

@@ -28,6 +28,7 @@ namespace plugin_nintendo.Images
 
         public DeprecatedPluginAlternative[] Alternatives { get; } =
         [
+            new() { ToolName = "Clypo", Url = "https://github.com/pleonex/Clypo" },
             new() { ToolName = "Kuriimu 1", Url = "https://github.com/IcySon55/Kuriimu" }
         ];
 

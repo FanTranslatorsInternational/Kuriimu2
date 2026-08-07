@@ -1,5 +1,6 @@
 ﻿using Konnect.Contract.DataClasses.FileSystem;
 using Konnect.Contract.DataClasses.Plugin.File;
+using Konnect.Contract.DataClasses.Plugin.File.Archive;
 using Konnect.Contract.FileSystem;
 using Konnect.Contract.Plugin.File;
 using Konnect.Contract.Plugin.File.Archive;
@@ -7,12 +8,13 @@ using plugin_nintendo.Common.Compression;
 
 namespace plugin_nintendo.Archives
 {
-    class DarcState : ILoadFiles, ISaveFiles, IReplaceFiles
+    class DarcState : ILoadFiles, ISaveFiles, IReplaceFiles, IRenameFiles, IRemoveFiles, IAddFiles
     {
         private readonly Darc _arc = new();
         private NintendoCompressionMethod _method;
 
         private List<IArchiveFile> _files;
+        private bool _hasDeletedFiles;
 
         public IReadOnlyList<IArchiveFile> Files => _files;
 
@@ -42,6 +44,8 @@ namespace plugin_nintendo.Archives
                 output.Position = 0;
                 NintendoCompressor.Compress(output, final, _method);
             }
+
+            _hasDeletedFiles = false;
         }
 
         public void ReplaceFile(IArchiveFile afi, Stream fileData)
@@ -49,9 +53,43 @@ namespace plugin_nintendo.Archives
             afi.SetFileData(fileData);
         }
 
+        public void RenameFile(IArchiveFile file, UPath path)
+        {
+            if (file is not DarcArchiveFile darcFile)
+                return;
+
+            darcFile.FilePath = path;
+            darcFile.UnescapedPath = $".\\{path.FullName?.Replace('/', '\\')}";
+        }
+
+        public IArchiveFile AddFile(Stream fileData, UPath filePath)
+        {
+            var file = new DarcArchiveFile(new ArchiveFileInfo
+            {
+                FilePath = filePath,
+                FileData = fileData,
+                ContentChanged = true
+            }, $".\\{filePath.FullName?.Replace('/', '\\')}");
+            _files.Add(file);
+
+            return file;
+        }
+
+        public void RemoveFile(IArchiveFile file)
+        {
+            _hasDeletedFiles = true;
+            _files.Remove(file);
+        }
+
+        public void RemoveAll()
+        {
+            _hasDeletedFiles = true;
+            _files.Clear();
+        }
+
         private bool IsChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return Files.Any(x => x.ContentChanged) || _hasDeletedFiles;
         }
 
         private bool TryDecompress(Stream input, out Stream decompressedFile, out NintendoCompressionMethod method)
