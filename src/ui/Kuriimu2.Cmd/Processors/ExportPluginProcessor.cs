@@ -160,7 +160,7 @@ namespace Kuriimu2.Cmd.Processors
             if (result is not ExportFailureReason.None)
                 return new ExportResult(result, []);
 
-            var batchExtractor = new BatchExtractor(fileManager, new ProgressContext(new CommandLineProgressOutput("Export", 14)));
+            var batchExtractor = new BatchExtractor(fileManager, new ProgressContext(new CommandLineProgressOutput("Export", 14))) { ReuseDialogOptions = true };
             BatchFileResult[] batchResults = File.Exists(options.Input)
                 ? await batchExtractor.Extract([options.Input], options.Output, plugin!, batchOptions!)
                 : await batchExtractor.Extract(options.Input, options.Output, plugin!, batchOptions!);

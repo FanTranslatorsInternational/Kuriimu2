@@ -144,7 +144,7 @@ namespace Kuriimu2.Cmd.Processors
             if (result is not ImportFailureReason.None)
                 return new ImportResult(result, []);
 
-            var batchInjector = new BatchInjector(fileManager, new ProgressContext(new CommandLineProgressOutput("Import", 14)));
+            var batchInjector = new BatchInjector(fileManager, new ProgressContext(new CommandLineProgressOutput("Import", 14))) { ReuseDialogOptions = true };
             BatchFileResult[] batchResults = File.Exists(options.Input)
                 ? await batchInjector.Inject([options.Input], options.Output, plugin!, batchOptions!)
                 : await batchInjector.Inject(options.Input, options.Output, plugin!, batchOptions!);
