@@ -59,7 +59,7 @@ namespace plugin_nintendo.Archives
                 return;
 
             darcFile.FilePath = path;
-            darcFile.UnescapedPath = $".\\{path.FullName?.Replace('/', '\\')}";
+            darcFile.UnescapedPath = $".{path.FullName?.Replace('/', '\\')}";
         }
 
         public IArchiveFile AddFile(Stream fileData, UPath filePath)
@@ -69,7 +69,7 @@ namespace plugin_nintendo.Archives
                 FilePath = filePath,
                 FileData = fileData,
                 ContentChanged = true
-            }, $".\\{filePath.FullName?.Replace('/', '\\')}");
+            }, $".{filePath.FullName?.Replace('/', '\\')}");
             _files.Add(file);
 
             return file;
