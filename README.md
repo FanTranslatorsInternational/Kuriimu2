@@ -10,7 +10,7 @@
 ![GitHub downloads](https://img.shields.io/github/downloads/FanTranslatorsInternational/Kuriimu2/total)
 <a href="https://github.com/FanTranslatorsInternational/Kuriimu2/issues"><img src="https://img.shields.io/github/issues/FanTranslatorsInternational/Kuriimu2" alt="Issues"></a>
 <a href="https://github.com/FanTranslatorsInternational/Kuriimu2/blob/imgui/LICENSE.md"><img src="https://img.shields.io/github/license/FanTranslatorsInternational/Kuriimu2" alt="License"></a>
-[![Discord](https://img.shields.io/discord/216681627294629888?label=Discord&logo=discord)](https://discord.gg/9GvqrBChg)
+[![Discord](https://img.shields.io/discord/216681627294629888?label=Discord&logo=discord)](https://discord.gg/6NzbPkaAwf)
 
 </div>
 
